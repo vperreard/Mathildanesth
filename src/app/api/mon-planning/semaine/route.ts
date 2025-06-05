@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '../../../../lib/prisma';
 import { verifyAuthToken, getAuthTokenServer } from '../../../../lib/auth-server-utils';
 import { startOfWeek, endOfWeek, addDays, format } from 'date-fns';
@@ -181,7 +182,7 @@ async function handler(req: NextRequest) {
         return response;
 
     } catch (error) {
-        console.error('Erreur lors du chargement du planning semaine', error);
+        logger.error('Erreur lors du chargement du planning semaine', error);
         return NextResponse.json(
             { error: 'Erreur lors du chargement du planning' },
             { status: 500 }

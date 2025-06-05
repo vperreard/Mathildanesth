@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     Table,
     TableBody,
@@ -99,7 +100,7 @@ export default function SallesAdmin() {
             setSalles(sallesData);
             setSecteurs(secteursData);
         } catch (error) {
-            console.error('Erreur lors du chargement des données:', error);
+            logger.error('Erreur lors du chargement des données:', error);
             toast({
                 variant: 'destructive',
                 title: 'Erreur de chargement',
@@ -155,7 +156,7 @@ export default function SallesAdmin() {
             });
             await loadData();
         } catch (error) {
-            console.error('Erreur lors de la suppression:', error);
+            logger.error('Erreur lors de la suppression:', error);
             toast({
                 variant: 'destructive',
                 title: 'Erreur de suppression',
@@ -214,7 +215,7 @@ export default function SallesAdmin() {
             await loadData();
             setIsDialogOpen(false);
         } catch (error) {
-            console.error('Erreur lors de l\'enregistrement:', error);
+            logger.error('Erreur lors de l\'enregistrement:', error);
             toast({
                 variant: 'destructive',
                 title: 'Erreur d\'enregistrement',

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     SpecialPeriodRule,
     SpecialPeriodRuleType,
@@ -71,7 +72,7 @@ export const SpecialPeriodManager: React.FC<SpecialPeriodManagerProps> = ({
                 setFormData(periods[0]);
             }
         } catch (err) {
-            console.error('Erreur lors du chargement des périodes spéciales :', err);
+            logger.error('Erreur lors du chargement des périodes spéciales :', err);
             setError(`Erreur: ${(err as Error).message}`);
         } finally {
             setLoading(false);
@@ -190,7 +191,7 @@ export const SpecialPeriodManager: React.FC<SpecialPeriodManagerProps> = ({
                 onSaveComplete();
             }
         } catch (err) {
-            console.error('Erreur lors de l\'enregistrement de la période :', err);
+            logger.error('Erreur lors de l\'enregistrement de la période :', err);
             setError(`Erreur: ${(err as Error).message}`);
         } finally {
             setSaving(false);

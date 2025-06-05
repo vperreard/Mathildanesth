@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     Table,
     TableBody,
@@ -32,7 +33,7 @@ const formatDateForDisplay = (dateString: string | Date | undefined): string => 
         }
         return date.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' });
     } catch (e) {
-        console.error("Erreur de formatage de date pour affichage:", e);
+        logger.error("Erreur de formatage de date pour affichage:", e);
         return 'Date invalide';
     }
 };

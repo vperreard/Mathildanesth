@@ -4,6 +4,7 @@
 
 import { getClientAuthToken } from '@/lib/auth-client-utils';
 
+import { logger } from "../lib/logger";
 // Fonction pour précharger les données depuis une API
 export async function prefetchData<T>(url: string): Promise<T | null> {
     try {
@@ -25,7 +26,7 @@ export async function prefetchData<T>(url: string): Promise<T | null> {
         if (!response.ok) {
             // Si c'est une erreur 404, on retourne null au lieu de throw
             if (response.status === 404) {
-                console.log(`Ressource non trouvée pour ${url}, ignorée`);
+                logger.info(`Ressource non trouvée pour ${url}, ignorée`);
                 return null;
             }
             throw new Error(`Erreur HTTP: ${response.status}`);
@@ -33,7 +34,7 @@ export async function prefetchData<T>(url: string): Promise<T | null> {
 
         return response.json();
     } catch (error) {
-        console.error(`Erreur de préchargement pour ${url}:`, error);
+        logger.error(`Erreur de préchargement pour ${url}:`, error);
         // Ne pas propager l'erreur pour éviter de casser le préchargement
         return null;
     }
@@ -45,7 +46,7 @@ export function prefetchCommonData() {
 
     // Ne faire le prefetch que si l'utilisateur est authentifié
     if (!token) {
-        console.log('Aucun token disponible, préchargement ignoré');
+        logger.info('Aucun token disponible, préchargement ignoré');
         return;
     }
 
@@ -60,7 +61,7 @@ export function prefetchCommonData() {
         // Journaliser les succès et échecs pour le débogage
         results.forEach((result, index) => {
             if (result.status === 'rejected') {
-                console.warn(`Préchargement #${index} échoué:`, result.reason);
+                logger.warn(`Préchargement #${index} échoué:`, result.reason);
             }
         });
     });
@@ -106,13 +107,13 @@ export function prefetchUserData(userId: string) {
 
     const token = getClientAuthToken();
     if (!token) {
-        console.log('Aucun token disponible, préchargement utilisateur ignoré');
+        logger.info('Aucun token disponible, préchargement utilisateur ignoré');
         return;
     }
 
     // Pour l'instant, on ignore le prefetch de l'utilisateur car il cause des erreurs
     // TODO: Fix the API route to handle prefetch requests properly
-    console.log(`Préchargement utilisateur ${userId} temporairement désactivé`);
+    logger.info(`Préchargement utilisateur ${userId} temporairement désactivé`);
     return;
 
     // Promise.allSettled([

@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { logger } from "./logger";
 import { getSession } from 'next-auth/react';
 
 // Create axios instance with default config
@@ -21,7 +22,7 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${session.accessToken}`;
       }
     } catch (error) {
-      console.warn('Impossible d\'obtenir la session pour la requête API:', error);
+      logger.warn('Impossible d\'obtenir la session pour la requête API:', error);
     }
 
     return config;

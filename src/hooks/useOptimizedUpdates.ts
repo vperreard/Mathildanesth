@@ -8,6 +8,7 @@ import {
     useMemo
 } from 'react';
 
+import { logger } from "../lib/logger";
 // Hook pour débouncer les valeurs
 export function useDebouncedValue<T>(value: T, delay: number): T {
     const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -323,7 +324,7 @@ export function useRenderPerformance(componentName: string) {
         }));
 
         if (process.env.NODE_ENV === 'development' && renderDuration > 16) {
-            console.warn(
+            logger.warn(
                 `[Performance] ${componentName} render lent: ${renderDuration}ms (render #${renderCountRef.current})`
             );
         }

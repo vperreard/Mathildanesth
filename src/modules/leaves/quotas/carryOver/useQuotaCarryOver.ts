@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     QuotaCarryOverCalculationRequest,
     QuotaCarryOverCalculationResult,
@@ -127,7 +128,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             setBalance(balanceData);
         } catch (err) {
             setError(err as Error);
-            console.error('Erreur lors de la récupération du solde des congés', err);
+            logger.error('Erreur lors de la récupération du solde des congés', err);
         } finally {
             setLoading(false);
         }
@@ -145,7 +146,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             setCarryOverRules(rules);
         } catch (err) {
             setError(err as Error);
-            console.error('Erreur lors de la récupération des règles de report', err);
+            logger.error('Erreur lors de la récupération des règles de report', err);
         } finally {
             setLoading(false);
         }
@@ -165,7 +166,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             setCarryOverHistory(history);
         } catch (err) {
             setError(err as Error);
-            console.error('Erreur lors de la récupération de l\'historique des reports', err);
+            logger.error('Erreur lors de la récupération de l\'historique des reports', err);
         } finally {
             setHistoryLoading(false);
         }
@@ -216,7 +217,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             return extendedPreview;
         } catch (err) {
             setCarryOverError(err as Error);
-            console.error('Erreur lors de la simulation du report', err);
+            logger.error('Erreur lors de la simulation du report', err);
 
             // Retourner un objet d'erreur
             return {
@@ -260,7 +261,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
                     const preview = await simulateCarryOver(request);
                     previews.push(preview);
                 } catch (err) {
-                    console.error(`Erreur lors de la simulation du report pour ${getTypeLabel(type)}`, err);
+                    logger.error(`Erreur lors de la simulation du report pour ${getTypeLabel(type)}`, err);
                 }
             }
 
@@ -268,7 +269,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             return previews;
         } catch (err) {
             setCarryOverError(err as Error);
-            console.error('Erreur lors de la simulation des reports', err);
+            logger.error('Erreur lors de la simulation des reports', err);
             return [];
         } finally {
             setSimulationLoading(false);
@@ -303,7 +304,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             return result;
         } catch (err) {
             setCarryOverError(err as Error);
-            console.error('Erreur lors de l\'exécution du report', err);
+            logger.error('Erreur lors de l\'exécution du report', err);
 
             return {
                 originalRemaining: 0,
@@ -342,7 +343,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
                         const result = await executeCarryOver(request);
                         results.push(result);
                     } catch (err) {
-                        console.error(`Erreur lors de l'exécution du report pour ${preview.typeLabel}`, err);
+                        logger.error(`Erreur lors de l'exécution du report pour ${preview.typeLabel}`, err);
                     }
                 }
             }
@@ -350,7 +351,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             return results;
         } catch (err) {
             setCarryOverError(err as Error);
-            console.error('Erreur lors de l\'exécution des reports', err);
+            logger.error('Erreur lors de l\'exécution des reports', err);
             return [];
         } finally {
             setCarryOverLoading(false);

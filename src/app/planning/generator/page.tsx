@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { logger } from "../../../lib/logger";
 import { useRouter } from 'next/navigation';
 // import { PlanningGenerator } from '../../../services/planningGenerator'; // Supprimé
 import { ApiService } from '../../../services/api';
@@ -68,7 +69,7 @@ const PlanningGeneratorPage: React.FC = () => {
             setValidationResult(response.validationResult);
             setGenerated(true);
         } catch (error) {
-            console.error('Erreur lors de la génération du planning via API:', error);
+            logger.error('Erreur lors de la génération du planning via API:', error);
             setError(error instanceof Error ? error.message : 'Une erreur API est survenue lors de la génération');
         } finally {
             setLoading(false);
@@ -89,7 +90,7 @@ const PlanningGeneratorPage: React.FC = () => {
             setAssignments(validationResponse.attributions); // Mettre à jour si l'API modifie les assignations
             setValidationResult(validationResponse.validationResult);
         } catch (error) {
-            console.error('Erreur lors de la résolution de la violation via API:', error);
+            logger.error('Erreur lors de la résolution de la violation via API:', error);
             setError(error instanceof Error ? error.message : 'Une erreur API est survenue lors de la validation');
         }
     };
@@ -103,7 +104,7 @@ const PlanningGeneratorPage: React.FC = () => {
             alert('Planning approuvé et sauvegardé via API !');
             router.push('/planning/view');
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde du planning via API:', error);
+            logger.error('Erreur lors de la sauvegarde du planning via API:', error);
             setError(error instanceof Error ? error.message : "Une erreur API est survenue lors de l'approbation");
         }
     };

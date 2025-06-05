@@ -1,4 +1,5 @@
 import eventService from '../../core/events/EventService';
+import { logger } from "../../lib/logger";
 import { EventType, LeaveEvent, PlanningEvent } from '../../core/events/EventTypes';
 import { Leave, LeaveStatus } from '../conges/types/leave';
 import { PlanningEventType } from '../planning/types/planning';
@@ -63,7 +64,7 @@ export class LeavePlanningIntegration {
         });
 
         this.isInitialized = true;
-        console.log('LeavePlanningIntegration: Service initialized');
+        logger.info('LeavePlanningIntegration: Service initialized');
     }
 
     /**
@@ -71,7 +72,7 @@ export class LeavePlanningIntegration {
      */
     private async handleLeaveEvent(event: LeaveEvent): Promise<void> {
         try {
-            console.log(`LeavePlanningIntegration: Processing leave event ${event.type}`, event.leaveId);
+            logger.info(`LeavePlanningIntegration: Processing leave event ${event.type}`, event.leaveId);
 
             // Récupérer le congé complet depuis l'API (si besoin)
             const leave = await this.fetchLeaveDetails(event.leaveId);
@@ -110,7 +111,7 @@ export class LeavePlanningIntegration {
                     break;
             }
         } catch (error) {
-            console.error('LeavePlanningIntegration: Error handling leave event', error);
+            logger.error('LeavePlanningIntegration: Error handling leave event', error);
         }
     }
 
@@ -119,7 +120,7 @@ export class LeavePlanningIntegration {
      */
     private async handlePlanningEvent(event: PlanningEvent): Promise<void> {
         try {
-            console.log(`LeavePlanningIntegration: Processing planning event ${event.type}`);
+            logger.info(`LeavePlanningIntegration: Processing planning event ${event.type}`);
 
             switch (event.type) {
                 case EventType.PLANNING_CONFLICT_DETECTED:
@@ -137,7 +138,7 @@ export class LeavePlanningIntegration {
                     break;
             }
         } catch (error) {
-            console.error('LeavePlanningIntegration: Error handling planning event', error);
+            logger.error('LeavePlanningIntegration: Error handling planning event', error);
         }
     }
 
@@ -167,7 +168,7 @@ export class LeavePlanningIntegration {
     private async createPlanningEventFromLeave(leave: Leave): Promise<void> {
         try {
             // TODO: Implémenter l'appel API réel
-            console.log(`LeavePlanningIntegration: Creating planning event for leave ${leave.id}`);
+            logger.info(`LeavePlanningIntegration: Creating planning event for leave ${leave.id}`);
 
             // Créer un événement de planning
             const planningEvent = {
@@ -202,7 +203,7 @@ export class LeavePlanningIntegration {
             // Publier l'événement via l'adaptateur d'événements
             planningEventAdapter.emitPlanningEventAdded(planning, planningEvent);
         } catch (error) {
-            console.error(`LeavePlanningIntegration: Error creating planning event`, error);
+            logger.error(`LeavePlanningIntegration: Error creating planning event`, error);
         }
     }
 
@@ -212,7 +213,7 @@ export class LeavePlanningIntegration {
     private async updatePlanningEventFromLeave(leave: Leave): Promise<void> {
         try {
             // TODO: Implémenter l'appel API réel
-            console.log(`LeavePlanningIntegration: Updating planning event for leave ${leave.id}`);
+            logger.info(`LeavePlanningIntegration: Updating planning event for leave ${leave.id}`);
 
             // Mettre à jour l'événement de planning
             const planningEvent = {
@@ -245,7 +246,7 @@ export class LeavePlanningIntegration {
             // Publier l'événement via l'adaptateur d'événements
             planningEventAdapter.emitPlanningEventUpdated(planning, planningEvent);
         } catch (error) {
-            console.error(`LeavePlanningIntegration: Error updating planning event`, error);
+            logger.error(`LeavePlanningIntegration: Error updating planning event`, error);
         }
     }
 
@@ -255,7 +256,7 @@ export class LeavePlanningIntegration {
     private async removePlanningEventForLeave(leave: Leave): Promise<void> {
         try {
             // TODO: Implémenter l'appel API réel
-            console.log(`LeavePlanningIntegration: Removing planning event for leave ${leave.id}`);
+            logger.info(`LeavePlanningIntegration: Removing planning event for leave ${leave.id}`);
 
             // Définir l'événement à supprimer
             const planningEvent = {
@@ -288,7 +289,7 @@ export class LeavePlanningIntegration {
             // Publier l'événement via l'adaptateur d'événements
             planningEventAdapter.emitPlanningEventRemoved(planning, planningEvent);
         } catch (error) {
-            console.error(`LeavePlanningIntegration: Error removing planning event`, error);
+            logger.error(`LeavePlanningIntegration: Error removing planning event`, error);
         }
     }
 
@@ -300,7 +301,7 @@ export class LeavePlanningIntegration {
         if (!leave.isRecurring) return;
 
         try {
-            console.log(`LeavePlanningIntegration: Processing recurring leave ${leave.id}`);
+            logger.info(`LeavePlanningIntegration: Processing recurring leave ${leave.id}`);
 
             // Vérifier si le congé a des occurrences
             // et traiter chaque occurrence comme un congé individuel dans le planning
@@ -318,7 +319,7 @@ export class LeavePlanningIntegration {
                 }
             }
         } catch (error) {
-            console.error(`LeavePlanningIntegration: Error handling recurring leave`, error);
+            logger.error(`LeavePlanningIntegration: Error handling recurring leave`, error);
         }
     }
 
@@ -327,7 +328,7 @@ export class LeavePlanningIntegration {
      */
     private async handleLeaveConflict(event: PlanningEvent): Promise<void> {
         try {
-            console.log(`LeavePlanningIntegration: Processing planning conflict involving leaves`);
+            logger.info(`LeavePlanningIntegration: Processing planning conflict involving leaves`);
 
             // Extraire les IDs des congés concernés
             const leaveIds = event.details?.conflictingEvents
@@ -339,10 +340,10 @@ export class LeavePlanningIntegration {
             // Notifier le module de congés pour chaque congé concerné
             for (const leaveId of leaveIds) {
                 // TODO: Notifier le module de congés du conflit
-                console.log(`LeavePlanningIntegration: Notifying leave module about conflict for leave ${leaveId}`);
+                logger.info(`LeavePlanningIntegration: Notifying leave module about conflict for leave ${leaveId}`);
             }
         } catch (error) {
-            console.error(`LeavePlanningIntegration: Error handling leave conflict`, error);
+            logger.error(`LeavePlanningIntegration: Error handling leave conflict`, error);
         }
     }
 
@@ -351,18 +352,18 @@ export class LeavePlanningIntegration {
      */
     private async handleLeaveRemovedFromPlanning(leaveId: string): Promise<void> {
         try {
-            console.log(`LeavePlanningIntegration: Processing leave removed from planning ${leaveId}`);
+            logger.info(`LeavePlanningIntegration: Processing leave removed from planning ${leaveId}`);
 
             // Récupérer les détails du congé
             const leave = await this.fetchLeaveDetails(leaveId);
 
             // Si le congé est toujours approuvé, il faudrait le synchroniser à nouveau
             if (leave.status === LeaveStatus.APPROVED) {
-                console.log(`LeavePlanningIntegration: Leave ${leaveId} is still approved, re-syncing`);
+                logger.info(`LeavePlanningIntegration: Leave ${leaveId} is still approved, re-syncing`);
                 // Optionnel : recréer l'événement ou notifier un administrateur
             }
         } catch (error) {
-            console.error(`LeavePlanningIntegration: Error handling leave removed from planning`, error);
+            logger.error(`LeavePlanningIntegration: Error handling leave removed from planning`, error);
         }
     }
 }

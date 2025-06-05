@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { LeaveType } from '@prisma/client';
 
@@ -38,7 +39,7 @@ export async function GET(
 
     return NextResponse.json(formattedRules);
   } catch (error) {
-    console.error(
+    logger.error(
       'Erreur lors de la récupération des règles de transfert pour le type source:',
       error
     );

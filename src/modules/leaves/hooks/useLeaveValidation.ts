@@ -35,11 +35,12 @@
  * 
  * // Vérifier s'il y a des erreurs
  * if (hasError(`leave_start_${userId}`)) {
- *   console.log(getErrorMessage(`leave_start_${userId}`));
+ *   logger.info(getErrorMessage(`leave_start_${userId}`));
  * }
  */
 
 import { useState, useCallback, useMemo, useRef } from 'react';
+import { logger } from "../../../lib/logger";
 import { useDateValidation } from './useDateValidation';
 
 // Types for date validation
@@ -268,12 +269,12 @@ export function useLeaveValidation() {
             setLocalErrors(cachedResult.errors);
             setLocalContext(cachedResult.context);
             cacheStats.current.hits++;
-            console.debug(`[LeaveValidation] Cache hit (${cacheStats.current.hits} hits, ${cacheStats.current.misses} misses)`);
+            logger.debug(`[LeaveValidation] Cache hit (${cacheStats.current.hits} hits, ${cacheStats.current.misses} misses)`);
             return cachedResult.isValid;
         }
 
         cacheStats.current.misses++;
-        console.debug(`[LeaveValidation] Cache miss (${cacheStats.current.hits} hits, ${cacheStats.current.misses} misses)`);
+        logger.debug(`[LeaveValidation] Cache miss (${cacheStats.current.hits} hits, ${cacheStats.current.misses} misses)`);
 
         const startFieldName = `leave_start_${userId}`;
         const endFieldName = `leave_end_${userId}`;

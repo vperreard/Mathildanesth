@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -44,7 +45,7 @@ const UserLeaveBalance: React.FC<UserLeaveBalanceProps> = ({
                 });
                 setBalances(response.data);
             } catch (err) {
-                console.error('Erreur lors du chargement des soldes de congés:', err);
+                logger.error('Erreur lors du chargement des soldes de congés:', err);
                 setError('Impossible de charger les soldes de congés');
             } finally {
                 setIsLoading(false);

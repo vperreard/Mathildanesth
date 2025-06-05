@@ -1,4 +1,5 @@
 import { PrismaClient, Prisma, User, Surgeon, OperatingRoom, OperatingSector, Site, Absence, ProfessionalRole, BlocAffectationHabituelle, BlocTramePlanning, BlocDayPlanning, BlocRoomAssignment, BlocStaffAssignment, BlocPlanningConflict, Period, DayOfWeek, WeekType, BlocPlanningStatus, ConflictSeverity, BlocStaffRole, LeaveStatus, IncompatibilityType } from '@prisma/client';
+import { logger } from "../../../../lib/logger";
 import { v4 as uuidv4 } from 'uuid';
 import {
     OperatingRoom as LegacyOperatingRoom,
@@ -69,7 +70,7 @@ export class BlocPlanningService {
             // puis y ajouter des affectations manuellement. Ou alors, la création depuis trameModeles est stricte.
             // Pour l'instant, on retourne un tableau vide si pas de trameModeles fournies et création stricte depuis trameModeles.
             // Si le but est de créer des BlocDayPlanning vides pour la période, il faudrait une autre logique.
-            console.warn("Aucune trameModele active trouvée pour les IDs fournis. Aucun planning ne sera généré ou mis à jour à partir de trameModeles.");
+            logger.warn("Aucune trameModele active trouvée pour les IDs fournis. Aucun planning ne sera généré ou mis à jour à partir de trameModeles.");
             return [];
             // throw new Error("Aucune trameModele active trouvée pour les IDs fournis.");
         }
@@ -111,7 +112,7 @@ export class BlocPlanningService {
                     include: { attributions: { include: { staffAssignments: true } }, conflicts: true }
                 });
             } else if (blocDayPlanning.status !== BlocPlanningStatus.DRAFT) {
-                console.warn(`Le planning pour le ${currentDate.toISOString().split('T')[0]} sur le site ${siteId} n'est pas en DRAFT. Il ne sera pas modifié.`);
+                logger.warn(`Le planning pour le ${currentDate.toISOString().split('T')[0]} sur le site ${siteId} n'est pas en DRAFT. Il ne sera pas modifié.`);
                 currentDate.setDate(currentDate.getDate() + 1);
                 if (blocDayPlanning) generatedPlannings.push(blocDayPlanning)
                 continue;
@@ -152,7 +153,7 @@ export class BlocPlanningService {
                             // TODO: Gestion des conflits de trameModeles pour la même salle/période
                             // Options: Priorité de trameModele, première arrivée, fusion manuelle, ou générer un conflit.
                             // Pour V1: Générer un conflit d'avertissement.
-                            console.warn(`Conflit de trameModele: Salle ${affHab.operatingRoomId} déjà assignée pour ${affHab.periode} le ${currentDate.toISOString().split('T')[0]}. TrameModele ${trameModele.id}, Affectation ${affHab.id}. La première affectation de trameModele est conservée.`);
+                            logger.warn(`Conflit de trameModele: Salle ${affHab.operatingRoomId} déjà assignée pour ${affHab.periode} le ${currentDate.toISOString().split('T')[0]}. TrameModele ${trameModele.id}, Affectation ${affHab.id}. La première affectation de trameModele est conservée.`);
 
                             // Création d'un conflit pour notifier l'utilisateur
                             await prisma.blocPlanningConflict.create({
@@ -288,7 +289,7 @@ export class BlocPlanningService {
         });
 
         if (!planningData) {
-            console.error(`[Validation Engine] Planning with id ${planningId} not found.`);
+            logger.error(`[Validation Engine] Planning with id ${planningId} not found.`);
             return { isValid: false, conflicts: [] };
         }
 
@@ -297,7 +298,7 @@ export class BlocPlanningService {
         };
 
         if (!planning.site) { // Ce check est redondant si siteId est obligatoire et valide
-            console.error(`[Validation Engine] Planning with id ${planningId} has missing critical data (site).`);
+            logger.error(`[Validation Engine] Planning with id ${planningId} has missing critical data (site).`);
             return { isValid: false, conflicts: [] };
         }
 
@@ -367,7 +368,7 @@ export class BlocPlanningService {
 
         for (const roomAssignment of attributions) {
             if (!roomAssignment.operatingRoom) {
-                console.warn(`[Validation R2] Room attribution ${roomAssignment.id} for planning ${planning.id} has no operating room data. Skipping.`);
+                logger.warn(`[Validation R2] Room attribution ${roomAssignment.id} for planning ${planning.id} has no operating room data. Skipping.`);
                 continue;
             }
             const period = roomAssignment.period;
@@ -1210,7 +1211,7 @@ export class BlocPlanningService {
             c.severity === ConflictSeverity.ERROR && !c.isResolved && !c.isForceResolved
         );
 
-        console.log(`Planning ${planningId} re-vérifié après résolution/forçage de conflit. Erreurs bloquantes restantes: ${hasUnresolvedErrors}`);
+        logger.info(`Planning ${planningId} re-vérifié après résolution/forçage de conflit. Erreurs bloquantes restantes: ${hasUnresolvedErrors}`);
 
         // Logique de changement de statut (Exemple - à adapter selon les besoins):
         // Si le planning est actuellement dans un état "avec erreurs" (ex: VALIDATED_WITH_ERRORS, DRAFT_WITH_ERRORS - statuts à définir)
@@ -1314,7 +1315,7 @@ export class BlocPlanningService {
             }
         } catch (error) {
             // En cas d'erreur inattendue lors de la requête, logguer et retourner null
-            console.error("Erreur lors de la vérification des incompatibilités (R5) :", error);
+            logger.error("Erreur lors de la vérification des incompatibilités (R5) :", error);
             return null;
         }
 
@@ -1402,16 +1403,16 @@ export class BlocPlanningService {
         roomsData: (Prisma.OperatingRoomGetPayload<{ include: { operatingSector: { include: { site: true } } } }> | Prisma.OperatingRoomGetPayload<EmptyObject>)[],
         includeRelations: boolean
     ): LegacyOperatingRoom[] {
-        console.log('[BlocPlanningService.transformAndValidateRooms] Reçu pour transformation (premiers 2 si dispo):', JSON.stringify(roomsData.slice(0, 2)));
-        console.log(`[BlocPlanningService.transformAndValidateRooms] Nombre total de salles reçues pour transformation: ${roomsData.length}`);
+        logger.info('[BlocPlanningService.transformAndValidateRooms] Reçu pour transformation (premiers 2 si dispo):', JSON.stringify(roomsData.slice(0, 2)));
+        logger.info(`[BlocPlanningService.transformAndValidateRooms] Nombre total de salles reçues pour transformation: ${roomsData.length}`);
         if (!roomsData || roomsData.length === 0) {
-            console.warn('[BlocPlanningService.transformAndValidateRooms] Aucune donnée de salle reçue pour transformation.');
+            logger.warn('[BlocPlanningService.transformAndValidateRooms] Aucune donnée de salle reçue pour transformation.');
             return [];
         }
 
         const validatedRoomsInternal = roomsData.map((room: any, index: number) => {
             if (index < 2) { // Loguer seulement pour les deux premières pour éviter la verbosité
-                console.log(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} brute reçue par map:`, JSON.stringify(room));
+                logger.info(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} brute reçue par map:`, JSON.stringify(room));
             }
             const roomForValidation: Partial<Omit<LegacyOperatingRoom, 'type'> & { type?: string, siteId?: string }> = {
                 id: typeof room.id === 'number' ? room.id : undefined,
@@ -1436,18 +1437,18 @@ export class BlocPlanningService {
             const parseResult = OperatingRoomSchema.safeParse(roomForValidation);
 
             if (index < 2) { // Loguer seulement pour les deux premières
-                console.log(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} - roomForValidation:`, JSON.stringify(roomForValidation));
+                logger.info(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} - roomForValidation:`, JSON.stringify(roomForValidation));
                 if (!parseResult.success) {
-                    console.warn(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} - Échec de validation Zod (ID: ${room?.id}, Nom: ${room?.name}):`, JSON.stringify(parseResult.error.flatten()));
+                    logger.warn(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} - Échec de validation Zod (ID: ${room?.id}, Nom: ${room?.name}):`, JSON.stringify(parseResult.error.flatten()));
                 } else {
-                    console.log(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} - Succès de validation Zod (ID: ${room?.id}, Nom: ${room?.name}). Données validées:`, JSON.stringify(parseResult.data));
+                    logger.info(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} - Succès de validation Zod (ID: ${room?.id}, Nom: ${room?.name}). Données validées:`, JSON.stringify(parseResult.data));
                 }
             }
 
             if (!parseResult.success) {
                 // Ne loguer l'erreur que si ce n'est pas l'une des deux premières (déjà loguée en détail)
                 if (index >= 2) {
-                    console.warn(`Échec de validation Zod pour la salle (ID: ${room?.id}, Nom: ${room?.name}), elle sera ignorée:`, parseResult.error.flatten());
+                    logger.warn(`Échec de validation Zod pour la salle (ID: ${room?.id}, Nom: ${room?.name}), elle sera ignorée:`, parseResult.error.flatten());
                 }
                 return null;
             }
@@ -1473,7 +1474,7 @@ export class BlocPlanningService {
     async getAllOperatingRooms(includeRelations = true): Promise<LegacyOperatingRoom[]> {
         try {
             const includeArgs = includeRelations ? { operatingSector: { include: { site: true } } } : undefined;
-            console.log('[BlocPlanningService.getAllOperatingRooms] Arguments d\'include pour Prisma:', JSON.stringify(includeArgs));
+            logger.info('[BlocPlanningService.getAllOperatingRooms] Arguments d\'include pour Prisma:', JSON.stringify(includeArgs));
 
             const roomsData = await prisma.operatingRoom.findMany({
                 include: includeArgs,
@@ -1489,18 +1490,18 @@ export class BlocPlanningService {
                 ]
             });
 
-            console.log('[BlocPlanningService.getAllOperatingRooms] Données brutes de Prisma (premiers 2 si dispo):', JSON.stringify(roomsData.slice(0, 2)));
-            console.log(`[BlocPlanningService.getAllOperatingRooms] Nombre total de salles récupérées de Prisma: ${roomsData.length}`);
+            logger.info('[BlocPlanningService.getAllOperatingRooms] Données brutes de Prisma (premiers 2 si dispo):', JSON.stringify(roomsData.slice(0, 2)));
+            logger.info(`[BlocPlanningService.getAllOperatingRooms] Nombre total de salles récupérées de Prisma: ${roomsData.length}`);
 
             if (roomsData.length === 0) {
-                console.warn('[BlocPlanningService.getAllOperatingRooms] Aucune salle récupérée de Prisma.');
+                logger.warn('[BlocPlanningService.getAllOperatingRooms] Aucune salle récupérée de Prisma.');
             }
 
             const transformedRooms = this.transformAndValidateRooms(roomsData as any, includeRelations);
-            console.log(`[BlocPlanningService.getAllOperatingRooms] Nombre de salles après transformation/validation: ${transformedRooms.length}`);
+            logger.info(`[BlocPlanningService.getAllOperatingRooms] Nombre de salles après transformation/validation: ${transformedRooms.length}`);
             return transformedRooms;
         } catch (error) {
-            console.error("[BlocPlanningService.getAllOperatingRooms] Erreur lors de la récupération des salles d'opération: ", error);
+            logger.error("[BlocPlanningService.getAllOperatingRooms] Erreur lors de la récupération des salles d'opération: ", error);
             // Ne pas simplement jeter l'erreur ici pour voir si le catch plus haut (dans la route API) le fait
             // throw new Error("Impossible de récupérer les salles d'opération"); 
             return []; // Retourner un tableau vide en cas d'erreur ici pour éviter de planter et voir si l'API renvoie quand même 200
@@ -1531,7 +1532,7 @@ export class BlocPlanningService {
             });
             return this.transformAndValidateRooms(roomsData as any, includeRelations);
         } catch (error) {
-            console.error("Erreur lors de la récupération des salles d'opération actives: ", error);
+            logger.error("Erreur lors de la récupération des salles d'opération actives: ", error);
             throw new Error("Impossible de récupérer les salles d'opération actives");
         }
     }
@@ -1565,7 +1566,7 @@ export class BlocPlanningService {
 
             const parseResult = OperatingSectorSchema.safeParse(sectorForValidation);
             if (!parseResult.success) {
-                console.warn(`Données invalides pour le secteur ID ${sector.id}, il sera ignoré:`, parseResult.error.flatten());
+                logger.warn(`Données invalides pour le secteur ID ${sector.id}, il sera ignoré:`, parseResult.error.flatten());
                 return null;
             }
 
@@ -1595,7 +1596,7 @@ export class BlocPlanningService {
             // Correction de l'appel de fonction
             return this.transformAndValidateSectors(sectorsData as any, includeRelations);
         } catch (error) {
-            console.error("Erreur lors de la récupération des secteurs opératoires: ", error);
+            logger.error("Erreur lors de la récupération des secteurs opératoires: ", error);
             throw new Error("Impossible de récupérer les secteurs opératoires");
         }
     }

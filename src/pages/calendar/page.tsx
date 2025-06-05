@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import DraggableCalendar from '../../components/DraggableCalendar';
 import { Attribution, AssignmentStatus } from '../../types/assignment';
 import { ShiftType } from '../../types/common';
@@ -281,19 +282,19 @@ const CalendarPage: React.FC = () => {
     // }, []);
 
     const handleSave = (savedAssignments: Attribution[]) => {
-        console.log("Changements sauvegardés (reçus via onSave):", savedAssignments);
+        logger.info("Changements sauvegardés (reçus via onSave):", savedAssignments);
         setAssignments(savedAssignments);
         toast.success('Modifications sauvegardées avec succès!');
     }
 
     const handleValidationError = (violations: any[]) => {
-        console.error("Erreurs de validation détectées:", violations);
+        logger.error("Erreurs de validation détectées:", violations);
         setValidationErrors(violations);
         toast.error(`Des erreurs de validation empêchent la sauvegarde.`);
     }
 
     const handleSyncComplete = (success: boolean) => {
-        console.log(`Synchronisation terminée avec succès: ${success}`);
+        logger.info(`Synchronisation terminée avec succès: ${success}`);
         setSyncSuccess(success);
         if (!success) {
             toast.error('Échec de la synchronisation des modifications.');

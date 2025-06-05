@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { generateRecurringDates } from '@/modules/leaves/utils/recurringLeavesUtils';
 import { getPublicHolidays } from '@/modules/leaves/services/publicHolidayService';
 
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(occurrences);
     } catch (error) {
-        console.error('Erreur lors de la prévisualisation des occurrences récurrentes:', error);
+        logger.error('Erreur lors de la prévisualisation des occurrences récurrentes:', error);
 
         return NextResponse.json(
             { message: 'Erreur lors de la génération des occurrences.' },

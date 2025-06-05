@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { logger } from "../lib/logger";
 import {
   Dialog,
   DialogContent,
@@ -134,7 +135,7 @@ export function ExportDialog({
 
       onOpenChange(false);
     } catch (error) {
-      console.error('Export error:', error);
+      logger.error('Export error:', error);
       toast({
         title: 'Erreur d\'export',
         description: 'Une erreur est survenue lors de l\'export des données.',

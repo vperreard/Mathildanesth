@@ -1,4 +1,5 @@
 import { OperatingRoom, OperatingSector } from '../types';
+import { logger } from "../../../../lib/logger";
 import { blocPlanningService, BlocPlanningService } from './blocPlanningService';
 import { OperatingRoom as BlocOperatingRoom } from '../models/BlocModels';
 
@@ -46,7 +47,7 @@ export class OperatingRoomService {
                 return mappedRoom;
             });
         } catch (error) {
-            console.error('Erreur lors de la récupération des salles via BlocPlanningService:', error);
+            logger.error('Erreur lors de la récupération des salles via BlocPlanningService:', error);
             return [];
         }
     }
@@ -60,7 +61,7 @@ export class OperatingRoomService {
         try {
             const numericId = parseInt(id, 10);
             if (isNaN(numericId)) {
-                console.warn(`ID de salle invalide fourni: ${id}`);
+                logger.warn(`ID de salle invalide fourni: ${id}`);
                 return null;
             }
 
@@ -84,7 +85,7 @@ export class OperatingRoomService {
 
             return mappedRoom;
         } catch (error) {
-            console.error(`Erreur lors de la récupération de la salle ${id} via BlocPlanningService:`, error);
+            logger.error(`Erreur lors de la récupération de la salle ${id} via BlocPlanningService:`, error);
             return null;
         }
     }
@@ -110,7 +111,7 @@ export class OperatingRoomService {
                 return mappedRoom;
             });
         } catch (error) {
-            console.error('Erreur lors de la récupération des salles actives:', error);
+            logger.error('Erreur lors de la récupération des salles actives:', error);
             return [];
         }
     }
@@ -119,7 +120,7 @@ export class OperatingRoomService {
      * Crée une nouvelle salle - NON IMPLÉMENTÉ AVEC LE NOUVEAU SERVICE
      */
     public create(data: Omit<OperatingRoom, 'id'>): OperatingRoom {
-        console.warn('OperatingRoomService.create non implémenté avec le nouveau service de backend.');
+        logger.warn('OperatingRoomService.create non implémenté avec le nouveau service de backend.');
         throw new Error(OperatingRoomService.ERRORS.NOT_IMPLEMENTED);
     }
 
@@ -127,7 +128,7 @@ export class OperatingRoomService {
      * Met à jour une salle existante - NON IMPLÉMENTÉ AVEC LE NOUVEAU SERVICE
      */
     public update(id: string, data: Partial<Omit<OperatingRoom, 'id'>>): OperatingRoom {
-        console.warn('OperatingRoomService.update non implémenté avec le nouveau service de backend.');
+        logger.warn('OperatingRoomService.update non implémenté avec le nouveau service de backend.');
         throw new Error(OperatingRoomService.ERRORS.NOT_IMPLEMENTED);
     }
 
@@ -135,7 +136,7 @@ export class OperatingRoomService {
      * Supprime une salle - NON IMPLÉMENTÉ AVEC LE NOUVEAU SERVICE
      */
     public delete(id: string): boolean {
-        console.warn('OperatingRoomService.delete non implémenté avec le nouveau service de backend.');
+        logger.warn('OperatingRoomService.delete non implémenté avec le nouveau service de backend.');
         throw new Error(OperatingRoomService.ERRORS.NOT_IMPLEMENTED);
     }
 
@@ -149,7 +150,7 @@ export class OperatingRoomService {
             const allRooms = await this.getAll();
             return allRooms.filter(room => room.secteurId === sectorId);
         } catch (error) {
-            console.error(`Erreur lors de la récupération des salles pour le secteur ${sectorId}:`, error);
+            logger.error(`Erreur lors de la récupération des salles pour le secteur ${sectorId}:`, error);
             return [];
         }
     }
@@ -158,7 +159,7 @@ export class OperatingRoomService {
      * Supprime toutes les salles d'un secteur - NON IMPLÉMENTÉ AVEC LE NOUVEAU SERVICE
      */
     public deleteAllFromSector(sectorId: string): boolean {
-        console.warn('OperatingRoomService.deleteAllFromSector non implémenté avec le nouveau service de backend.');
+        logger.warn('OperatingRoomService.deleteAllFromSector non implémenté avec le nouveau service de backend.');
         throw new Error(OperatingRoomService.ERRORS.NOT_IMPLEMENTED);
     }
 }

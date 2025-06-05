@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 // import { getToken } from 'next-auth/jwt'; // Mis en commentaire temporairement
 import jwt from 'jsonwebtoken'; // AJOUT
@@ -15,7 +16,7 @@ async function authorizeRequest(req: NextRequest) {
     const tokenString = authorizationHeader.split(' ')[1];
 
     if (!process.env.JWT_SECRET) {
-        console.error('[API ActivityType Auth] JWT_SECRET is not defined in environment variables.'); // Garder celui-ci car critique
+        logger.error('[API ActivityType Auth] JWT_SECRET is not defined in environment variables.'); // Garder celui-ci car critique
         return { error: 'Configuration du serveur incorrecte (secret manquant).', status: 500, userId: null };
     }
 
@@ -33,7 +34,7 @@ async function authorizeRequest(req: NextRequest) {
 
     } catch (err: any) {
         // Il peut être utile de garder un log discret ici en production pour les erreurs inattendues
-        console.error(`[API ActivityType Auth] jwt.verify failed: ${err.name} - ${err.message}`);
+        logger.error(`[API ActivityType Auth] jwt.verify failed: ${err.name} - ${err.message}`);
         if (err.name === 'JsonWebTokenError') {
             return { error: 'Token invalide (signature incorrecte ou malformé).', status: 401, userId: null };
         } else if (err.name === 'TokenExpiredError') {
@@ -59,7 +60,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     try {
         body = await request.json();
     } catch (e) {
-        console.error(`[API ActivityType PUT /api/activity-types/${id}] Invalid JSON body:`, e); // Garder ce log
+        logger.error(`[API ActivityType PUT /api/activity-types/${id}] Invalid JSON body:`, e); // Garder ce log
         return NextResponse.json({ error: 'Corps de la requête JSON invalide.' }, { status: 400 });
     }
 
@@ -89,7 +90,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         });
         return NextResponse.json(updatedActivityType, { status: 200 });
     } catch (error) {
-        console.error(`[API ActivityType PUT /api/activity-types/${id}] Error updating activity type:`, error); // Garder ce log
+        logger.error(`[API ActivityType PUT /api/activity-types/${id}] Error updating activity type:`, error); // Garder ce log
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 return NextResponse.json({ error: 'Type d\'activité non trouvé.' }, { status: 404 });
@@ -160,7 +161,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         });
         return NextResponse.json({ message: 'Type d\'activité supprimé avec succès.' }, { status: 200 }); // Ou 204 No Content
     } catch (error) {
-        console.error(`[API ActivityType DELETE /api/activity-types/${id}] Error deleting activity type:`, error);
+        logger.error(`[API ActivityType DELETE /api/activity-types/${id}] Error deleting activity type:`, error);
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 // Record to delete does not exist.

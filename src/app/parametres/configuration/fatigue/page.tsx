@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../../lib/logger";
 import FatigueSettingsForm, { FatigueConfig } from './FatigueSettingsForm';
 // Chemin relatif corrigé pour pointer vers config/seed-config.js à la racine
 import { planningRules } from '../../../../../config/seed-config.js';
@@ -17,7 +18,7 @@ const fallbackDefaultConfig: FatigueConfig = {
 
 // Appels API réels
 const fetchFatigueConfig = async (): Promise<FatigueConfig> => {
-    console.log("API Call: Fetching fatigue config...");
+    logger.info("API Call: Fetching fatigue config...");
     try {
         const response = await fetch('http://localhost:3000/api/admin/parametres/fatigue'); // Appel API GET
         if (!response.ok) {
@@ -25,10 +26,10 @@ const fetchFatigueConfig = async (): Promise<FatigueConfig> => {
             throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
         const config = await response.json();
-        console.log("Fetched fatigue config from API", config);
+        logger.info("Fetched fatigue config from API", config);
         return config;
     } catch (error) {
-        console.error("Error fetching fatigue config from API:", error);
+        logger.error("Error fetching fatigue config from API:", error);
         toast.error("Impossible de charger la configuration de fatigue depuis le serveur.");
         // Retourner le fallback en cas d'erreur API majeure
         return fallbackDefaultConfig;
@@ -36,7 +37,7 @@ const fetchFatigueConfig = async (): Promise<FatigueConfig> => {
 };
 
 const saveFatigueConfig = async (config: FatigueConfig): Promise<void> => {
-    console.log("API Call: Saving fatigue config...", config);
+    logger.info("API Call: Saving fatigue config...", config);
     try {
         const response = await fetch('http://localhost:3000/api/admin/parametres/fatigue', { // Appel API PUT
             method: 'PUT',
@@ -50,10 +51,10 @@ const saveFatigueConfig = async (config: FatigueConfig): Promise<void> => {
             throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
         const result = await response.json();
-        console.log("Save response:", result);
+        logger.info("Save response:", result);
         // Pas besoin de sauvegarder en localStorage maintenant
     } catch (error) {
-        console.error("Error saving fatigue config via API:", error);
+        logger.error("Error saving fatigue config via API:", error);
         // L'erreur sera catchée dans handleSave et affichée par le toast du formulaire
         throw error; // Renvoyer l'erreur pour que handleSave la traite
     }
@@ -83,7 +84,7 @@ export default function FatigueSettingsPage() {
             // Le toast de succès est déjà dans le composant Form
         } catch (error) {
             // Le toast d'erreur est déjà géré dans le composant Form
-            console.error("Handle save error (page level):", error);
+            logger.error("Handle save error (page level):", error);
             // Optionnel : recharger la config depuis le serveur pour annuler les changements locaux ?
             // loadConfig();
         } finally {

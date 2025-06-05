@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -91,7 +92,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Error fetching rule:', error);
+    logger.error('Error fetching rule:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la récupération de la règle' },
       { status: 500 }
@@ -168,7 +169,7 @@ export async function PUT(
           : 'Règle mise à jour avec succès',
     });
   } catch (error) {
-    console.error('Error updating rule:', error);
+    logger.error('Error updating rule:', error);
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },
@@ -228,7 +229,7 @@ export async function DELETE(
       message: 'Règle archivée avec succès',
     });
   } catch (error) {
-    console.error('Error deleting rule:', error);
+    logger.error('Error deleting rule:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la suppression de la règle' },
       { status: 500 }
@@ -294,7 +295,7 @@ export async function PATCH(
       message: 'Action effectuée avec succès',
     });
   } catch (error) {
-    console.error('Error performing quick action:', error);
+    logger.error('Error performing quick action:', error);
     return NextResponse.json({ error: "Erreur lors de l'exécution de l'action" }, { status: 500 });
   }
 }

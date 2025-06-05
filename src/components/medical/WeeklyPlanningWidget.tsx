@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -160,7 +161,7 @@ export default function WeeklyPlanningWidget({ userId, className, mockData }: We
             setNextShift(upcoming);
 
         } catch (error) {
-            console.error('Erreur lors du chargement du planning:', error);
+            logger.error('Erreur lors du chargement du planning:', error);
             const errorMessage = error instanceof Error ? error.message : "Impossible de charger votre planning";
             toast({
                 title: "Erreur",

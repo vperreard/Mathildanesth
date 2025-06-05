@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(affectations);
     } catch (error) {
-        console.error('Error fetching affectations:', error);
+        logger.error('Error fetching affectations:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des affectations' },
             { status: 500 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { PrismaClient, Prisma } from '@prisma/client';
 import { headers } from 'next/headers';
 
@@ -17,10 +18,10 @@ function parseRules(rulesJson: Prisma.JsonValue): { maxRoomsPerSupervisor: numbe
                 return { maxRoomsPerSupervisor: parsed.maxRoomsPerSupervisor };
             }
         } catch (e) {
-            console.warn("Failed to parse rules JSON string:", rulesJson, e);
+            logger.warn("Failed to parse rules JSON string:", rulesJson, e);
         }
     }
-    console.warn("Invalid or missing rules JSON, returning default:", rulesJson);
+    logger.warn("Invalid or missing rules JSON, returning default:", rulesJson);
     return defaultRules;
 }
 
@@ -39,24 +40,24 @@ export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    console.log(`\n--- GET /api/sectors/${params.id} START (Prisma - JSON Rules) ---`);
+    logger.info(`\n--- GET /api/sectors/${params.id} START (Prisma - JSON Rules) ---`);
     try {
         const requestHeaders = await headers();
         const auth = checkAuth(requestHeaders);
 
         if (!auth) {
-            console.error(`GET /api/sectors/${params.id}: Unauthorized (Middleware headers missing)`);
+            logger.error(`GET /api/sectors/${params.id}: Unauthorized (Middleware headers missing)`);
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
-        console.log(`GET /api/sectors/${params.id}: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
+        logger.info(`GET /api/sectors/${params.id}: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
 
         const id = parseInt(params.id);
         if (isNaN(id)) {
-            console.warn(`GET /api/sectors/${params.id}: Invalid ID format.`);
+            logger.warn(`GET /api/sectors/${params.id}: Invalid ID format.`);
             return NextResponse.json({ error: 'ID invalide' }, { status: 400 });
         }
 
-        console.log(`GET /api/sectors/${id}: Retrieving sector from DB...`);
+        logger.info(`GET /api/sectors/${id}: Retrieving sector from DB...`);
         const sector = await prisma.operatingSector.findUnique({
             where: { id },
             select: { // Sélectionner les champs incluant `rules`
@@ -70,7 +71,7 @@ export async function GET(
         });
 
         if (!sector) {
-            console.warn(`GET /api/sectors/${id}: Sector not found in DB.`);
+            logger.warn(`GET /api/sectors/${id}: Sector not found in DB.`);
             return NextResponse.json({ error: 'Secteur non trouvé' }, { status: 404 });
         }
 
@@ -86,13 +87,13 @@ export async function GET(
             rules: parsedRules
         };
 
-        console.log(`GET /api/sectors/${id}: Sector retrieved successfully.`);
-        console.log(`--- GET /api/sectors/${id} END (Prisma - JSON Rules) ---\n`);
+        logger.info(`GET /api/sectors/${id}: Sector retrieved successfully.`);
+        logger.info(`--- GET /api/sectors/${id} END (Prisma - JSON Rules) ---\n`);
         return NextResponse.json(responseData);
 
     } catch (error) {
-        console.error(`Error during GET /api/sectors/${params.id} (Prisma - JSON Rules):`, error);
-        console.log(`--- GET /api/sectors/${params.id} END (Prisma - with error) ---\n`);
+        logger.error(`Error during GET /api/sectors/${params.id} (Prisma - JSON Rules):`, error);
+        logger.info(`--- GET /api/sectors/${params.id} END (Prisma - with error) ---\n`);
         return NextResponse.json({ error: 'Erreur lors de la récupération du secteur' }, { status: 500 });
     }
 }
@@ -102,32 +103,32 @@ export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    console.log(`\n--- PUT /api/sectors/${params.id} START (Prisma - JSON Rules) ---`);
+    logger.info(`\n--- PUT /api/sectors/${params.id} START (Prisma - JSON Rules) ---`);
     try {
         const requestHeaders = await headers();
         const auth = checkAuth(requestHeaders);
 
         if (!auth) {
-            console.error(`PUT /api/sectors/${params.id}: Unauthorized (Middleware headers missing)`);
+            logger.error(`PUT /api/sectors/${params.id}: Unauthorized (Middleware headers missing)`);
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
         if (auth.userRole !== 'ADMIN_TOTAL' && auth.userRole !== 'ADMIN_PARTIEL') {
-            console.error(`PUT /api/sectors/${params.id}: Forbidden (Role '${auth.userRole}' not allowed)`);
+            logger.error(`PUT /api/sectors/${params.id}: Forbidden (Role '${auth.userRole}' not allowed)`);
             return NextResponse.json({ error: 'Accès interdit pour modifier' }, { status: 403 });
         }
-        console.log(`PUT /api/sectors/${params.id}: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
+        logger.info(`PUT /api/sectors/${params.id}: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
 
         const id = parseInt(params.id);
         if (isNaN(id)) {
-            console.warn(`PUT /api/sectors/${params.id}: Invalid ID format.`);
+            logger.warn(`PUT /api/sectors/${params.id}: Invalid ID format.`);
             return NextResponse.json({ error: 'ID invalide' }, { status: 400 });
         }
 
         const data = await request.json();
-        console.log(`PUT /api/sectors/${id} - Received data:`, data);
+        logger.info(`PUT /api/sectors/${id} - Received data:`, data);
 
         if (!data || typeof data.name !== 'string' || !data.name.trim()) {
-            console.warn(`PUT /api/sectors/${id}: Validation failed - Name is required.`);
+            logger.warn(`PUT /api/sectors/${id}: Validation failed - Name is required.`);
             return NextResponse.json({ error: 'Le nom du secteur est requis' }, { status: 400 });
         }
 
@@ -142,7 +143,7 @@ export async function PUT(
         const rulesData: Prisma.InputJsonObject = {
             maxRoomsPerSupervisor: maxRooms
         };
-        console.log(`PUT /api/sectors/${id} - Updating sector with rules:`, rulesData);
+        logger.info(`PUT /api/sectors/${id} - Updating sector with rules:`, rulesData);
 
         // Mettre à jour le secteur
         const updatedSector = await prisma.operatingSector.update({
@@ -168,15 +169,15 @@ export async function PUT(
             rules: parsedRules
         };
 
-        console.log(`PUT /api/sectors/${id}: Sector updated successfully.`);
-        console.log(`--- PUT /api/sectors/${id} END (Prisma - JSON Rules) ---\n`);
+        logger.info(`PUT /api/sectors/${id}: Sector updated successfully.`);
+        logger.info(`--- PUT /api/sectors/${id} END (Prisma - JSON Rules) ---\n`);
         return NextResponse.json(responseData);
 
     } catch (error) {
-        console.error(`Error during PUT /api/sectors/${params.id} (Prisma - JSON Rules):`, error);
+        logger.error(`Error during PUT /api/sectors/${params.id} (Prisma - JSON Rules):`, error);
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
-                console.error(`Prisma Error P2025: Record to update not found (ID: ${params.id})`);
+                logger.error(`Prisma Error P2025: Record to update not found (ID: ${params.id})`);
                 return NextResponse.json({ error: 'Secteur non trouvé pour la mise à jour.' }, { status: 404 });
             }
             if (error.code === 'P2002') {
@@ -184,11 +185,11 @@ export async function PUT(
                 if (target && target.includes('name')) {
                     return NextResponse.json({ error: 'Un secteur avec ce nom existe déjà.' }, { status: 409 });
                 }
-                console.error("Prisma Error P2002: Unique constraint violation on fields:", target);
+                logger.error("Prisma Error P2002: Unique constraint violation on fields:", target);
                 return NextResponse.json({ error: 'Erreur de base de données: Contrainte unique violée.' }, { status: 409 });
             }
         }
-        console.log(`--- PUT /api/sectors/${params.id} END (Prisma - with error) ---\n`);
+        logger.info(`--- PUT /api/sectors/${params.id} END (Prisma - with error) ---\n`);
         return NextResponse.json({ error: 'Erreur lors de la mise à jour du secteur' }, { status: 500 });
     }
 }
@@ -198,46 +199,46 @@ export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    console.log(`\n--- DELETE /api/sectors/${params.id} START (Prisma - JSON Rules) ---`);
+    logger.info(`\n--- DELETE /api/sectors/${params.id} START (Prisma - JSON Rules) ---`);
     try {
         const requestHeaders = await headers();
         const auth = checkAuth(requestHeaders);
 
         if (!auth) {
-            console.error(`DELETE /api/sectors/${params.id}: Unauthorized (Middleware headers missing)`);
+            logger.error(`DELETE /api/sectors/${params.id}: Unauthorized (Middleware headers missing)`);
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
         if (auth.userRole !== 'ADMIN_TOTAL' && auth.userRole !== 'ADMIN_PARTIEL') {
-            console.error(`DELETE /api/sectors/${params.id}: Forbidden (Role '${auth.userRole}' not allowed)`);
+            logger.error(`DELETE /api/sectors/${params.id}: Forbidden (Role '${auth.userRole}' not allowed)`);
             return NextResponse.json({ error: 'Accès interdit pour supprimer' }, { status: 403 });
         }
-        console.log(`DELETE /api/sectors/${params.id}: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
+        logger.info(`DELETE /api/sectors/${params.id}: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
 
         const id = parseInt(params.id);
         if (isNaN(id)) {
-            console.warn(`DELETE /api/sectors/${params.id}: Invalid ID format.`);
+            logger.warn(`DELETE /api/sectors/${params.id}: Invalid ID format.`);
             return NextResponse.json({ error: 'ID invalide' }, { status: 400 });
         }
 
-        console.log(`DELETE /api/sectors/${id}: Attempting to delete sector...`);
+        logger.info(`DELETE /api/sectors/${id}: Attempting to delete sector...`);
         // Supprimer le secteur
         await prisma.operatingSector.delete({
             where: { id },
         });
 
-        console.log(`DELETE /api/sectors/${id}: Sector deleted successfully.`);
-        console.log(`--- DELETE /api/sectors/${id} END (Prisma - JSON Rules) ---\n`);
+        logger.info(`DELETE /api/sectors/${id}: Sector deleted successfully.`);
+        logger.info(`--- DELETE /api/sectors/${id} END (Prisma - JSON Rules) ---\n`);
         return NextResponse.json({ message: 'Secteur supprimé avec succès' });
 
     } catch (error) {
-        console.error(`Error during DELETE /api/sectors/${params.id} (Prisma - JSON Rules):`, error);
+        logger.error(`Error during DELETE /api/sectors/${params.id} (Prisma - JSON Rules):`, error);
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
-                console.error(`Prisma Error P2025: Record to delete not found (ID: ${params.id})`);
+                logger.error(`Prisma Error P2025: Record to delete not found (ID: ${params.id})`);
                 return NextResponse.json({ error: 'Secteur non trouvé pour la suppression.' }, { status: 404 });
             }
         }
-        console.log(`--- DELETE /api/sectors/${params.id} END (Prisma - with error) ---\n`);
+        logger.info(`--- DELETE /api/sectors/${params.id} END (Prisma - with error) ---\n`);
         return NextResponse.json({ error: 'Erreur lors de la suppression du secteur' }, { status: 500 });
     }
 }

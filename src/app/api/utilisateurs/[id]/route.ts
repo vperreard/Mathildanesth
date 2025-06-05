@@ -1,5 +1,6 @@
 import { prisma } from '../../../../lib/prisma'; // Import nommé
 import { Role, ProfessionalRole, Prisma } from '@prisma/client';
+import { logger } from "@/lib/logger";
 import { NextResponse } from 'next/server';
 // import bcrypt from 'bcrypt'; // Import dynamique pour éviter les erreurs de bundling
 import { headers } from 'next/headers';
@@ -54,7 +55,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         }
         return NextResponse.json(user);
     } catch (error) {
-        console.error(`Erreur GET /api/utilisateurs/${id}:`, error);
+        logger.error(`Erreur GET /api/utilisateurs/${id}:`, error);
         return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
     }
 }
@@ -170,7 +171,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         return NextResponse.json(updatedUser);
 
     } catch (error: any) {
-        console.error(`Erreur PUT /api/utilisateurs/${userId}:`, error);
+        logger.error(`Erreur PUT /api/utilisateurs/${userId}:`, error);
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2002') {
                 let field = 'inconnu';
@@ -181,7 +182,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 return new NextResponse(JSON.stringify({ message: 'Utilisateur non trouvé' }), { status: 404 });
             }
         } else if (error instanceof Prisma.PrismaClientValidationError) {
-            console.error("Erreur de validation Prisma:", error.message);
+            logger.error("Erreur de validation Prisma:", error.message);
             return new NextResponse(JSON.stringify({ message: 'Données invalides fournies.', details: error.message }), { status: 400 });
         }
         // Autres erreurs
@@ -209,7 +210,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         });
         return NextResponse.json({ message: 'Utilisateur désactivé avec succès' }, { status: 200 });
     } catch (error: any) {
-        console.error(`Erreur DELETE /api/utilisateurs/${id}:`, error);
+        logger.error(`Erreur DELETE /api/utilisateurs/${id}:`, error);
         if (error.code === 'P2025') { // Record to delete does not exist
             return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
         }
@@ -251,7 +252,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         return new NextResponse(JSON.stringify({ message: `Mot de passe réinitialisé à '${newPassword}'` }), { status: 200 });
 
     } catch (error: any) {
-        console.error(`Erreur POST reset-password /api/utilisateurs/${targetUserId}:`, error);
+        logger.error(`Erreur POST reset-password /api/utilisateurs/${targetUserId}:`, error);
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur lors de la réinitialisation' }), { status: 500 });
     }
 }

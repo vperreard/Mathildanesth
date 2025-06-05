@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { getServerSession } from 'next-auth';
@@ -104,7 +105,7 @@ export async function GET(request: NextRequest) {
 
         return handleAuthorizedRequest(userIdForRequest);
     } catch (error) {
-        console.error('[API /api/admin/conges/pending] Erreur:', error);
+        logger.error('[API /api/admin/conges/pending] Erreur:', error);
         return NextResponse.json(
             {
                 error: 'Erreur serveur lors de la récupération des demandes en attente',
@@ -192,7 +193,7 @@ async function handleAuthorizedRequest(userId: number) {
 
         return NextResponse.json(formattedLeaves);
     } catch (error) {
-        console.error('[API /api/admin/conges/pending] Erreur lors du traitement:', error);
+        logger.error('[API /api/admin/conges/pending] Erreur lors du traitement:', error);
         throw error;
     }
 } 

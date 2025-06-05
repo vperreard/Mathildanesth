@@ -1,4 +1,5 @@
 import { ConflictCheckResult, ConflictType, ConflictSeverity, LeaveConflict } from '@/modules/leaves/types/conflict';
+import { logger } from "../../lib/logger";
 import { checkLeaveConflicts } from '@/modules/leaves/services/leaveService';
 import { User } from '@/types/user';
 import {
@@ -118,7 +119,7 @@ export class ConflictDetectionFacade {
                     sources.push(service.getServiceName());
                     return result;
                 } catch (error) {
-                    console.error(`Erreur dans le service ${service.getServiceName()}:`, error);
+                    logger.error(`Erreur dans le service ${service.getServiceName()}:`, error);
                     return null;
                 }
             })

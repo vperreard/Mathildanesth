@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logger } from "../lib/logger";
 import { CONFIG } from '@/config';
 
 /**
@@ -24,7 +25,7 @@ export async function getPublicHolidays(startYear: number, endYear: number): Pro
         // Convertir les dates en objets Date
         return response.data.map((holiday: any) => new Date(holiday.date));
     } catch (error) {
-        console.error('Erreur lors de la récupération des jours fériés:', error);
+        logger.error('Erreur lors de la récupération des jours fériés:', error);
 
         // En cas d'erreur, retourner une liste vide pour ne pas bloquer les fonctionnalités
         return [];

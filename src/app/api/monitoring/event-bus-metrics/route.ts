@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { EventBusService } from '@/modules/integration/services/EventBusService';
 
 /**
@@ -102,7 +103,7 @@ export async function GET(request: NextRequest) {
         // Envoyer les métriques filtrées
         return NextResponse.json(filteredMetrics);
     } catch (error) {
-        console.error('Error fetching event bus metrics:', error);
+        logger.error('Error fetching event bus metrics:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des métriques' },
             { status: 500 }
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ message: 'Configuration mise à jour avec succès' });
     } catch (error) {
-        console.error('Error updating profiler configuration:', error);
+        logger.error('Error updating profiler configuration:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour de la configuration' },
             { status: 500 }
@@ -188,7 +189,7 @@ export async function DELETE(request: NextRequest) {
 
         return NextResponse.json({ message: 'Métriques réinitialisées avec succès' });
     } catch (error) {
-        console.error('Error resetting metrics:', error);
+        logger.error('Error resetting metrics:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la réinitialisation des métriques' },
             { status: 500 }

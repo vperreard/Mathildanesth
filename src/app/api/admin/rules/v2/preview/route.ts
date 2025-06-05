@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { RuleSimulator } from '@/modules/dynamicRules/v2/services/RuleSimulator';
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(simulation);
 
   } catch (error) {
-    console.error('Error in preview:', error);
+    logger.error('Error in preview:', error);
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Paramètres invalides', details: error.errors },

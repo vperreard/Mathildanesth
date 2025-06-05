@@ -1,4 +1,5 @@
 import * as jose from 'jose';
+import { logger } from "./logger";
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
@@ -25,7 +26,7 @@ async function comparePasswords(plainPassword: string, hashedPassword: string): 
         // Si bcrypt est utilisé, sinon utiliser votre logique de comparaison
         return await bcrypt.compare(plainPassword, hashedPassword);
     } catch (error) {
-        console.error("Erreur lors de la comparaison des mots de passe:", error);
+        logger.error("Erreur lors de la comparaison des mots de passe:", error);
         return false;
     }
 }
@@ -82,7 +83,7 @@ export const authOptions: NextAuthOptions = {
                             credentials.password === user?.login; // Mot de passe = nom d'utilisateur
 
                         if (!user || !isPasswordValid) {
-                            console.log('Authentification échouée en mode développement');
+                            logger.info('Authentification échouée en mode développement');
                             return null;
                         }
                     } else {
@@ -109,7 +110,7 @@ export const authOptions: NextAuthOptions = {
                         role: user.role
                     };
                 } catch (error) {
-                    console.error("Erreur d'authentification:", error);
+                    logger.error("Erreur d'authentification:", error);
                     return null;
                 }
             }
@@ -178,7 +179,7 @@ export async function verifyToken(token: string): Promise<TokenPayload & jose.JW
         // Gérer les erreurs spécifiques de jose (ex: JWTExpired, JWTInvalid)
         // Ne pas logger en mode test pour éviter la pollution des logs
         if (process.env.NODE_ENV !== 'test') {
-            console.error("Erreur de vérification du token:", error.code || error.message);
+            logger.error("Erreur de vérification du token:", error.code || error.message);
         }
         
         if (error instanceof jose.errors.JWTExpired) {
@@ -225,7 +226,7 @@ export async function getUserFromCookie(request: any): Promise<any> {
 
         return null;
     } catch (error) {
-        console.error('Erreur lors de la récupération de l\'utilisateur:', error);
+        logger.error('Erreur lors de la récupération de l\'utilisateur:', error);
         return null;
     }
 } 

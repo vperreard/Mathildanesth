@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     Table,
     TableBody,
@@ -105,7 +106,7 @@ export default function ReglesSupervisionAdmin() {
             setSecteurs(secteursData);
         } catch (err) {
             setError('Erreur lors du chargement des données');
-            console.error('Erreur de chargement:', err);
+            logger.error('Erreur de chargement:', err);
         } finally {
             setIsLoading(false);
         }

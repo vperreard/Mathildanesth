@@ -2,6 +2,7 @@
 // Utilise les services de planning existants
 
 import { PlanningService } from './planningService';
+import { logger } from "../lib/logger";
 import { planningGenerator } from './planningGenerator';
 
 // Fonctions wrapper avec fallback pour compatibilité
@@ -13,7 +14,7 @@ export const getDayPlanning = async (...args: any[]): Promise<any[]> => {
     }
     return [];
   } catch (error) {
-    console.warn('getDayPlanning fallback used:', error);
+    logger.warn('getDayPlanning fallback used:', error);
     return [];
   }
 };
@@ -26,7 +27,7 @@ export const validateDayPlanning = async (...args: any[]): Promise<{ valid: bool
     }
     return { valid: true, violations: [] };
   } catch (error) {
-    console.warn('validateDayPlanning fallback used:', error);
+    logger.warn('validateDayPlanning fallback used:', error);
     return { valid: true, violations: [] };
   }
 };
@@ -39,7 +40,7 @@ export const saveDayPlanning = async (...args: any[]): Promise<boolean> => {
     }
     return true;
   } catch (error) {
-    console.warn('saveDayPlanning fallback used:', error);
+    logger.warn('saveDayPlanning fallback used:', error);
     return true;
   }
 };
@@ -52,7 +53,7 @@ export const getAllOperatingRooms = async (...args: any[]): Promise<any[]> => {
     }
     return [];
   } catch (error) {
-    console.warn('getAllOperatingRooms fallback used:', error);
+    logger.warn('getAllOperatingRooms fallback used:', error);
     return [];
   }
 };
@@ -65,7 +66,7 @@ export const getOperatingRoomById = async (...args: any[]): Promise<any> => {
     }
     return null;
   } catch (error) {
-    console.warn('getOperatingRoomById fallback used:', error);
+    logger.warn('getOperatingRoomById fallback used:', error);
     return null;
   }
 };

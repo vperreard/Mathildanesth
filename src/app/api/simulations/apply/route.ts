@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Erreur lors de l'application de la simulation:", error);
+    logger.error("Erreur lors de l'application de la simulation:", error);
     return NextResponse.json(
       {
         success: false,
@@ -120,7 +121,7 @@ async function checkUserRightsForSimulationApply(userId: number): Promise<boolea
     // Si pas de système de rôles clair, vérifiez le champ isAdmin ou équivalent
     return user.isAdmin === true;
   } catch (error) {
-    console.error('Erreur lors de la vérification des droits:', error);
+    logger.error('Erreur lors de la vérification des droits:', error);
     return false;
   }
 }

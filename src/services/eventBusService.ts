@@ -1,3 +1,5 @@
+import { logger } from "../lib/logger";
+
 /**
  * Service de bus d'événements pour la communication entre composants
  * Implémente un pattern Pub/Sub (Publication/Souscription)
@@ -52,7 +54,7 @@ export class EventBusService {
                 try {
                     listener(event);
                 } catch (error) {
-                    console.error(`Erreur lors de l'exécution d'un listener pour l'événement ${eventType}:`, error);
+                    logger.error(`Erreur lors de l'exécution d'un listener pour l'événement ${eventType}:`, error);
                 }
             });
         }

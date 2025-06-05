@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 import { headers } from 'next/headers';
@@ -22,7 +23,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     // 1. Vérifier le rôle du demandeur
     if (!requesterRoleString || !['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(requesterRoleString)) {
-        console.log(`Accès refusé pour réinitialisation par rôle: ${requesterRoleString}`);
+        logger.info(`Accès refusé pour réinitialisation par rôle: ${requesterRoleString}`);
         return new NextResponse(JSON.stringify({ message: 'Accès non autorisé (rôle insuffisant pour cette action)' }), { status: 403 });
     }
 
@@ -48,12 +49,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
         // 4. Appliquer la règle d'autorisation spécifique (comparaison de chaînes)
         if (requesterRoleString === 'ADMIN_PARTIEL' && targetUser.role === 'ADMIN_TOTAL') {
-            console.log(`Tentative de réinitialisation refusée: ADMIN_PARTIEL (${requesterRoleString}) vs ADMIN_TOTAL (${targetUser.role})`);
+            logger.info(`Tentative de réinitialisation refusée: ADMIN_PARTIEL (${requesterRoleString}) vs ADMIN_TOTAL (${targetUser.role})`);
             return new NextResponse(JSON.stringify({ message: 'Un administrateur partiel ne peut pas réinitialiser le mot de passe d\'un administrateur total.' }), { status: 403 });
         }
 
         // 5. Autorisation OK, procéder à la réinitialisation
-        console.log(`Autorisation accordée pour réinitialisation: ${requesterRoleString} sur utilisateur ${targetUserId} (rôle ${targetUser.role})`);
+        logger.info(`Autorisation accordée pour réinitialisation: ${requesterRoleString} sur utilisateur ${targetUserId} (rôle ${targetUser.role})`);
         const newPassword = targetUser.login;
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
@@ -69,7 +70,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         return new NextResponse(JSON.stringify({ message: `Mot de passe pour l'utilisateur ${targetUserId} réinitialisé avec succès.` }), { status: 200 });
 
     } catch (error: any) {
-        console.error(`Erreur interne PUT /api/utilisateurs/${targetUserIdString}/reset-password:`, error);
+        logger.error(`Erreur interne PUT /api/utilisateurs/${targetUserIdString}/reset-password:`, error);
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur lors de la réinitialisation.' }), { status: 500 });
     }
 } 

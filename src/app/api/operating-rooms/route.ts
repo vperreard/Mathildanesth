@@ -1,4 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { logger } from "@/lib/logger";
 import { checkUserRole } from '@/lib/auth-server-utils';
 import type { UserRole } from '@/lib/auth-client-utils';
 import { PrismaClient, Prisma } from '@prisma/client';
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
     const authCheck = await checkUserRole(ALLOWED_ROLES);
 
     if (!authCheck.hasRequiredRole) {
-      console.log("Vérification d'autorisation échouée:", authCheck.error);
+      logger.info("Vérification d'autorisation échouée:", authCheck.error);
       return NextResponse.json(
         { error: authCheck.error || 'Authentification requise' },
         { status: 401 }
@@ -49,9 +50,9 @@ export async function GET(request: NextRequest) {
       orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
     });
 
-    console.log(`GET /api/operating-rooms: Récupération de ${rooms.length} salles`);
+    logger.info(`GET /api/operating-rooms: Récupération de ${rooms.length} salles`);
     if (rooms.length > 0) {
-      console.log('Première salle récupérée:', {
+      logger.info('Première salle récupérée:', {
         id: rooms[0].id,
         name: rooms[0].name,
         displayOrder: rooms[0].displayOrder,
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(rooms);
   } catch (error) {
-    console.error("Erreur lors de la récupération des salles d'opération:", error);
+    logger.error("Erreur lors de la récupération des salles d'opération:", error);
     return NextResponse.json(
       { error: "Erreur lors de la récupération des salles d'opération" },
       { status: 500 }
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
     const authCheck = await checkUserRole(ALLOWED_ROLES);
 
     if (!authCheck.hasRequiredRole) {
-      console.log("Vérification d'autorisation échouée:", authCheck.error);
+      logger.info("Vérification d'autorisation échouée:", authCheck.error);
       return NextResponse.json(
         { error: authCheck.error || 'Authentification requise' },
         { status: 401 }
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newRoom, { status: 201 });
   } catch (error) {
-    console.error("Erreur lors de la création de la salle d'opération:", error);
+    logger.error("Erreur lors de la création de la salle d'opération:", error);
     return NextResponse.json(
       {
         error: "Erreur lors de la création de la salle d'opération",

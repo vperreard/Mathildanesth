@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { logger } from "../../../lib/logger";
 import {
     ChevronLeftIcon,
     ChevronRightIcon,
@@ -164,7 +165,7 @@ export default function WeeklyPlanningPage() {
 
     // Filtrer les salles en fonction du site sélectionné, de la recherche et de la configuration d'affichage
     const filteredRooms = useMemo(() => {
-        console.log(`[WeeklyPlanningPage_filteredRooms] Calcul pour selectedSiteId: ${selectedSiteId}, ${rooms.length} salles au total avant filtre.`);
+        logger.info(`[WeeklyPlanningPage_filteredRooms] Calcul pour selectedSiteId: ${selectedSiteId}, ${rooms.length} salles au total avant filtre.`);
         let result = rooms;
 
         // 1. Filtre par site sélectionné
@@ -174,7 +175,7 @@ export default function WeeklyPlanningPage() {
                 const roomSiteIdStr = room.siteId ? String(room.siteId) : null;
                 const selectedSiteIdStr = String(selectedSiteId);
                 const match = roomSiteIdStr === selectedSiteIdStr;
-                // console.log(`[DEBUG_FILTER_ROOM] Room: ${room.name} (ID: ${room.id}), RoomSiteID: ${roomSiteIdStr}, SelectedSiteID: ${selectedSiteIdStr}, Match: ${match}`);
+                // logger.info(`[DEBUG_FILTER_ROOM] Room: ${room.name} (ID: ${room.id}), RoomSiteID: ${roomSiteIdStr}, SelectedSiteID: ${selectedSiteIdStr}, Match: ${match}`);
                 return match;
             });
         }
@@ -185,7 +186,7 @@ export default function WeeklyPlanningPage() {
             const isVisibleByConfig = !displayConfig || !displayConfig.hiddenRoomIds || !displayConfig.hiddenRoomIds.includes(String(room.id));
             return matchesSearch && isVisibleByConfig;
         });
-        console.log(`[WeeklyPlanningPage_filteredRooms] ${result.length} salles après filtre pour siteId: ${selectedSiteId}.`);
+        logger.info(`[WeeklyPlanningPage_filteredRooms] ${result.length} salles après filtre pour siteId: ${selectedSiteId}.`);
         return result;
     }, [rooms, selectedSiteId, searchQuery, displayConfig]);
 
@@ -200,11 +201,11 @@ export default function WeeklyPlanningPage() {
 
     // Fonction de chargement des données, appelée manuellement
     const fetchDataAndConfig = useCallback(async () => {
-        console.log("[WeeklyPlanningPage] Chargement des données pour la période cible");
+        logger.info("[WeeklyPlanningPage] Chargement des données pour la période cible");
         setIsLoadingData(true);
         setIsLoading(true);
         // let finalConfig = { ...defaultDisplayConfig }; // Commenté car non utilisé directement ici
-        // console.log("[WeeklyPlanningPage] finalConfig :", finalConfig);
+        // logger.info("[WeeklyPlanningPage] finalConfig :", finalConfig);
 
         try {
             // Déterminer la plage de dates active
@@ -219,7 +220,7 @@ export default function WeeklyPlanningPage() {
                 endDate = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
             }
 
-            console.log(`[WeeklyPlanningPage] Période : ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`);
+            logger.info(`[WeeklyPlanningPage] Période : ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`);
 
             // Remplacer les appels fetch par apiClient
             const [
@@ -240,10 +241,10 @@ export default function WeeklyPlanningPage() {
             const assignmentsResponseData = assignmentsResponse.data;
             const sitesResponseData = sitesResponse.data;
 
-            console.log("[WeeklyPlanningPage] Données API (via apiClient) - Utilisateurs:", usersResponseData);
-            console.log("[WeeklyPlanningPage] Données API (via apiClient) - Salles:", roomsResponseData);
-            console.log("[WeeklyPlanningPage] Données API (via apiClient) - Assignations:", assignmentsResponseData);
-            console.log("[WeeklyPlanningPage] Données API (via apiClient) - Sites:", sitesResponseData);
+            logger.info("[WeeklyPlanningPage] Données API (via apiClient) - Utilisateurs:", usersResponseData);
+            logger.info("[WeeklyPlanningPage] Données API (via apiClient) - Salles:", roomsResponseData);
+            logger.info("[WeeklyPlanningPage] Données API (via apiClient) - Assignations:", assignmentsResponseData);
+            logger.info("[WeeklyPlanningPage] Données API (via apiClient) - Sites:", sitesResponseData);
 
             const usersData = Array.isArray(usersResponseData) ? usersResponseData :
                 (usersResponseData && Array.isArray(usersResponseData.users) ? usersResponseData.users : []);
@@ -258,10 +259,10 @@ export default function WeeklyPlanningPage() {
                 (sitesResponseData && Array.isArray(sitesResponseData.sites) ? sitesResponseData.sites : []);
 
             setUsers(usersData);
-            console.log("[WeeklyPlanningPage] état users mis à jour avec:", usersData.length, "utilisateurs");
+            logger.info("[WeeklyPlanningPage] état users mis à jour avec:", usersData.length, "utilisateurs");
 
             setSitesList(sitesDataList); // Mise à jour de l'état des sites
-            console.log("[WeeklyPlanningPage] état sitesList mis à jour avec:", sitesDataList.length, "sites");
+            logger.info("[WeeklyPlanningPage] état sitesList mis à jour avec:", sitesDataList.length, "sites");
 
             const fetchedRooms = roomsData;
             let currentRoomOrder: string[] = [];
@@ -275,7 +276,7 @@ export default function WeeklyPlanningPage() {
                             setRoomOrderConfig({ orderedRoomIds: currentRoomOrder });
                         }
                     } catch (e) {
-                        console.error('[WeeklyPlanningPage] Erreur lecture roomOrderConfig localStorage:', e);
+                        logger.error('[WeeklyPlanningPage] Erreur lecture roomOrderConfig localStorage:', e);
                     }
                 }
             }
@@ -344,22 +345,22 @@ export default function WeeklyPlanningPage() {
                 return 0;
             });
 
-            console.log("[WeeklyPlanningPage] état rooms mis à jour avec:", sortedRooms.length, "salles (triées par displayOrder)");
+            logger.info("[WeeklyPlanningPage] état rooms mis à jour avec:", sortedRooms.length, "salles (triées par displayOrder)");
             setRooms(sortedRooms);
 
             const fetchedAssignments = assignmentsData;
             setAssignments(fetchedAssignments);
             setTempAssignments(fetchedAssignments);
-            console.log("[WeeklyPlanningPage] état attributions mis à jour avec:", fetchedAssignments.length, "assignations");
+            logger.info("[WeeklyPlanningPage] état attributions mis à jour avec:", fetchedAssignments.length, "assignations");
 
             if (usersData.length === 0 && roomsData.length === 0 && assignmentsData.length === 0) {
-                console.warn("[WeeklyPlanningPage] Toutes les listes de données (utilisateurs, salles, assignations) sont vides après le fetch initial.");
+                logger.warn("[WeeklyPlanningPage] Toutes les listes de données (utilisateurs, salles, assignations) sont vides après le fetch initial.");
                 // Utiliser toast simple, pas toast.info si non disponible
                 toast("Aucune donnée de planning à afficher pour cette semaine.", { duration: 4000, icon: 'ℹ️' });
             }
 
         } catch (error) {
-            console.error("Erreur lors du chargement des données :", error);
+            logger.error("Erreur lors du chargement des données :", error);
             toast.error("Erreur lors du chargement des données");
             setUsers([]);
             setRooms([]);
@@ -382,20 +383,20 @@ export default function WeeklyPlanningPage() {
 
         const siteIdFromUrl = searchParams.get('siteId');
         const currentSelectedSiteId = selectedSiteId; // Capturer la valeur actuelle avant toute modification
-        console.log(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] Entrée useEffect. siteIdFromUrl: ${siteIdFromUrl}, currentSelectedSiteId: ${currentSelectedSiteId}, sitesList: ${sitesList.length}`);
+        logger.info(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] Entrée useEffect. siteIdFromUrl: ${siteIdFromUrl}, currentSelectedSiteId: ${currentSelectedSiteId}, sitesList: ${sitesList.length}`);
 
         if (siteIdFromUrl) {
             // Si un siteId est dans l'URL et est valide
             if (sitesList.some(site => site.id === siteIdFromUrl)) {
                 if (currentSelectedSiteId !== siteIdFromUrl) {
                     setSelectedSiteId(siteIdFromUrl);
-                    console.log(`[WeeklyPlanningPage_EFFECT_URL] selectedSiteId mis à jour depuis URL: ${siteIdFromUrl}`);
+                    logger.info(`[WeeklyPlanningPage_EFFECT_URL] selectedSiteId mis à jour depuis URL: ${siteIdFromUrl}`);
                 } else {
-                    console.log(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] siteIdFromUrl (${siteIdFromUrl}) est déjà le currentSelectedSiteId. Rien à faire.`);
+                    logger.info(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] siteIdFromUrl (${siteIdFromUrl}) est déjà le currentSelectedSiteId. Rien à faire.`);
                 }
             } else {
                 // siteId dans l'URL est invalide, ou pas encore dans sitesList :
-                console.warn(`[WeeklyPlanningPage_EFFECT_URL] siteId de l'URL (${siteIdFromUrl}) est invalide ou non trouvé dans sitesList (${sitesList.map(s => s.id).join(', ')}).`);
+                logger.warn(`[WeeklyPlanningPage_EFFECT_URL] siteId de l'URL (${siteIdFromUrl}) est invalide ou non trouvé dans sitesList (${sitesList.map(s => s.id).join(', ')}).`);
                 // Si un site est déjà sélectionné (par ex. par interaction user), ne pas l'écraser.
                 // Si aucun site n'est sélectionné, et que le SiteSelector ne va pas le faire, on pourrait initialiser.
                 // Mais avec autoSelectFirst={true} et persistInUrl={true} sur SiteSelector, il devrait gérer.
@@ -406,14 +407,14 @@ export default function WeeklyPlanningPage() {
                     // Si on met à jour l'URL ici, cela redéclenchera le useEffect.
                     // Il vaut mieux laisser SiteSelector (avec persistInUrl) être le seul à écrire l'URL suite à une sélection.
                     // router.push(`/planning/hebdomadaire?siteId=${defaultSiteId}`, { scroll: false }); 
-                    console.log(`[WeeklyPlanningPage_EFFECT_URL] siteId de l'URL invalide ET currentSelectedSiteId vide. selectedSiteId initialisé avec le premier site par défaut: ${defaultSiteId}. L'URL devrait être mise à jour par SiteSelector.`);
+                    logger.info(`[WeeklyPlanningPage_EFFECT_URL] siteId de l'URL invalide ET currentSelectedSiteId vide. selectedSiteId initialisé avec le premier site par défaut: ${defaultSiteId}. L'URL devrait être mise à jour par SiteSelector.`);
                 } else {
-                    console.log(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] siteId de l'URL invalide, mais currentSelectedSiteId (${currentSelectedSiteId}) est déjà défini. On ne change rien.`);
+                    logger.info(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] siteId de l'URL invalide, mais currentSelectedSiteId (${currentSelectedSiteId}) est déjà défini. On ne change rien.`);
                 }
             }
         } else {
             // Pas de siteId dans l'URL
-            console.log(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] Pas de siteId dans l'URL.`);
+            logger.info(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] Pas de siteId dans l'URL.`);
             // Si aucun site n'est sélectionné, et que SiteSelector n'a pas autoSelectFirst, on pourrait prendre le premier de la liste.
             // SiteSelector avec autoSelectFirst={true} et persistInUrl={true} devrait gérer la sélection initiale et la mise à jour de l'URL.
             if (!currentSelectedSiteId && sitesList[0]?.id) {
@@ -422,9 +423,9 @@ export default function WeeklyPlanningPage() {
                 // const defaultSiteId = sitesList[0].id;
                 // setSelectedSiteId(defaultSiteId);
                 // router.push(`/planning/hebdomadaire?siteId=${defaultSiteId}`, { scroll: false });
-                console.log(`[WeeklyPlanningPage_EFFECT_URL] Pas de siteId dans l'URL ET currentSelectedSiteId vide. SiteSelector devrait gérer l'initialisation et la mise à jour de l'URL.`);
+                logger.info(`[WeeklyPlanningPage_EFFECT_URL] Pas de siteId dans l'URL ET currentSelectedSiteId vide. SiteSelector devrait gérer l'initialisation et la mise à jour de l'URL.`);
             } else {
-                console.log(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] Pas de siteId dans l'URL, currentSelectedSiteId (${currentSelectedSiteId}) est déjà défini ou sitesList[0] n'existe pas. On ne change rien.`);
+                logger.info(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] Pas de siteId dans l'URL, currentSelectedSiteId (${currentSelectedSiteId}) est déjà défini ou sitesList[0] n'existe pas. On ne change rien.`);
             }
         }
     }, [searchParams, sitesList, router]); // selectedSiteId retiré des dépendances
@@ -466,9 +467,9 @@ export default function WeeklyPlanningPage() {
             const newConfig = { ...displayConfig, roomOrder: orderedRoomIds };
             setDisplayConfig(newConfig);
             try {
-                console.log("Préférences d'ordre des salles sauvegardées.");
+                logger.info("Préférences d'ordre des salles sauvegardées.");
             } catch (error) {
-                console.error("Erreur sauvegarde préférences ordre salles:", error);
+                logger.error("Erreur sauvegarde préférences ordre salles:", error);
             }
         }
     };
@@ -976,7 +977,7 @@ export default function WeeklyPlanningPage() {
     const handleConfigChange = async (newConfig: DisplayConfig) => {
         setDisplayConfig(newConfig);
         setShowConfigPanel(false);
-        console.log("Préférences sauvegardées localement");
+        logger.info("Préférences sauvegardées localement");
     };
 
     useEffect(() => {
@@ -997,7 +998,7 @@ export default function WeeklyPlanningPage() {
     useEffect(() => {
         const loadDefaultConfig = () => {
             if (!displayConfig) {
-                console.log("Chargement de la configuration par défaut");
+                logger.info("Chargement de la configuration par défaut");
                 setDisplayConfig(defaultDisplayConfig);
             }
         };
@@ -1040,14 +1041,14 @@ export default function WeeklyPlanningPage() {
 
         const movedAssignmentIndex = tempAssignments.findIndex(a => String(a.id) === assignmentId);
         if (movedAssignmentIndex === -1) {
-            console.error("Assignation déplacée non trouvée:", assignmentId);
+            logger.error("Assignation déplacée non trouvée:", assignmentId);
             return;
         }
         const movedAssignment = { ...tempAssignments[movedAssignmentIndex] };
 
         const destParts = destination.droppableId.split('-');
         if (destParts.length !== 6 || destParts[0] !== 'room' || destParts[2] !== 'day' || destParts[4] !== 'period') {
-            console.error("ID de destination invalide:", destination.droppableId);
+            logger.error("ID de destination invalide:", destination.droppableId);
             return;
         }
         const newRoomId = parseInt(destParts[1], 10);
@@ -1135,7 +1136,7 @@ export default function WeeklyPlanningPage() {
                 })),
             };
             const result: RuleEvaluationSummary = await ruleEngine.evaluate(context);
-            console.log("Résultat validation RuleEngine (Client):", result);
+            logger.info("Résultat validation RuleEngine (Client):", result);
 
             // Mapper le résultat du RuleEngine local vers le format ValidationResult
             const mapResultToViolation = (evalResult: RuleEvaluationResult): RuleViolation => {
@@ -1177,7 +1178,7 @@ export default function WeeklyPlanningPage() {
             };
 
         } catch (error) {
-            console.error("Erreur validation règles (Client):", error);
+            logger.error("Erreur validation règles (Client):", error);
             clientValidationResult = {
                 valid: false,
                 violations: [{
@@ -1202,14 +1203,14 @@ export default function WeeklyPlanningPage() {
                 throw new Error(`Erreur serveur validation: ${response.statusText}`);
             }
             serverValidationResult = await response.json();
-            console.log("Résultat validation RuleEngine (Serveur):", serverValidationResult);
+            logger.info("Résultat validation RuleEngine (Serveur):", serverValidationResult);
 
             // Combiner les résultats ou choisir lequel afficher ?
             // Pour l'instant, on utilise le résultat client, mais on pourrait merger
             // les violations ou afficher les erreurs serveur si la validation client passe.
 
         } catch (error) {
-            console.error("Erreur validation règles (Serveur):", error);
+            logger.error("Erreur validation règles (Serveur):", error);
             if (clientValidationResult) {
                 clientValidationResult.valid = false;
                 clientValidationResult.violations.push({
@@ -1250,7 +1251,7 @@ export default function WeeklyPlanningPage() {
                 roomId: tempAssign.roomId ? Number(tempAssign.roomId) : null,
             }));
 
-            console.log("Assignations envoyées à /api/affectations/batch (via apiClient):", assignmentsToSave);
+            logger.info("Assignations envoyées à /api/affectations/batch (via apiClient):", assignmentsToSave);
 
             // Utiliser apiClient pour la sauvegarde aussi
             const response = await apiClient.post('/api/affectations/batch', { attributions: assignmentsToSave });
@@ -1276,7 +1277,7 @@ export default function WeeklyPlanningPage() {
             toast.success(result.message || "Changements sauvegardés avec succès !");
 
         } catch (error: any) { // Le catch d'axios error est plus détaillé
-            console.error("Erreur lors de la sauvegarde des changements (apiClient):", error);
+            logger.error("Erreur lors de la sauvegarde des changements (apiClient):", error);
             let errorMessage = "Erreur lors de la sauvegarde des changements. Veuillez réessayer.";
             if (error.response && error.response.data && error.response.data.error) {
                 errorMessage = error.response.data.error;

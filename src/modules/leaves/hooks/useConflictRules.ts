@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { ConflictRules, ConflictType, ConflictSeverity } from '../types/conflict';
 
 export interface UseConflictRulesReturn {
@@ -228,7 +229,7 @@ export const useConflictRules = (): UseConflictRulesReturn => {
     // Charger les règles au montage du composant
     useEffect(() => {
         fetchRules().catch(error => {
-            console.error('Erreur lors du chargement initial des règles:', error);
+            logger.error('Erreur lors du chargement initial des règles:', error);
         });
     }, [fetchRules]);
 

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -47,7 +48,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ template
 
     return NextResponse.json(template);
   } catch (error) {
-    console.error('Erreur lors de la récupération du template:', error);
+    logger.error('Erreur lors de la récupération du template:', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -118,7 +119,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ template
 
     return NextResponse.json(updatedTemplate);
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du template:', error);
+    logger.error('Erreur lors de la mise à jour du template:', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -168,7 +169,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Erreur lors de la suppression du template:', error);
+    logger.error('Erreur lors de la suppression du template:', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

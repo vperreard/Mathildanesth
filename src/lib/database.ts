@@ -5,7 +5,7 @@
 
 // Avertissement de dépréciation
 if (process.env.NODE_ENV === 'development') {
-    console.warn(
+    logger.warn(
         '⚠️  DÉPRÉCIATION: src/lib/database.ts utilise Sequelize (obsolète).\n' +
         '   → Utilisez le client Prisma depuis @/lib/prisma à la place.\n' +
         '   → Ce fichier sera supprimé dans une version future.'
@@ -15,6 +15,7 @@ if (process.env.NODE_ENV === 'development') {
 // Import conditionnel pour éviter les erreurs en Edge Runtime
 import { ifRuntimeSupports } from './runtime-detector';
 
+import { logger } from "./logger";
 const sequelize = ifRuntimeSupports('sequelize', () => {
     const { Sequelize } = require('sequelize');
     

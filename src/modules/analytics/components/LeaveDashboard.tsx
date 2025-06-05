@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { Bar, Line, Pie } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -71,7 +72,7 @@ const LeaveDashboard: React.FC<LeaveDashboardProps> = ({ userId, departmentId, i
                 setLeaveData(leaves);
                 setBalanceData(balances);
             } catch (error) {
-                console.error('Erreur lors du chargement des données:', error);
+                logger.error('Erreur lors du chargement des données:', error);
             } finally {
                 setLoading(false);
             }
@@ -319,7 +320,7 @@ const LeaveDashboard: React.FC<LeaveDashboardProps> = ({ userId, departmentId, i
                     <Button
                         type="primary"
                         icon={<DownloadOutlined />}
-                        onClick={() => console.log('Export')}
+                        onClick={() => logger.info('Export')}
                     >
                         Exporter
                     </Button>

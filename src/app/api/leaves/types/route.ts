@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 
 
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
         return NextResponse.json(leaveTypeSettings);
 
     } catch (error) {
-        console.error('Erreur API [GET /conges/types]:', error);
+        logger.error('Erreur API [GET /conges/types]:', error);
         return NextResponse.json({ error: 'Erreur serveur lors de la récupération des types de congés.' }, { status: 500 });
     } finally {
         // Envisager la déconnexion si prisma est instancié localement

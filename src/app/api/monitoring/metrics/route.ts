@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { prisma } from '@/lib/prisma';
 import { performanceMonitor } from '@/lib/monitoring';
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error storing metric:', error);
+    logger.error('Error storing metric:', error);
     return NextResponse.json(
       { error: 'Failed to store metric' },
       { status: 500 }
@@ -140,7 +141,7 @@ export async function GET(req: NextRequest) {
       stats
     });
   } catch (error) {
-    console.error('Error fetching metrics:', error);
+    logger.error('Error fetching metrics:', error);
     return NextResponse.json(
       { error: 'Failed to fetch metrics' },
       { status: 500 }
@@ -257,7 +258,7 @@ function getDashboardMetrics() {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Error fetching dashboard metrics:', error);
+    logger.error('Error fetching dashboard metrics:', error);
     return NextResponse.json(
       { error: 'Failed to fetch metrics' },
       { status: 500 }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, forwardRef } from 'react';
+import { logger } from "../../../lib/logger";
 import axios from 'axios';
 import {
     formatDate,
@@ -193,7 +194,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                     setLeaveType(translatedData[0].code);
                 }
             } catch (err: any) {
-                console.error("Erreur lors du chargement des types de congés:", err);
+                logger.error("Erreur lors du chargement des types de congés:", err);
                 setLoadTypeError("Impossible de charger les types de congés.");
             } finally {
                 setIsLoadingTypes(false);
@@ -281,7 +282,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                 throw new Error("Réponse invalide de l'API batch.");
             }
         } catch (err: any) {
-            console.error("Erreur lors de la soumission de la demande batch:", err);
+            logger.error("Erreur lors de la soumission de la demande batch:", err);
             const apiError = err.response?.data?.error || err.message || 'Une erreur est survenue lors de la soumission.';
             setErrors({ global: apiError });
             toast.error(apiError);

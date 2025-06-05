@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     QuotaTransferReportOptions,
     QuotaTransferReportResult,
@@ -80,7 +81,7 @@ export function useQuotaTransferReport(options: UseQuotaTransferReportOptions = 
         } catch (err: any) {
             const errorMessage = err?.message || 'Erreur lors de la génération du rapport';
             setError(new Error(errorMessage));
-            console.error('Erreur dans useQuotaTransferReport.generateReport:', err);
+            logger.error('Erreur dans useQuotaTransferReport.generateReport:', err);
             return null;
         } finally {
             setLoading(false);
@@ -116,7 +117,7 @@ export function useQuotaTransferReport(options: UseQuotaTransferReportOptions = 
         } catch (err: any) {
             const errorMessage = err?.message || `Erreur lors de l'exportation au format ${format}`;
             setError(new Error(errorMessage));
-            console.error('Erreur dans useQuotaTransferReport.exportReport:', err);
+            logger.error('Erreur dans useQuotaTransferReport.exportReport:', err);
             return false;
         } finally {
             setExportLoading(false);

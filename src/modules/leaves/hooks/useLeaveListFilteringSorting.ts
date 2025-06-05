@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { logger } from "../../../lib/logger";
 import { LeaveWithUser, LeaveType, LeaveStatus } from '../types/leave';
 
 // Helper function (peut aussi être dans un fichier utils/dates)
@@ -15,7 +16,7 @@ const formatDateForInput = (dateString: string | Date | undefined): string => {
         const day = date.getDate().toString().padStart(2, '0');
         return `${year}-${month}-${day}`;
     } catch (e) {
-        console.error("Erreur de formatage de date pour input:", e);
+        logger.error("Erreur de formatage de date pour input:", e);
         return '';
     }
 };
@@ -59,7 +60,7 @@ export const useLeaveListFilteringSorting = ({
 
     const sortedLeaves = useMemo(() => {
         if (!Array.isArray(leaves)) {
-            console.warn("useLeaveListFilteringSorting: 'leaves' n'est pas un tableau.");
+            logger.warn("useLeaveListFilteringSorting: 'leaves' n'est pas un tableau.");
             return [];
         }
         const sorted = [...leaves].sort((a, b) => {
@@ -94,7 +95,7 @@ export const useLeaveListFilteringSorting = ({
                     bValue = getLeaveProperty(b, field as string).toLowerCase();
                 }
             } catch (e) {
-                console.error(`Erreur durant la récupération des valeurs pour le tri sur le champ ${String(field)}:`, e);
+                logger.error(`Erreur durant la récupération des valeurs pour le tri sur le champ ${String(field)}:`, e);
                 return 0;
             }
 
@@ -139,7 +140,7 @@ export const useLeaveListFilteringSorting = ({
                         return true;
                     }
                 } catch (e) {
-                    console.error(`Erreur durant le filtrage sur le champ ${String(key)}:`, e);
+                    logger.error(`Erreur durant le filtrage sur le champ ${String(key)}:`, e);
                     return false;
                 }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import { useSession } from 'next-auth/react';
 import { dashboardService, DashboardData } from '@/services/dashboardService';
 import { Widget } from '@/types/dashboard';
@@ -44,7 +45,7 @@ export const useDashboard = () => {
             }
             const userId = parseInt(session.user.id, 10);
             if (isNaN(userId)) {
-                console.error("ID utilisateur invalide dans la session:", session.user.id);
+                logger.error("ID utilisateur invalide dans la session:", session.user.id);
                 setLoading(false);
                 handleApiError({ message: "ID utilisateur invalide" }, 'useDashboard.loadDashboard.invalidId');
                 return;

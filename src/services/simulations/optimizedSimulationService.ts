@@ -6,6 +6,7 @@
  */
 
 import { PrismaClient, SimulationStatus } from '@prisma/client';
+import { logger } from "../../lib/logger";
 import { simulationCache } from './simulationCacheService';
 import { simulationNotificationService } from './notificationService';
 import * as workerpool from 'workerpool';
@@ -223,7 +224,7 @@ export class OptimizedSimulationService {
 
             return simulationResultId;
         } catch (error) {
-            console.error('Erreur lors de l\'exécution de la simulation optimisée:', error);
+            logger.error('Erreur lors de l\'exécution de la simulation optimisée:', error);
 
             // Mettre à jour le statut en cas d'erreur
             await this.updateSimulationStatus(

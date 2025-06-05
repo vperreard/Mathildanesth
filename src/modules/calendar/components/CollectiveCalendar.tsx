@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { BaseCalendar } from './BaseCalendar';
@@ -133,7 +134,7 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
             updateFilters({}); // Rafraîchir le calendrier
             handleCloseModal();
         } catch (error) {
-            console.error('Erreur lors de l\'approbation du congé:', error);
+            logger.error('Erreur lors de l\'approbation du congé:', error);
             toast.error('Erreur lors de l\'approbation du congé');
         }
     }, [isAdmin, updateFilters, handleCloseModal]);
@@ -148,7 +149,7 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
             updateFilters({}); // Rafraîchir le calendrier
             handleCloseModal();
         } catch (error) {
-            console.error('Erreur lors du refus du congé:', error);
+            logger.error('Erreur lors du refus du congé:', error);
             toast.error('Erreur lors du refus du congé');
         }
     }, [isAdmin, updateFilters, handleCloseModal]);

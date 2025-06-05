@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -54,7 +55,7 @@ const ErrorDashboard: React.FC = () => {
                 setErrors(data.errors);
                 setStats(data.stats);
             } catch (error) {
-                console.error('Erreur lors du chargement des erreurs:', error);
+                logger.error('Erreur lors du chargement des erreurs:', error);
             } finally {
                 setLoading(false);
             }
@@ -125,7 +126,7 @@ const ErrorDashboard: React.FC = () => {
                 });
             }
         } catch (error) {
-            console.error('Erreur lors de la résolution:', error);
+            logger.error('Erreur lors de la résolution:', error);
         }
     };
 

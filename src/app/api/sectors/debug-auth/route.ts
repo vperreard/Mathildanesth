@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { logger } from "@/lib/logger";
 export async function GET(request: NextRequest) {
-    console.log("🔍 Debug Auth - Requête reçue");
+    logger.info("🔍 Debug Auth - Requête reçue");
 
     const userRole = request.headers.get('x-user-role');
     const userId = request.headers.get('x-user-id');

@@ -1,3 +1,5 @@
+import { logger } from "../lib/logger";
+
 /**
  * Types d'actions enregistrées dans l'audit
  */
@@ -140,7 +142,7 @@ export class AuditService {
         };
 
         if (this.isDebugMode) {
-            console.debug('[AuditService] Action enregistrée:', completeEntry);
+            logger.debug('[AuditService] Action enregistrée:', completeEntry);
         }
 
         try {
@@ -148,7 +150,7 @@ export class AuditService {
             await this.sendToAuditAPI(completeEntry);
             return completeEntry;
         } catch (error) {
-            console.error('Erreur lors de l\'enregistrement de l\'audit:', error);
+            logger.error('Erreur lors de l\'enregistrement de l\'audit:', error);
             // En cas d'erreur, nous essayons de stocker localement pour synchronisation ultérieure
             this.storeLocally(completeEntry);
             return completeEntry;
@@ -201,7 +203,7 @@ export class AuditService {
             }
             return await response.json();
         } catch (error) {
-            console.error('Erreur dans getAuditHistory:', error);
+            logger.error('Erreur dans getAuditHistory:', error);
             return [];
         }
     }
@@ -250,7 +252,7 @@ export class AuditService {
             }
             return await response.json();
         } catch (error) {
-            console.error('Erreur dans getUserAuditHistory:', error);
+            logger.error('Erreur dans getUserAuditHistory:', error);
             return [];
         }
     }
@@ -279,7 +281,7 @@ export class AuditService {
                 throw new Error(`Erreur lors de l'enregistrement de l'audit: ${response.statusText}`);
             }
         } catch (error) {
-            console.error('Erreur dans sendToAuditAPI:', error);
+            logger.error('Erreur dans sendToAuditAPI:', error);
             throw error;
         }
     }
@@ -305,10 +307,10 @@ export class AuditService {
             localStorage.setItem('pendingAuditEntries', JSON.stringify(trimmedEntries));
 
             if (this.isDebugMode) {
-                console.debug(`[AuditService] Entrée stockée localement. ${trimmedEntries.length} entrées en attente.`);
+                logger.debug(`[AuditService] Entrée stockée localement. ${trimmedEntries.length} entrées en attente.`);
             }
         } catch (error) {
-            console.error('Erreur lors du stockage local de l\'audit:', error);
+            logger.error('Erreur lors du stockage local de l\'audit:', error);
         }
     }
 
@@ -348,7 +350,7 @@ export class AuditService {
                         break; // Arrêter si une synchronisation échoue
                     }
                 } catch (error) {
-                    console.error('Erreur lors de la synchronisation du lot:', error);
+                    logger.error('Erreur lors de la synchronisation du lot:', error);
                     break;
                 }
             }
@@ -359,13 +361,13 @@ export class AuditService {
                 localStorage.setItem('pendingAuditEntries', JSON.stringify(remainingEntries));
 
                 if (this.isDebugMode) {
-                    console.debug(`[AuditService] ${syncedCount} entrées synchronisées. ${remainingEntries.length} entrées restantes.`);
+                    logger.debug(`[AuditService] ${syncedCount} entrées synchronisées. ${remainingEntries.length} entrées restantes.`);
                 }
             }
 
             return syncedCount;
         } catch (error) {
-            console.error('Erreur lors de la synchronisation des entrées d\'audit:', error);
+            logger.error('Erreur lors de la synchronisation des entrées d\'audit:', error);
             return 0;
         }
     }

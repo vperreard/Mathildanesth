@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { logger } from "../../lib/logger";
 import Button from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -74,7 +75,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
             const data: ApiSpecialty[] = await response.json();
             setAvailableSpecialties(data);
         } catch (error: any) {
-            console.error("Erreur lors du chargement des spécialités:", error);
+            logger.error("Erreur lors du chargement des spécialités:", error);
             setErrorSpecialties(error.message || "Impossible de charger les spécialités.");
         } finally {
             setIsLoadingSpecialties(false);
@@ -219,7 +220,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
                 onClose();
             }, 0);
         } catch (error) {
-            console.error("Erreur lors de la sauvegarde de l'activité:", error);
+            logger.error("Erreur lors de la sauvegarde de l'activité:", error);
             toast.error("Une erreur est survenue lors de la sauvegarde de l'activité.");
         }
     }, [typeActivite, salleId, isFullDay, jour, periode, targetActivityRowKey, onSave, onClose,

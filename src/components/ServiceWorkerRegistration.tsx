@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { logger } from "../lib/logger";
 import { useServiceWorker, useNetworkStatus } from '@/hooks/useServiceWorker';
 
 const ServiceWorkerRegistration: React.FC = () => {
@@ -54,7 +55,7 @@ const ServiceWorkerRegistration: React.FC = () => {
     // Log des informations de performance en développement
     useEffect(() => {
         if (process.env.NODE_ENV === 'development') {
-            console.log('[SW] État:', {
+            logger.info('[SW] État:', {
                 isSupported,
                 isInstalled,
                 isWaiting,

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { Period } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
@@ -56,7 +57,7 @@ const ConsultationsPage: React.FC = () => {
                 date: new Date(item.date),
             })));
         } catch (error) {
-            console.error('Erreur lors du chargement des consultations:', error);
+            logger.error('Erreur lors du chargement des consultations:', error);
             toast.error('Impossible de charger les consultations');
         } finally {
             setLoading(false);
@@ -87,7 +88,7 @@ const ConsultationsPage: React.FC = () => {
                 setSites(sitesData.sites);
             }
         } catch (error) {
-            console.error('Erreur lors du chargement des données:', error);
+            logger.error('Erreur lors du chargement des données:', error);
             toast.error('Impossible de charger certaines données');
         }
     };
@@ -145,7 +146,7 @@ const ConsultationsPage: React.FC = () => {
                 setConsultations(consultations.filter(c => c.id !== consultationToDelete));
                 toast.success('Consultation supprimée');
             } catch (error) {
-                console.error('Erreur de suppression:', error);
+                logger.error('Erreur de suppression:', error);
                 toast.error('Erreur lors de la suppression');
             } finally {
                 setIsDeleteConfirmOpen(false);
@@ -199,7 +200,7 @@ const ConsultationsPage: React.FC = () => {
             // Fermer le formulaire
             setIsFormOpen(false);
         } catch (error) {
-            console.error('Erreur de soumission:', error);
+            logger.error('Erreur de soumission:', error);
             toast.error('Erreur lors de la soumission');
         }
     };

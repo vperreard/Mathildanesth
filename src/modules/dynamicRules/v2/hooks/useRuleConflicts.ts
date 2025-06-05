@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { RuleV2, RuleConflict } from '../types/ruleV2.types';
 
 export const useRuleConflicts = () => {
@@ -31,14 +32,14 @@ export const useRuleConflicts = () => {
       });
 
       if (!response.ok) {
-        console.error('Failed to check conflicts');
+        logger.error('Failed to check conflicts');
         return;
       }
 
       const data = await response.json();
       setConflicts(data.conflicts || []);
     } catch (err) {
-      console.error('Error checking conflicts:', err);
+      logger.error('Error checking conflicts:', err);
       setConflicts([]);
     } finally {
       setIsChecking(false);
@@ -74,7 +75,7 @@ export const useRuleConflicts = () => {
       
       return data;
     } catch (err) {
-      console.error('Error resolving conflict:', err);
+      logger.error('Error resolving conflict:', err);
       throw err;
     }
   }, []);

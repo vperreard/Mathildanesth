@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { logger } from "../lib/logger";
 import { Attribution, RuleViolation, ValidationResult } from '@/types/attribution';
 import { RuleEngineV2 } from '@/modules/dynamicRules/v2/services/RuleEngineV2';
 import { RuleContext } from '@/modules/dynamicRules/v2/types/ruleV2.types';
@@ -92,7 +93,7 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
 
             return violations;
         } catch (error) {
-            console.error('Error validating attribution:', error);
+            logger.error('Error validating attribution:', error);
             return [];
         }
     }, [isInitializing, createRuleContext, ruleEngine]);

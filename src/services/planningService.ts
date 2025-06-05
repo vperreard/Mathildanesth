@@ -1,4 +1,5 @@
 import { Attribution, RuleViolation } from '../types/attribution';
+import { logger } from "../lib/logger";
 // Suppression des imports serveur inutiles côté client
 // import { TrameAffectationService } from './trameAffectationService';
 // import { UserService } from './userService';
@@ -27,14 +28,14 @@ export class PlanningService {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error('Erreur API lors de la sauvegarde:', errorData);
+                logger.error('Erreur API lors de la sauvegarde:', errorData);
                 throw new Error(errorData.error || 'Erreur lors de la sauvegarde des gardes/vacations via API');
             }
 
-            console.log('Attributions sauvegardés via API:', attributions);
+            logger.info('Attributions sauvegardés via API:', attributions);
             return true;
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde des gardes/vacations via API:', error);
+            logger.error('Erreur lors de la sauvegarde des gardes/vacations via API:', error);
             return false;
         }
     }
@@ -53,13 +54,13 @@ export class PlanningService {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error('Erreur API lors de la validation:', errorData);
+                logger.error('Erreur API lors de la validation:', errorData);
                 throw new Error(errorData.error || 'Erreur lors de la validation des gardes/vacations via API');
             }
             const data = await response.json();
             return data.violations || []; // Assurer que violations est un tableau
         } catch (error) {
-            console.error('Erreur lors de la validation des gardes/vacations via API:', error);
+            logger.error('Erreur lors de la validation des gardes/vacations via API:', error);
             // Renvoyer une structure d'erreur cohérente si nécessaire, ou lancer l'erreur
             throw error; // ou return [{ ruleId: 'API_ERROR', message: error.message, assignmentId: '' }];
         }
@@ -75,7 +76,7 @@ export class PlanningService {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error('Erreur API lors de la récupération:', errorData);
+                logger.error('Erreur API lors de la récupération:', errorData);
                 throw new Error(errorData.error || 'Erreur lors de la récupération des gardes/vacations via API');
             }
             const data = await response.json();
@@ -85,7 +86,7 @@ export class PlanningService {
                 date: new Date(a.date)
             }));
         } catch (error) {
-            console.error('Erreur lors de la récupération des gardes/vacations via API:', error);
+            logger.error('Erreur lors de la récupération des gardes/vacations via API:', error);
             throw error;
         }
     }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -140,7 +141,7 @@ export const TemplateApplicator: React.FC<TemplateApplicatorProps> = ({
             setPreviewResults(results);
             setShowPreview(true);
         } catch (error) {
-            console.error('Erreur lors de la prévisualisation:', error);
+            logger.error('Erreur lors de la prévisualisation:', error);
         }
     }, [selectedTemplateId, options, onPreview]);
 
@@ -151,7 +152,7 @@ export const TemplateApplicator: React.FC<TemplateApplicatorProps> = ({
         try {
             await onApply(selectedTemplateId, { ...options, dryRun: false });
         } catch (error) {
-            console.error('Erreur lors de l\'application:', error);
+            logger.error('Erreur lors de l\'application:', error);
         } finally {
             setIsApplying(false);
         }

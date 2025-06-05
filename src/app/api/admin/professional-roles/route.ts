@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { checkUserRole, UserRole } from '@/lib/auth-utils';
 import { ProfessionalRole } from '@prisma/client';
@@ -19,7 +20,7 @@ export async function GET() {
         `;
         return NextResponse.json(roles);
     } catch (error) {
-        console.error("Erreur GET /api/admin/professional-roles:", error);
+        logger.error("Erreur GET /api/admin/professional-roles:", error);
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 }
@@ -64,7 +65,7 @@ export async function POST(request: Request) {
 
         return new NextResponse(JSON.stringify(newRole), { status: 201 });
     } catch (error) {
-        console.error("Erreur POST /api/admin/professional-roles:", error);
+        logger.error("Erreur POST /api/admin/professional-roles:", error);
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 } 

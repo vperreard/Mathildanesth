@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     Plus, Edit, Trash2, CheckCircle, AlertCircle,
     XCircle, Save, ToggleLeft, ToggleRight
@@ -51,7 +52,7 @@ export default function RequestTypeManager() {
                 setRequestTypes(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Erreur inconnue');
-                console.error('Erreur lors du chargement des types de requêtes:', err);
+                logger.error('Erreur lors du chargement des types de requêtes:', err);
             } finally {
                 setIsLoading(false);
             }
@@ -157,7 +158,7 @@ export default function RequestTypeManager() {
 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            console.error('Erreur lors de la soumission du formulaire:', err);
+            logger.error('Erreur lors de la soumission du formulaire:', err);
         } finally {
             setIsLoading(false);
         }
@@ -203,7 +204,7 @@ export default function RequestTypeManager() {
 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            console.error('Erreur lors de la suppression du type de requête:', err);
+            logger.error('Erreur lors de la suppression du type de requête:', err);
         } finally {
             setIsLoading(false);
         }
@@ -244,7 +245,7 @@ export default function RequestTypeManager() {
 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            console.error('Erreur lors de la mise à jour du statut:', err);
+            logger.error('Erreur lors de la mise à jour du statut:', err);
         } finally {
             setIsLoading(false);
         }

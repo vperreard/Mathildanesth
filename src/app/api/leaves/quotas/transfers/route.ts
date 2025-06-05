@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
@@ -55,7 +56,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(transfers);
     } catch (error) {
-        console.error('Erreur lors de la récupération des transferts :', error);
+        logger.error('Erreur lors de la récupération des transferts :', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des transferts' },
             { status: 500 }
@@ -264,7 +265,7 @@ export async function POST(req: NextRequest) {
                 : 'Transfert effectué avec succès'
         }, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la création du transfert :', error);
+        logger.error('Erreur lors de la création du transfert :', error);
         return NextResponse.json(
             { error: 'Erreur lors de la création du transfert' },
             { status: 500 }

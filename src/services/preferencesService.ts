@@ -1,5 +1,6 @@
 import { Theme } from '@/config/themes';
 
+import { logger } from "../lib/logger";
 export interface UserPreferences {
     theme: string;
     layout: 'grid' | 'free';
@@ -74,7 +75,7 @@ export const preferencesService = {
             const savedPreferences = localStorage.getItem('user-preferences');
             return savedPreferences ? JSON.parse(savedPreferences) : defaultPreferences;
         } catch (error) {
-            console.error('Erreur lors de la récupération des préférences:', error);
+            logger.error('Erreur lors de la récupération des préférences:', error);
             return defaultPreferences;
         }
     },
@@ -85,7 +86,7 @@ export const preferencesService = {
             const updatedPreferences = { ...currentPreferences, ...preferences };
             localStorage.setItem('user-preferences', JSON.stringify(updatedPreferences));
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde des préférences:', error);
+            logger.error('Erreur lors de la sauvegarde des préférences:', error);
         }
     },
 

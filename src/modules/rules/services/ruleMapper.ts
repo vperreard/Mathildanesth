@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 
+import { logger } from "../../../lib/logger";
 // Définir les types Prisma manuellement pour éviter les erreurs d'importation
 type PrismaRuleType = 'LEAVE' | 'DUTY' | 'SUPERVISION' | 'ASSIGNMENT' | 'ON_CALL';
 type PrismaRulePriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -58,7 +59,7 @@ export function mapRuleType(prismaType: PrismaRuleType): RuleType {
             if (Object.values(RuleType).includes(prismaType as RuleType)) {
                 return prismaType as RuleType;
             }
-            console.warn(`Type de règle Prisma non mappé explicitement: ${prismaType}, tentative de cast direct`);
+            logger.warn(`Type de règle Prisma non mappé explicitement: ${prismaType}, tentative de cast direct`);
             return prismaType as RuleType;
     }
 }
@@ -116,7 +117,7 @@ export function mapPrismaRuleToRule(prismaRule: PrismaRule & { createdByUser?: a
         case RuleType.SUPERVISION:
             return { ...baseFields, type: RuleType.SUPERVISION, supervisionConfig: baseFields.configuration } as SupervisionRule;
         default:
-            console.warn(`Mappage spécifique non implémenté pour le type: ${type}. Retour de la règle de base.`);
+            logger.warn(`Mappage spécifique non implémenté pour le type: ${type}. Retour de la règle de base.`);
             return baseFields as AnyRule;
     }
 }

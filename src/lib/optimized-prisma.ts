@@ -1,4 +1,5 @@
 import { PrismaClient, Prisma } from '@prisma/client';
+import { logger } from "./logger";
 import { redisCache, CACHE_TTL } from './redis-cache';
 
 // Configuration optimisée Prisma
@@ -34,7 +35,7 @@ class OptimizedPrismaClient extends PrismaClient {
         // Vérifier le cache
         const cached = await redisCache.get(cacheKey);
         if (cached) {
-            console.log(`🎯 DB Cache HIT: ${model}.${action}`);
+            logger.info(`🎯 DB Cache HIT: ${model}.${action}`);
             return cached;
         }
 
@@ -45,7 +46,7 @@ class OptimizedPrismaClient extends PrismaClient {
         const ttl = this.getCacheTTL(model, action);
         if (ttl > 0) {
             await redisCache.set(cacheKey, result, ttl);
-            console.log(`💾 DB Cached: ${model}.${action} for ${ttl}s`);
+            logger.info(`💾 DB Cached: ${model}.${action} for ${ttl}s`);
         }
 
         return result;
@@ -59,7 +60,7 @@ class OptimizedPrismaClient extends PrismaClient {
 
         // Log des requêtes lentes (>100ms)
         if (duration > 100) {
-            console.warn(`🐌 Slow query detected: ${params.model}.${params.action} took ${duration}ms`);
+            logger.warn(`🐌 Slow query detected: ${params.model}.${params.action} took ${duration}ms`);
             
             // Enregistrer pour analyse
             if (typeof window === 'undefined') {
@@ -113,9 +114,9 @@ class OptimizedPrismaClient extends PrismaClient {
             };
             
             // Ici on pourrait envoyer vers un système de monitoring
-            console.log('Slow query logged:', logEntry);
+            logger.info('Slow query logged:', logEntry);
         } catch (error) {
-            console.warn('Failed to log slow query:', error);
+            logger.warn('Failed to log slow query:', error);
         }
     }
 

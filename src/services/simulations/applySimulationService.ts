@@ -1,4 +1,5 @@
 import { PrismaClient, SimulationStatus, Attribution, Leave } from '@prisma/client';
+import { logger } from "../../lib/logger";
 import { simulationNotificationService } from './notificationService';
 
 import { prisma } from "@/lib/prisma";
@@ -118,7 +119,7 @@ export class ApplySimulationService {
 
             return result;
         } catch (error) {
-            console.error('Erreur lors de l\'application de la simulation:', error);
+            logger.error('Erreur lors de l\'application de la simulation:', error);
 
             const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
 
@@ -326,7 +327,7 @@ export class ApplySimulationService {
                     created++;
                 }
             } catch (error) {
-                console.error('Erreur lors de la création d\'une affectation:', error);
+                logger.error('Erreur lors de la création d\'une affectation:', error);
                 conflicts.push({
                     type: 'ASSIGNMENT_CREATION_ERROR',
                     attribution,
@@ -356,7 +357,7 @@ export class ApplySimulationService {
                 });
                 created++;
             } catch (error) {
-                console.error('Erreur lors de la création d\'un congé:', error);
+                logger.error('Erreur lors de la création d\'un congé:', error);
                 conflicts.push({
                     type: 'LEAVE_CREATION_ERROR',
                     leave,
@@ -399,7 +400,7 @@ export class ApplySimulationService {
 
             // Vous pourriez également utiliser Pusher ou un autre mécanisme pour les notifications temps réel
         } catch (error) {
-            console.error('Erreur lors de la notification d\'application de simulation:', error);
+            logger.error('Erreur lors de la notification d\'application de simulation:', error);
         }
     }
 
@@ -432,7 +433,7 @@ export class ApplySimulationService {
                 }
             });
         } catch (err) {
-            console.error('Erreur lors de la notification d\'erreur d\'application de simulation:', err);
+            logger.error('Erreur lors de la notification d\'erreur d\'application de simulation:', err);
         }
     }
 }

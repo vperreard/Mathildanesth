@@ -9,6 +9,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
+import { logger } from "../lib/logger";
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { User } from '@/types/user'; // Importer le type User
@@ -113,7 +114,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(userData);
       return userData;
     } catch (error) {
-      console.log("AuthContext: Erreur lors de la récupération de l'utilisateur");
+      logger.info("AuthContext: Erreur lors de la récupération de l'utilisateur");
       setUser(null);
       userCache.clear();
       return null;
@@ -150,7 +151,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       router.push(redirectUrl);
       return response.data.user;
     } catch (error) {
-      console.error('Erreur de connexion:', error);
+      logger.error('Erreur de connexion:', error);
       throw new Error('Identifiants incorrects');
     }
   };
@@ -159,7 +160,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await axios.post('http://localhost:3000/api/auth/deconnexion');
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
+      logger.error('Erreur lors de la déconnexion:', error);
     } finally {
       removeClientAuthToken();
       userCache.clear();

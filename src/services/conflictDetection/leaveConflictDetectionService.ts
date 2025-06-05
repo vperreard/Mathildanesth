@@ -2,6 +2,7 @@ import {
     ConflictDetectionService,
     ConflictCheckOptions
 } from './conflictDetectionFacade';
+import { logger } from "../../lib/logger";
 import {
     ConflictCheckResult,
     ConflictType,
@@ -50,7 +51,7 @@ export class LeaveConflictDetectionService implements ConflictDetectionService {
 
         // Vérifier que l'ID utilisateur est défini
         if (!options.userId) {
-            console.warn('LeaveConflictDetectionService: userId est requis pour la détection de conflits de congés');
+            logger.warn('LeaveConflictDetectionService: userId est requis pour la détection de conflits de congés');
             return this.createEmptyResult();
         }
 
@@ -87,7 +88,7 @@ export class LeaveConflictDetectionService implements ConflictDetectionService {
 
             return result;
         } catch (error) {
-            console.error('Erreur dans LeaveConflictDetectionService:', error);
+            logger.error('Erreur dans LeaveConflictDetectionService:', error);
             return this.createEmptyResult();
         }
     }

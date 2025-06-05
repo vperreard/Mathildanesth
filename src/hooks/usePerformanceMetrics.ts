@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 
+import { logger } from "../lib/logger";
 interface PerformanceMetrics {
     loadTime: number;
     renderTime: number;
@@ -55,16 +56,16 @@ export const usePerformanceMetrics = (pageName?: string): PerformanceHookReturn 
                 // Log en développement
                 if (process.env.NODE_ENV === 'development') {
                     console.group(`🚀 Performance Metrics ${pageName ? `- ${pageName}` : ''}`);
-                    console.log(`Load Time: ${loadTime.toFixed(2)}ms`);
-                    console.log(`Render Time: ${renderTime.toFixed(2)}ms`);
-                    console.log(`Time to Interactive: ${timeToInteractive.toFixed(2)}ms`);
+                    logger.info(`Load Time: ${loadTime.toFixed(2)}ms`);
+                    logger.info(`Render Time: ${renderTime.toFixed(2)}ms`);
+                    logger.info(`Time to Interactive: ${timeToInteractive.toFixed(2)}ms`);
                     if (memoryUsage) {
-                        console.log(`Memory Usage: ${memoryUsage.toFixed(2)}MB`);
+                        logger.info(`Memory Usage: ${memoryUsage.toFixed(2)}MB`);
                     }
                     // Log custom metrics at measurement time
                     setCustomMetrics(currentCustomMetrics => {
                         if (Object.keys(currentCustomMetrics).length > 0) {
-                            console.log('Custom Metrics:', currentCustomMetrics);
+                            logger.info('Custom Metrics:', currentCustomMetrics);
                         }
                         return currentCustomMetrics;
                     });
@@ -78,7 +79,7 @@ export const usePerformanceMetrics = (pageName?: string): PerformanceHookReturn 
                 }
 
             } catch (error) {
-                console.error('Erreur lors de la mesure des performances:', error);
+                logger.error('Erreur lors de la mesure des performances:', error);
                 setIsLoading(false);
             }
         };
@@ -136,7 +137,7 @@ export const measureExecutionTime = async <T>(
         const executionTime = endTime - startTime;
 
         if (process.env.NODE_ENV === 'development') {
-            console.log(`⏱️ ${metricName}: ${executionTime.toFixed(2)}ms`);
+            logger.info(`⏱️ ${metricName}: ${executionTime.toFixed(2)}ms`);
         }
 
         return { result, executionTime };
@@ -144,7 +145,7 @@ export const measureExecutionTime = async <T>(
         const endTime = performance.now();
         const executionTime = endTime - startTime;
 
-        console.error(`❌ ${metricName} failed after ${executionTime.toFixed(2)}ms:`, error);
+        logger.error(`❌ ${metricName} failed after ${executionTime.toFixed(2)}ms:`, error);
         throw error;
     }
 }; 

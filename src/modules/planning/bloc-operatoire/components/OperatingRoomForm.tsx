@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import {
   Form,
@@ -106,7 +107,7 @@ export const OperatingRoomForm: React.FC<OperatingRoomFormProps> = ({
       setError(null);
     } catch (err) {
       setError('Erreur lors du chargement des secteurs');
-      console.error(err);
+      logger.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +131,7 @@ export const OperatingRoomForm: React.FC<OperatingRoomFormProps> = ({
       setError(null);
     } catch (err) {
       setError("Erreur lors de l'enregistrement de la salle");
-      console.error(err);
+      logger.error(err);
     } finally {
       setIsLoading(false);
     }

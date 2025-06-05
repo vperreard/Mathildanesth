@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import {
   PrismaClient,
   RecurrenceTypeTrame,
@@ -16,7 +17,7 @@ export async function GET(
   { params }: { params: Promise<{ trameModeleId: string }> }
 ) {
   const { trameModeleId } = await params;
-  console.log(`[API GET /trameModele-modeles/${trameModeleId}] Début du traitement.`);
+  logger.info(`[API GET /trameModele-modeles/${trameModeleId}] Début du traitement.`);
 
   try {
     const authToken = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -59,7 +60,7 @@ export async function GET(
 
     return NextResponse.json(trameModele);
   } catch (error: any) {
-    console.error(
+    logger.error(
       `Erreur lors de la récupération du template de trameModele ${trameModeleId}:`,
       error
     );
@@ -76,7 +77,7 @@ export async function PUT(
   { params }: { params: Promise<{ trameModeleId: string }> }
 ) {
   const { trameModeleId } = await params;
-  console.log(`[API PUT /trameModele-modeles/${trameModeleId}] Début du traitement.`);
+  logger.info(`[API PUT /trameModele-modeles/${trameModeleId}] Début du traitement.`);
 
   try {
     const authToken = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -96,7 +97,7 @@ export async function PUT(
     }
 
     const data = await req.json();
-    console.log(
+    logger.info(
       `[API PUT /trameModele-modeles/${trameModeleId}] Données reçues:`,
       JSON.stringify(data, null, 2)
     );
@@ -137,12 +138,12 @@ export async function PUT(
           processedDetailsJson = JSON.parse(JSON.stringify(data.detailsJson));
         }
 
-        console.log(
+        logger.info(
           `[API PUT /trameModele-modeles/${trameModeleId}] detailsJson traité:`,
           JSON.stringify(processedDetailsJson, null, 2)
         );
       } catch (jsonError) {
-        console.error(
+        logger.error(
           `[API PUT /trameModele-modeles/${trameModeleId}] Erreur lors du traitement de detailsJson:`,
           jsonError
         );
@@ -190,7 +191,7 @@ export async function PUT(
       detailsJson: processedDetailsJson,
     };
 
-    console.log(
+    logger.info(
       `[API PUT /trameModele-modeles/${trameModeleId}] Payload de mise à jour:`,
       JSON.stringify(updatePayload, null, 2)
     );
@@ -201,33 +202,33 @@ export async function PUT(
         data: updatePayload,
       });
 
-      console.log(
+      logger.info(
         `[API PUT /trameModele-modeles/${trameModeleId}] Mise à jour réussie, ID: ${updatedTrameModele.id}`
       );
       return NextResponse.json(updatedTrameModele);
     } catch (updateError: any) {
-      console.error(
+      logger.error(
         `[API PUT /trameModele-modeles/${trameModeleId}] Erreur Prisma lors de la mise à jour:`,
         updateError
       );
-      console.error(`Code d'erreur Prisma: ${updateError.code}`);
-      console.error(`Message d'erreur Prisma: ${updateError.message}`);
+      logger.error(`Code d'erreur Prisma: ${updateError.code}`);
+      logger.error(`Message d'erreur Prisma: ${updateError.message}`);
 
       if (updateError.meta) {
-        console.error(`Métadonnées d'erreur: ${JSON.stringify(updateError.meta)}`);
+        logger.error(`Métadonnées d'erreur: ${JSON.stringify(updateError.meta)}`);
       }
 
       throw updateError; // Relancer l'erreur pour qu'elle soit traitée dans le catch principal
     }
   } catch (error: any) {
-    console.error(
+    logger.error(
       `[API PUT /trameModele-modeles/${trameModeleId}] Erreur lors de la mise à jour:`,
       error
     );
 
     // Afficher la stack trace pour plus de détails
     if (error.stack) {
-      console.error(`[API PUT /trameModele-modeles/${trameModeleId}] Stack trace:`, error.stack);
+      logger.error(`[API PUT /trameModele-modeles/${trameModeleId}] Stack trace:`, error.stack);
     }
 
     if (error.code === 'P2025') {
@@ -267,7 +268,7 @@ export async function DELETE(
   { params }: { params: Promise<{ trameModeleId: string }> }
 ) {
   const { trameModeleId } = await params;
-  console.log(`[API DELETE /trameModele-modeles/${trameModeleId}] Début du traitement.`);
+  logger.info(`[API DELETE /trameModele-modeles/${trameModeleId}] Début du traitement.`);
 
   try {
     const authToken = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -296,7 +297,7 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (error: any) {
-    console.error(
+    logger.error(
       `Erreur lors de la suppression du template de trameModele ${trameModeleId}:`,
       error
     );

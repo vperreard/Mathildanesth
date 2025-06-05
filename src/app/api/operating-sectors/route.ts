@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getAuthTokenServer, checkUserRole } from '@/lib/auth-server-utils';
 import type { UserRole as AuthUserRole } from '@/lib/auth-client-utils';
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
     const authCheck = await checkUserRole(ALLOWED_ROLES_GET);
 
     if (!authCheck.hasRequiredRole) {
-      console.log("Vérification d'autorisation échouée:", authCheck.error);
+      logger.info("Vérification d'autorisation échouée:", authCheck.error);
       return NextResponse.json(
         { error: authCheck.error || 'Authentification requise' },
         { status: 401 }
@@ -35,9 +36,9 @@ export async function GET(request: NextRequest) {
     });
 
     // Log détaillé pour le débogage
-    console.log(`GET /api/operating-sectors: Récupération de ${sectors.length} secteurs`);
+    logger.info(`GET /api/operating-sectors: Récupération de ${sectors.length} secteurs`);
     if (sectors.length > 0) {
-      console.log('Premier secteur récupéré:', {
+      logger.info('Premier secteur récupéré:', {
         id: sectors[0].id,
         name: sectors[0].name,
         displayOrder: sectors[0].displayOrder,
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(sectors);
   } catch (error) {
-    console.error('Erreur lors de la récupération des secteurs opératoires:', error);
+    logger.error('Erreur lors de la récupération des secteurs opératoires:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des secteurs opératoires' },
       { status: 500 }
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     const authCheck = await checkUserRole(ALLOWED_ROLES_POST);
 
     if (!authCheck.hasRequiredRole) {
-      console.log("Vérification d'autorisation échouée:", authCheck.error);
+      logger.info("Vérification d'autorisation échouée:", authCheck.error);
       return NextResponse.json(
         { error: authCheck.error || 'Authentification requise' },
         { status: 401 }
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newSector, { status: 201 });
   } catch (error) {
-    console.error('Erreur lors de la création du secteur:', error);
+    logger.error('Erreur lors de la création du secteur:', error);
     return NextResponse.json(
       {
         error: 'Erreur lors de la création du secteur',

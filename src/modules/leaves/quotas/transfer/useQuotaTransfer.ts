@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     QuotaTransferRequest,
     QuotaTransferResult,
@@ -183,7 +184,7 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
             setBalance(balanceData);
         } catch (err) {
             setError(err as Error);
-            console.error('Erreur lors de la récupération du solde des congés', err);
+            logger.error('Erreur lors de la récupération du solde des congés', err);
         } finally {
             setLoading(false);
         }
@@ -201,7 +202,7 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
             setTransferRules(rules);
         } catch (err) {
             setError(err as Error);
-            console.error('Erreur lors de la récupération des règles de transfert', err);
+            logger.error('Erreur lors de la récupération des règles de transfert', err);
         } finally {
             setLoading(false);
         }
@@ -221,7 +222,7 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
             setTransferHistory(history);
         } catch (err) {
             setError(err as Error);
-            console.error('Erreur lors de la récupération de l\'historique des transferts', err);
+            logger.error('Erreur lors de la récupération de l\'historique des transferts', err);
         } finally {
             setHistoryLoading(false);
         }
@@ -264,7 +265,7 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
             return extendedPreview;
         } catch (err) {
             setTransferError(err as Error);
-            console.error('Erreur lors de la simulation du transfert', err);
+            logger.error('Erreur lors de la simulation du transfert', err);
 
             return {
                 success: false,
@@ -309,7 +310,7 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
             return result;
         } catch (err) {
             setTransferError(err as Error);
-            console.error('Erreur lors de l\'exécution du transfert', err);
+            logger.error('Erreur lors de l\'exécution du transfert', err);
 
             return {
                 success: false,

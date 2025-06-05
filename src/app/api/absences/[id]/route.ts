@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/prisma';
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json(absence);
   } catch (error) {
-    console.error("Erreur lors de la récupération de l'absence:", error);
+    logger.error("Erreur lors de la récupération de l'absence:", error);
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -99,7 +100,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     return NextResponse.json(updatedAbsence);
   } catch (error) {
-    console.error("Erreur lors de la mise à jour de l'absence:", error);
+    logger.error("Erreur lors de la mise à jour de l'absence:", error);
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -141,7 +142,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("Erreur lors de la suppression de l'absence:", error);
+    logger.error("Erreur lors de la suppression de l'absence:", error);
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }

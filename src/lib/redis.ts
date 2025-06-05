@@ -1,5 +1,6 @@
 import { logger } from './logger';
 
+import { logger } from "./logger";
 let Redis: any;
 
 // Détecter l'environnement Edge Runtime
@@ -12,7 +13,7 @@ if (typeof window === 'undefined' && !isEdgeRuntime) {
     try {
         Redis = require('ioredis').default || require('ioredis');
     } catch (error) {
-        console.warn('IORedis non disponible:', error);
+        logger.warn('IORedis non disponible:', error);
         Redis = null;
     }
 }
@@ -68,11 +69,11 @@ if (typeof window === 'undefined' && !isEdgeRuntime && Redis) {
             logger.warn('Tentative de reconnexion au serveur Redis...');
         });
     } catch (error) {
-        console.warn('Impossible de créer la connexion Redis:', error);
+        logger.warn('Impossible de créer la connexion Redis:', error);
         redisInstance = null;
     }
 } else if (isEdgeRuntime) {
-    console.log('Edge Runtime détecté: Redis désactivé automatiquement');
+    logger.info('Edge Runtime détecté: Redis désactivé automatiquement');
 }
 
 // Wrapper autour de Redis pour la gestion du mode désactivé

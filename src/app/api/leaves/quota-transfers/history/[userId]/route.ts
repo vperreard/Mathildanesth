@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 
 export async function GET(
@@ -54,7 +55,7 @@ export async function GET(
 
     return NextResponse.json(formattedHistory);
   } catch (error) {
-    console.error("Erreur lors de la récupération de l'historique des transferts:", error);
+    logger.error("Erreur lors de la récupération de l'historique des transferts:", error);
     return NextResponse.json(
       { error: "Erreur serveur lors de la récupération de l'historique des transferts" },
       { status: 500 }

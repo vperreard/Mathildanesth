@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import axios from 'axios';
 import { PlusIcon, PencilIcon, TrashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { AlertTriangle } from 'lucide-react';
@@ -48,7 +49,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
             const response = await axios.get<SpecialtyWithSurgeons[]>('/api/specialties');
             setSpecialties(response.data);
         } catch (err: any) {
-            console.error("Erreur lors du chargement des spécialités:", err);
+            logger.error("Erreur lors du chargement des spécialités:", err);
             setError(err.response?.data?.message || err.message || 'Impossible de charger les spécialités.');
         } finally {
             setIsLoading(false);
@@ -61,7 +62,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
             const response = await axios.get<Surgeon[]>('/api/chirurgiens');
             setSurgeons(response.data);
         } catch (err: any) {
-            console.error('Erreur lors du chargement des chirurgiens:', err);
+            logger.error('Erreur lors du chargement des chirurgiens:', err);
         }
     }, []);
 
@@ -114,7 +115,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
         } catch (err: any) {
-            console.error("Erreur lors de la soumission:", err);
+            logger.error("Erreur lors de la soumission:", err);
             setFormError(err.response?.data?.message || err.message || 'Une erreur est survenue.');
         } finally {
             setIsSubmitting(false);
@@ -133,7 +134,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
         } catch (err: any) {
-            console.error("Erreur lors de la suppression:", err);
+            logger.error("Erreur lors de la suppression:", err);
             setError(err.response?.data?.message || err.message || 'Impossible de supprimer la spécialité (vérifiez si elle est utilisée).');
         }
     };

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { logger } from "../../../lib/logger";
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -108,17 +109,17 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
             if (isEditMode && initialTrame) {
                 // Mode modification - PUT
                 response = await axios.put(`http://localhost:3000/api/trameModele-modeles/${initialTrame.id}`, apiData);
-                console.log('TrameModele modifiée avec succès:', response.data);
+                logger.info('TrameModele modifiée avec succès:', response.data);
             } else {
                 // Mode création - POST
                 response = await axios.post('http://localhost:3000/api/trameModele-modeles', apiData);
-                console.log('TrameModele créée avec succès:', response.data);
+                logger.info('TrameModele créée avec succès:', response.data);
             }
             form.reset();
             onSuccess(response.data.id.toString());
             onClose();
         } catch (err: any) {
-            console.error(`Erreur lors de ${isEditMode ? 'la modification' : 'la création'} de la trameModele:`, err);
+            logger.error(`Erreur lors de ${isEditMode ? 'la modification' : 'la création'} de la trameModele:`, err);
             setError(err.response?.data?.error || `Erreur lors de ${isEditMode ? 'la modification' : 'la création'} de la trameModele`);
         } finally {
             setIsLoading(false);

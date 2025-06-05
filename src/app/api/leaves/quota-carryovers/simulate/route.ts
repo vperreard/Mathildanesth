@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { LeaveType } from '@/modules/leaves/types/leave';
 
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
                 : `Le report de ${days} jours est possible`
         });
     } catch (error) {
-        console.error("Erreur lors de la simulation du report de quota:", error);
+        logger.error("Erreur lors de la simulation du report de quota:", error);
         return NextResponse.json(
             { error: "Erreur serveur lors de la simulation du report" },
             { status: 500 }

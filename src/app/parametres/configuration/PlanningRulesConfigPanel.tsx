@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     Plus, Trash2, Edit, AlertCircle, CheckCircle, Settings, Save, X,
     Info, ArrowRight, Loader2, MenuSquare
@@ -118,11 +119,11 @@ const PlanningRulesConfigPanel: React.FC = () => {
     // Fonction pour vérifier l'authentification et rafraîchir les données
     const checkAndRefreshAuth = useCallback(async () => {
         if (isAuthLoading) {
-            console.log("Attente auth...");
+            logger.info("Attente auth...");
             return;
         }
         if (!isAuthenticated) {
-            console.log("Non authentifié.");
+            logger.info("Non authentifié.");
             setError("Authentification requise.");
             setIsLoadingData(false);
             // Optionnel: fallback ou redirection
@@ -131,7 +132,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
             return;
         }
         // Charger les données si authentifié
-        console.log("Authentifié, chargement des données...");
+        logger.info("Authentifié, chargement des données...");
         await Promise.all([fetchRules(), fetchAssignmentTypes()]);
 
     }, [isAuthenticated, isAuthLoading]);
@@ -148,7 +149,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
             const response = await axios.get<{ rules: PlanningRule[] }>('/api/planning-rules');
             setRules(response.data.rules);
         } catch (err: any) {
-            console.error("Erreur détaillée rules:", err);
+            logger.error("Erreur détaillée rules:", err);
             setError(`Impossible de charger les règles: ${err.message}. Utilisation des données mockées.`);
             setRules(MOCK_PLANNING_RULES);
         } finally {
@@ -162,7 +163,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
             const response = await axios.get<{ assignmentTypes: AssignmentType[] }>('/api/attribution-types');
             setAssignmentTypes(response.data.assignmentTypes);
         } catch (err: any) {
-            console.error("Erreur détaillée attribution-types:", err);
+            logger.error("Erreur détaillée attribution-types:", err);
             setError(prevError => prevError ? `${prevError}\nImpossible de charger les types d'affectation: ${err.message}.` : `Impossible de charger les types d'affectation: ${err.message}.`);
             setAssignmentTypes(MOCK_ASSIGNMENT_TYPES);
         }
@@ -312,7 +313,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
             setEditingRule(null);
             */
         } catch (error) {
-            console.error('Erreur:', error);
+            logger.error('Erreur:', error);
             toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement');
             setIsSaving(false);
         }
@@ -351,7 +352,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
             toast.success('Règle supprimée');
             */
         } catch (error) {
-            console.error('Erreur:', error);
+            logger.error('Erreur:', error);
             toast.error(error instanceof Error ? error.message : 'Erreur lors de la suppression');
         }
     };

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../lib/logger";
 import { SupervisionRule, BlocDayPlanning, ValidationResult } from '@/types/bloc-planning-types';
 import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 
@@ -40,7 +41,7 @@ export const useSupervisionRules = (options: UseSupervisionRulesProps = {}): Use
             const fetchedRules = blocPlanningService.getAllSupervisionRules();
             setRules(fetchedRules);
         } catch (err) {
-            console.error('Erreur lors du chargement des règles de supervision:', err);
+            logger.error('Erreur lors du chargement des règles de supervision:', err);
             setError('Impossible de charger les règles de supervision.');
         } finally {
             setIsLoading(false);
@@ -61,7 +62,7 @@ export const useSupervisionRules = (options: UseSupervisionRulesProps = {}): Use
             setRules(prevRules => [...prevRules, newRule]);
             return newRule;
         } catch (err) {
-            console.error('Erreur lors de la création de la règle:', err);
+            logger.error('Erreur lors de la création de la règle:', err);
             throw new Error('Impossible de créer la règle.');
         }
     }, []);
@@ -75,7 +76,7 @@ export const useSupervisionRules = (options: UseSupervisionRulesProps = {}): Use
             }
             return updatedRule;
         } catch (err) {
-            console.error('Erreur lors de la mise à jour de la règle:', err);
+            logger.error('Erreur lors de la mise à jour de la règle:', err);
             throw new Error('Impossible de mettre à jour la règle.');
         }
     }, []);
@@ -89,7 +90,7 @@ export const useSupervisionRules = (options: UseSupervisionRulesProps = {}): Use
             }
             return result;
         } catch (err) {
-            console.error('Erreur lors de la suppression de la règle:', err);
+            logger.error('Erreur lors de la suppression de la règle:', err);
             throw new Error('Impossible de supprimer la règle.');
         }
     }, []);
@@ -99,7 +100,7 @@ export const useSupervisionRules = (options: UseSupervisionRulesProps = {}): Use
         try {
             return blocPlanningService.validateDayPlanning(planning);
         } catch (err) {
-            console.error('Erreur lors de la validation du planning:', err);
+            logger.error('Erreur lors de la validation du planning:', err);
             throw new Error('Impossible de valider le planning.');
         }
     }, []);

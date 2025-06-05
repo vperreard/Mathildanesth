@@ -4,6 +4,7 @@ import {
     ConflictSeverity,
     ConflictResolution
 } from '../types/conflict';
+import { logger } from "../../../lib/logger";
 import {
     ConflictRecommendation,
     ConflictAnalysisResult,
@@ -71,20 +72,20 @@ export class ConflictRecommendationService {
         leaveRequest: Partial<LeaveRequest>,
         user?: User
     ): ConflictAnalysisResult {
-        console.log('[Service Debug] analyzeConflicts - conflicts.length:', conflicts.length);
+        logger.info('[Service Debug] analyzeConflicts - conflicts.length:', conflicts.length);
         if (!conflicts || conflicts.length === 0) {
-            console.log('[Service Debug] Aucun conflit, appel de createEmptyAnalysisResult');
+            logger.info('[Service Debug] Aucun conflit, appel de createEmptyAnalysisResult');
             const emptyResult = this.createEmptyAnalysisResult();
-            console.log('[Service Debug] emptyResult:', JSON.stringify(emptyResult));
+            logger.info('[Service Debug] emptyResult:', JSON.stringify(emptyResult));
             return emptyResult;
         }
 
         try {
-            console.log('[Service Debug] analyzeConflicts - generating recommendations...');
+            logger.info('[Service Debug] analyzeConflicts - generating recommendations...');
             const recommendations: ConflictRecommendation[] = conflicts.map(
                 conflict => this.analyzeConflict(conflict, leaveRequest, user)
             );
-            console.log('[Service Debug] analyzeConflicts - generated recommendations:', JSON.stringify(recommendations));
+            logger.info('[Service Debug] analyzeConflicts - generated recommendations:', JSON.stringify(recommendations));
 
             // Compter les résolutions automatiques et manuelles
             const automatedResolutionsCount = recommendations.filter(r => r.automaticResolution).length;
@@ -119,9 +120,9 @@ export class ConflictRecommendationService {
             };
             logError('Erreur lors de l\'analyse des conflits', errorDetails);
             // Retourner un résultat vide en cas d'erreur
-            console.log('[Service Debug] Erreur, appel de createEmptyAnalysisResult dans catch');
+            logger.info('[Service Debug] Erreur, appel de createEmptyAnalysisResult dans catch');
             const errorEmptyResult = this.createEmptyAnalysisResult();
-            console.log('[Service Debug] errorEmptyResult:', JSON.stringify(errorEmptyResult));
+            logger.info('[Service Debug] errorEmptyResult:', JSON.stringify(errorEmptyResult));
             return errorEmptyResult;
         }
     }
@@ -566,7 +567,7 @@ export class ConflictRecommendationService {
             priorityDistribution: {} as Record<ConflictPriority, number>,
             highestPriorityConflicts: []
         };
-        // console.log('[Service Debug] createEmptyAnalysisResult retourne:', JSON.stringify(result)); // Log déjà ajouté plus haut
+        // logger.info('[Service Debug] createEmptyAnalysisResult retourne:', JSON.stringify(result)); // Log déjà ajouté plus haut
         return result;
     }
 

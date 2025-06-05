@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import fs from 'fs';
 import path from 'path';
 
@@ -29,7 +30,7 @@ export async function GET() {
             }
         });
     } catch (error) {
-        console.error('Erreur lors de la récupération des résultats de performance:', error);
+        logger.error('Erreur lors de la récupération des résultats de performance:', error);
         return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
     }
 } 

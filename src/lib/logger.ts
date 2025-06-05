@@ -1,3 +1,5 @@
+// Removed circular import
+
 /**
  * Service de logging pour l'application
  * Centralise la gestion des logs et permet de configurer leur niveau

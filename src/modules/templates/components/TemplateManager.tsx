@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { logger } from "../../../lib/logger";
 import { templateService, FullActivityType } from '../services/templateService';
 import { PlanningTemplate, RoleType } from '../types/template';
 import BlocPlanningTemplateEditor, { BlocPlanningTemplateEditorHandle } from './BlocPlanningTemplateEditor';
@@ -76,7 +77,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     availableActivityTypesParam,
     availableRolesParam
 }) => {
-    console.log('[DEBUG TemplateManager] Component RENDERED with props');
+    logger.info('[DEBUG TemplateManager] Component RENDERED with props');
     const { data: session } = useSession();
     const [modèles, setTemplates] = useState<PlanningTemplate[]>(initialTemplatesParam);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -108,31 +109,31 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
         const radixDialogPortalElement = radixDialogContentRef.current?.closest('div[role="dialog"][data-state="open"]');
 
         if (isMuiChildModalOpen) {
-            console.log("[TemplateManager EFFECT] MUI child open, setting body.style.pointerEvents = ''");
+            logger.info("[TemplateManager EFFECT] MUI child open, setting body.style.pointerEvents = ''");
             document.body.style.pointerEvents = '';
 
             if (radixDialogPortalElement) {
-                console.log("[TemplateManager EFFECT] Setting aria-hidden=false on Radix dialog portal element.");
+                logger.info("[TemplateManager EFFECT] Setting aria-hidden=false on Radix dialog portal element.");
                 radixDialogPortalElement.setAttribute('aria-hidden', 'false');
             } else {
-                console.warn("[TemplateManager EFFECT] Could not find Radix dialog portal to set aria-hidden while MUI child is open.");
+                logger.warn("[TemplateManager EFFECT] Could not find Radix dialog portal to set aria-hidden while MUI child is open.");
             }
         } else {
-            console.log("[TemplateManager EFFECT] MUI child closed.");
+            logger.info("[TemplateManager EFFECT] MUI child closed.");
             if (radixDialogPortalElement) {
-                console.log("[TemplateManager EFFECT] Radix portal element found, letting Radix manage its aria-hidden state on MUI close.");
+                logger.info("[TemplateManager EFFECT] Radix portal element found, letting Radix manage its aria-hidden state on MUI close.");
             }
 
             if (document.body.style.pointerEvents === '') {
                 document.body.style.pointerEvents = 'auto';
-                console.log("[TemplateManager EFFECT] Reset body.style.pointerEvents to 'auto'.");
+                logger.info("[TemplateManager EFFECT] Reset body.style.pointerEvents to 'auto'.");
             }
         }
     }, [isMuiChildModalOpen]);
 
     useEffect(() => {
         if (!isEditorOpen && isSavingRef.current && saveProcessCompleted) {
-            console.log("[TemplateManager EFFECT] Save completed and modal closed, resetting isSavingRef.");
+            logger.info("[TemplateManager EFFECT] Save completed and modal closed, resetting isSavingRef.");
             isSavingRef.current = false;
             setSaveProcessCompleted(false);
         }
@@ -140,21 +141,21 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 
     const createOutsideInteractionHandler = useCallback((eventName: string) => (event: Event) => {
         if (isMuiChildModalOpen) {
-            console.log(`[TemplateManager] ${eventName}: MUI child modal is open. Preventing Radix Dialog closure.`);
+            logger.info(`[TemplateManager] ${eventName}: MUI child modal is open. Preventing Radix Dialog closure.`);
             event.preventDefault();
             event.stopPropagation();
             return;
         }
 
         const target = event.target as HTMLElement;
-        console.log(`[TemplateManager] ${eventName} - target:`, target);
+        logger.info(`[TemplateManager] ${eventName} - target:`, target);
 
         if (target.closest('.MuiDialog-root') ||
             target.closest('.MuiMenu-list') ||
             target.closest('.MuiPopover-paper') ||
             target.closest('.MuiAutocomplete-popper')
         ) {
-            console.log(`[TemplateManager] ${eventName}: Target is within an MUI component. Allowing event to propagate to MUI.`);
+            logger.info(`[TemplateManager] ${eventName}: Target is within an MUI component. Allowing event to propagate to MUI.`);
             return;
         }
 
@@ -163,7 +164,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             document.querySelector('[data-state="open"][data-radix-dropdown-menu-content]');
 
         if (isRadixElementOpen) {
-            console.log(`[TemplateManager] ${eventName}: Radix select/dropdown is open. Preventing default to keep Radix Dialog open.`);
+            logger.info(`[TemplateManager] ${eventName}: Radix select/dropdown is open. Preventing default to keep Radix Dialog open.`);
             event.preventDefault();
         }
     }, [isMuiChildModalOpen]);
@@ -173,29 +174,29 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     const handleInteractOutside = useMemo(() => createOutsideInteractionHandler('onInteractOutside'), [createOutsideInteractionHandler]);
 
     const handleEscapeKeyDown = useCallback((event: KeyboardEvent) => {
-        console.log('[TemplateManager] handleEscapeKeyDown');
+        logger.info('[TemplateManager] handleEscapeKeyDown');
         const hasOpenRadixSelect = document.querySelector('[data-state="open"][data-radix-select-content]');
         const hasOpenRadixDropdown = document.querySelector('[data-state="open"][data-radix-dropdown-menu-content]');
 
         if (hasOpenRadixSelect || hasOpenRadixDropdown) {
-            console.log('[TemplateManager] Radix select/dropdown is open. Preventing default on escapeKeyDown to keep Radix Dialog open.');
+            logger.info('[TemplateManager] Radix select/dropdown is open. Preventing default on escapeKeyDown to keep Radix Dialog open.');
             event.preventDefault();
         }
     }, []);
 
     const handleMuiModalOpenChange = useCallback((isOpen: boolean) => {
-        console.log(`[TemplateManager] MUI child modal is now: ${isOpen ? 'OPEN' : 'CLOSED'}`);
+        logger.info(`[TemplateManager] MUI child modal is now: ${isOpen ? 'OPEN' : 'CLOSED'}`);
         setIsMuiChildModalOpen(isOpen);
     }, []);
 
     const loadTemplates = useCallback(async () => {
-        console.log('🚀🚀🚀 [DEBUG TemplateManager] LOAD TEMPLATES CALLED!!!');
+        logger.info('🚀🚀🚀 [DEBUG TemplateManager] LOAD TEMPLATES CALLED!!!');
         setIsLoading(true);
         setError(null);
         try {
-            console.log('📡📡📡 [DEBUG TemplateManager] Loading modèles from templateService...');
+            logger.info('📡📡📡 [DEBUG TemplateManager] Loading modèles from templateService...');
             const fetchedTemplatesSource = await templateService.getTemplates();
-            console.log('📦📦📦 [DEBUG TemplateManager] Raw modèles from service:', fetchedTemplatesSource);
+            logger.info('📦📦📦 [DEBUG TemplateManager] Raw modèles from service:', fetchedTemplatesSource);
 
             const sanitizedNewTemplates = fetchedTemplatesSource.map(modèle => ({
                 ...modèle,
@@ -203,23 +204,23 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 variations: Array.isArray(modèle.variations) ? modèle.variations : [],
             }));
 
-            console.log('🧹🧹🧹 [DEBUG TemplateManager] Sanitized modèles:', sanitizedNewTemplates);
+            logger.info('🧹🧹🧹 [DEBUG TemplateManager] Sanitized modèles:', sanitizedNewTemplates);
 
             setTemplates(prevTemplates => {
-                console.log('⚖️⚖️⚖️ [DEBUG TemplateManager] Previous modèles:', prevTemplates);
-                console.log('🆕🆕🆕 [DEBUG TemplateManager] New modèles:', sanitizedNewTemplates);
+                logger.info('⚖️⚖️⚖️ [DEBUG TemplateManager] Previous modèles:', prevTemplates);
+                logger.info('🆕🆕🆕 [DEBUG TemplateManager] New modèles:', sanitizedNewTemplates);
 
                 if (JSON.stringify(prevTemplates) !== JSON.stringify(sanitizedNewTemplates)) {
-                    console.log('🔄🔄🔄 [DEBUG TemplateManager] Modèles changed, updating state');
+                    logger.info('🔄🔄🔄 [DEBUG TemplateManager] Modèles changed, updating state');
                     return sanitizedNewTemplates;
                 } else {
-                    console.log('🔒🔒🔒 [DEBUG TemplateManager] Modèles unchanged, keeping current state');
+                    logger.info('🔒🔒🔒 [DEBUG TemplateManager] Modèles unchanged, keeping current state');
                     return prevTemplates;
                 }
             });
 
         } catch (err) {
-            console.error("Error fetching modèles:", err);
+            logger.error("Error fetching modèles:", err);
             setError("Erreur lors du chargement des trameModeles.");
             toast.error("Impossible de charger les trameModeles.");
         } finally {
@@ -232,45 +233,45 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             const types = await templateService.getAvailableAffectationTypes();
             setAvailableTypes(types);
         } catch (err) {
-            console.error("Error fetching available types:", err);
+            logger.error("Error fetching available types:", err);
             toast.error("Impossible de charger les types d'affectation.");
         }
     }, [setAvailableTypes]);
 
     const handleEditorOpenChange = useCallback((openState: boolean) => {
-        console.log(`%c[TemplateManager V3] Dialog onOpenChange. openState: ${openState}, current editingTemplate ID: ${editingTemplate?.id}, isSavingRef.current: ${isSavingRef.current}. Call stack:`, 'color: dodgerblue; font-weight: bold;', new Error().stack);
+        logger.info(`%c[TemplateManager V3] Dialog onOpenChange. openState: ${openState}, current editingTemplate ID: ${editingTemplate?.id}, isSavingRef.current: ${isSavingRef.current}. Call stack:`, 'color: dodgerblue; font-weight: bold;', new Error().stack);
 
         if (!openState) {
             if (isSavingRef.current) {
-                console.log("[TemplateManager] Closing dialog: save operation has initiated this.");
+                logger.info("[TemplateManager] Closing dialog: save operation has initiated this.");
                 setIsEditorOpen(false);
             } else if (editorRef.current?.isDirty()) {
                 if (confirm("Vous avez des modifications non sauvegardées dans l'éditeur de trameModele. Êtes-vous sûr de vouloir fermer ?")) {
-                    console.log("[TemplateManager] Closing dialog: user confirmed to close with unsaved changes.");
+                    logger.info("[TemplateManager] Closing dialog: user confirmed to close with unsaved changes.");
                     setIsEditorOpen(false);
                     setEditingTemplate(null);
                 } else {
-                    console.log("[TemplateManager] Closing dialog: user cancelled closing.");
+                    logger.info("[TemplateManager] Closing dialog: user cancelled closing.");
                     return;
                 }
             } else {
-                console.log("[TemplateManager] Closing dialog: no specific unsaved changes condition met for prompt or no changes detected.");
+                logger.info("[TemplateManager] Closing dialog: no specific unsaved changes condition met for prompt or no changes detected.");
                 setIsEditorOpen(false);
                 setEditingTemplate(null);
             }
         } else {
-            console.log("[TemplateManager] Opening dialog.");
+            logger.info("[TemplateManager] Opening dialog.");
             setIsEditorOpen(true);
         }
     }, [editingTemplate, setIsEditorOpen, setEditingTemplate]);
 
     const handleCreateNew = useCallback(() => {
-        console.log('[DEBUG TemplateManager] handleCreateNew called - Opening unified modal');
+        logger.info('[DEBUG TemplateManager] handleCreateNew called - Opening unified modal');
         setIsNewTrameModalOpen(true);
     }, []);
 
     const handleEdit = useCallback((modèle: PlanningTemplate) => {
-        console.log('[DEBUG TemplateManager] handleEdit called for modèle:', modèle);
+        logger.info('[DEBUG TemplateManager] handleEdit called for modèle:', modèle);
         // Convertir le PlanningTemplate en TrameModele pour le nouveau modal
         const trameModele = convertPlanningTemplateToTrameModele(modèle);
         setTrameToEdit(trameModele);
@@ -278,7 +279,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     }, []);
 
     const handleDuplicate = useCallback(async (id: string) => {
-        console.log("[TemplateManager] handleDuplicate called for ID:", id);
+        logger.info("[TemplateManager] handleDuplicate called for ID:", id);
         try {
             const templateToDuplicate = modèles.find(modèle => modèle.id === id);
             if (!templateToDuplicate) {
@@ -298,14 +299,14 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 setIsEditorOpen(true);
             }
         } catch (err) {
-            console.error("Error duplicating modèle:", err);
+            logger.error("Error duplicating modèle:", err);
             setError("Erreur lors de la duplication de la trameModele.");
             toast.error("Impossible de dupliquer la trameModele.");
         }
     }, [modèles, loadTemplates, availableTypes, setError]);
 
     const handleDelete = useCallback(async (id: string, name: string) => {
-        console.log("[TemplateManager] handleDelete called for ID:", id, "Name:", name);
+        logger.info("[TemplateManager] handleDelete called for ID:", id, "Name:", name);
 
         const performDeleteAction = async (confirmationToastId: string | number) => {
             try {
@@ -313,7 +314,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 toast.success(`Tableau de service "${name}" supprimée.`);
                 loadTemplates();
             } catch (err) {
-                console.error("Error deleting modèle:", err);
+                logger.error("Error deleting modèle:", err);
                 setError("Erreur lors de la suppression de la trameModele.");
                 toast.error("Impossible de supprimer la trameModele.");
             } finally {
@@ -363,7 +364,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 variations: templateToSave.variations || []
             };
 
-            console.log(
+            logger.info(
                 '[TemplateManager] Contenu de templateWithRoles AVANT appel à templateService.saveTemplate:',
                 JSON.parse(JSON.stringify(templateWithRoles)),
                 `Nombre d'affectations: ${templateWithRoles.affectations?.length || 0}`,
@@ -377,7 +378,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             await loadTemplates();
             setSaveProcessCompleted(true);
         } catch (err: any) {
-            console.error("Error saving modèle:", err);
+            logger.error("Error saving modèle:", err);
             if (err instanceof Error && err.message && err.message.includes("Un modèle de trameModele avec ce nom existe déjà")) {
                 toast.error(err.message);
             } else {
@@ -409,13 +410,13 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 setSites(sitesData);
             }
         } catch (err) {
-            console.error('Erreur lors du chargement des sites:', err);
+            logger.error('Erreur lors du chargement des sites:', err);
         }
     }, []);
 
     // Fonction pour gérer le succès de création de trameModele via le modal unifié
     const handleCreateTrameSuccess = useCallback((newTrameId: string) => {
-        console.log('[DEBUG TemplateManager] New trameModele created with ID:', newTrameId);
+        logger.info('[DEBUG TemplateManager] New trameModele created with ID:', newTrameId);
         setIsNewTrameModalOpen(false);
         loadTemplates(); // Recharger la liste des trameModeles
         toast.success('Nouvelle trameModele créée avec succès');
@@ -423,17 +424,17 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 
     // Fonction pour gérer le succès d'édition de trameModele via le modal unifié
     const handleEditTrameSuccess = useCallback((updatedTrameId: string) => {
-        console.log('🎯🎯🎯 [DEBUG TemplateManager] EDIT SUCCESS CALLED!!! Tableau de service updated with ID:', updatedTrameId);
+        logger.info('🎯🎯🎯 [DEBUG TemplateManager] EDIT SUCCESS CALLED!!! Tableau de service updated with ID:', updatedTrameId);
         setIsEditTrameModalOpen(false);
         setTrameToEdit(null);
 
         // Forcer un rechargement complet des modèles
-        console.log('🔄🔄🔄 [DEBUG TemplateManager] Forcing modèle reload after edit success...');
+        logger.info('🔄🔄🔄 [DEBUG TemplateManager] Forcing modèle reload after edit success...');
         loadTemplates().then(() => {
-            console.log('✅✅✅ [DEBUG TemplateManager] Modèles reloaded successfully after edit');
+            logger.info('✅✅✅ [DEBUG TemplateManager] Modèles reloaded successfully after edit');
             toast.success('Tableau de service modifiée avec succès');
         }).catch((error) => {
-            console.error('❌❌❌ [DEBUG TemplateManager] Error reloading modèles after edit:', error);
+            logger.error('❌❌❌ [DEBUG TemplateManager] Error reloading modèles after edit:', error);
             toast.error('Tableau de service modifiée mais erreur lors du rechargement');
         });
     }, [loadTemplates]);
@@ -462,13 +463,13 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     const memoizedTemplates = useMemo(() => modèles, [modèles]);
     const memoizedAvailableTypes = useMemo(() => availableTypes, [availableTypes]);
 
-    console.log('[TemplateManager RENDER] modèles:', modèles);
+    logger.info('[TemplateManager RENDER] modèles:', modèles);
     if (modèles.length === 0) {
-        console.warn('[TemplateManager] Aucune trameModele reçue du service.');
+        logger.warn('[TemplateManager] Aucune trameModele reçue du service.');
     } else {
         modèles.forEach((t, i) => {
             if (!t.nom) {
-                console.warn(`[TemplateManager] Tableau de service à l'index ${i} sans nom:`, t);
+                logger.warn(`[TemplateManager] Tableau de service à l'index ${i} sans nom:`, t);
             }
         });
     }

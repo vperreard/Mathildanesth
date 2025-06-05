@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
 
@@ -58,7 +59,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         if (error.code === 'P2025') { // Code d'erreur Prisma pour enregistrement non trouvé
             return new NextResponse(JSON.stringify({ message: 'Chirurgien non trouvé' }), { status: 404 });
         }
-        console.error(`Erreur PUT /api/chirurgiens/${surgeonId}:`, error);
+        logger.error(`Erreur PUT /api/chirurgiens/${surgeonId}:`, error);
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 }
@@ -84,7 +85,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         if (error.code === 'P2025') { // Code d'erreur Prisma pour enregistrement non trouvé
             return new NextResponse(JSON.stringify({ message: 'Chirurgien non trouvé' }), { status: 404 });
         }
-        console.error(`Erreur DELETE /api/chirurgiens/${surgeonId}:`, error);
+        logger.error(`Erreur DELETE /api/chirurgiens/${surgeonId}:`, error);
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 } 

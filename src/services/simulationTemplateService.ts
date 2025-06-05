@@ -1,6 +1,7 @@
 // Service pour la gestion des modèles de simulation
 import axios from 'axios';
 
+import { logger } from "../lib/logger";
 export interface SimulationTemplate {
     id: string;
     name: string;
@@ -43,7 +44,7 @@ export async function fetchTemplates(): Promise<SimulationTemplate[]> {
         const response = await axios.get('http://localhost:3000/api/simulations/modèles');
         return response.data.data || [];
     } catch (error) {
-        console.error('Erreur lors de la récupération des modèles:', error);
+        logger.error('Erreur lors de la récupération des modèles:', error);
         throw new Error('Impossible de récupérer les modèles');
     }
 }
@@ -56,7 +57,7 @@ export async function fetchTemplate(id: string): Promise<SimulationTemplate> {
         const response = await axios.get(`http://localhost:3000/api/simulations/modèles/${id}`);
         return response.data.data;
     } catch (error) {
-        console.error(`Erreur lors de la récupération du modèle ${id}:`, error);
+        logger.error(`Erreur lors de la récupération du modèle ${id}:`, error);
         throw new Error('Modèle non trouvé');
     }
 }
@@ -69,7 +70,7 @@ export async function createTemplate(templateData: Partial<SimulationTemplate>):
         const response = await axios.post('http://localhost:3000/api/simulations/modèles', templateData);
         return response.data.data;
     } catch (error) {
-        console.error('Erreur lors de la création du modèle:', error);
+        logger.error('Erreur lors de la création du modèle:', error);
         throw new Error('Impossible de créer le modèle');
     }
 }
@@ -82,7 +83,7 @@ export async function updateTemplate(id: string, updates: Partial<SimulationTemp
         const response = await axios.put(`http://localhost:3000/api/simulations/modèles/${id}`, updates);
         return response.data.data;
     } catch (error) {
-        console.error(`Erreur lors de la mise à jour du modèle ${id}:`, error);
+        logger.error(`Erreur lors de la mise à jour du modèle ${id}:`, error);
         throw new Error('Impossible de mettre à jour le modèle');
     }
 }
@@ -94,7 +95,7 @@ export async function deleteTemplate(id: string): Promise<void> {
     try {
         await axios.delete(`http://localhost:3000/api/simulations/modèles/${id}`);
     } catch (error) {
-        console.error(`Erreur lors de la suppression du modèle ${id}:`, error);
+        logger.error(`Erreur lors de la suppression du modèle ${id}:`, error);
         throw new Error('Impossible de supprimer le modèle');
     }
 }
@@ -110,7 +111,7 @@ export async function duplicateTemplate(id: string, newName: string): Promise<Si
         });
         return response.data.data;
     } catch (error) {
-        console.error(`Erreur lors de la duplication du modèle ${id}:`, error);
+        logger.error(`Erreur lors de la duplication du modèle ${id}:`, error);
         throw new Error('Impossible de dupliquer le modèle');
     }
 }
@@ -149,7 +150,7 @@ export async function prepareTemplateForScenario(templateId: string) {
             baseScenarioData
         };
     } catch (error) {
-        console.error(`Erreur lors de la préparation du scénario à partir du modèle ${templateId}:`, error);
+        logger.error(`Erreur lors de la préparation du scénario à partir du modèle ${templateId}:`, error);
         throw error;
     }
 }
@@ -212,7 +213,7 @@ export async function createScenarioFromTemplate(templateId: string, customizati
 
         return await response.json();
     } catch (error) {
-        console.error(`Erreur lors de la création du scénario à partir du modèle ${templateId}:`, error);
+        logger.error(`Erreur lors de la création du scénario à partir du modèle ${templateId}:`, error);
         throw error;
     }
 } 

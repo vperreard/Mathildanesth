@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/authOptions';
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
       remainingUnread: remainingUnreadCount,
     });
   } catch (error) {
-    console.error('Erreur lors du marquage des notifications comme lues:', error);
+    logger.error('Erreur lors du marquage des notifications comme lues:', error);
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(

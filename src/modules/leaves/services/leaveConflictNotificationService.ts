@@ -1,4 +1,5 @@
 import { LeaveConflict, ConflictType, ConflictSeverity } from '../types/conflict';
+import { logger } from "../../../lib/logger";
 import { EmailService } from '../../notifications/services/emailService';
 import { NotificationService } from '../../notifications/services/notificationService';
 import { TranslationService } from '../../i18n/services/translationService';
@@ -165,7 +166,7 @@ export class LeaveConflictNotificationService {
 
             return true;
         } catch (error) {
-            console.error('Erreur lors de l\'envoi de l\'email de notification de conflit:', error);
+            logger.error('Erreur lors de l\'envoi de l\'email de notification de conflit:', error);
             return false;
         }
     }
@@ -207,7 +208,7 @@ export class LeaveConflictNotificationService {
 
             return true;
         } catch (error) {
-            console.error('Erreur lors de l\'envoi de la notification UI pour un conflit:', error);
+            logger.error('Erreur lors de l\'envoi de la notification UI pour un conflit:', error);
             return false;
         }
     }
@@ -273,7 +274,7 @@ export class LeaveConflictNotificationService {
         const allUserIds = [...new Set([...affectedUserIds, ...additionalUserIds])];
 
         if (allUserIds.length === 0) {
-            console.warn('Aucun utilisateur à notifier pour le conflit:', conflict.id);
+            logger.warn('Aucun utilisateur à notifier pour le conflit:', conflict.id);
             return false;
         }
 
@@ -286,7 +287,7 @@ export class LeaveConflictNotificationService {
 
             return true;
         } catch (error) {
-            console.error('Erreur lors de la notification du conflit:', error);
+            logger.error('Erreur lors de la notification du conflit:', error);
             return false;
         }
     }
@@ -312,7 +313,7 @@ export class LeaveConflictNotificationService {
 
             return results.every(result => result);
         } catch (error) {
-            console.error('Erreur lors de la notification des conflits:', error);
+            logger.error('Erreur lors de la notification des conflits:', error);
             return false;
         }
     }

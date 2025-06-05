@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useOptimizedBlocOperatoire } from '@/hooks/useOptimizedBlocOperatoire';
@@ -29,7 +30,7 @@ const createOptimizedQueryClient = () => new QueryClient({
     mutations: {
       retry: false,
       onError: (error: any) => {
-        console.error('Mutation error:', error);
+        logger.error('Mutation error:', error);
         // TODO: Intégrer avec le système de notifications
       },
     },

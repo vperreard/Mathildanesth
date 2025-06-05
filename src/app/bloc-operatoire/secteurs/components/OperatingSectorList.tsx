@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { logger } from "../../../../lib/logger";
 import { OperatingSector } from '@/modules/planning/bloc-operatoire/types';
 import {
     useOperatingSectorsQuery,
@@ -68,7 +69,7 @@ export function OperatingSectorList() {
             handleCloseForm();
         } catch (error) {
             toast.error(`Erreur lors de la sauvegarde du secteur: ${error instanceof Error ? error.message : String(error)}`);
-            console.error("Erreur sauvegarde secteur:", error);
+            logger.error("Erreur sauvegarde secteur:", error);
         }
     };
 
@@ -90,7 +91,7 @@ export function OperatingSectorList() {
             closeDeleteDialog();
         } catch (error) {
             toast.error(`Erreur lors de la suppression du secteur: ${error instanceof Error ? error.message : String(error)}`);
-            console.error("Erreur suppression secteur:", error);
+            logger.error("Erreur suppression secteur:", error);
             // Garder la modale ouverte en cas d'erreur pour feedback
         }
     };

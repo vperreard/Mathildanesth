@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
+import { logger } from "../lib/logger";
 type QueryState<T> = {
     data: T | null;
     isLoading: boolean;
@@ -191,7 +192,7 @@ export function useOptimizedQuery<T = any>(
         } catch (error: any) {
             if (!isMounted.current || error.name === 'AbortError') return;
 
-            console.error(`Erreur lors de la requête${cacheKey ? ` (${cacheKey})` : ''}:`, error);
+            logger.error(`Erreur lors de la requête${cacheKey ? ` (${cacheKey})` : ''}:`, error);
 
             // Gérer les tentatives de réessai
             if (retryCountRef.current < retryCount) {

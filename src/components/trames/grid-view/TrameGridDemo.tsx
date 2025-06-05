@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { logger } from "../../../lib/logger";
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { InfoIcon } from 'lucide-react';
@@ -199,7 +200,7 @@ const TrameGridDemo: React.FC = () => {
                         <TrameGridView
                             trameModele={demoData.find(t => t.id === selectedTrameId) || demoData[0]}
                             readOnly={false}
-                            onTrameChange={(updatedTrame) => console.log('TrameModele mise à jour:', updatedTrame)}
+                            onTrameChange={(updatedTrame) => logger.info('TrameModele mise à jour:', updatedTrame)}
                         />
                     ) : (
                         <div className="text-center p-8">

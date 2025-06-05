@@ -1,4 +1,5 @@
 import { connectToDatabase } from '../lib/mongodb.js';
+import { logger } from "../lib/logger";
 import { defaultRules } from '../modules/rules/seeds/defaultRules.js';
 
 /**
@@ -6,7 +7,7 @@ import { defaultRules } from '../modules/rules/seeds/defaultRules.js';
  */
 export async function seedRules() {
   try {
-    console.log("Démarrage de l'initialisation des règles...");
+    logger.info("Démarrage de l'initialisation des règles...");
 
     // Connexion à la base de données
     const { db } = await connectToDatabase();
@@ -16,8 +17,8 @@ export async function seedRules() {
     const existingRules = await rulesCollection.countDocuments();
 
     if (existingRules > 0) {
-      console.log(`${existingRules} règles existent déjà dans la base de données.`);
-      console.log('Vérification des règles manquantes...');
+      logger.info(`${existingRules} règles existent déjà dans la base de données.`);
+      logger.info('Vérification des règles manquantes...');
 
       // Récupérer toutes les règles existantes
       const existingRulesData = await rulesCollection.find().toArray();
@@ -28,20 +29,20 @@ export async function seedRules() {
 
       if (rulesToAdd.length > 0) {
         await rulesCollection.insertMany(rulesToAdd);
-        console.log(`${rulesToAdd.length} nouvelles règles ont été ajoutées.`);
+        logger.info(`${rulesToAdd.length} nouvelles règles ont été ajoutées.`);
       } else {
-        console.log('Aucune nouvelle règle à ajouter.');
+        logger.info('Aucune nouvelle règle à ajouter.');
       }
     } else {
       // Aucune règle n'existe, ajouter toutes les règles par défaut
       await rulesCollection.insertMany(defaultRules);
-      console.log(`${defaultRules.length} règles par défaut ont été ajoutées.`);
+      logger.info(`${defaultRules.length} règles par défaut ont été ajoutées.`);
     }
 
-    console.log('Initialisation des règles terminée avec succès!');
+    logger.info('Initialisation des règles terminée avec succès!');
     return true;
   } catch (error) {
-    console.error("Erreur lors de l'initialisation des règles:", error);
+    logger.error("Erreur lors de l'initialisation des règles:", error);
     throw error;
   }
 }
@@ -51,7 +52,7 @@ export async function seedRules() {
 //     seedRules()
 //         .then(() => process.exit(0))
 //         .catch(error => {
-//             console.error('Erreur lors du seed des règles:', error);
+//             logger.error('Erreur lors du seed des règles:', error);
 //             process.exit(1);
 //         });
 // }

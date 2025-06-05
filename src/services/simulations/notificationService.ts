@@ -1,5 +1,6 @@
 // Service de notifications pour les simulations longues
 import { Notification, NotificationType, SimulationStatus } from '@prisma/client';
+import { logger } from "../../lib/logger";
 import { pusherServer } from '@/lib/pusher';
 import { prisma } from '@/lib/prisma';
 
@@ -35,7 +36,7 @@ export class SimulationNotificationService {
         },
       });
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du statut de simulation:', error);
+      logger.error('Erreur lors de la mise à jour du statut de simulation:', error);
     }
   }
 
@@ -77,7 +78,7 @@ export class SimulationNotificationService {
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      console.error('Erreur lors de la notification de démarrage de simulation:', error);
+      logger.error('Erreur lors de la notification de démarrage de simulation:', error);
     }
   }
 
@@ -123,7 +124,7 @@ export class SimulationNotificationService {
         }
       }
     } catch (error) {
-      console.error('Erreur lors de la notification de progression de simulation:', error);
+      logger.error('Erreur lors de la notification de progression de simulation:', error);
     }
   }
 
@@ -216,7 +217,7 @@ export class SimulationNotificationService {
         }
       }
     } catch (error) {
-      console.error('Erreur lors de la notification de complétion de simulation:', error);
+      logger.error('Erreur lors de la notification de complétion de simulation:', error);
     }
   }
 
@@ -258,7 +259,7 @@ export class SimulationNotificationService {
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
-      console.error("Erreur lors de la notification d'échec de simulation:", err);
+      logger.error("Erreur lors de la notification d'échec de simulation:", err);
     }
   }
 }

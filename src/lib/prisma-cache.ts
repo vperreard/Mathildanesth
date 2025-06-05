@@ -3,6 +3,7 @@
 const isServer: boolean = typeof window === 'undefined';
 
 import { prisma } from '@/lib/prisma';
+import { logger } from "./logger";
 import NodeCache from 'node-cache';
 
 // Configuration du cache
@@ -69,12 +70,12 @@ export class PrismaCacheClient extends PrismaClient {
                 // Vérifier si les données sont dans le cache
                 const cachedData = prismaCache.get<any>(cacheKey);
                 if (cachedData) {
-                    console.log(`[PrismaCache] Cache hit: ${cacheKey}`);
+                    logger.info(`[PrismaCache] Cache hit: ${cacheKey}`);
                     return cachedData;
                 }
 
                 // Si pas dans le cache, exécuter la requête
-                console.log(`[PrismaCache] Cache miss: ${cacheKey}`);
+                logger.info(`[PrismaCache] Cache miss: ${cacheKey}`);
                 const result = await next(params);
 
                 // Stocker le résultat dans le cache
@@ -91,20 +92,20 @@ export class PrismaCacheClient extends PrismaClient {
     public invalidateCache(modelName: string) {
         // Invalider uniquement les clés associées à ce template
         const keys = prismaCache.keys().filter((key) => key.startsWith(`${modelName}:`));
-        console.log(`[PrismaCache] Invalidating ${keys.length} keys for model ${modelName}`);
+        logger.info(`[PrismaCache] Invalidating ${keys.length} keys for model ${modelName}`);
         keys.forEach((key: string) => prismaCache.del(key));
     }
 
     // Méthode pour invalider tout le cache
     public invalidateAllCache() {
         // Invalider tout le cache
-        console.log('[PrismaCache] Invalidating entire cache');
+        logger.info('[PrismaCache] Invalidating entire cache');
         prismaCache.flushAll();
     }
 
     // Méthode pour invalider une clé spécifique
     public invalidateCacheKey(key: CacheKey) {
-        console.log(`[PrismaCache] Invalidating specific key: ${key}`);
+        logger.info(`[PrismaCache] Invalidating specific key: ${key}`);
         prismaCache.del(key);
     }
 
@@ -116,7 +117,7 @@ export class PrismaCacheClient extends PrismaClient {
         data: any
     ) {
         const cacheKey = generateCacheKey(modelName, operation, args);
-        console.log(`[PrismaCache] Preloading cache: ${cacheKey}`);
+        logger.info(`[PrismaCache] Preloading cache: ${cacheKey}`);
         prismaCache.set(cacheKey, data);
     }
 
@@ -165,7 +166,7 @@ export function createCacheKey(model: string, operation: string, params: any = {
 export function createCachedPrismaClient() {
     // Ne créer le client que côté serveur
     if (!isServer) {
-        console.warn('Tentative de création du client Prisma côté navigateur. Cette opération est ignorée.');
+        logger.warn('Tentative de création du client Prisma côté navigateur. Cette opération est ignorée.');
         return null;
     }
 
@@ -173,7 +174,7 @@ export function createCachedPrismaClient() {
     const cache = prismaCacheClient;
 
     if (!cache) {
-        console.warn('Cache non initialisé. Le client Prisma sera utilisé sans cache.');
+        logger.warn('Cache non initialisé. Le client Prisma sera utilisé sans cache.');
         return prisma;
     }
 

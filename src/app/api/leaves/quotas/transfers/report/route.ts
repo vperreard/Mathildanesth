@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
@@ -248,7 +249,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(result);
     } catch (error) {
-        console.error('Erreur lors de la génération du rapport de transferts :', error);
+        logger.error('Erreur lors de la génération du rapport de transferts :', error);
         return NextResponse.json(
             { error: 'Erreur lors de la génération du rapport de transferts' },
             { status: 500 }

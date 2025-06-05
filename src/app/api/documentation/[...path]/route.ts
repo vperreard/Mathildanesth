@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import fs from 'fs';
 import path from 'path';
 
@@ -33,7 +34,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Erreur lors de la lecture du fichier de documentation:', error);
+    logger.error('Erreur lors de la lecture du fichier de documentation:', error);
     return NextResponse.json({ error: 'Erreur lors de la lecture du fichier' }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     Rule,
     RuleEvaluationResult,
@@ -179,7 +180,7 @@ export function useRuleEvaluation(options: UseRuleEvaluationOptions): UseRuleEva
                     metrics.cacheHitCount++;
 
                     if (enablePerformanceTracing) {
-                        console.log('Rule evaluation cache hit:', evaluationCacheKey);
+                        logger.info('Rule evaluation cache hit:', evaluationCacheKey);
                     }
 
                     if (onEvaluationComplete) {
@@ -263,7 +264,7 @@ export function useRuleEvaluation(options: UseRuleEvaluationOptions): UseRuleEva
                     evaluationResults.push(result);
 
                 } catch (err: any) {
-                    console.error(`Erreur lors de l'évaluation de la règle ${rule.id}:`, err);
+                    logger.error(`Erreur lors de l'évaluation de la règle ${rule.id}:`, err);
                     result.error = err.message;
                     result.applicable = false;
                     evaluationResults.push(result);
@@ -304,7 +305,7 @@ export function useRuleEvaluation(options: UseRuleEvaluationOptions): UseRuleEva
             }
 
         } catch (err: any) {
-            console.error('Erreur lors de l\'évaluation des règles:', err);
+            logger.error('Erreur lors de l\'évaluation des règles:', err);
             setError(err instanceof Error ? err : new Error(err.toString()));
         } finally {
             const endTime = performance.now();
@@ -551,7 +552,7 @@ async function evaluateCondition(
                     const regex = new RegExp(condition.value);
                     result = regex.test(fieldValue);
                 } catch (e) {
-                    console.error('Erreur lors de la création de l\'expression régulière:', e);
+                    logger.error('Erreur lors de la création de l\'expression régulière:', e);
                     result = false;
                 }
             }
@@ -641,7 +642,7 @@ async function executeAction(
 
             case ActionType.LOG:
                 // Journalisation simple
-                console.log(`[Rule Action] ${action.parameters?.message || 'Action de règle exécutée'}`, {
+                logger.info(`[Rule Action] ${action.parameters?.message || 'Action de règle exécutée'}`, {
                     actionId: action.id,
                     target: action.target,
                     parameters: action.parameters
@@ -653,7 +654,7 @@ async function executeAction(
                 if (action.parameters?.function) {
                     // Dans un contexte réel, vous pourriez avoir un registre de fonctions
                     // ou utiliser une évaluation indirecte
-                    console.warn(`Fonction demandée: ${action.parameters.function}, mais l'exécution directe n'est pas supportée pour des raisons de sécurité`);
+                    logger.warn(`Fonction demandée: ${action.parameters.function}, mais l'exécution directe n'est pas supportée pour des raisons de sécurité`);
                     result = { executed: false, reason: 'Exécution directe non supportée' };
                 }
                 break;
@@ -665,7 +666,7 @@ async function executeAction(
 
         return { success: true, result };
     } catch (error: any) {
-        console.error(`Erreur lors de l'exécution de l'action ${action.id}:`, error);
+        logger.error(`Erreur lors de l'exécution de l'action ${action.id}:`, error);
         return {
             success: false,
             result: {

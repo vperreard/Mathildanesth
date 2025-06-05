@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { useQuery } from '@tanstack/react-query';
 import { RuleEngineV2 } from '@/modules/dynamicRules/v2/services/RuleEngineV2';
 import { RuleContext } from '@/modules/dynamicRules/v2/types/ruleV2.types';
@@ -142,7 +143,7 @@ export function useLeaveRulesValidation(options: UseLeaveRulesValidationOptions 
             return validationResult;
 
         } catch (error) {
-            console.error('Erreur lors de la validation des congés:', error);
+            logger.error('Erreur lors de la validation des congés:', error);
             return { isValid: true, violations: [], suggestions: [] };
         } finally {
             setIsValidating(false);
@@ -185,7 +186,7 @@ export function useLeaveRulesValidation(options: UseLeaveRulesValidationOptions 
 
             return Array.from(suggestions);
         } catch (error) {
-            console.error('Erreur lors de la récupération des suggestions:', error);
+            logger.error('Erreur lors de la récupération des suggestions:', error);
             return [];
         }
     }, [isInitializing, createLeaveRuleContext, ruleEngine]);
@@ -231,7 +232,7 @@ export function useLeaveRulesValidation(options: UseLeaveRulesValidationOptions 
                 conflicts
             };
         } catch (error) {
-            console.error('Erreur lors de la vérification des conflits:', error);
+            logger.error('Erreur lors de la vérification des conflits:', error);
             return { hasConflicts: false, conflicts: [] };
         }
     }, [isInitializing, createLeaveRuleContext, ruleEngine]);

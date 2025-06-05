@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { Plus, Edit, Trash2, Eye, AlertTriangle, Loader2, CheckCircle2, XCircle, Save, ListPlus, Edit3, Trash, Copy } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { z } from 'zod';
@@ -128,7 +129,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             const response = await axios.get<TrameModeleWithRelations[]>('/api/trameModele-modeles?includeAffectations=true');
             setTrameModeles(response.data);
         } catch (err: any) {
-            console.error('Erreur lors du chargement des templates de trameModele:', err);
+            logger.error('Erreur lors du chargement des templates de trameModele:', err);
             setError(err.response?.data?.error || err.message || 'Impossible de charger les templates de trameModele.');
             setTrameModeles([]); // Vider en cas d'erreur
         } finally {
@@ -149,7 +150,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             setSitesList(response.data || []);
             setSitesLoadingError(null);
         } catch (err: any) {
-            console.error("Erreur lors du chargement des sites:", err);
+            logger.error("Erreur lors du chargement des sites:", err);
             setSitesLoadingError(err.response?.data?.error || err.message || 'Impossible de charger les sites.');
             setSitesList([]);
             toast.error("Erreur lors du chargement de la liste des sites.");
@@ -164,7 +165,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             const response = await axios.get<ActivityType[]>('/api/activity-types');
             setActivityTypes(response.data || []);
         } catch (err: any) {
-            console.error("Erreur lors du chargement des types d'activité:", err);
+            logger.error("Erreur lors du chargement des types d'activité:", err);
             setDataLoadingErrors(prev => ({ ...prev, activityTypes: err.response?.data?.error || err.message || "Impossible de charger les types d'activité." }));
             toast.error("Erreur chargement types d'activité.");
         } finally {
@@ -182,7 +183,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             const response = await axios.get<OperatingRoom[]>('/api/operating-rooms');
             setOperatingRooms(response.data || []);
         } catch (err: any) {
-            console.error("Erreur lors du chargement des salles d'opération:", err);
+            logger.error("Erreur lors du chargement des salles d'opération:", err);
             setDataLoadingErrors(prev => ({ ...prev, operatingRooms: err.response?.data?.error || err.message || "Impossible de charger les salles." }));
             toast.error("Erreur chargement salles d'opération.");
         } finally {
@@ -200,7 +201,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             const response = await axios.get<ProfessionalRoleConfig[]>('/api/admin/professional-role-configs');
             setProfessionalRoles(response.data || []);
         } catch (err: any) {
-            console.error("Erreur lors du chargement des rôles professionnels:", err);
+            logger.error("Erreur lors du chargement des rôles professionnels:", err);
             setDataLoadingErrors(prev => ({ ...prev, professionalRoles: err.response?.data?.error || err.message || "Impossible de charger les rôles professionnels." }));
             toast.error("Erreur chargement rôles professionnels.");
         } finally {
@@ -218,7 +219,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             const response = await axios.get<Specialty[]>('/api/specialties');
             setSpecialties(response.data || []);
         } catch (err: any) {
-            console.error("Erreur lors du chargement des spécialités:", err);
+            logger.error("Erreur lors du chargement des spécialités:", err);
             setDataLoadingErrors(prev => ({ ...prev, specialties: err.response?.data?.error || err.message || "Impossible de charger les spécialités." }));
             toast.error("Erreur chargement spécialités.");
         } finally {
@@ -342,7 +343,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             setIsModalOpen(false);
             fetchTrameModeles(); // Recharger la liste
         } catch (err: any) {
-            console.error("Erreur lors de la soumission du template de trameModele:", err);
+            logger.error("Erreur lors de la soumission du template de trameModele:", err);
             const apiError = err.response?.data?.error || err.message || "Une erreur est survenue.";
             setError(apiError); // Afficher l'erreur potentiellement dans la modale ou globalement
             toast.error(`Erreur: ${apiError}`);
@@ -365,7 +366,7 @@ const TrameModelesConfigPanel: React.FC = () => {
                 toast.success("Modèle de trameModele supprimé avec succès!");
                 fetchTrameModeles(); // Recharger la liste
             } catch (err: any) {
-                console.error("Erreur lors de la suppression du template de trameModele:", err);
+                logger.error("Erreur lors de la suppression du template de trameModele:", err);
                 const apiError = err.response?.data?.error || err.message || "Une erreur est survenue lors de la suppression.";
                 setError(apiError);
                 toast.error(`Erreur: ${apiError}`);
@@ -407,14 +408,14 @@ const TrameModelesConfigPanel: React.FC = () => {
         const validationResult = affectationModeleSchema.safeParse(affectationFormData);
 
         if (!validationResult.success) {
-            console.error("Erreurs de validation du formulaire d'affectation:", validationResult.error.flatten());
+            logger.error("Erreurs de validation du formulaire d'affectation:", validationResult.error.flatten());
             setAffectationFormErrors(validationResult.error);
             toast.error("Le formulaire contient des erreurs. Veuillez vérifier les champs.");
             // Afficher les erreurs plus en détail si nécessaire
             validationResult.error.errors.forEach(err => {
                 // Exemple: cibler un champ spécifique
                 // if (err.path.includes('activityTypeId')) { toast.error(`Type d'activité: ${err.message}`); }
-                console.log(`Validation Error - Path: ${err.path.join('.')}, Message: ${err.message}`);
+                logger.info(`Validation Error - Path: ${err.path.join('.')}, Message: ${err.message}`);
             });
             return;
         }
@@ -457,7 +458,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             setIsAffectationModalOpen(false);
             // fetchTrameModeles(); // Rechargement global désactivé pour mise à jour locale
         } catch (err: any) {
-            console.error("Erreur soumission affectation:", err);
+            logger.error("Erreur soumission affectation:", err);
             toast.error(err.response?.data?.error || "Erreur lors de la sauvegarde de l'affectation.");
         } finally {
             setIsLoading(false);
@@ -485,7 +486,7 @@ const TrameModelesConfigPanel: React.FC = () => {
                 }
                 // fetchTrameModeles(); // Rechargement global désactivé pour mise à jour locale
             } catch (err: any) {
-                console.error("Erreur suppression affectation:", err);
+                logger.error("Erreur suppression affectation:", err);
                 toast.error(err.response?.data?.error || "Erreur suppression.");
             } finally {
                 setIsLoading(false);

@@ -1,4 +1,5 @@
 import { Rule, RuleType, RuleScope, RuleSeverity } from '../types/rule';
+import { logger } from "../../../lib/logger";
 import { defaultRules } from '../seeds/defaultRules';
 
 /**
@@ -21,10 +22,10 @@ export class RuleService {
                 for (const rule of defaultRules) {
                     await this.createRule(rule);
                 }
-                console.log('Règles par défaut initialisées avec succès');
+                logger.info('Règles par défaut initialisées avec succès');
             }
         } catch (error) {
-            console.error('Erreur lors de l\'initialisation des règles par défaut:', error);
+            logger.error('Erreur lors de l\'initialisation des règles par défaut:', error);
             throw error;
         }
     }
@@ -40,7 +41,7 @@ export class RuleService {
             }
             return await response.json();
         } catch (error) {
-            console.error('Erreur dans getAllRules:', error);
+            logger.error('Erreur dans getAllRules:', error);
             throw error;
         }
     }
@@ -56,7 +57,7 @@ export class RuleService {
             }
             return await response.json();
         } catch (error) {
-            console.error(`Erreur dans getRulesByType pour ${type}:`, error);
+            logger.error(`Erreur dans getRulesByType pour ${type}:`, error);
             throw error;
         }
     }
@@ -80,7 +81,7 @@ export class RuleService {
 
             return await response.json();
         } catch (error) {
-            console.error('Erreur dans createRule:', error);
+            logger.error('Erreur dans createRule:', error);
             throw error;
         }
     }
@@ -104,7 +105,7 @@ export class RuleService {
 
             return await response.json();
         } catch (error) {
-            console.error('Erreur dans updateRule:', error);
+            logger.error('Erreur dans updateRule:', error);
             throw error;
         }
     }
@@ -122,7 +123,7 @@ export class RuleService {
                 throw new Error(`Erreur lors de la suppression de la règle: ${response.statusText}`);
             }
         } catch (error) {
-            console.error('Erreur dans deleteRule:', error);
+            logger.error('Erreur dans deleteRule:', error);
             throw error;
         }
     }
@@ -135,7 +136,7 @@ export class RuleService {
             const rules = await this.getAllRules();
             return JSON.stringify(rules, null, 2);
         } catch (error) {
-            console.error('Erreur dans exportRules:', error);
+            logger.error('Erreur dans exportRules:', error);
             throw error;
         }
     }
@@ -167,7 +168,7 @@ export class RuleService {
                 }
             }
         } catch (error) {
-            console.error('Erreur dans importRules:', error);
+            logger.error('Erreur dans importRules:', error);
             throw error;
         }
     }
@@ -189,7 +190,7 @@ export class RuleService {
 
             return await response.json();
         } catch (error) {
-            console.error('Erreur dans getRuleById:', error);
+            logger.error('Erreur dans getRuleById:', error);
             throw error;
         }
     }
@@ -223,7 +224,7 @@ export class RuleService {
 
             return await this.updateRule(updatedRule);
         } catch (error) {
-            console.error('Erreur dans resetRuleToDefault:', error);
+            logger.error('Erreur dans resetRuleToDefault:', error);
             throw error;
         }
     }

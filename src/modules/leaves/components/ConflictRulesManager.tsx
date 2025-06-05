@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     Box,
     Card,
@@ -199,7 +200,7 @@ const ConflictRulesManager: React.FC = () => {
             setEditMode(false);
             setValidationErrors([]);
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde des règles:', error);
+            logger.error('Erreur lors de la sauvegarde des règles:', error);
             if (error instanceof Error) {
                 setValidationErrors([error.message]);
             }
@@ -219,7 +220,7 @@ const ConflictRulesManager: React.FC = () => {
             setEditMode(false);
             setValidationErrors([]);
         } catch (error) {
-            console.error('Erreur lors de la réinitialisation des règles:', error);
+            logger.error('Erreur lors de la réinitialisation des règles:', error);
             if (error instanceof Error) {
                 setValidationErrors([error.message]);
             }

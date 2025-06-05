@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { logger } from "../../lib/logger";
 import { toast } from 'sonner';
 import { subscribeToChannel } from '../../lib/pusher';
 // import { getSession } from 'next-auth/react'; // Temporairement désactivé
@@ -37,7 +38,7 @@ export function SimulationNotifications() {
     // Récupérer l'ID de l'utilisateur connecté - Temporairement désactivé
     useEffect(() => {
         // Temporairement désactivé pour éviter les erreurs getSession
-        console.log('SimulationNotifications: Temporairement désactivé');
+        logger.info('SimulationNotifications: Temporairement désactivé');
         /*
         const fetchUserId = async () => {
             const session = await getSession();
@@ -49,7 +50,7 @@ export function SimulationNotifications() {
                         setUserId(data.id.toString());
                     }
                 } catch (error) {
-                    console.error('Erreur lors de la récupération de l\'ID utilisateur:', error);
+                    logger.error('Erreur lors de la récupération de l\'ID utilisateur:', error);
                 }
             }
         };

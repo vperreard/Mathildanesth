@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '@/lib/prisma';
 import { getAuthTokenServer, checkUserRole } from '@/lib/auth-server-utils';
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
                 const headersList = await headers();
                 const devUserRole = headersList.get('x-user-role');
                 if (devUserRole && ALLOWED_ROLES_TRAMES.includes(devUserRole as AuthUserRole)) {
-                    console.log('[DEV MODE] Authentification par en-tête pour GET /api/trameModeles après échec du token');
+                    logger.info('[DEV MODE] Authentification par en-tête pour GET /api/trameModeles après échec du token');
                 } else {
                     return NextResponse.json({ error: authError || 'Non autorisé' }, { status: 401 });
                 }
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(trameModeles);
     } catch (error) {
-        console.error('Erreur lors de la récupération des trames:', error);
+        logger.error('Erreur lors de la récupération des trames:', error);
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des trameModeles' },
             { status: 500 }
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
                 const headersList = await headers();
                 const devUserRole = headersList.get('x-user-role');
                 if (devUserRole && ALLOWED_ROLES_TRAMES.includes(devUserRole as AuthUserRole)) {
-                    console.log('[DEV MODE] Authentification par en-tête pour POST /api/trameModeles après échec du token');
+                    logger.info('[DEV MODE] Authentification par en-tête pour POST /api/trameModeles après échec du token');
                 } else {
                     return NextResponse.json({ error: authError || 'Non autorisé' }, { status: 401 });
                 }
@@ -179,7 +180,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(trameModele, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la création de la trameModele:', error);
+        logger.error('Erreur lors de la création de la trameModele:', error);
         return NextResponse.json(
             { error: 'Erreur serveur lors de la création de la trameModele' },
             { status: 500 }

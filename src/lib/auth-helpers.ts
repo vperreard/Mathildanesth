@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 
+import { logger } from "./logger";
 /**
  * Récupère le token JWT depuis les cookies ou la session
  * @param session La session utilisateur (peut venir de useSession ou getServerSession)
@@ -39,7 +40,7 @@ export const getAuthToken = (session: any): string | null => {
             return storedToken;
         }
     } catch (error) {
-        console.warn('Impossible d\'accéder au localStorage:', error);
+        logger.warn('Impossible d\'accéder au localStorage:', error);
     }
 
     return null;

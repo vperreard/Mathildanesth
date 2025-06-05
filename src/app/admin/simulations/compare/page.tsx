@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw, FileText, Check, X, Download } from 'lucide-react';
@@ -106,7 +107,7 @@ export default function CompareSimulationsPage() {
                 const data = await response.json();
                 setComparisonData(data);
             } catch (err) {
-                console.error('Erreur:', err);
+                logger.error('Erreur:', err);
                 setError(err instanceof Error ? err.message : 'Erreur inconnue');
 
                 // En cas d'erreur, utiliser des données de démonstration

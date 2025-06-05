@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "./logger";
 import * as jose from 'jose';
 import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
@@ -68,7 +69,7 @@ export async function verifyAuthToken(token?: string | null) {
             } as UserJWTPayload
         };
     } catch (error) {
-        console.error('Erreur de vérification du token:', error);
+        logger.error('Erreur de vérification du token:', error);
         return { authenticated: false, error: 'Token invalide ou expiré' };
     }
 }
@@ -78,7 +79,7 @@ export async function getAuthToken() {
         const cookieStore = await cookies();
         return cookieStore.get('auth_token')?.value;
     } catch (error) {
-        console.error('Erreur lors de la récupération du token:', error);
+        logger.error('Erreur lors de la récupération du token:', error);
         return null;
     }
 }
@@ -94,7 +95,7 @@ export async function setAuthToken(token: string) {
             path: '/',
         });
     } catch (error) {
-        console.error('Erreur lors de la définition du token:', error);
+        logger.error('Erreur lors de la définition du token:', error);
     }
 }
 
@@ -103,7 +104,7 @@ export async function removeAuthToken() {
         const cookieStore = await cookies();
         cookieStore.delete('auth_token');
     } catch (error) {
-        console.error('Erreur lors de la suppression du token:', error);
+        logger.error('Erreur lors de la suppression du token:', error);
     }
 }
 

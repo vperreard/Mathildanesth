@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     Card,
     CardHeader,
@@ -175,7 +176,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectati
     availablePostes,
     isLoading = false
 }) => {
-    console.log('[AssignmentConfigPanel DEBUG] Composant monté/rendu. Props reçues - affectation:', JSON.parse(JSON.stringify(affectation)), 'isLoading:', isLoading);
+    logger.info('[AssignmentConfigPanel DEBUG] Composant monté/rendu. Props reçues - affectation:', JSON.parse(JSON.stringify(affectation)), 'isLoading:', isLoading);
 
     // Typer explicitement la callback pour clarifier l'intention
     const onChange = onChangeProp as (config: AffectationConfiguration) => void;
@@ -244,9 +245,9 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectati
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
-            // console.log('[AssignmentConfigPanel DEBUG] useEffect config change - Premier rendu, onChange non appelé.');
+            // logger.info('[AssignmentConfigPanel DEBUG] useEffect config change - Premier rendu, onChange non appelé.');
         } else {
-            // console.log('[AssignmentConfigPanel DEBUG] useEffect config change - Changement détecté, appel de onChangeRef.current avec:', config);
+            // logger.info('[AssignmentConfigPanel DEBUG] useEffect config change - Changement détecté, appel de onChangeRef.current avec:', config);
             onChangeRef.current(config); // Utiliser la réf
         }
     }, [config]); // Ne dépendre que de config
@@ -259,12 +260,12 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectati
 
     // Gestion des changements de la configuration globale
     const handleConfigChange = (field: keyof AffectationConfiguration, value: any) => {
-        console.log('[AssignmentConfigPanel DEBUG] handleConfigChange - Field:', field, 'Value:', value);
-        console.log('[AssignmentConfigPanel DEBUG] État actuel de config avant mise à jour:', JSON.stringify(config, null, 2));
+        logger.info('[AssignmentConfigPanel DEBUG] handleConfigChange - Field:', field, 'Value:', value);
+        logger.info('[AssignmentConfigPanel DEBUG] État actuel de config avant mise à jour:', JSON.stringify(config, null, 2));
 
         setConfig(prev => {
             const newConfig = { ...prev, [field]: value };
-            console.log('[AssignmentConfigPanel DEBUG] Nouveau config après mise à jour:', JSON.stringify(newConfig, null, 2));
+            logger.info('[AssignmentConfigPanel DEBUG] Nouveau config après mise à jour:', JSON.stringify(newConfig, null, 2));
             return newConfig;
         });
     };
@@ -287,7 +288,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectati
     const handleNewPosteChange = (field: keyof PosteConfiguration, value: any) => {
         setNewPoste(prev => {
             const updatedNewPoste = { ...prev, [field]: value };
-            console.log('[AssignmentConfigPanel DEBUG] handleNewPosteChange - Field:', field, 'Value:', value, 'New newPoste state:', updatedNewPoste);
+            logger.info('[AssignmentConfigPanel DEBUG] handleNewPosteChange - Field:', field, 'Value:', value, 'New newPoste state:', updatedNewPoste);
             return updatedNewPoste;
         });
     };
@@ -326,7 +327,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectati
             };
             const updatedPostes = [...prev.postes, newPosteToAdd];
             const newConfig = { ...prev, postes: updatedPostes };
-            console.log('[AssignmentConfigPanel DEBUG] handleAddPoste - newConfig après ajout poste:', JSON.stringify(newConfig, null, 2));
+            logger.info('[AssignmentConfigPanel DEBUG] handleAddPoste - newConfig après ajout poste:', JSON.stringify(newConfig, null, 2));
             return newConfig;
         });
 
@@ -346,7 +347,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectati
             if (!prev) return prev;
             const updatedPostes = prev.postes.filter(p => p.id !== posteId);
             const newConfig = { ...prev, postes: updatedPostes };
-            console.log('[AssignmentConfigPanel DEBUG] handleDeletePoste - newConfig après suppression poste:', JSON.stringify(newConfig, null, 2));
+            logger.info('[AssignmentConfigPanel DEBUG] handleDeletePoste - newConfig après suppression poste:', JSON.stringify(newConfig, null, 2));
             // Si onChangeProp doit être appelé ici, ce serait :
             // onChangeProp(newConfig);
             return newConfig;
@@ -355,14 +356,14 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectati
 
     // Mettre à jour un poste existant
     const handleUpdatePoste = (posteId: string, field: keyof PosteConfiguration, value: any) => {
-        console.log('[AssignmentConfigPanel DEBUG] handleUpdatePoste - Poste ID:', posteId, 'Field:', field, 'Value:', value);
+        logger.info('[AssignmentConfigPanel DEBUG] handleUpdatePoste - Poste ID:', posteId, 'Field:', field, 'Value:', value);
         setConfig(prev => {
             if (!prev) return prev;
             const updatedPostes = prev.postes.map(p =>
                 p.id === posteId ? { ...p, [field]: value } : p
             );
             const newConfig = { ...prev, postes: updatedPostes };
-            console.log('[AssignmentConfigPanel DEBUG] handleUpdatePoste - newConfig après mise à jour poste:', JSON.stringify(newConfig, null, 2));
+            logger.info('[AssignmentConfigPanel DEBUG] handleUpdatePoste - newConfig après mise à jour poste:', JSON.stringify(newConfig, null, 2));
             // Si onChangeProp doit être appelé ici, ce serait :
             // onChangeProp(newConfig);
             return newConfig;
@@ -387,7 +388,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectati
 
     // Suggérer un poste depuis la liste disponible
     const handleSuggestionSelect = (nom: string) => {
-        console.log('[AssignmentConfigPanel DEBUG] handleSuggestionSelect - Suggestion cliquée:', nom);
+        logger.info('[AssignmentConfigPanel DEBUG] handleSuggestionSelect - Suggestion cliquée:', nom);
         setNewPoste(prev => ({
             ...prev,
             nom

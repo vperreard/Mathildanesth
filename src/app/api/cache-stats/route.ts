@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
@@ -13,7 +14,7 @@ async function authorizeAdminRequest(req: NextRequest) {
     const tokenString = authorizationHeader.split(' ')[1];
 
     if (!process.env.JWT_SECRET) {
-        console.error('[API CacheStats Auth] JWT_SECRET is not defined in environment variables.');
+        logger.error('[API CacheStats Auth] JWT_SECRET is not defined in environment variables.');
         return { error: 'Configuration du serveur incorrecte (secret manquant).', status: 500, userId: null, isAdmin: false };
     }
 
@@ -38,7 +39,7 @@ async function authorizeAdminRequest(req: NextRequest) {
 
         return { userId: String(userId), error: null, status: 0, isAdmin: true };
     } catch (err: any) {
-        console.error(`[API CacheStats Auth] jwt.verify failed: ${err.name} - ${err.message}`);
+        logger.error(`[API CacheStats Auth] jwt.verify failed: ${err.name} - ${err.message}`);
         if (err.name === 'JsonWebTokenError') {
             return { error: 'Token invalide (signature incorrecte ou malformé).', status: 401, userId: null, isAdmin: false };
         } else if (err.name === 'TokenExpiredError') {
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
             }
         });
     } catch (error) {
-        console.error('[API CacheStats] Error retrieving cache stats:', error);
+        logger.error('[API CacheStats] Error retrieving cache stats:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des statistiques du cache.' },
             { status: 500 }
@@ -142,7 +143,7 @@ export async function POST(request: NextRequest) {
                 );
         }
     } catch (error) {
-        console.error('[API CacheStats] Error invalidating cache:', error);
+        logger.error('[API CacheStats] Error invalidating cache:', error);
         return NextResponse.json(
             { error: 'Erreur lors de l\'invalidation du cache.' },
             { status: 500 }

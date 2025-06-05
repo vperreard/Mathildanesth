@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ templates });
 
     } catch (error) {
-        console.error('Erreur lors de la récupération des templates:', error);
+        logger.error('Erreur lors de la récupération des templates:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des templates' },
             { status: 500 }
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
         });
 
     } catch (error) {
-        console.error('Erreur lors de la création du template:', error);
+        logger.error('Erreur lors de la création du template:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la création du template' },
             { status: 500 }
@@ -126,7 +127,7 @@ export async function PUT(request: Request) {
         });
 
     } catch (error) {
-        console.error('Erreur lors de la mise à jour du template:', error);
+        logger.error('Erreur lors de la mise à jour du template:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour du template' },
             { status: 500 }
@@ -178,7 +179,7 @@ export async function DELETE(request: Request) {
         });
 
     } catch (error) {
-        console.error('Erreur lors de la suppression du template:', error);
+        logger.error('Erreur lors de la suppression du template:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la suppression du template' },
             { status: 500 }

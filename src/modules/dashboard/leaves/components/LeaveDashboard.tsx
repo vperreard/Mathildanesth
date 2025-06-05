@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     Container,
     Grid,
@@ -99,7 +100,7 @@ const LeaveDashboard: React.FC = () => {
             link.click();
             document.body.removeChild(link);
         } catch (error) {
-            console.error('Erreur lors de l\'export:', error);
+            logger.error('Erreur lors de l\'export:', error);
         }
     };
 

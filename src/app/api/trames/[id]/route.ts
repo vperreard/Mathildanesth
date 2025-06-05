@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
@@ -65,7 +66,7 @@ export async function GET(
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
                 return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
             }
-            console.log(`[DEV MODE] Authentification par en-tête uniquement pour GET /api/trameModeles/${id}`);
+            logger.info(`[DEV MODE] Authentification par en-tête uniquement pour GET /api/trameModeles/${id}`);
         }
 
         const trameModele = await prisma.trameAffectation.findUnique({
@@ -95,7 +96,7 @@ export async function GET(
         return NextResponse.json(trameModele);
 
     } catch (error) {
-        console.error(`Erreur lors de la récupération de la trameModele ${id}:`, error);
+        logger.error(`Erreur lors de la récupération de la trameModele ${id}:`, error);
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération de la trameModele' },
             { status: 500 }
@@ -117,7 +118,7 @@ export async function PUT(
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
                 return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
             }
-            console.log(`[DEV MODE] Authentification par en-tête pour PUT /api/trameModeles/${trameIdToUpdate}`);
+            logger.info(`[DEV MODE] Authentification par en-tête pour PUT /api/trameModeles/${trameIdToUpdate}`);
         }
 
         const body = await parseRequestBody(request) as TramePutRequestBody | null;
@@ -125,7 +126,7 @@ export async function PUT(
             return NextResponse.json({ error: 'Corps de la requête invalide ou vide' }, { status: 400 });
         }
 
-        console.log(`[API PUT /api/trameModeles/${trameIdToUpdate}] Body reçu:`, JSON.stringify(body, null, 2));
+        logger.info(`[API PUT /api/trameModeles/${trameIdToUpdate}] Body reçu:`, JSON.stringify(body, null, 2));
 
         const updatedTrame = await prisma.$transaction(async (tx) => {
             // Exclure les champs non modifiables directement et le champ version qui n'existe pas
@@ -353,7 +354,7 @@ export async function PUT(
             return NextResponse.json({ error: 'Échec de la mise à jour de la trameModele ou trameModele non trouvée après transaction' }, { status: 404 });
         }
 
-        console.log(`[API PUT /api/trameModeles/${trameIdToUpdate}] Mise à jour effectuée.`);
+        logger.info(`[API PUT /api/trameModeles/${trameIdToUpdate}] Mise à jour effectuée.`);
         return NextResponse.json(updatedTrame);
 
     } catch (error: any) {
@@ -361,10 +362,10 @@ export async function PUT(
             return NextResponse.json({ error: `TrameModele avec ID ${trameIdToUpdate} non trouvée.` }, { status: 404 });
         }
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            console.error(`Erreur Prisma lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error.message, error.code, error.meta);
+            logger.error(`Erreur Prisma lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error.message, error.code, error.meta);
             return NextResponse.json({ error: 'Erreur base de données lors de la mise à jour.', details: error.message }, { status: 500 });
         }
-        console.error(`Erreur générique lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error);
+        logger.error(`Erreur générique lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error);
         return NextResponse.json(
             { error: 'Erreur serveur lors de la mise à jour de la trameModele.', details: error.message || 'Erreur inconnue' },
             { status: 500 }
@@ -386,7 +387,7 @@ export async function DELETE(
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
                 return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
             }
-            console.log(`[DEV MODE] Authentification par en-tête uniquement pour DELETE /api/trameModeles/${id}`);
+            logger.info(`[DEV MODE] Authentification par en-tête uniquement pour DELETE /api/trameModeles/${id}`);
         }
 
         const existingTrame = await prisma.trameAffectation.findUnique({ where: { id } });
@@ -404,7 +405,7 @@ export async function DELETE(
         if (error.code === 'P2025') {
             return NextResponse.json({ error: 'TrameModele non trouvée pour la suppression' }, { status: 404 });
         }
-        console.error(`Erreur lors de la suppression de la trameModele ${id}:`, error);
+        logger.error(`Erreur lors de la suppression de la trameModele ${id}:`, error);
         return NextResponse.json(
             { error: 'Erreur serveur lors de la suppression de la trameModele' },
             { status: 500 }

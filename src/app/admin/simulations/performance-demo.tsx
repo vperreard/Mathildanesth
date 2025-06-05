@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { logger } from "../../../lib/logger";
 import { ArrowLeftIcon, Loader2, Play, Download, RefreshCw, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,7 +44,7 @@ export default function PerformanceDemoPage() {
                 const data = await response.json();
                 setScenarios(data.data || []);
             } catch (error) {
-                console.error('Erreur lors du chargement des scénarios:', error);
+                logger.error('Erreur lors du chargement des scénarios:', error);
                 toast.error('Erreur lors du chargement des scénarios');
             } finally {
                 setIsLoadingScenarios(false);
@@ -104,7 +105,7 @@ export default function PerformanceDemoPage() {
 
             toast.success(`Simulation terminée en ${executionTime / 1000} secondes`);
         } catch (error: any) {
-            console.error('Erreur lors de la simulation:', error);
+            logger.error('Erreur lors de la simulation:', error);
             toast.error(error.message || 'Erreur lors de la simulation');
         } finally {
             setIsRunning(false);

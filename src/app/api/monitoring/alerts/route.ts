@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { getUserFromCookie } from '@/lib/auth';
 import { alertingService } from '@/lib/monitoring/alerting';
 import { Role } from '@prisma/client';
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
         }
 
     } catch (error) {
-        console.error('Error fetching alerts:', error);
+        logger.error('Error fetching alerts:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des alertes' },
             { status: 500 }
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
         }
 
     } catch (error) {
-        console.error('Error processing alert action:', error);
+        logger.error('Error processing alert action:', error);
         return NextResponse.json(
             { error: 'Erreur lors du traitement de l\'action' },
             { status: 500 }

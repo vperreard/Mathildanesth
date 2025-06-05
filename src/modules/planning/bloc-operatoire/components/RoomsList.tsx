@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { logger } from "../../../../lib/logger";
 import { OperatingRoom, OperatingSector } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 import { AddRoomModal } from './AddRoomModal';
 import Button from '@/components/ui/button';
@@ -77,7 +78,7 @@ export function RoomsList({ rooms, sectors, isLoading, error, onEdit, onDelete, 
             handleCloseModal();
         } catch (err) {
             toast({ title: "Erreur", description: "Impossible de sauvegarder la salle.", variant: "destructive" });
-            console.error(err);
+            logger.error(err);
         }
     };
 
@@ -89,7 +90,7 @@ export function RoomsList({ rooms, sectors, isLoading, error, onEdit, onDelete, 
                 setRoomToDelete(undefined);
             } catch (err) {
                 toast({ title: "Erreur", description: "Impossible de supprimer la salle.", variant: "destructive" });
-                console.error(err);
+                logger.error(err);
             }
         }
     };

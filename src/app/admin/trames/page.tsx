@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { logger } from "../../../lib/logger";
 import { TrameAffectation, GardeVacation } from '@/components/trames/TrameAffectation';
 import { toast } from 'sonner';
 
@@ -23,7 +24,7 @@ export default function TramesPage() {
             toast.success('TrameModeles d\'affectation sauvegardées avec succès');
         } catch (error) {
             toast.error('Erreur lors de la sauvegarde des trameModeles d\'affectation');
-            console.error(error);
+            logger.error(error);
         }
     };
 

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/prisma';
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Erreur lors de la duplication du scénario de simulation:', error);
+    logger.error('Erreur lors de la duplication du scénario de simulation:', error);
     return NextResponse.json(
       {
         success: false,

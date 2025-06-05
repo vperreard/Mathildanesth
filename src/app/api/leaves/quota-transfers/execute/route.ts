@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
@@ -178,7 +179,7 @@ export async function POST(req: NextRequest) {
             transferId: result.transferId
         });
     } catch (error) {
-        console.error('Erreur lors de l\'exécution du transfert:', error);
+        logger.error('Erreur lors de l\'exécution du transfert:', error);
         return NextResponse.json(
             { error: 'Erreur lors du traitement de la demande' },
             { status: 500 }

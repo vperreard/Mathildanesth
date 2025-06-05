@@ -1,3 +1,5 @@
+import { logger } from "../logger";
+
 /**
  * Service de monitoring de performance simple
  * Remplace l'ancien PerformanceMonitoringService
@@ -39,7 +41,7 @@ class PerformanceMonitor {
 
         const measure = this.measures.get(id);
         if (!measure) {
-            console.warn(`Performance measure '${id}' not found`);
+            logger.warn(`Performance measure '${id}' not found`);
             return 0;
         }
 
@@ -48,7 +50,7 @@ class PerformanceMonitor {
 
         // Log en développement
         if (process.env.NODE_ENV === 'development') {
-            console.log(`⏱️ [Performance] ${id}: ${measure.duration.toFixed(2)}ms`, measure.metadata);
+            logger.info(`⏱️ [Performance] ${id}: ${measure.duration.toFixed(2)}ms`, measure.metadata);
         }
 
         // Nettoyer après 1 minute

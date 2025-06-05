@@ -1,3 +1,5 @@
+import { logger } from "../lib/logger";
+
 /**
  * Utilitaire pour importer les résultats des tests de performance
  * depuis les fichiers générés par Cypress vers le tableau de bord
@@ -34,7 +36,7 @@ export async function importTestResults(
                 results = JSON.parse(fileContent);
             } catch (fileError) {
                 // Fichier n'existe pas ou erreur de lecture, on continue avec un tableau vide
-                console.debug('Fichier de résultats de performance non trouvé:', filePath);
+                logger.debug('Fichier de résultats de performance non trouvé:', filePath);
             }
         } else {
             // Côté client: récupérer via API
@@ -51,7 +53,7 @@ export async function importTestResults(
 
         return results;
     } catch (error) {
-        console.error('Erreur lors de l\'importation des résultats de test:', error);
+        logger.error('Erreur lors de l\'importation des résultats de test:', error);
         return [];
     }
 }
@@ -107,7 +109,7 @@ function storeTestResultsInMetrics(results: TestResult[]): void {
         // Sauvegarder les métriques mises à jour
         localStorage.setItem('performanceMetrics', JSON.stringify(metrics));
     } catch (error) {
-        console.error('Erreur lors du stockage des résultats de test dans les métriques:', error);
+        logger.error('Erreur lors du stockage des résultats de test dans les métriques:', error);
     }
 }
 

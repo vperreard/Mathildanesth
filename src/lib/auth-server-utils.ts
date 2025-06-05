@@ -1,4 +1,5 @@
 import { cookies, headers as nextHeaders } from 'next/headers';
+import { logger } from "./logger";
 import { SignJWT, jwtVerify } from 'jose';
 // Importer les types depuis le fichier client pour éviter la duplication
 import type { UserRole, AuthResult } from './auth-client-utils';
@@ -94,7 +95,7 @@ export async function getAuthTokenServer() {
         if (authHeader && authHeader.startsWith('Bearer ')) {
             const token = authHeader.substring(7);
             if (token) {
-                console.log('[Auth Server] Token récupéré depuis le header Authorization.');
+                logger.info('[Auth Server] Token récupéré depuis le header Authorization.');
                 return token;
             }
         }
@@ -103,14 +104,14 @@ export async function getAuthTokenServer() {
         const cookieStore = await cookies();
         const cookieToken = cookieStore.get(AUTH_TOKEN_KEY)?.value;
         if (cookieToken) {
-            console.log('[Auth Server] Token récupéré depuis le cookie.');
+            logger.info('[Auth Server] Token récupéré depuis le cookie.');
             return cookieToken;
         }
 
-        console.log('[Auth Server] Aucun token trouvé (ni header, ni cookie).');
+        logger.info('[Auth Server] Aucun token trouvé (ni header, ni cookie).');
         return null;
     } catch (error) {
-        console.error('Erreur lors de la récupération du token (serveur):', error);
+        logger.error('Erreur lors de la récupération du token (serveur):', error);
         return null;
     }
 }
@@ -126,7 +127,7 @@ export async function setAuthTokenServer(token: string) {
             path: '/',
         });
     } catch (error) {
-        console.error('Erreur lors de la définition du token (serveur):', error);
+        logger.error('Erreur lors de la définition du token (serveur):', error);
     }
 }
 
@@ -135,7 +136,7 @@ export async function removeAuthTokenServer() {
         const cookieStore = await cookies();
         cookieStore.delete(AUTH_TOKEN_KEY);
     } catch (error) {
-        console.error('Erreur lors de la suppression du token (serveur):', error);
+        logger.error('Erreur lors de la suppression du token (serveur):', error);
     }
 }
 

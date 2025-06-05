@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
+import { logger } from "../../../../lib/logger";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Card,
@@ -76,11 +77,11 @@ export default function BlocPlanning() {
                 ]);
                 
                 const loadTime = Date.now() - startTime;
-                console.log(`Chargement initial du bloc opératoire: ${loadTime}ms`);
+                logger.info(`Chargement initial du bloc opératoire: ${loadTime}ms`);
                 
                 // Objectif: < 2 secondes
                 if (loadTime > 2000) {
-                    console.warn('⚠️ Chargement initial > 2s, optimisation nécessaire');
+                    logger.warn('⚠️ Chargement initial > 2s, optimisation nécessaire');
                 }
             } finally {
                 setIsInitialLoad(false);
@@ -103,7 +104,7 @@ export default function BlocPlanning() {
     };
 
     const handleTrameSave = (affectations: any[]) => {
-        console.log('TrameModele sauvegardée:', affectations);
+        logger.info('TrameModele sauvegardée:', affectations);
         setActiveTab('planning');
     };
 

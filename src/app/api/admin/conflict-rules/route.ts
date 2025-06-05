@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { PrismaClient, User } from '@prisma/client';
 import { getServerSession } from "next-auth";
 
@@ -86,7 +87,7 @@ export async function GET(request: Request) {
         // Parser les règles stockées en JSON
         return NextResponse.json(JSON.parse(configRecord.value as string));
     } catch (error) {
-        console.error('Erreur GET /api/admin/conflict-rules:', error);
+        logger.error('Erreur GET /api/admin/conflict-rules:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des règles de conflit' },
             { status: 500 }
@@ -140,7 +141,7 @@ export async function PUT(request: Request) {
 
         return NextResponse.json(rules);
     } catch (error) {
-        console.error('Erreur PUT /api/admin/conflict-rules:', error);
+        logger.error('Erreur PUT /api/admin/conflict-rules:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour des règles de conflit' },
             { status: 500 }
@@ -193,7 +194,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json(DEFAULT_CONFLICT_RULES);
     } catch (error) {
-        console.error('Erreur POST /api/admin/conflict-rules/reset:', error);
+        logger.error('Erreur POST /api/admin/conflict-rules/reset:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la réinitialisation des règles de conflit' },
             { status: 500 }

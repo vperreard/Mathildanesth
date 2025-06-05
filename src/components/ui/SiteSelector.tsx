@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface Site {
@@ -61,7 +62,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                 setSites(data.sites || []);
             }
         } catch (error) {
-            console.error('Erreur lors du chargement des sites:', error);
+            logger.error('Erreur lors du chargement des sites:', error);
         } finally {
             setLoadingSites(false);
         }

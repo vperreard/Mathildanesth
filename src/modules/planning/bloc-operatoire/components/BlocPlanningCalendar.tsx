@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { BlocPeriod, BlocRoomAssignment, BlocSupervisor } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 import { Card, Button } from '@/components/ui';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
@@ -49,7 +50,7 @@ export default function BlocPlanningCalendar({ date, period, onAssignmentChange 
 
                 setError(null);
             } catch (error) {
-                console.error('Erreur:', error);
+                logger.error('Erreur:', error);
                 setError('Erreur lors du chargement des données');
             } finally {
                 setIsLoading(false);

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -206,7 +207,7 @@ export async function GET(request: NextRequest) {
 
         return response;
     } catch (error) {
-        console.error('Error fetching optimized planning:', error);
+        logger.error('Error fetching optimized planning:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération du planning' },
             { status: 500 }
@@ -258,7 +259,7 @@ export async function PUT(request: NextRequest) {
             results
         });
     } catch (error) {
-        console.error('Error updating planning:', error);
+        logger.error('Error updating planning:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour du planning' },
             { status: 500 }

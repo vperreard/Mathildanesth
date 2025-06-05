@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { logger } from "../lib/logger";
 import { PlanningGenerator } from './planningGenerator';
 import TrameApplicationService from './TrameApplicationService';
 import { performanceMonitor } from './PerformanceMonitoringService';
@@ -311,7 +312,7 @@ export class TrameIntegrationService {
         });
         count++;
       } catch (error) {
-        console.error('Erreur lors de la sauvegarde de l\'affectation:', error);
+        logger.error('Erreur lors de la sauvegarde de l\'affectation:', error);
       }
     }
 

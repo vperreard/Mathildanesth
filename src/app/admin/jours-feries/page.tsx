@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { format, parse, isValid } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DataTable } from '@/components/ui/data-table';
@@ -41,7 +42,7 @@ export default function PublicHolidaysPage() {
             const result = await publicHolidayService.getPublicHolidays(filter);
             setHolidays(result);
         } catch (error) {
-            console.error('Erreur lors du chargement des jours fériés:', error);
+            logger.error('Erreur lors du chargement des jours fériés:', error);
             toast.error('Impossible de charger les jours fériés');
         } finally {
             setLoading(false);
@@ -76,7 +77,7 @@ export default function PublicHolidaysPage() {
             resetForm();
             loadHolidays();
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde:', error);
+            logger.error('Erreur lors de la sauvegarde:', error);
             toast.error('Erreur lors de la sauvegarde du jour férié');
         }
     };
@@ -121,7 +122,7 @@ export default function PublicHolidaysPage() {
                 toast.success('Jour férié supprimé avec succès');
                 loadHolidays();
             } catch (error) {
-                console.error('Erreur lors de la suppression:', error);
+                logger.error('Erreur lors de la suppression:', error);
                 toast.error('Erreur lors de la suppression du jour férié');
             }
         }
@@ -135,7 +136,7 @@ export default function PublicHolidaysPage() {
             toast.success(`Jours fériés recalculés pour ${yearFilter}`);
             loadHolidays();
         } catch (error) {
-            console.error('Erreur lors du recalcul des jours fériés:', error);
+            logger.error('Erreur lors du recalcul des jours fériés:', error);
             toast.error('Erreur lors du recalcul des jours fériés');
         } finally {
             setLoading(false);

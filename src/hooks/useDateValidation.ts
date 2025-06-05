@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { logger } from "../lib/logger";
 import {
     format,
     isAfter,
@@ -146,7 +147,7 @@ export function formatDate(date: Date, dateFormat: string = 'dd/MM/yyyy'): strin
         }
         return format(date, dateFormat, { locale: fr });
     } catch (error) {
-        console.error('Erreur lors du formatage de la date:', error);
+        logger.error('Erreur lors du formatage de la date:', error);
         return '';
     }
 }
@@ -456,7 +457,7 @@ export function useDateValidation(options: DateValidationOptions = {}) {
                     return false;
                 }
             } catch (customError) {
-                console.error('Erreur dans la validation personnalisée:', customError);
+                logger.error('Erreur dans la validation personnalisée:', customError);
                 setError(fieldName, DateValidationErrorType.OTHER, 'Erreur lors de la validation personnalisée');
                 return false;
             }

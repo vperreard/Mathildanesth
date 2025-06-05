@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { logger } from "../../../../lib/logger";
 import { supervisionRulesService } from '../services/SupervisionRulesService';
 import { operatingRoomService } from '../services/OperatingRoomService';
 import { OperatingAssignment, OperatingRoom } from '../types';
@@ -230,7 +231,7 @@ export const useSupervisionValidation = () => {
                 warnings
             };
         } catch (err) {
-            console.error("Erreur lors de la validation des règles de supervision", err);
+            logger.error("Erreur lors de la validation des règles de supervision", err);
             setError("Erreur lors de la validation des règles de supervision");
 
             return {

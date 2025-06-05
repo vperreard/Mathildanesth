@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { generateAuthTokenServer, setAuthTokenServer } from '@/lib/auth-server-utils';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
@@ -79,7 +80,7 @@ async function loginHandler(req: NextRequest) {
 
         // Log de performance en développement
         if (process.env.NODE_ENV === 'development') {
-            console.log(`[Auth] Login successful for ${user.login} in ${Date.now() - startTime}ms`);
+            logger.info(`[Auth] Login successful for ${user.login} in ${Date.now() - startTime}ms`);
         }
 
         // Créer la réponse avec le cookie
@@ -100,7 +101,7 @@ async function loginHandler(req: NextRequest) {
 
         return response;
     } catch (error) {
-        console.error('API LOGIN ERROR:', error);
+        logger.error('API LOGIN ERROR:', error);
         return NextResponse.json(
             { error: 'Erreur serveur lors de la connexion' },
             { status: 500 }

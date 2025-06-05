@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
+import { logger } from "../../lib/logger";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import dynamic from 'next/dynamic';
@@ -138,7 +139,7 @@ export default function OptimizedCalendarPage() {
             }));
             setAssignments(fetchedAssignments);
         } catch (error) {
-            console.error("Erreur lors du chargement des affectations:", error);
+            logger.error("Erreur lors du chargement des affectations:", error);
             toast.error("Impossible de charger les affectations.");
             setAssignments([]);
         } finally {
@@ -161,7 +162,7 @@ export default function OptimizedCalendarPage() {
             toast.success('Affectations sauvegardées avec succès.');
             setAssignments(updatedAssignments);
         } catch (error) {
-            console.error("Erreur lors de la sauvegarde:", error);
+            logger.error("Erreur lors de la sauvegarde:", error);
             toast.error('Échec de la sauvegarde des affectations.');
         }
     };

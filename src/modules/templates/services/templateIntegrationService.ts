@@ -1,4 +1,5 @@
 import { PlanningTemplate, AffectationConfiguration } from '../types/template';
+import { logger } from "../../../lib/logger";
 import { templateService } from './templateService';
 
 /**
@@ -15,7 +16,7 @@ export const templateIntegrationService = {
         try {
             return await templateService.exportTemplateAsJSON(templateId);
         } catch (error) {
-            console.error('Erreur lors de l\'exportation de la tableau de service:', error);
+            logger.error('Erreur lors de l\'exportation de la tableau de service:', error);
             throw error;
         }
     },
@@ -55,7 +56,7 @@ export const templateIntegrationService = {
             // Libérer l'URL
             setTimeout(() => URL.revokeObjectURL(url), 100);
         } catch (error) {
-            console.error('Erreur lors du téléchargement de la tableau de service:', error);
+            logger.error('Erreur lors du téléchargement de la tableau de service:', error);
             throw error;
         }
     },
@@ -69,7 +70,7 @@ export const templateIntegrationService = {
         try {
             return await templateService.importTemplateFromJSON(file);
         } catch (error) {
-            console.error('Erreur lors de l\'importation de la tableau de service:', error);
+            logger.error('Erreur lors de l\'importation de la tableau de service:', error);
             throw error;
         }
     },
@@ -92,7 +93,7 @@ export const templateIntegrationService = {
 
             return duplicatedTemplate;
         } catch (error) {
-            console.error('Erreur lors de la duplication de la tableau de service:', error);
+            logger.error('Erreur lors de la duplication de la tableau de service:', error);
             throw error;
         }
     },
@@ -113,7 +114,7 @@ export const templateIntegrationService = {
 
             // Cette fonction est une simulation, dans un cas réel,
             // elle communiquerait avec le module de planning
-            console.log(`Application de la trameModele ${modèle.nom} du ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}`);
+            logger.info(`Application de la trameModele ${modèle.nom} du ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}`);
 
             // Simuler un délai réseau
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -121,7 +122,7 @@ export const templateIntegrationService = {
             // Retourner un ID fictif de planning généré
             return `planning_${Date.now()}`;
         } catch (error) {
-            console.error('Erreur lors de l\'application de la trameModele au planning:', error);
+            logger.error('Erreur lors de l\'application de la trameModele au planning:', error);
             throw error;
         }
     },
@@ -195,7 +196,7 @@ export const templateIntegrationService = {
         try {
             // Cette fonction est une simulation, dans un cas réel,
             // elle vérifierait réellement la compatibilité avec le module de planning
-            console.log(`Vérification de la compatibilité de la trameModele ${templateId} avec le planning ${planningId}`);
+            logger.info(`Vérification de la compatibilité de la trameModele ${templateId} avec le planning ${planningId}`);
 
             // Simuler un délai réseau
             await new Promise(resolve => setTimeout(resolve, 800));
@@ -212,7 +213,7 @@ export const templateIntegrationService = {
                 ]
             };
         } catch (error) {
-            console.error('Erreur lors de la vérification de compatibilité:', error);
+            logger.error('Erreur lors de la vérification de compatibilité:', error);
             throw error;
         }
     }

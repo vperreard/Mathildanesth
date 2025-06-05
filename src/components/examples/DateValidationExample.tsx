@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { useDateValidation, DateValidationErrorType, BlackoutPeriod } from '@/hooks/useDateValidation';
 import DatePicker from '@/components/common/DatePicker';
 import { addDays, format, startOfToday } from 'date-fns';
@@ -132,7 +133,7 @@ const DateValidationExample: React.FC = () => {
         // Si tout est valide, soumettre la demande
         if (isStartDateValid && isEndDateValid && isRangeValid) {
             // Simuler une soumission réussie
-            console.log('Demande de congé soumise:', {
+            logger.info('Demande de congé soumise:', {
                 startDate,
                 endDate,
                 durationDays: startDate && endDate ? (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) + 1 : 0

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { healthCheckService } from '@/lib/monitoring/healthCheck';
 import { withPublicRateLimit } from '@/lib/rateLimit';
 
@@ -21,7 +22,7 @@ async function getHandler(request: NextRequest) {
         });
 
     } catch (error) {
-        console.error('Health check failed:', error);
+        logger.error('Health check failed:', error);
         
         return NextResponse.json({
             status: 'unhealthy',

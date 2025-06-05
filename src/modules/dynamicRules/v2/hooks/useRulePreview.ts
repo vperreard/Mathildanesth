@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { logger } from "../../../../lib/logger";
 import { RuleV2, RuleSimulation } from '../types/ruleV2.types';
 
 export const useRulePreview = () => {
@@ -30,7 +31,7 @@ export const useRulePreview = () => {
       const data = await response.json();
       setPreview(data);
     } catch (err) {
-      console.error('Preview error:', err);
+      logger.error('Preview error:', err);
       setError(err.message || 'Erreur lors de la prévisualisation');
     } finally {
       setIsLoading(false);

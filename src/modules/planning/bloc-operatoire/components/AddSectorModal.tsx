@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     Dialog,
     DialogContent,
@@ -61,7 +62,7 @@ export default function AddSectorModal({ isOpen, onClose, onAdd }: AddSectorModa
             form.reset();
             onClose();
         } catch (error) {
-            console.error('Erreur:', error);
+            logger.error('Erreur:', error);
             setError(error instanceof Error ? error.message : 'Une erreur est survenue');
         } finally {
             setIsLoading(false);

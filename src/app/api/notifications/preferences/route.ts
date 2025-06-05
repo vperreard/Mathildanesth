@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/authOptions';
@@ -8,12 +9,12 @@ import { authOptions } from '@/lib/auth/authOptions';
  * Récupère les préférences de notifications de l'utilisateur
  */
 export async function GET(request: NextRequest) {
-  console.log('\n--- GET /api/notifications/preferences START ---');
+  logger.info('\n--- GET /api/notifications/preferences START ---');
 
   // Authentification
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    console.error('GET /api/notifications/preferences: Utilisateur non authentifié');
+    logger.error('GET /api/notifications/preferences: Utilisateur non authentifié');
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
@@ -32,14 +33,14 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log(
+    logger.info(
       `GET /api/notifications/preferences: Préférences récupérées pour l'utilisateur ${userId}`
     );
-    console.log('--- GET /api/notifications/preferences END ---\n');
+    logger.info('--- GET /api/notifications/preferences END ---\n');
 
     return NextResponse.json(preferences);
   } catch (error: any) {
-    console.error('GET /api/notifications/preferences: Erreur serveur', error);
+    logger.error('GET /api/notifications/preferences: Erreur serveur', error);
     return NextResponse.json(
       {
         error: 'Erreur lors de la récupération des préférences de notifications',
@@ -55,12 +56,12 @@ export async function GET(request: NextRequest) {
  * Met à jour les préférences de notifications de l'utilisateur
  */
 export async function PUT(request: NextRequest) {
-  console.log('\n--- PUT /api/notifications/preferences START ---');
+  logger.info('\n--- PUT /api/notifications/preferences START ---');
 
   // Authentification
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    console.error('PUT /api/notifications/preferences: Utilisateur non authentifié');
+    logger.error('PUT /api/notifications/preferences: Utilisateur non authentifié');
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
@@ -68,7 +69,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    console.log('PUT /api/notifications/preferences - Body:', body);
+    logger.info('PUT /api/notifications/preferences - Body:', body);
 
     // Nettoyer les données reçues pour ne garder que les champs valides
     const validFields = [
@@ -100,7 +101,7 @@ export async function PUT(request: NextRequest) {
 
     // Vérifier si des données valides ont été fournies
     if (Object.keys(updateData).length === 0) {
-      console.warn('PUT /api/notifications/preferences: Aucune donnée valide fournie');
+      logger.warn('PUT /api/notifications/preferences: Aucune donnée valide fournie');
       return NextResponse.json(
         {
           error: 'Aucune donnée valide fournie pour la mise à jour',
@@ -119,14 +120,14 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    console.log(
+    logger.info(
       `PUT /api/notifications/preferences: Préférences mises à jour pour l'utilisateur ${userId}`
     );
-    console.log('--- PUT /api/notifications/preferences END ---\n');
+    logger.info('--- PUT /api/notifications/preferences END ---\n');
 
     return NextResponse.json(preferences);
   } catch (error: any) {
-    console.error('PUT /api/notifications/preferences: Erreur serveur', error);
+    logger.error('PUT /api/notifications/preferences: Erreur serveur', error);
     return NextResponse.json(
       {
         error: 'Erreur lors de la mise à jour des préférences de notifications',

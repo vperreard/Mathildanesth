@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import type { AuthResult } from '@/lib/auth-client-utils';
@@ -49,7 +50,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(activityTypes);
     } catch (error) {
-        console.error('Erreur lors de la récupération des types d\'activité:', error);
+        logger.error('Erreur lors de la récupération des types d\'activité:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des types d\'activité' },
             { status: 500 }
@@ -115,7 +116,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(newActivityType, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la création du type d\'activité:', error);
+        logger.error('Erreur lors de la création du type d\'activité:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la création du type d\'activité' },
             { status: 500 }

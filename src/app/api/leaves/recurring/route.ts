@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { generateRecurringDates } from '@/modules/leaves/utils/recurringLeavesUtils';
 import { getPublicHolidays } from '@/modules/leaves/services/publicHolidayService';
 import { v4 as uuidv4 } from 'uuid';
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(savedRequest);
     } catch (error) {
-        console.error('Erreur lors de la création de la demande récurrente:', error);
+        logger.error('Erreur lors de la création de la demande récurrente:', error);
 
         return NextResponse.json(
             { message: 'Erreur lors de la création de la demande récurrente.' },
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
         // Pour cet exemple, on retourne une liste vide
         return NextResponse.json([]);
     } catch (error) {
-        console.error('Erreur lors de la récupération des demandes récurrentes:', error);
+        logger.error('Erreur lors de la récupération des demandes récurrentes:', error);
 
         return NextResponse.json(
             { message: 'Erreur lors de la récupération des demandes récurrentes.' },

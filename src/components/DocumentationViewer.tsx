@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { logger } from "../lib/logger";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -32,7 +33,7 @@ export function DocumentationViewer({ path = 'index.md', onClose }: Documentatio
             setContent(markdown);
             setError(null);
         } catch (err) {
-            console.error('Erreur de chargement de la documentation:', err);
+            logger.error('Erreur de chargement de la documentation:', err);
             setError('Impossible de charger la documentation demandée.');
             setContent('');
         } finally {

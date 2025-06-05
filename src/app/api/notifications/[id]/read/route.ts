@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
 
@@ -38,7 +39,7 @@ export async function POST(
 
         return NextResponse.json({ notification });
     } catch (error) {
-        console.error('Erreur lors du marquage de la notification:', error);
+        logger.error('Erreur lors du marquage de la notification:', error);
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }

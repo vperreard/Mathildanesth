@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { logger } from "../../../lib/logger";
 import { BlocPlanningStatus } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 import { getSession } from 'next-auth/react';
 import { notifyUsers } from '@/modules/notifications/services/notificationService';
@@ -68,7 +69,7 @@ export class PlanningAuditService {
                 details: JSON.parse(auditEntry.details),
             };
         } catch (error) {
-            console.error('Erreur lors de la création du log d\'audit:', error);
+            logger.error('Erreur lors de la création du log d\'audit:', error);
             throw error;
         }
     }
@@ -130,7 +131,7 @@ export class PlanningAuditService {
 
             return { items: transformedItems, total };
         } catch (error) {
-            console.error('Erreur lors de la récupération des logs d\'audit:', error);
+            logger.error('Erreur lors de la récupération des logs d\'audit:', error);
             throw error;
         }
     }
@@ -212,7 +213,7 @@ export class PlanningAuditService {
                 });
             }
         } catch (error) {
-            console.error('Erreur lors de l\'envoi des notifications d\'audit:', error);
+            logger.error('Erreur lors de l\'envoi des notifications d\'audit:', error);
             // Ne pas faire échouer la fonction principale si les notifications échouent
         }
     }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { logger } from "../../../../lib/logger";
 import { Button, Table, Badge, Card } from '@/components/ui';
 import { OperatingSector } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 import AddSectorModal from './AddSectorModal';
@@ -33,7 +34,7 @@ export default function SectorsList({ onSelect, selectable = false }: SectorsLis
                 setSectors(data);
                 setError(null);
             } catch (error) {
-                console.error('Erreur:', error);
+                logger.error('Erreur:', error);
                 setError('Impossible de charger les secteurs opératoires');
             } finally {
                 setIsLoading(false);

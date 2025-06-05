@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
@@ -123,7 +124,7 @@ export async function GET(request: NextRequest) {
         });
 
     } catch (error) {
-        console.error('Error fetching rules:', error);
+        logger.error('Error fetching rules:', error);
         
         if (error instanceof z.ZodError) {
             return NextResponse.json(
@@ -231,13 +232,13 @@ export async function POST(request: NextRequest) {
                 user.email || `user-${user.id}`
             );
         } catch (error) {
-            console.error('Failed to send rule change notification:', error);
+            logger.error('Failed to send rule change notification:', error);
         }
 
         return NextResponse.json(rule, { status: 201 });
 
     } catch (error) {
-        console.error('Error creating rule:', error);
+        logger.error('Error creating rule:', error);
         
         if (error instanceof z.ZodError) {
             return NextResponse.json(

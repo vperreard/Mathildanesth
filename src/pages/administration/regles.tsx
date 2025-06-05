@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { useRule } from '../../modules/rules/hooks/useRule';
@@ -61,7 +62,7 @@ export default function RulesAdminPage() {
             setShowForm(false);
             await fetchRules(); // Rafraîchir la liste
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde de la règle:', error);
+            logger.error('Erreur lors de la sauvegarde de la règle:', error);
         }
     };
 
@@ -77,7 +78,7 @@ export default function RulesAdminPage() {
             await deleteRule(ruleId);
             await fetchRules(); // Rafraîchir la liste
         } catch (error) {
-            console.error('Erreur lors de la suppression de la règle:', error);
+            logger.error('Erreur lors de la suppression de la règle:', error);
         }
     };
 
@@ -87,7 +88,7 @@ export default function RulesAdminPage() {
             await toggleStatus(ruleId, isActive);
             await fetchRules(); // Rafraîchir la liste
         } catch (error) {
-            console.error('Erreur lors du changement de statut de la règle:', error);
+            logger.error('Erreur lors du changement de statut de la règle:', error);
         }
     };
 

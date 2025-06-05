@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { logger } from "@/lib/logger";
 export async function GET() {
     const response = NextResponse.redirect(new URL('/planning', 'http://localhost:3000'));
     
@@ -12,7 +13,7 @@ export async function GET() {
         expires: new Date(0)
     });
     
-    console.log('[TEST-LOGOUT] Cookie cleared, redirecting to /planning');
+    logger.info('[TEST-LOGOUT] Cookie cleared, redirecting to /planning');
     
     return response;
 }

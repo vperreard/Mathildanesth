@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui';
@@ -100,7 +101,7 @@ const BlocDayPlanningView: React.FC<BlocDayPlanningViewProps> = ({
                 }
             }
         } catch (err) {
-            console.error('Erreur lors du chargement du planning:', err);
+            logger.error('Erreur lors du chargement du planning:', err);
             setError('Impossible de charger le planning. Veuillez réessayer ultérieurement.');
             setPlanning(null);
         } finally {

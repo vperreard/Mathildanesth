@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
@@ -124,7 +125,7 @@ export async function GET(request: NextRequest) {
       metrics,
     });
   } catch (error) {
-    console.error('Erreur lors de la comparaison des simulations:', error);
+    logger.error('Erreur lors de la comparaison des simulations:', error);
     return NextResponse.json(
       {
         success: false,
@@ -147,7 +148,7 @@ function extractStatistics(result: any): Record<string, number> {
     try {
       statsData = JSON.parse(statsData);
     } catch (e) {
-      console.error("Erreur lors de l'analyse des statistiques JSON:", e);
+      logger.error("Erreur lors de l'analyse des statistiques JSON:", e);
       statsData = {};
     }
   }
@@ -161,7 +162,7 @@ function extractStatistics(result: any): Record<string, number> {
         try {
           resultDataObj = JSON.parse(resultDataObj);
         } catch (e) {
-          console.error("Erreur lors de l'analyse des données de résultat JSON:", e);
+          logger.error("Erreur lors de l'analyse des données de résultat JSON:", e);
           resultDataObj = {};
         }
       }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, lazy, Suspense, useCallback, useMemo } from 'react';
+import { logger } from "../../../../lib/logger";
 import dynamic from 'next/dynamic';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -88,13 +89,13 @@ export default function OptimizedBlocPlanning() {
 
     // Handle event click
     const handleEventClick = useCallback((event: any) => {
-        console.log('Event clicked:', event);
+        logger.info('Event clicked:', event);
         // Open edit modal or navigate to detail view
     }, []);
 
     // Handle time slot click for new attribution
     const handleTimeSlotClick = useCallback((date: Date, period: any, roomId: number) => {
-        console.log('Time slot clicked:', { date, period, roomId });
+        logger.info('Time slot clicked:', { date, period, roomId });
         // Open attribution creation modal
     }, []);
 

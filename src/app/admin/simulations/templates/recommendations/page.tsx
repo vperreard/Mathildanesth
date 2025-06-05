@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../../lib/logger";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, Lightbulb, Settings, Users, Calendar, Loader2, SaveIcon, RefreshCw } from 'lucide-react';
@@ -76,7 +77,7 @@ export default function TemplatesRecommendationsPage() {
             setHiddenTemplates(['3', '9']);
 
         } catch (error) {
-            console.error('Erreur lors du chargement des données:', error);
+            logger.error('Erreur lors du chargement des données:', error);
             toast.error('Erreur lors du chargement des données');
         } finally {
             setIsLoading(false);

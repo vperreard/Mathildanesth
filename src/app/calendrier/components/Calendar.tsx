@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, RefObject, forwardRef } from 'react';
+import { logger } from "../../../lib/logger";
 import { CalendarHeader, CalendarViewType } from './CalendarHeader';
 import { CalendarGrid, CalendarEvent as CalendarEventType } from './CalendarGrid';
 import { CalendarEvent, EventType } from './CalendarEvent';
@@ -167,7 +168,7 @@ const CalendarInner: React.FC = () => {
 
     const handleEventClick = useCallback((event: CalendarEventType) => {
         // Vous pouvez personnaliser le comportement lors du clic sur un événement
-        console.log('Event clicked:', event);
+        logger.info('Event clicked:', event);
         // Utilisez updateEvent si nécessaire
     }, []);
 

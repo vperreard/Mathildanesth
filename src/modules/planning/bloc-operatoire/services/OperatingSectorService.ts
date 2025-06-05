@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from "../../../../lib/logger";
 import { OperatingSector, OperatingRoom } from '../types';
 import { blocPlanningService, BlocPlanningService } from './blocPlanningService';
 import { OperatingSector as BlocOperatingSector } from '../models/BlocModels';
@@ -53,7 +54,7 @@ export class OperatingSectorService {
                 return mappedSector;
             });
         } catch (error) {
-            console.error('Erreur lors de la récupération des secteurs via BlocPlanningService:', error);
+            logger.error('Erreur lors de la récupération des secteurs via BlocPlanningService:', error);
             // Retourner un tableau vide ou jeter une erreur spécifique au service client
             return [];
         }
@@ -68,7 +69,7 @@ export class OperatingSectorService {
         try {
             const numericId = parseInt(id, 10);
             if (isNaN(numericId)) {
-                console.warn(`ID de secteur invalide fourni: ${id}`);
+                logger.warn(`ID de secteur invalide fourni: ${id}`);
                 return null;
             }
 
@@ -90,7 +91,7 @@ export class OperatingSectorService {
             };
             return mappedSector;
         } catch (error) {
-            console.error(`Erreur lors de la récupération du secteur ${id} via BlocPlanningService:`, error);
+            logger.error(`Erreur lors de la récupération du secteur ${id} via BlocPlanningService:`, error);
             return null;
         }
     }
@@ -112,7 +113,7 @@ export class OperatingSectorService {
      * Crée un nouveau secteur - NON IMPLÉMENTÉ AVEC LE NOUVEAU SERVICE
      */
     public create(data: Omit<OperatingSector, 'id'>): OperatingSector {
-        console.warn('OperatingSectorService.create non implémenté avec le nouveau service de backend.');
+        logger.warn('OperatingSectorService.create non implémenté avec le nouveau service de backend.');
         throw new Error(OperatingSectorService.ERRORS.NOT_IMPLEMENTED);
         // Logique de création avec this.realService.createOperatingSector(mappedData) serait nécessaire.
         // Il faudrait mapper `data` (type local) vers `BlocOperatingSector` (type Zod) pour l'envoyer.
@@ -122,7 +123,7 @@ export class OperatingSectorService {
      * Met à jour un secteur existant - NON IMPLÉMENTÉ AVEC LE NOUVEAU SERVICE
      */
     public update(id: string, data: Partial<OperatingSector>): OperatingSector {
-        console.warn('OperatingSectorService.update non implémenté avec le nouveau service de backend.');
+        logger.warn('OperatingSectorService.update non implémenté avec le nouveau service de backend.');
         throw new Error(OperatingSectorService.ERRORS.NOT_IMPLEMENTED);
         // Logique de mise à jour avec this.realService.updateOperatingSector(numericId, mappedData)
     }
@@ -131,7 +132,7 @@ export class OperatingSectorService {
      * Supprime un secteur - NON IMPLÉMENTÉ AVEC LE NOUVEAU SERVICE
      */
     public delete(id: string): boolean {
-        console.warn('OperatingSectorService.delete non implémenté avec le nouveau service de backend.');
+        logger.warn('OperatingSectorService.delete non implémenté avec le nouveau service de backend.');
         throw new Error(OperatingSectorService.ERRORS.NOT_IMPLEMENTED);
         // Logique de suppression avec this.realService.deleteOperatingSector(numericId)
     }
@@ -148,7 +149,7 @@ export class OperatingSectorService {
         // ... ancienne logique ...
         // Nécessiterait d'appeler this.realService.getOperatingSectorById(numericId, true)
         // puis de mapper les salles aussi.
-        console.warn('OperatingSectorService.getWithRooms non adapté au nouveau service.');
+        logger.warn('OperatingSectorService.getWithRooms non adapté au nouveau service.');
         return null; 
     }
     */
@@ -159,7 +160,7 @@ export class OperatingSectorService {
     /*
     public getAllWithRooms(): (OperatingSector & { roomObjects: OperatingRoom[] })[] {
         // ... ancienne logique ...
-        console.warn('OperatingSectorService.getAllWithRooms non adapté au nouveau service.');
+        logger.warn('OperatingSectorService.getAllWithRooms non adapté au nouveau service.');
         return [];
     }
     */
@@ -170,7 +171,7 @@ export class OperatingSectorService {
     /*
     public updateRooms(sectorId: string, roomIds: string[]): OperatingSector | null {
         // ... ancienne logique ...
-        console.warn('OperatingSectorService.updateRooms non adapté au nouveau service.');
+        logger.warn('OperatingSectorService.updateRooms non adapté au nouveau service.');
         return null;
     }
     */

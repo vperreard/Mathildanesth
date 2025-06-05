@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/prisma';
 
 
+import { logger } from "../lib/logger";
 // Interfaces pour les types de données d'analyse
 export interface GuardDutyDistribution {
     userId: string;
@@ -72,7 +73,7 @@ export async function getGuardDutyDistributionStats(): Promise<GuardDutyDistribu
         // Pour la démonstration, nous utilisons des données simulées
         return getMockGuardDistributionStats();
     } catch (error) {
-        console.error("Erreur lors de la récupération des statistiques de garde:", error);
+        logger.error("Erreur lors de la récupération des statistiques de garde:", error);
         throw error;
     }
 }
@@ -170,7 +171,7 @@ export async function getLeavePeakAnalysis(): Promise<LeavePeakAnalysis[]> {
         // Pour la démonstration, utilisons des données simulées
         return getMockLeavePeakAnalysis();
     } catch (error) {
-        console.error("Erreur lors de l'analyse des pics de congés:", error);
+        logger.error("Erreur lors de l'analyse des pics de congés:", error);
         throw error;
     }
 }
@@ -186,7 +187,7 @@ export async function getPredictiveInsights(): Promise<PredictiveInsight[]> {
         // Pour la démonstration, utilisons des données simulées
         return getMockPredictiveInsights();
     } catch (error) {
-        console.error("Erreur lors de la génération des insights prédictifs:", error);
+        logger.error("Erreur lors de la génération des insights prédictifs:", error);
         throw error;
     }
 }

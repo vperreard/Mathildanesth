@@ -1,3 +1,5 @@
+import { logger } from "../lib/logger";
+
 /**
  * Service de monitoring de performance pour l'application
  * Suit les métriques clés et génère des alertes si nécessaire
@@ -96,7 +98,7 @@ class PerformanceMonitoringService {
   endMeasure(name: string): number {
     const metrics = this.metrics.get(name);
     if (!metrics || metrics.length === 0) {
-      console.warn(`No active measure found for ${name}`);
+      logger.warn(`No active measure found for ${name}`);
       return 0;
     }
 
@@ -115,7 +117,7 @@ class PerformanceMonitoringService {
 
     // Logger si l'opération est lente
     if (metric.duration > this.alertThreshold) {
-      console.warn(`🐌 Slow operation detected: ${name} took ${metric.duration.toFixed(2)}ms`);
+      logger.warn(`🐌 Slow operation detected: ${name} took ${metric.duration.toFixed(2)}ms`);
     }
 
     return metric.duration;
@@ -168,7 +170,7 @@ class PerformanceMonitoringService {
     if (baseline) {
       const degradation = duration / baseline;
       if (degradation > this.degradationThreshold) {
-        console.warn(
+        logger.warn(
           `⚠️ Performance degradation detected for ${name}: ` +
           `${((degradation - 1) * 100).toFixed(1)}% slower than baseline`
         );
@@ -256,7 +258,7 @@ class PerformanceMonitoringService {
         })
       });
     } catch (error) {
-      console.error('Failed to send performance alert:', error);
+      logger.error('Failed to send performance alert:', error);
     }
   }
 
@@ -356,7 +358,7 @@ class PerformanceMonitoringService {
         this.observers.set('navigation', navObserver);
       }
     } catch (error) {
-      console.warn('Some Core Web Vitals observers not supported:', error);
+      logger.warn('Some Core Web Vitals observers not supported:', error);
     }
   }
 
@@ -366,7 +368,7 @@ class PerformanceMonitoringService {
   private checkCoreWebVitalThreshold(metric: keyof CoreWebVitals, value: number): void {
     const threshold = this.thresholds[metric as keyof PerformanceThresholds];
     if (threshold && value > threshold) {
-      console.warn(`🚨 Core Web Vital threshold exceeded: ${metric} = ${value.toFixed(2)}ms (threshold: ${threshold}ms)`);
+      logger.warn(`🚨 Core Web Vital threshold exceeded: ${metric} = ${value.toFixed(2)}ms (threshold: ${threshold}ms)`);
       this.sendAlert(`core-web-vital-${metric}`, value, threshold);
     }
   }

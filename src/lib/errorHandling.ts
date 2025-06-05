@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 /**
  * Système de gestion d'erreurs centralisé pour l'application
  */
@@ -98,14 +100,14 @@ export function logError(error: AppError): void {
     // En production, on pourrait envoyer les erreurs à un service comme Sentry
     const logPrefix = `[ERROR][${error.type.toUpperCase()}]`;
 
-    console.error(`${logPrefix} ${error.message}`);
+    logger.error(`${logPrefix} ${error.message}`);
 
     if (error.originalError) {
-        console.error('Erreur originale:', error.originalError);
+        logger.error('Erreur originale:', error.originalError);
     }
 
     if (error.details) {
-        console.error('Détails:', error.details);
+        logger.error('Détails:', error.details);
     }
 }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { v4 as uuidv4 } from 'uuid';
@@ -105,7 +106,7 @@ const BlocPlanningEditor: React.FC<BlocPlanningEditorProps> = ({
                 const supervisors = await blocPlanningService.getAvailableSupervisors(format(date, 'yyyy-MM-dd'));
                 setAvailableSupervisors(supervisors);
             } catch (error) {
-                console.error("Erreur lors du chargement des superviseurs:", error);
+                logger.error("Erreur lors du chargement des superviseurs:", error);
             } finally {
                 setLoading(false);
             }

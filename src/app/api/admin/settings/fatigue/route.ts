@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 // import { getSession } from 'next-auth/react'; // Commenté car nous utilisons les headers
 import { headers as nextHeaders } from 'next/headers'; // Renommer pour éviter conflit potentiel
 // import { getCurrentUser } from '@/lib/auth/session'; // Supposons une fonction pour obtenir l'utilisateur côté serveur
@@ -35,10 +36,10 @@ async function readConfigFile(): Promise<FatigueConfig> {
         return JSON.parse(data);
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-            console.warn('fatigue-settings.json not found, returning default seed config.');
+            logger.warn('fatigue-settings.json not found, returning default seed config.');
             return defaultFatigueSeedConfig; // Utiliser le fallback codé en dur
         }
-        console.error("Error reading fatigue config file:", error);
+        logger.error("Error reading fatigue config file:", error);
         throw new Error('Could not read fatigue configuration.');
     }
 }
@@ -48,7 +49,7 @@ async function writeConfigFile(config: FatigueConfig): Promise<void> {
     try {
         await fs.writeFile(configFilePath, JSON.stringify(config, null, 2), 'utf-8');
     } catch (error) {
-        console.error("Error writing fatigue config file:", error);
+        logger.error("Error writing fatigue config file:", error);
         throw new Error('Could not save fatigue configuration.');
     }
 }
@@ -58,7 +59,7 @@ const checkAdminRole = (): boolean => {
     const headersList = nextHeaders();
     // const userRoleString = headersList.get('x-user-role'); // Ligne problématique commentée
     // return !!userRoleString && ['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(userRoleString);
-    console.warn("[SECURITY] checkAdminRole est désactivé et retourne toujours true. À RÉPARER IMPÉRATIVEMENT.")
+    logger.warn("[SECURITY] checkAdminRole est désactivé et retourne toujours true. À RÉPARER IMPÉRATIVEMENT.")
     return true; // ATTENTION: À remplacer par une vraie vérification
 };
 

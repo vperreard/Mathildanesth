@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
@@ -61,7 +62,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('[SURGEON_SITES_GET_ERROR]:', error);
+    logger.error('[SURGEON_SITES_GET_ERROR]:', error);
     return NextResponse.json(
       { error: 'Erreur serveur lors de la récupération des sites' },
       { status: 500 }
@@ -150,7 +151,7 @@ export async function PUT(
       },
     });
   } catch (error) {
-    console.error('[SURGEON_SITES_PUT_ERROR]:', error);
+    logger.error('[SURGEON_SITES_PUT_ERROR]:', error);
     return NextResponse.json(
       { error: 'Erreur serveur lors de la mise à jour des sites' },
       { status: 500 }
@@ -206,7 +207,7 @@ export async function POST(
       },
     });
   } catch (error) {
-    console.error('[SURGEON_SITES_POST_ERROR]:', error);
+    logger.error('[SURGEON_SITES_POST_ERROR]:', error);
     return NextResponse.json(
       { error: "Erreur serveur lors de l'ajout des sites" },
       { status: 500 }
@@ -258,7 +259,7 @@ export async function DELETE(
       },
     });
   } catch (error) {
-    console.error('[SURGEON_SITES_DELETE_ERROR]:', error);
+    logger.error('[SURGEON_SITES_DELETE_ERROR]:', error);
     return NextResponse.json(
       { error: 'Erreur serveur lors de la suppression des sites' },
       { status: 500 }

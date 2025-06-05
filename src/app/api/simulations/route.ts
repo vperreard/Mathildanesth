@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { PrismaClient, SimulationScenario, Prisma } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(newScenario, { status: 201 });
     } catch (error) {
-        console.error("Erreur lors de la création du scénario de simulation:", error);
+        logger.error("Erreur lors de la création du scénario de simulation:", error);
         const errorMessage = error instanceof Error ? error.message : 'Erreur interne du serveur';
         return NextResponse.json({ error: "Impossible de créer le scénario.", details: errorMessage }, { status: 500 });
     }
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
         });
         return NextResponse.json(scenarios);
     } catch (error) {
-        console.error("Erreur lors de la récupération des scénarios de simulation:", error);
+        logger.error("Erreur lors de la récupération des scénarios de simulation:", error);
         const errorMessage = error instanceof Error ? error.message : 'Erreur interne du serveur';
         return NextResponse.json({ error: "Impossible de récupérer les scénarios.", details: errorMessage }, { status: 500 });
     }

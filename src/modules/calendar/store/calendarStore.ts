@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { logger } from "../../../lib/logger";
 import { persist } from 'zustand/middleware';
 import {
     AnyCalendarEvent,
@@ -181,7 +182,7 @@ export const useCalendarStore = create<CalendarState>()(
                 } catch (err) {
                     const error = err instanceof Error ? err : new Error('Erreur inconnue');
                     set({ error, loading: false });
-                    console.error('Erreur lors du chargement des événements:', error);
+                    logger.error('Erreur lors du chargement des événements:', error);
                 }
             },
 

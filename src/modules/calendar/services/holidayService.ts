@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { logger } from "../../../lib/logger";
 import { publicHolidayService } from '@/modules/leaves/services/publicHolidayService';
 import { HolidayEvent, CalendarEventType } from '../types/event';
 import { PublicHoliday } from '@/modules/leaves/types/public-holiday';
@@ -39,7 +40,7 @@ export class HolidayCalendarService {
             const holidays = await publicHolidayService.getPublicHolidaysInRange(startDate, endDate);
             return holidays.map(this.convertToCalendarEvent);
         } catch (error) {
-            console.error('[HolidayCalendarService] Erreur lors de la récupération des jours fériés:', error);
+            logger.error('[HolidayCalendarService] Erreur lors de la récupération des jours fériés:', error);
             return [];
         }
     }
@@ -57,7 +58,7 @@ export class HolidayCalendarService {
 
             return await publicHolidayService.isPublicHoliday(dateStr);
         } catch (error) {
-            console.error('[HolidayCalendarService] Erreur lors de la vérification du jour férié:', error);
+            logger.error('[HolidayCalendarService] Erreur lors de la vérification du jour férié:', error);
             return false;
         }
     }

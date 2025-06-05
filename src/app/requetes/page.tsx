@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -115,7 +116,7 @@ export default function UserRequestsPage() {
                 if (requestsResult.status === 'fulfilled') {
                     setRequests(requestsResult.value);
                 } else {
-                    console.error('Erreur lors de la récupération des requêtes:', requestsResult.reason);
+                    logger.error('Erreur lors de la récupération des requêtes:', requestsResult.reason);
                     combinedErrorMessages += requestsResult.reason.message + '\n';
                     setRequests([]);
                 }
@@ -125,7 +126,7 @@ export default function UserRequestsPage() {
                     const activeTypes = requestTypesResult.value.filter((type: RequestType) => type.isActive);
                     setRequestTypes(activeTypes);
                 } else {
-                    console.error('Erreur lors de la récupération des types de requêtes:', requestTypesResult.reason);
+                    logger.error('Erreur lors de la récupération des types de requêtes:', requestTypesResult.reason);
                     combinedErrorMessages += requestTypesResult.reason.message + '\n';
                     setRequestTypes([]);
                 }
@@ -137,7 +138,7 @@ export default function UserRequestsPage() {
             } catch (err) { // Catch for unexpected errors not directly from promises
                 const errorMessage = err instanceof Error ? err.message : 'Une erreur inattendue est survenue lors du chargement des données.';
                 setError(errorMessage);
-                console.error('Erreur inattendue lors du chargement initial des données:', err);
+                logger.error('Erreur inattendue lors du chargement initial des données:', err);
                 setRequests([]);
                 setRequestTypes([]);
             } finally {
@@ -193,7 +194,7 @@ export default function UserRequestsPage() {
 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            console.error('Erreur lors de la soumission de la requête:', err);
+            logger.error('Erreur lors de la soumission de la requête:', err);
         } finally {
             setSubmitting(false);
         }
@@ -238,7 +239,7 @@ export default function UserRequestsPage() {
 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            console.error('Erreur lors de l\'annulation de la requête:', err);
+            logger.error('Erreur lors de l\'annulation de la requête:', err);
         }
     };
 

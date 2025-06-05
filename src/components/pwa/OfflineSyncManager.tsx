@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { cn } from '@/lib/utils';
 import { 
   Wifi,
@@ -69,7 +70,7 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
         setOfflineActions(actions);
       }
     } catch (error) {
-      console.error('Erreur chargement actions offline:', error);
+      logger.error('Erreur chargement actions offline:', error);
     }
   };
 
@@ -78,7 +79,7 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
       localStorage.setItem('mathildanesth_offline_actions', JSON.stringify(actions));
       setOfflineActions(actions);
     } catch (error) {
-      console.error('Erreur sauvegarde actions offline:', error);
+      logger.error('Erreur sauvegarde actions offline:', error);
     }
   };
 
@@ -117,7 +118,7 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
           updateActionStatus(action.id, 'synced');
           
         } catch (error) {
-          console.error(`Erreur sync action ${action.id}:`, error);
+          logger.error(`Erreur sync action ${action.id}:`, error);
           
           // Incrémenter compteur retry
           const updatedActions = offlineActions.map(a => 
@@ -133,7 +134,7 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
       showNotification('Synchronisation terminée', 'success');
       
     } catch (error) {
-      console.error('Erreur synchronisation globale:', error);
+      logger.error('Erreur synchronisation globale:', error);
       showNotification('Erreur de synchronisation', 'error');
     } finally {
       setSyncInProgress(false);
@@ -193,7 +194,7 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
 
   const showNotification = (message: string, type: 'info' | 'success' | 'error') => {
     // Intégration avec le système de notifications
-    console.log(`[${type.toUpperCase()}] ${message}`);
+    logger.info(`[${type.toUpperCase()}] ${message}`);
   };
 
   const getActionIcon = (type: string) => {

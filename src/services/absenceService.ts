@@ -1,4 +1,5 @@
 import { PlannedAbsence, AbsenceCreateInput, AbsenceUpdateInput } from '@/types/absence';
+import { logger } from "../lib/logger";
 import { prisma } from '@/lib/prisma';
 import { LeaveStatus } from '@prisma/client';
 import { notificationService } from './notificationService';
@@ -155,7 +156,7 @@ export const absenceService = {
                 bridgeDays,
             };
         } catch (error) {
-            console.error('Error getting absence patterns:', error);
+            logger.error('Error getting absence patterns:', error);
             throw new Error('Failed to get absence patterns');
         }
     },
@@ -230,7 +231,7 @@ export const absenceService = {
                 topAbsentUsers: topAbsentUsers?.map(item => ({ userId: item.userId, count: item._count._all })),
             };
         } catch (error) {
-            console.error('Error getting absence statistics:', error);
+            logger.error('Error getting absence statistics:', error);
             throw new Error('Failed to get absence statistics');
         }
     },
@@ -301,7 +302,7 @@ export const absenceService = {
                 });
             });
         } catch (error) {
-            console.error('Error handling late notification:', error);
+            logger.error('Error handling late notification:', error);
             throw new Error('Failed to handle late notification');
         }
     },
@@ -398,7 +399,7 @@ export const absenceService = {
 
             return { available, unavailable };
         } catch (error) {
-            console.error('Error finding replacement:', error);
+            logger.error('Error finding replacement:', error);
             throw new Error('Failed to find replacement');
         }
     },
@@ -451,7 +452,7 @@ export const absenceService = {
                 leave,
             };
         } catch (error) {
-            console.error('Error converting to leave:', error);
+            logger.error('Error converting to leave:', error);
             throw new Error('Failed to convert absence to leave');
         }
     },

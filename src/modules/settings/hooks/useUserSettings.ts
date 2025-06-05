@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { UserCalendarSettings } from '../../calendrier/types/event';
 
 interface UseUserSettingsReturn {
@@ -53,7 +54,7 @@ export function useUserSettings(userId?: string): UseUserSettingsReturn {
                         const parsedSettings = JSON.parse(storedSettings);
                         setSettings(prev => ({ ...prev, ...parsedSettings }));
                     } catch (e) {
-                        console.error("Erreur lors du parsing des préférences utilisateur", e);
+                        logger.error("Erreur lors du parsing des préférences utilisateur", e);
                     }
                 }
 

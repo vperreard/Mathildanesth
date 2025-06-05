@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import {
   PrismaClient,
   SimulationStatus,
@@ -109,7 +110,7 @@ export async function POST(
         const paramsParseResult = simulationParametersSchema.safeParse(scenario.parameters);
         if (!paramsParseResult.success) {
           const errorMessage = `Paramètres de simulation invalides: ${paramsParseResult.error.format()}`;
-          console.error(
+          logger.error(
             `Validation error for scenario ${scenarioId}:`,
             paramsParseResult.error.format()
           );
@@ -129,7 +130,7 @@ export async function POST(
             .map(id => parseInt(id, 10))
             .filter(id => !isNaN(id));
           if (userIdsAsNumbers.length !== simParams.userIds.length) {
-            console.warn(
+            logger.warn(
               "Certains userIds fournis n'étaient pas des nombres valides et ont été ignorés."
             );
           }
@@ -174,12 +175,12 @@ export async function POST(
           simulatedRules
         );
 
-        console.log(
+        logger.info(
           `Lancement de la simulation pour scénario ${scenario.id} avec ${simulatedUsers.length} utilisateurs et ${simulatedRules.length} règles.`
         );
         const optimizationResult: OptimizationResult =
           await planningGenerator.generatePlanningWithDetails();
-        console.log(`Simulation terminée pour ${scenario.id}. Score: ${optimizationResult.score}`);
+        logger.info(`Simulation terminée pour ${scenario.id}. Score: ${optimizationResult.score}`);
 
         await prisma.simulationResult.update({
           where: { id: simulationResult.id },
@@ -202,7 +203,7 @@ export async function POST(
           },
         });
       } catch (simError: any) {
-        console.error(
+        logger.error(
           `Erreur pendant l'exécution de la simulation ${simulationResult.id} pour le scénario ${scenarioId}:`,
           simError
         );
@@ -222,7 +223,7 @@ export async function POST(
 
     return NextResponse.json(simulationResult, { status: 202 });
   } catch (error: any) {
-    console.error(
+    logger.error(
       `Erreur lors du lancement de la simulation pour le scénario ${scenarioId}:`,
       error
     );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     Clock, CheckCircle, XCircle, AlarmClock,
     CheckCheck, Search, Filter, RefreshCw, UserCircle
@@ -120,7 +121,7 @@ export default function RequestDashboard() {
                 if (requestsResult.status === 'fulfilled') {
                     setRequests(requestsResult.value);
                 } else {
-                    console.error('Erreur chargement requêtes:', requestsResult.reason);
+                    logger.error('Erreur chargement requêtes:', requestsResult.reason);
                     combinedErrorMessages += requestsResult.reason.message + '\n';
                     setRequests([]);
                 }
@@ -128,7 +129,7 @@ export default function RequestDashboard() {
                 if (typesResult.status === 'fulfilled') {
                     setRequestTypes(typesResult.value);
                 } else {
-                    console.error('Erreur chargement types:', typesResult.reason);
+                    logger.error('Erreur chargement types:', typesResult.reason);
                     combinedErrorMessages += typesResult.reason.message + '\n';
                     setRequestTypes([]);
                 }
@@ -136,7 +137,7 @@ export default function RequestDashboard() {
                 if (usersResult.status === 'fulfilled') {
                     setUsers(usersResult.value || []);
                 } else {
-                    console.error('Erreur chargement utilisateurs:', usersResult.reason);
+                    logger.error('Erreur chargement utilisateurs:', usersResult.reason);
                     combinedErrorMessages += usersResult.reason.message + '\n';
                     setUsers([]);
                 }
@@ -148,7 +149,7 @@ export default function RequestDashboard() {
             } catch (err) { // Should not be reached if all promises handle their errors
                 const errorMessage = err instanceof Error ? err.message : 'Une erreur inattendue est survenue.';
                 setError(errorMessage);
-                console.error('Erreur inattendue fetchData:', err);
+                logger.error('Erreur inattendue fetchData:', err);
                 setRequests([]);
                 setRequestTypes([]);
                 setUsers([]);
@@ -265,7 +266,7 @@ export default function RequestDashboard() {
 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            console.error('Erreur lors de la mise à jour de la requête:', err);
+            logger.error('Erreur lors de la mise à jour de la requête:', err);
         }
     };
 
@@ -289,7 +290,7 @@ export default function RequestDashboard() {
             setRequests(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            console.error('Erreur lors du rafraîchissement des données:', err);
+            logger.error('Erreur lors du rafraîchissement des données:', err);
         } finally {
             setIsLoading(false);
         }

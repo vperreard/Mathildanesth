@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     Leave,
     LeaveType,
@@ -121,7 +122,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
     useEffect(() => {
         if (userId) {
             refreshQuotas(userId).catch(err => {
-                console.error('Erreur lors du chargement des quotas:', err);
+                logger.error('Erreur lors du chargement des quotas:', err);
             });
         }
     }, [userId, refreshQuotas]);
@@ -155,7 +156,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
 
                 if (start <= end) {
                     checkConflicts(start, end, leave?.id).catch((error) => {
-                        console.error('Erreur lors de la vérification des conflits:', error);
+                        logger.error('Erreur lors de la vérification des conflits:', error);
                     });
                 }
             }
@@ -193,7 +194,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                 setFormErrors(prev => prev.filter(err => !err.includes('Quota insuffisant')));
             }
         } catch (err) {
-            console.error('Erreur lors de la vérification des quotas:', err);
+            logger.error('Erreur lors de la vérification des quotas:', err);
         }
     };
 
@@ -313,7 +314,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                 onSaveDraft(savedLeave);
             }
         } catch (error) {
-            console.error('Erreur lors de l\'enregistrement du brouillon:', error);
+            logger.error('Erreur lors de l\'enregistrement du brouillon:', error);
         }
     };
 
@@ -643,7 +644,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                                             onSubmit(submittedLeave);
                                         }
                                     } catch (error) {
-                                        console.error('Erreur lors de la soumission de la demande:', error);
+                                        logger.error('Erreur lors de la soumission de la demande:', error);
                                     }
                                 }}
                                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

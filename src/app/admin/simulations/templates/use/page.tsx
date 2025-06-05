@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../../lib/logger";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon, AlertTriangleIcon, CalendarIcon, UserIcon, UsersIcon, SettingsIcon, SaveIcon, Loader2 } from 'lucide-react';
@@ -100,7 +101,7 @@ export default function UseTemplatePage() {
                 // Charger les utilisateurs et chirurgiens
                 loadUsersAndSurgeons();
             } catch (err: any) {
-                console.error('Erreur lors du chargement du template:', err);
+                logger.error('Erreur lors du chargement du template:', err);
                 setError(err.message || 'Erreur lors du chargement du template');
                 toast.error('Erreur lors du chargement du template');
             } finally {
@@ -132,7 +133,7 @@ export default function UseTemplatePage() {
             }
             setLoadingSurgeons(false);
         } catch (error) {
-            console.error("Erreur lors du chargement des utilisateurs/chirurgiens:", error);
+            logger.error("Erreur lors du chargement des utilisateurs/chirurgiens:", error);
             toast.error("Impossible de charger la liste des utilisateurs/chirurgiens");
         } finally {
             setLoadingUsers(false);
@@ -216,7 +217,7 @@ export default function UseTemplatePage() {
             // Rediriger vers la page d'édition du scénario
             router.push(`/admin/simulations/${result.id}/edit`);
         } catch (err: any) {
-            console.error('Erreur lors de la création du scénario:', err);
+            logger.error('Erreur lors de la création du scénario:', err);
             toast.error(`Erreur lors de la création du scénario: ${err.message}`);
         } finally {
             setIsSubmitting(false);

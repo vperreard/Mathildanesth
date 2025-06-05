@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 
+import { logger } from "../lib/logger";
 // Configuration for dynamic imports with intelligent chunking
 export const CHUNK_PRIORITIES = {
     CRITICAL: 'critical',
@@ -30,19 +31,19 @@ export function createDynamicImport<T>(
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 const startTime = performance.now();
-                const module = await importFn();
+                const loadedModule = await importFn();
                 const loadTime = performance.now() - startTime;
 
                 // Log performance metrics
                 if (typeof window !== 'undefined' && window.performance) {
                     performance.mark(`chunk-loaded-${chunkName || 'unknown'}`);
-                    console.debug(`Chunk loaded: ${chunkName || 'unknown'} in ${loadTime.toFixed(2)}ms`);
+                    logger.debug(`Chunk loaded: ${chunkName || 'unknown'} in ${loadTime.toFixed(2)}ms`);
                 }
 
-                return module;
+                return loadedModule;
             } catch (error) {
                 lastError = error as Error;
-                console.warn(`Dynamic import attempt ${attempt}/${maxRetries} failed:`, error);
+                logger.warn(`Dynamic import attempt ${attempt}/${maxRetries} failed:`, error);
                 
                 if (attempt < maxRetries) {
                     // Exponential backoff
@@ -198,10 +199,10 @@ export class IntelligentPreloader {
                     requestIdleCallback(async () => {
                         try {
                             await Component._payload._result();
-                            console.debug(`Preloaded component: ${name}`);
+                            logger.debug(`Preloaded component: ${name}`);
                             resolve();
                         } catch (error) {
-                            console.warn(`Failed to preload component ${name}:`, error);
+                            logger.warn(`Failed to preload component ${name}:`, error);
                             resolve(); // Ne pas bloquer sur les échecs de préchargement
                         }
                     });
@@ -210,10 +211,10 @@ export class IntelligentPreloader {
                 // Fallback pour les navigateurs sans requestIdleCallback
                 await new Promise(resolve => setTimeout(resolve, 100));
                 await Component._payload._result();
-                console.debug(`Preloaded component: ${name}`);
+                logger.debug(`Preloaded component: ${name}`);
             }
         } catch (error) {
-            console.warn(`Failed to preload component ${name}:`, error);
+            logger.warn(`Failed to preload component ${name}:`, error);
         }
     }
 

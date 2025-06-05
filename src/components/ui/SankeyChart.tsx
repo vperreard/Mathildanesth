@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState, useMemo } from 'react';
+import { logger } from "../../lib/logger";
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -112,7 +113,7 @@ export function SankeyChart({
             const targetNode = nodeMap.get(link.target);
 
             if (!sourceNode || !targetNode) {
-                console.error(`Lien invalide: source=${link.source}, target=${link.target}`);
+                logger.error(`Lien invalide: source=${link.source}, target=${link.target}`);
                 return null;
             }
 
@@ -141,7 +142,7 @@ export function SankeyChart({
                 links: graph.links as ProcessedLink[]
             });
         } catch (error) {
-            console.error('Erreur lors du calcul du diagramme Sankey:', error);
+            logger.error('Erreur lors du calcul du diagramme Sankey:', error);
             setProcessedData(null);
         }
     }, [data, width, height, nodeWidth, nodePadding, isValidData]);

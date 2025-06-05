@@ -1,3 +1,5 @@
+import { logger } from "../../../lib/logger";
+
 import { getClientAuthToken } from '@/lib/auth-client-utils'; // Importer la fonction
 
 export interface OperatingRoomFromAPI {
@@ -38,15 +40,15 @@ export class SalleService {
                 } catch (e) {
                     // Ignorer l'erreur de lecture du corps si elle échoue
                 }
-                console.error(`Erreur API getSalles: ${response.status} ${response.statusText}. Body: ${errorBody}`);
+                logger.error(`Erreur API getSalles: ${response.status} ${response.statusText}. Body: ${errorBody}`);
                 throw new Error(`Erreur lors de la récupération des salles: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('[SalleService] Salles chargées depuis API:', data);
+            logger.info('[SalleService] Salles chargées depuis API:', data);
             return data as OperatingRoomFromAPI[]; // S'assurer que les données correspondent à la nouvelle interface
         } catch (error) {
-            console.error("Erreur lors de la récupération des salles (catch global):", error);
+            logger.error("Erreur lors de la récupération des salles (catch global):", error);
             // Optionnel: Mettre à jour les mocks pour correspondre à OperatingRoomFromAPI ou les supprimer si non utilisés
             // Pour l'instant, on retourne un tableau vide en cas d'erreur pour éviter d'utiliser des mocks avec une ancienne structure.
             return [];

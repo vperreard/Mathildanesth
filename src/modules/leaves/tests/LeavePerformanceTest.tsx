@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { logger } from "../../../lib/logger";
 import { Button, Box, Typography, Paper, CircularProgress, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useDebounceFilters } from '../hooks/useDebounceFilters';
@@ -88,7 +89,7 @@ const PerformanceTestComponent = () => {
             // Enregistrer les résultats
             setResults(testResults);
         } catch (error) {
-            console.error('Erreur lors des tests de performance:', error);
+            logger.error('Erreur lors des tests de performance:', error);
         } finally {
             setIsRunning(false);
         }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import { useErrorHandler } from '../hooks/useErrorHandler';
 import ErrorDisplay from './ErrorDisplay';
 
@@ -22,7 +23,7 @@ interface ErrorRetryProps<T = any> {
  *   maxRetries={3}
  *   retryDelay={1000}
  *   onSuccess={(data) => setData(data)}
- *   onFinalFailure={(error) => console.error('Échec final:', error)}
+ *   onFinalFailure={(error) => logger.error('Échec final:', error)}
  * >
  *   <DataDisplay data={data} />
  * </ErrorRetry>

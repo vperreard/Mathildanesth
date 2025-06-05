@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
@@ -86,7 +87,7 @@ export async function GET(
 
     return NextResponse.json(rule);
   } catch (error) {
-    console.error('Error fetching rule:', error);
+    logger.error('Error fetching rule:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -215,12 +216,12 @@ export async function PUT(
         data
       );
     } catch (error) {
-      console.error('Failed to send rule change notification:', error);
+      logger.error('Failed to send rule change notification:', error);
     }
 
     return NextResponse.json(updatedRule);
   } catch (error) {
-    console.error('Error updating rule:', error);
+    logger.error('Error updating rule:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -325,12 +326,12 @@ export async function DELETE(
         user.email || `user-${user.id}`
       );
     } catch (error) {
-      console.error('Failed to send rule change notification:', error);
+      logger.error('Failed to send rule change notification:', error);
     }
 
     return NextResponse.json({ message: 'Rule deleted successfully' });
   } catch (error) {
-    console.error('Error deleting rule:', error);
+    logger.error('Error deleting rule:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -44,7 +45,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 
     return NextResponse.json(settings);
   } catch (error) {
-    console.error('Erreur lors de la récupération des paramètres:', error);
+    logger.error('Erreur lors de la récupération des paramètres:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des paramètres' },
       { status: 500 }
@@ -98,7 +99,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ user
 
     return NextResponse.json(settings);
   } catch (error) {
-    console.error('Erreur lors de la mise à jour des paramètres:', error);
+    logger.error('Erreur lors de la mise à jour des paramètres:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la mise à jour des paramètres' },
       { status: 500 }

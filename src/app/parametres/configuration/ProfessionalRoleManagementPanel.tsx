@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { useAuth } from '@/hooks/useAuth';
 import { ProfessionalRole } from '@prisma/client';
 import { useTheme } from '@/context/ThemeContext';
@@ -69,7 +70,7 @@ const ProfessionalRoleManagementPanel: React.FC = () => {
             const data = await response.json();
             setRoles(data);
         } catch (error: any) {
-            console.error("Erreur lors du chargement des rôles:", error);
+            logger.error("Erreur lors du chargement des rôles:", error);
             setError(error.message || "Impossible de charger les rôles professionnels");
         } finally {
             setIsLoading(false);
@@ -141,7 +142,7 @@ const ProfessionalRoleManagementPanel: React.FC = () => {
             setIsModalOpen(false);
             setIsEditing(null);
         } catch (error: any) {
-            console.error("Erreur lors de l'enregistrement du rôle:", error);
+            logger.error("Erreur lors de l'enregistrement du rôle:", error);
             toast.error(error.message || "Erreur lors de l'enregistrement");
         }
     };
@@ -164,7 +165,7 @@ const ProfessionalRoleManagementPanel: React.FC = () => {
             setRoles(prev => prev.filter(role => role.id !== id));
             toast.success('Rôle professionnel supprimé avec succès');
         } catch (error: any) {
-            console.error("Erreur lors de la suppression du rôle:", error);
+            logger.error("Erreur lors de la suppression du rôle:", error);
             toast.error(error.message || "Erreur lors de la suppression");
         }
     };

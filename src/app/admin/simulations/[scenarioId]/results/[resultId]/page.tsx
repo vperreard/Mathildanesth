@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../../../../lib/logger";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon, Loader2, AlertTriangleIcon, FileJsonIcon, BarChartIcon, AlertCircleIcon, CheckCircle2Icon, ZapIcon, HourglassIcon, UserIcon, CalendarIcon, FileTextIcon, DownloadIcon, FileIcon, ClipboardCheckIcon, BarChart3Icon } from 'lucide-react';
@@ -97,7 +98,7 @@ export default function SimulationResultPage() {
     const [, setFilteredData] = useState(result);
 
     const handleFilterChange = (filters: FilterState) => {
-        // console.log('Nouveaux filtres appliqués:', filters);
+        // logger.info('Nouveaux filtres appliqués:', filters);
         // Implémenter la logique de filtrage des données
         // Cette fonction sera appelée chaque fois que les filtres sont modifiés
 
@@ -261,7 +262,7 @@ export default function SimulationResultPage() {
                 setStatistics(formattedStats);
 
             } catch (e) {
-                console.error("Erreur lors du traitement des statistiques", e);
+                logger.error("Erreur lors du traitement des statistiques", e);
             }
         }
 
@@ -283,7 +284,7 @@ export default function SimulationResultPage() {
                     })));
                 }
             } catch (e) {
-                console.error("Erreur lors du traitement des alertes de conflit", e);
+                logger.error("Erreur lors du traitement des alertes de conflit", e);
             }
         }
 
@@ -327,7 +328,7 @@ export default function SimulationResultPage() {
                     setUserAssignments(Object.values(userMap));
                 }
             } catch (e) {
-                console.error("Erreur lors du traitement des données de planning", e);
+                logger.error("Erreur lors du traitement des données de planning", e);
             }
         }
     };
@@ -436,7 +437,7 @@ export default function SimulationResultPage() {
 
             toast.success("Export PDF généré avec succès");
         } catch (error) {
-            console.error('Erreur lors de l\'export PDF:', error);
+            logger.error('Erreur lors de l\'export PDF:', error);
             toast.error("Échec de l'export PDF");
         }
     };
@@ -480,7 +481,7 @@ export default function SimulationResultPage() {
 
             toast.success("Export Excel généré avec succès");
         } catch (error) {
-            console.error('Erreur lors de l\'export Excel:', error);
+            logger.error('Erreur lors de l\'export Excel:', error);
             toast.error("Échec de l'export Excel");
         }
     };

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
@@ -136,7 +137,7 @@ export async function POST(req: NextRequest) {
             return await generatePdfReport(transfers, reportTitle);
         }
     } catch (error) {
-        console.error(`Erreur lors de l'exportation du rapport :`, error);
+        logger.error(`Erreur lors de l'exportation du rapport :`, error);
         return NextResponse.json(
             { error: `Erreur lors de l'exportation du rapport` },
             { status: 500 }

@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { useTranslation } from 'react-i18next';
 import { LeaveConflictWithRecommendation } from '../hooks/useConflictRecommendation';
 import { LeaveConflictRecommendation } from './LeaveConflictRecommendation';
@@ -118,7 +119,7 @@ export const LeaveConflictRecommendationList: React.FC<LeaveConflictRecommendati
                 total: automaticRecommendationsCount
             });
         } catch (error) {
-            console.error('Erreur lors de l\'application des recommandations automatiques:', error);
+            logger.error('Erreur lors de l\'application des recommandations automatiques:', error);
         } finally {
             setIsApplyingAll(false);
         }

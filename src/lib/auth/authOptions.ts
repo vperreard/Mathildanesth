@@ -1,4 +1,5 @@
 import { NextAuthOptions } from 'next-auth';
+import { logger } from "../logger";
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaClient, Role } from '@prisma/client';
 import { compare } from 'bcryptjs';
@@ -46,7 +47,7 @@ const generateAccessToken = (userId: number): string => {
 };
 
 // Debug logging
-console.log('NextAuth configuration:', {
+logger.info('NextAuth configuration:', {
   hasSecret: !!process.env.NEXTAUTH_SECRET,
   url: process.env.NEXTAUTH_URL,
   nodeEnv: process.env.NODE_ENV,

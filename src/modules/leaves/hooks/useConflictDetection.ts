@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     LeaveConflict,
     ConflictCheckResult,
@@ -77,24 +78,24 @@ export const useConflictDetection = ({
 
         // Vérifications de base des dates
         if (!startDate || !endDate) {
-            console.log('useConflictDetection: validateDates - dates nulles');
+            logger.info('useConflictDetection: validateDates - dates nulles');
             return false;
         }
 
         // Vérifier que ce sont bien des objets Date valides
         if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
-            console.log('useConflictDetection: validateDates - startDate n\'est pas une date valide');
+            logger.info('useConflictDetection: validateDates - startDate n\'est pas une date valide');
             return false;
         }
 
         if (!(endDate instanceof Date) || isNaN(endDate.getTime())) {
-            console.log('useConflictDetection: validateDates - endDate n\'est pas une date valide');
+            logger.info('useConflictDetection: validateDates - endDate n\'est pas une date valide');
             return false;
         }
 
         // Vérifier que la date de début est bien avant la date de fin
         if (startDate > endDate) {
-            console.log('useConflictDetection: validateDates - startDate est après endDate');
+            logger.info('useConflictDetection: validateDates - startDate est après endDate');
             return false;
         }
 
@@ -123,7 +124,7 @@ export const useConflictDetection = ({
 
             return startValid && endValid && rangeValid;
         } catch (error) {
-            console.error('useConflictDetection: validateDates - erreur lors de la validation', error);
+            logger.error('useConflictDetection: validateDates - erreur lors de la validation', error);
             return false;
         }
     };
@@ -179,12 +180,12 @@ export const useConflictDetection = ({
                 const datesValid = validateDates(startDateObj, endDateObj);
 
                 if (!datesValid) {
-                    console.error('useConflictDetection: checkConflicts - Dates invalides pour la vérification des conflits', { startDate, endDate });
+                    logger.error('useConflictDetection: checkConflicts - Dates invalides pour la vérification des conflits', { startDate, endDate });
                     throw new Error('Dates invalides pour la vérification des conflits');
                 }
 
                 if (!userId) {
-                    console.error('useConflictDetection: checkConflicts - ID utilisateur requis');
+                    logger.error('useConflictDetection: checkConflicts - ID utilisateur requis');
                     throw new Error('ID utilisateur requis');
                 }
 
@@ -202,7 +203,7 @@ export const useConflictDetection = ({
                 return result;
             } catch (err) {
                 const errorObj = err instanceof Error ? err : new Error('Erreur lors de la vérification des conflits');
-                console.error('Erreur dans checkConflicts:', err);
+                logger.error('Erreur dans checkConflicts:', err);
 
                 // Réinitialiser l'état des conflits AVANT de définir l'erreur
                 resetConflicts();

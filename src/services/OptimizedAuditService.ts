@@ -1,5 +1,6 @@
 import { AuditAction, AuditEntry } from './AuditService';
 
+import { logger } from "../lib/logger";
 // Re-exporter AuditAction pour faciliter l'import
 export { AuditAction };
 
@@ -125,7 +126,7 @@ export class OptimizedAuditService {
         };
 
         if (this.isDebugMode) {
-            console.debug('[OptimizedAuditService] Configuration mise à jour:', this.config);
+            logger.debug('[OptimizedAuditService] Configuration mise à jour:', this.config);
         }
 
         // Redémarrer le traitement programmé avec les nouveaux paramètres
@@ -174,7 +175,7 @@ export class OptimizedAuditService {
         }
 
         if (this.isDebugMode) {
-            console.debug(`[OptimizedAuditService] Action enregistrée: ${id} (${priority})`);
+            logger.debug(`[OptimizedAuditService] Action enregistrée: ${id} (${priority})`);
         }
 
         return id;
@@ -210,7 +211,7 @@ export class OptimizedAuditService {
                 await this.processBatch(this.lowPriorityQueue.splice(0, batchSize));
             }
         } catch (error) {
-            console.error('[OptimizedAuditService] Erreur lors du traitement de la file d\'attente:', error);
+            logger.error('[OptimizedAuditService] Erreur lors du traitement de la file d\'attente:', error);
         } finally {
             // Calculer le temps de traitement
             const processingTime = performance.now() - startTime;
@@ -263,10 +264,10 @@ export class OptimizedAuditService {
                     this.stats.compressionSavings += (originalSize - compressedSize);
 
                     if (this.isDebugMode) {
-                        console.debug(`[OptimizedAuditService] Compression: ${originalSize} -> ${compressedSize} octets (${Math.round((1 - compressionRatio) * 100)}% d'économie)`);
+                        logger.debug(`[OptimizedAuditService] Compression: ${originalSize} -> ${compressedSize} octets (${Math.round((1 - compressionRatio) * 100)}% d'économie)`);
                     }
                 } catch (compressionError) {
-                    console.error('[OptimizedAuditService] Erreur de compression:', compressionError);
+                    logger.error('[OptimizedAuditService] Erreur de compression:', compressionError);
                     isCompressed = false;
                 }
             }
@@ -302,10 +303,10 @@ export class OptimizedAuditService {
             this.stats.batchesSent++;
 
             if (this.isDebugMode) {
-                console.debug(`[OptimizedAuditService] Lot de ${batch.length} entrées envoyé avec succès`);
+                logger.debug(`[OptimizedAuditService] Lot de ${batch.length} entrées envoyé avec succès`);
             }
         } catch (error) {
-            console.error('[OptimizedAuditService] Erreur lors de l\'envoi du lot:', error);
+            logger.error('[OptimizedAuditService] Erreur lors de l\'envoi du lot:', error);
 
             // Gérer les réessais pour les entrées échouées
             for (const entry of batch) {
@@ -333,7 +334,7 @@ export class OptimizedAuditService {
                         }
 
                         if (this.isDebugMode) {
-                            console.debug(`[OptimizedAuditService] Réessai ${entry._metadata!.retryCount}/${this.config.retryAttempts} pour l'entrée ${entry.id}`);
+                            logger.debug(`[OptimizedAuditService] Réessai ${entry._metadata!.retryCount}/${this.config.retryAttempts} pour l'entrée ${entry.id}`);
                         }
                     }, Math.pow(2, entry._metadata.retryCount - 1) * 1000); // Backoff exponentiel: 1s, 2s, 4s, etc.
                 } else {
@@ -381,7 +382,7 @@ export class OptimizedAuditService {
         }, this.config.flushInterval);
 
         if (this.isDebugMode) {
-            console.debug(`[OptimizedAuditService] Traitement programmé démarré (intervalle: ${this.config.flushInterval}ms)`);
+            logger.debug(`[OptimizedAuditService] Traitement programmé démarré (intervalle: ${this.config.flushInterval}ms)`);
         }
     }
 
@@ -410,9 +411,9 @@ export class OptimizedAuditService {
 
             localStorage.setItem('failedAuditEntries', JSON.stringify(trimmedEntries));
 
-            console.error(`[OptimizedAuditService] Échec permanent pour l'entrée ${entry.id} après ${entry._metadata?.retryCount} tentatives`);
+            logger.error(`[OptimizedAuditService] Échec permanent pour l'entrée ${entry.id} après ${entry._metadata?.retryCount} tentatives`);
         } catch (storageError) {
-            console.error('[OptimizedAuditService] Erreur lors du stockage des entrées échouées:', storageError);
+            logger.error('[OptimizedAuditService] Erreur lors du stockage des entrées échouées:', storageError);
         }
     }
 
@@ -453,7 +454,7 @@ export class OptimizedAuditService {
 
             return failedEntries.length;
         } catch (error) {
-            console.error('[OptimizedAuditService] Erreur lors de la récupération des entrées échouées:', error);
+            logger.error('[OptimizedAuditService] Erreur lors de la récupération des entrées échouées:', error);
             return 0;
         }
     }

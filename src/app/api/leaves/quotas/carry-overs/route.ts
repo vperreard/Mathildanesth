@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(carryOvers);
     } catch (error) {
-        console.error('Erreur lors de la récupération des reports :', error);
+        logger.error('Erreur lors de la récupération des reports :', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des reports' },
             { status: 500 }
@@ -288,7 +289,7 @@ export async function POST(req: NextRequest) {
                 : 'Report effectué avec succès'
         }, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la création du report :', error);
+        logger.error('Erreur lors de la création du report :', error);
         return NextResponse.json(
             { error: 'Erreur lors de la création du report' },
             { status: 500 }

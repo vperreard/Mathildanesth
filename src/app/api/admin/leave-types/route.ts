@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import {
     requireAdmin,
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: error.message }, { status: 403 });
         }
 
-        console.error('Erreur API [GET /admin/leave-types]:', error);
+        logger.error('Erreur API [GET /admin/leave-types]:', error);
         return NextResponse.json({ error: 'Erreur serveur lors de la récupération des types de congés.' }, { status: 500 });
     }
 }
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: error.message }, { status: 403 });
         }
 
-        console.error('Erreur API [POST /admin/leave-types]:', error);
+        logger.error('Erreur API [POST /admin/leave-types]:', error);
         if ((error as any).code === 'P2002' && (error as any).meta?.target?.includes('code')) {
             return NextResponse.json({ error: 'Le code fourni existe déjà.' }, { status: 409 });
         }
@@ -147,7 +148,7 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: error.message }, { status: 403 });
         }
 
-        console.error('Erreur API [PUT /admin/leave-types]:', error);
+        logger.error('Erreur API [PUT /admin/leave-types]:', error);
         return NextResponse.json({ error: 'Erreur serveur lors de la mise à jour du type de congé.' }, { status: 500 });
     }
 }
@@ -191,7 +192,7 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ error: error.message }, { status: 403 });
         }
 
-        console.error('Erreur API [DELETE /admin/leave-types]:', error);
+        logger.error('Erreur API [DELETE /admin/leave-types]:', error);
         return NextResponse.json({ error: 'Erreur serveur lors de la suppression du type de congé.' }, { status: 500 });
     }
 } 

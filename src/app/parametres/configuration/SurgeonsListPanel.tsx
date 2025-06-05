@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { motion } from 'framer-motion';
 import axios from 'axios';
 // Pas besoin de Link ici car nous sommes dans un panneau, pas une page séparée
@@ -57,7 +58,7 @@ const SurgeonsListPanel: React.FC = () => {
             });
             setSurgeons(response.data);
         } catch (err) {
-            console.error("Erreur lors de la récupération des chirurgiens:", err);
+            logger.error("Erreur lors de la récupération des chirurgiens:", err);
             setError("Impossible de charger les chirurgiens. Vérifiez la console pour plus de détails.");
             toast.error("Erreur lors du chargement des chirurgiens.");
         } finally {
@@ -70,7 +71,7 @@ const SurgeonsListPanel: React.FC = () => {
             const response = await axios.get<Specialty[]>('/api/specialties');
             setSpecialties(response.data);
         } catch (err) {
-            console.error("Erreur lors de la récupération des spécialités:", err);
+            logger.error("Erreur lors de la récupération des spécialités:", err);
             toast.error("Erreur lors du chargement des spécialités pour le filtre.");
         }
     }, []);
@@ -89,7 +90,7 @@ const SurgeonsListPanel: React.FC = () => {
             const response = await axios.get<Site[]>(`/api/chirurgiens/${surgeonId}/sites`);
             setEditingSurgeonSites(response.data);
         } catch (err) {
-            console.error(`Erreur fetchSurgeonSites pour ${surgeonId}:`, err);
+            logger.error(`Erreur fetchSurgeonSites pour ${surgeonId}:`, err);
             setEditingSurgeonSites([]); // Réinitialiser en cas d'erreur
         }
     }, []);
@@ -124,7 +125,7 @@ const SurgeonsListPanel: React.FC = () => {
                     });
                     toast.success(`Chirurgien créé avec ${selectedSites.length} site(s) assigné(s) !`);
                 } catch (siteErr) {
-                    console.error("Erreur lors de l'assignation des sites:", siteErr);
+                    logger.error("Erreur lors de l'assignation des sites:", siteErr);
                     toast.warning("Chirurgien créé mais erreur lors de l'assignation des sites.");
                 }
             } else {
@@ -134,7 +135,7 @@ const SurgeonsListPanel: React.FC = () => {
             fetchSurgeons();
             handleCloseForm();
         } catch (err: any) {
-            console.error("Erreur handleCreateSurgeon:", err);
+            logger.error("Erreur handleCreateSurgeon:", err);
             const message = (axios.isAxiosError(err) && err.response?.data?.message) || 'Erreur lors de la création du chirurgien.';
             setError(message);
             toast.error(message);
@@ -158,7 +159,7 @@ const SurgeonsListPanel: React.FC = () => {
                     });
                     toast.success(`Chirurgien modifié avec ${selectedSites.length} site(s) assigné(s) !`);
                 } catch (siteErr) {
-                    console.error("Erreur lors de la synchronisation des sites:", siteErr);
+                    logger.error("Erreur lors de la synchronisation des sites:", siteErr);
                     toast.warning("Chirurgien modifié mais erreur lors de la synchronisation des sites.");
                 }
             } else {
@@ -168,7 +169,7 @@ const SurgeonsListPanel: React.FC = () => {
             fetchSurgeons();
             handleCloseForm();
         } catch (err: any) {
-            console.error("Erreur handleUpdateSurgeon:", err);
+            logger.error("Erreur handleUpdateSurgeon:", err);
             const message = (axios.isAxiosError(err) && err.response?.data?.message) || 'Erreur lors de la modification du chirurgien.';
             setError(message);
             toast.error(message);
@@ -196,7 +197,7 @@ const SurgeonsListPanel: React.FC = () => {
             setSurgeons(prev => prev.filter(s => s.id !== deleteConfirmation.surgeonId));
             closeDeleteConfirmation();
         } catch (err: any) {
-            console.error("Erreur handleDeleteSurgeon:", err);
+            logger.error("Erreur handleDeleteSurgeon:", err);
             const message = (axios.isAxiosError(err) && err.response?.data?.message) || 'Erreur lors de la suppression du chirurgien.';
             setError(message);
             toast.error(message);

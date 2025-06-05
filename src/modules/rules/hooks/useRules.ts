@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { Rule, RuleType, RuleScope, RuleSeverity, RuleEvaluationContext, RuleEvaluationResult } from '../types/rule';
 import { ruleService } from '../services/ruleService';
 import { ruleEvaluationService } from '../services/ruleEvaluationService';
@@ -29,7 +30,7 @@ export const useRules = () => {
             setRules(loadedRules);
         } catch (err) {
             setError(err instanceof Error ? err : new Error('Erreur lors du chargement des règles'));
-            console.error('Erreur lors du chargement des règles:', err);
+            logger.error('Erreur lors du chargement des règles:', err);
         } finally {
             setLoading(false);
         }
@@ -57,7 +58,7 @@ export const useRules = () => {
             return newRule;
         } catch (err) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la création de la règle'));
-            console.error('Erreur lors de la création de la règle:', err);
+            logger.error('Erreur lors de la création de la règle:', err);
             throw err;
         }
     }, []);
@@ -83,7 +84,7 @@ export const useRules = () => {
             return updatedRule;
         } catch (err) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la mise à jour de la règle'));
-            console.error('Erreur lors de la mise à jour de la règle:', err);
+            logger.error('Erreur lors de la mise à jour de la règle:', err);
             throw err;
         }
     }, []);
@@ -102,7 +103,7 @@ export const useRules = () => {
             return success;
         } catch (err) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la suppression de la règle'));
-            console.error('Erreur lors de la suppression de la règle:', err);
+            logger.error('Erreur lors de la suppression de la règle:', err);
             throw err;
         }
     }, []);
@@ -125,7 +126,7 @@ export const useRules = () => {
             return updatedRule;
         } catch (err) {
             setError(err instanceof Error ? err : new Error('Erreur lors du changement de statut de la règle'));
-            console.error('Erreur lors du changement de statut de la règle:', err);
+            logger.error('Erreur lors du changement de statut de la règle:', err);
             throw err;
         }
     }, []);

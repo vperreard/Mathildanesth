@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken, getAuthToken } from '@/lib/auth-utils';
 
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(requestTypes);
     } catch (error) {
-        console.error('Erreur lors de la récupération des types de requêtes:', error);
+        logger.error('Erreur lors de la récupération des types de requêtes:', error);
         return NextResponse.json(
             { error: 'Erreur serveur', details: error instanceof Error ? error.message : String(error) },
             { status: 500 }
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(requestType, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la création du type de requête:', error);
+        logger.error('Erreur lors de la création du type de requête:', error);
         return NextResponse.json(
             { error: 'Erreur serveur', details: error instanceof Error ? error.message : String(error) },
             { status: 500 }
@@ -145,7 +146,7 @@ export async function PATCH(req: NextRequest) {
 
         return NextResponse.json(requestType);
     } catch (error) {
-        console.error('Erreur lors de la mise à jour du type de requête:', error);
+        logger.error('Erreur lors de la mise à jour du type de requête:', error);
         return NextResponse.json(
             { error: 'Erreur serveur', details: error instanceof Error ? error.message : String(error) },
             { status: 500 }
@@ -211,7 +212,7 @@ export async function DELETE(req: NextRequest) {
             message: 'Type de requête supprimé avec succès'
         });
     } catch (error) {
-        console.error('Erreur lors de la suppression du type de requête:', error);
+        logger.error('Erreur lors de la suppression du type de requête:', error);
         return NextResponse.json(
             { error: 'Erreur serveur', details: error instanceof Error ? error.message : String(error) },
             { status: 500 }

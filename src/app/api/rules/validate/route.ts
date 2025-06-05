@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { AnyRule, RuleConflict, RuleSeverity, RuleType, RuleValidationResult } from '../../../../modules/rules/types/rule';
 
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(validationResult);
     } catch (error) {
-        console.error('Erreur lors de la validation des règles:', error);
+        logger.error('Erreur lors de la validation des règles:', error);
         return NextResponse.json(
             { error: 'Erreur serveur lors de la validation des règles' },
             { status: 500 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { Period } from '@prisma/client';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -99,7 +100,7 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({
             await onSubmit(values);
             toast.success(isEditing ? 'Consultation mise à jour' : 'Consultation créée');
         } catch (error) {
-            console.error('Erreur lors de la soumission :', error);
+            logger.error('Erreur lors de la soumission :', error);
             toast.error('Une erreur est survenue');
         } finally {
             setLoading(false);

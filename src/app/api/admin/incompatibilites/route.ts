@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { PrismaClient, PersonnelIncompatibility, User, Surgeon, IncompatibilityType } from '@prisma/client';
 import { z } from 'zod';
 
@@ -72,7 +73,7 @@ export async function GET(request: Request) {
 
         return NextResponse.json(displayIncompatibilities);
     } catch (error) {
-        console.error("Error fetching incompatibilities:", error);
+        logger.error("Error fetching incompatibilities:", error);
         return NextResponse.json(
             { error: "Impossible de récupérer les incompatibilités." },
             { status: 500 }

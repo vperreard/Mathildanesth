@@ -1,4 +1,5 @@
 import React from 'react';
+import { logger } from "./logger";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { prefetchFrequentLeaveData } from '@/modules/leaves/hooks/useLeaveQueries';
@@ -22,7 +23,7 @@ export const createQueryClient = () => {
                 retry: false, // Ne pas réessayer les mutations par défaut
                 onError: (error) => {
                     // Logger les erreurs de mutation
-                    console.error('Erreur de mutation:', error);
+                    logger.error('Erreur de mutation:', error);
                 }
             }
         }

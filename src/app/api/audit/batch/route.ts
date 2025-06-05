@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { AuditEntry } from '@/services/AuditService';
 
 /**
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
             processingTime: Math.round(processingTime)
         });
     } catch (error) {
-        console.error('Erreur lors du traitement du lot d\'audit:', error);
+        logger.error('Erreur lors du traitement du lot d\'audit:', error);
         return NextResponse.json(
             { error: 'Erreur de traitement du lot' },
             { status: 500 }
@@ -83,7 +84,7 @@ async function processBatch(batch: AuditEntry[]): Promise<AuditEntry[]> {
             id: entry.id || `gen-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
         }));
     } catch (error) {
-        console.error('Erreur lors de l\'enregistrement du lot d\'audit:', error);
+        logger.error('Erreur lors de l\'enregistrement du lot d\'audit:', error);
         throw error;
     }
 } 

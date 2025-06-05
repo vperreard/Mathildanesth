@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { Plus, Pencil, Trash2, Save, X, Lock, Calendar, Clock } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Button from '@/components/ui/button';
@@ -312,12 +313,12 @@ const TramesConfigPanel: React.FC = () => {
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
-        console.log("TramesConfigPanel - useEffect - Chargement initial");
+        logger.info("TramesConfigPanel - useEffect - Chargement initial");
         setLoading(true);
         setTimeout(() => {
             setTrames(MOCK_TRAMES);
             setLoading(false);
-            console.log("TramesConfigPanel - useEffect - Données chargées:", MOCK_TRAMES);
+            logger.info("TramesConfigPanel - useEffect - Données chargées:", MOCK_TRAMES);
         }, 500);
     }, []);
 
@@ -364,7 +365,7 @@ const TramesConfigPanel: React.FC = () => {
             });
             setSelectedTrame(null);
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde:', error);
+            logger.error('Erreur lors de la sauvegarde:', error);
             toast.error('Erreur lors de la sauvegarde');
         } finally {
             setSaving(false);
@@ -390,7 +391,7 @@ const TramesConfigPanel: React.FC = () => {
             setTrames(prev => prev.filter(trameModele => trameModele.id !== id));
             toast.success('TrameModele supprimée avec succès');
         } catch (error) {
-            console.error('Erreur lors de la suppression:', error);
+            logger.error('Erreur lors de la suppression:', error);
             toast.error('Erreur lors de la suppression');
         }
     };
@@ -457,7 +458,7 @@ const TramesConfigPanel: React.FC = () => {
     };
 
     const handleNewTrame = () => {
-        console.log("TramesConfigPanel - handleNewTrame - Création d'une nouvelle trameModele");
+        logger.info("TramesConfigPanel - handleNewTrame - Création d'une nouvelle trameModele");
         setSelectedTrame(null);
         setFormData({
             name: '',

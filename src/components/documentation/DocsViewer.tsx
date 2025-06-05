@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { useRouter } from 'next/router';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -93,11 +94,11 @@ const DocsViewer: React.FC<DocsViewerProps> = ({ defaultDoc = 'performance.md' }
                     { shallow: true }
                 );
             } else {
-                console.error('Erreur lors du chargement du document:', response.statusText);
+                logger.error('Erreur lors du chargement du document:', response.statusText);
                 setError('Le document demandé est introuvable.');
             }
         } catch (error) {
-            console.error('Erreur lors du chargement du document:', error);
+            logger.error('Erreur lors du chargement du document:', error);
             setError('Une erreur est survenue lors du chargement du document.');
         } finally {
             setLoading(false);
@@ -135,7 +136,7 @@ const DocsViewer: React.FC<DocsViewerProps> = ({ defaultDoc = 'performance.md' }
                         }
                     }
                 } catch (error) {
-                    console.error(`Erreur lors de la recherche dans ${doc.path}:`, error);
+                    logger.error(`Erreur lors de la recherche dans ${doc.path}:`, error);
                 }
             }
 

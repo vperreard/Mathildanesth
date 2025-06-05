@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, ChangeEvent } from 'react';
+import { logger } from "../../../lib/logger";
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,7 +43,7 @@ export default function AdminSkillsPage() {
             const data = await response.json();
             setSkills(data);
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast({
                 title: "Erreur",
                 description: "Impossible de charger les compétences.",

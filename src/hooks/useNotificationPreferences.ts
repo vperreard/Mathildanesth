@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import { toast } from 'react-toastify';
 import { useSession } from 'next-auth/react';
 import { createAuthHeaders } from '@/lib/auth-helpers';
@@ -83,7 +84,7 @@ export function useNotificationPreferences() {
         } catch (err: any) {
             const errorMessage = err.message || 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur lors de la récupération des préférences de notifications:', errorMessage);
+            logger.error('Erreur lors de la récupération des préférences de notifications:', errorMessage);
             return null;
         } finally {
             setIsLoading(false);

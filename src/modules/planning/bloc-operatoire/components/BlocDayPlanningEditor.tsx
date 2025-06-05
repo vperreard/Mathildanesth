@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -173,7 +174,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
             // Charger les données additionnelles (chirurgiens, personnel, salles)
             await loadAdditionalData();
         } catch (err) {
-            console.error('Erreur lors du chargement du planning:', err);
+            logger.error('Erreur lors du chargement du planning:', err);
             setError('Impossible de charger le planning. Veuillez réessayer ultérieurement.');
         } finally {
             setLoading(false);
@@ -212,7 +213,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
             ];
             setRooms(mockRooms);
         } catch (err) {
-            console.error('Erreur lors du chargement des données additionnelles:', err);
+            logger.error('Erreur lors du chargement des données additionnelles:', err);
         }
     };
 
@@ -281,7 +282,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                 setShowAddStaffDialog(false);
             }
         } catch (err) {
-            console.error('Erreur lors de l\'ajout du personnel:', err);
+            logger.error('Erreur lors de l\'ajout du personnel:', err);
             setError('Impossible d\'ajouter le membre du personnel. Veuillez réessayer.');
         }
     };
@@ -326,7 +327,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
             // Revalider le planning
             await validatePlanning();
         } catch (err) {
-            console.error('Erreur lors de la sauvegarde du planning:', err);
+            logger.error('Erreur lors de la sauvegarde du planning:', err);
             setError('Impossible de sauvegarder le planning. Veuillez réessayer.');
         } finally {
             setSaving(false);
@@ -350,7 +351,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                 status: validationResult.isValid ? BlocPlanningStatus.VALIDATED : BlocPlanningStatus.CONFLICT
             } : null);
         } catch (err) {
-            console.error('Erreur lors de la validation du planning:', err);
+            logger.error('Erreur lors de la validation du planning:', err);
             setError('Impossible de valider le planning. Veuillez réessayer.');
         } finally {
             setValidating(false);

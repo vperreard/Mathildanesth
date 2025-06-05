@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
+import { logger } from "../lib/logger";
 export interface PerformanceMetrics {
     cacheSize: number;
     cacheHits: number;
@@ -63,7 +64,7 @@ export function PerformanceProvider({ children }: { children: ReactNode }) {
                 setMetrics(JSON.parse(savedMetrics));
             }
         } catch (e) {
-            console.error('Erreur lors du chargement des métriques de performance:', e);
+            logger.error('Erreur lors du chargement des métriques de performance:', e);
         }
     }, []);
 
@@ -72,7 +73,7 @@ export function PerformanceProvider({ children }: { children: ReactNode }) {
         try {
             localStorage.setItem('performanceMetrics', JSON.stringify(metrics));
         } catch (e) {
-            console.error('Erreur lors de la sauvegarde des métriques de performance:', e);
+            logger.error('Erreur lors de la sauvegarde des métriques de performance:', e);
         }
     }, [metrics]);
 

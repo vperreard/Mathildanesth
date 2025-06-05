@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import apiClient from '@/utils/apiClient';
 
 interface Department {
@@ -22,7 +23,7 @@ export function useDepartments() {
                 setDepartments(response.data);
                 setError(null);
             } catch (err: any) {
-                console.error('Erreur lors du chargement des départements:', err);
+                logger.error('Erreur lors du chargement des départements:', err);
                 setError(err instanceof Error ? err : new Error('Erreur lors du chargement des départements'));
                 // En cas d'erreur, utiliser des données de fallback pour pouvoir continuer à utiliser l'UI
                 setDepartments([

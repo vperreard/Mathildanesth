@@ -1,4 +1,5 @@
 import { redis } from '@/lib/redis';
+import { logger } from "../../../lib/logger";
 import { LeaveFilters, LeaveType, LeaveStatus } from '../types/leave';
 import { LeaveEvent, CacheInvalidationStrategy } from '../types/cache';
 import { format } from 'date-fns';
@@ -54,9 +55,9 @@ export class LeaveQueryCacheService {
     private async checkRedisAvailability(): Promise<void> {
         try {
             this.isRedisAvailable = await redis.ping();
-            console.log(`Redis disponibilité: ${this.isRedisAvailable ? 'OK' : 'NON DISPONIBLE'}`);
+            logger.info(`Redis disponibilité: ${this.isRedisAvailable ? 'OK' : 'NON DISPONIBLE'}`);
         } catch (error) {
-            console.error('Redis n\'est pas disponible:', error);
+            logger.error('Redis n\'est pas disponible:', error);
             this.isRedisAvailable = false;
         }
     }
@@ -132,7 +133,7 @@ export class LeaveQueryCacheService {
         if (!this.isRedisAvailable) {
             await this.checkRedisAvailability();
             if (!this.isRedisAvailable) {
-                console.warn(`Cache désactivé: Redis n'est pas disponible`);
+                logger.warn(`Cache désactivé: Redis n'est pas disponible`);
                 return;
             }
         }
@@ -140,9 +141,9 @@ export class LeaveQueryCacheService {
         try {
             const ttl = this.TTL[type];
             await redis.set(key, JSON.stringify(data), 'EX', ttl);
-            console.log(`Cache mis à jour: ${key} (TTL: ${ttl}s)`);
+            logger.info(`Cache mis à jour: ${key} (TTL: ${ttl}s)`);
         } catch (error) {
-            console.error(`Erreur lors de la mise en cache (${key}):`, error);
+            logger.error(`Erreur lors de la mise en cache (${key}):`, error);
             this.isRedisAvailable = false;
             // Ne pas faire échouer l'opération en cas d'erreur de cache
         }
@@ -157,7 +158,7 @@ export class LeaveQueryCacheService {
         if (!this.isRedisAvailable) {
             await this.checkRedisAvailability();
             if (!this.isRedisAvailable) {
-                console.warn(`Cache désactivé: Redis n'est pas disponible`);
+                logger.warn(`Cache désactivé: Redis n'est pas disponible`);
                 return null;
             }
         }
@@ -168,7 +169,7 @@ export class LeaveQueryCacheService {
 
             return JSON.parse(cachedData) as T;
         } catch (error) {
-            console.error(`Erreur lors de la récupération du cache (${key}):`, error);
+            logger.error(`Erreur lors de la récupération du cache (${key}):`, error);
             this.isRedisAvailable = false;
             return null;
         }
@@ -184,7 +185,7 @@ export class LeaveQueryCacheService {
         if (!this.isRedisAvailable) {
             await this.checkRedisAvailability();
             if (!this.isRedisAvailable) {
-                console.warn(`Invalidation du cache ignorée: Redis n'est pas disponible`);
+                logger.warn(`Invalidation du cache ignorée: Redis n'est pas disponible`);
                 return;
             }
         }
@@ -217,7 +218,7 @@ export class LeaveQueryCacheService {
                     await this.invalidateAll();
             }
         } catch (error) {
-            console.error(`Erreur lors de l'invalidation du cache:`, error);
+            logger.error(`Erreur lors de l'invalidation du cache:`, error);
             this.isRedisAvailable = false;
         }
     }
@@ -405,7 +406,7 @@ export class LeaveQueryCacheService {
             deletedCount += deleted;
         }
 
-        console.log(`Cache entièrement invalidé: ${deletedCount} clés supprimées`);
+        logger.info(`Cache entièrement invalidé: ${deletedCount} clés supprimées`);
         return deletedCount;
     }
 
@@ -416,7 +417,7 @@ export class LeaveQueryCacheService {
     public async preloadCache(): Promise<void> {
         // Cette méthode peut être utilisée pour précharger les données
         // fréquemment accédées dans le cache au démarrage de l'application
-        console.log('Préchauffage du cache des congés...');
+        logger.info('Préchauffage du cache des congés...');
 
         // Exemples de données à préchauffer:
         // - Listes de congés actuels

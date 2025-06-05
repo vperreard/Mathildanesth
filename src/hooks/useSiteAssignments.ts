@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../lib/logger";
 import { apiClient } from '@/utils/apiClient';
 
 interface Site {
@@ -38,7 +39,7 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur fetchUserSites:', err);
+            logger.error('Erreur fetchUserSites:', err);
         } finally {
             setLoading(false);
         }
@@ -57,7 +58,7 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur updateSites:', err);
+            logger.error('Erreur updateSites:', err);
             return false;
         } finally {
             setLoading(false);
@@ -77,7 +78,7 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur addSites:', err);
+            logger.error('Erreur addSites:', err);
             return false;
         } finally {
             setLoading(false);
@@ -127,7 +128,7 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur fetchSurgeonSites:', err);
+            logger.error('Erreur fetchSurgeonSites:', err);
         } finally {
             setLoading(false);
         }
@@ -146,7 +147,7 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur updateSites:', err);
+            logger.error('Erreur updateSites:', err);
             return false;
         } finally {
             setLoading(false);
@@ -166,7 +167,7 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur addSites:', err);
+            logger.error('Erreur addSites:', err);
             return false;
         } finally {
             setLoading(false);
@@ -188,7 +189,7 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur removeSites:', err);
+            logger.error('Erreur removeSites:', err);
             return false;
         } finally {
             setLoading(false);

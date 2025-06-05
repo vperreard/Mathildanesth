@@ -1,3 +1,5 @@
+import { logger } from "../lib/logger";
+
 /**
  * Service de cache cohérent pour données fréquemment utilisées
  * Gère le stockage en mémoire des données avec invalidation automatique
@@ -244,7 +246,7 @@ class CacheService {
 
             return true;
         } catch (error) {
-            console.error('Erreur lors de la persistance du cache:', error);
+            logger.error('Erreur lors de la persistance du cache:', error);
             return false;
         }
     }
@@ -301,7 +303,7 @@ class CacheService {
 
             return true;
         } catch (error) {
-            console.error('Erreur lors de la restauration du cache:', error);
+            logger.error('Erreur lors de la restauration du cache:', error);
             return false;
         }
     }

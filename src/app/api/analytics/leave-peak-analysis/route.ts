@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import {
   analyticsService,
   LeavePeakAggregationUnit,
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
       metadata,
     });
   } catch (error) {
-    console.error("Erreur lors de l'analyse des pics de congés:", error);
+    logger.error("Erreur lors de l'analyse des pics de congés:", error);
     return NextResponse.json(
       {
         success: false,

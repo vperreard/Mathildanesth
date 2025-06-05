@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     Card,
     CardContent,
@@ -228,7 +229,7 @@ const QuotaTransferForm: React.FC<QuotaTransferFormProps> = ({
                 }, 3000);
             }
         } catch (err) {
-            console.error("Erreur lors du transfert:", err);
+            logger.error("Erreur lors du transfert:", err);
         }
     };
 

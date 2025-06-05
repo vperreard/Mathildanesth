@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
         );
 
     } catch (error) {
-        console.error('Erreur lors de la réinitialisation:', error);
+        logger.error('Erreur lors de la réinitialisation:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la réinitialisation' },
             { status: 500 }

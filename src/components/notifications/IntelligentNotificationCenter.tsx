@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { cn } from '@/lib/utils';
 import { 
   Bell,
@@ -74,14 +75,14 @@ const generateSmartNotifications = (): SmartNotification[] => [
         id: 'reschedule',
         label: 'Réorganiser Planning',
         type: 'primary',
-        action: () => console.log('Réorganiser'),
+        action: () => logger.info('Réorganiser'),
         icon: Calendar
       },
       {
         id: 'add-staff',
         label: 'Renfort Équipe',
         type: 'secondary',
-        action: () => console.log('Renfort'),
+        action: () => logger.info('Renfort'),
         icon: Users
       }
     ],
@@ -106,21 +107,21 @@ const generateSmartNotifications = (): SmartNotification[] => [
         id: 'negotiate',
         label: 'Négocier Étalement',
         type: 'primary',
-        action: () => console.log('Négocier'),
+        action: () => logger.info('Négocier'),
         icon: Calendar
       },
       {
         id: 'find-replacement',
         label: 'Chercher Remplaçants',
         type: 'secondary',
-        action: () => console.log('Remplacements'),
+        action: () => logger.info('Remplacements'),
         icon: Users
       },
       {
         id: 'approve-partial',
         label: 'Validation Partielle',
         type: 'danger',
-        action: () => console.log('Partiel'),
+        action: () => logger.info('Partiel'),
         icon: CheckCircle
       }
     ],
@@ -146,14 +147,14 @@ const generateSmartNotifications = (): SmartNotification[] => [
         id: 'limit-hours',
         label: 'Limiter Heures',
         type: 'primary',
-        action: () => console.log('Limiter'),
+        action: () => logger.info('Limiter'),
         icon: Clock
       },
       {
         id: 'schedule-rest',
         label: 'Programmer Repos',
         type: 'secondary',
-        action: () => console.log('Repos'),
+        action: () => logger.info('Repos'),
         icon: Heart
       }
     ],
@@ -179,14 +180,14 @@ const generateSmartNotifications = (): SmartNotification[] => [
         id: 'apply-suggestion',
         label: 'Appliquer',
         type: 'primary',
-        action: () => console.log('Appliquer'),
+        action: () => logger.info('Appliquer'),
         icon: TrendingUp
       },
       {
         id: 'simulate',
         label: 'Simuler',
         type: 'secondary',
-        action: () => console.log('Simuler'),
+        action: () => logger.info('Simuler'),
         icon: Zap
       }
     ],
@@ -210,14 +211,14 @@ const generateSmartNotifications = (): SmartNotification[] => [
         id: 'install',
         label: 'Installer',
         type: 'primary',
-        action: () => console.log('Installer'),
+        action: () => logger.info('Installer'),
         icon: Shield
       },
       {
         id: 'schedule',
         label: 'Programmer',
         type: 'secondary',
-        action: () => console.log('Programmer'),
+        action: () => logger.info('Programmer'),
         icon: Clock
       }
     ],
@@ -256,7 +257,7 @@ export function IntelligentNotificationCenter({ className }: IntelligentNotifica
                 id: 'view',
                 label: 'Voir Demande',
                 type: 'primary',
-                action: () => console.log('Voir'),
+                action: () => logger.info('Voir'),
                 icon: Info
               }
             ],

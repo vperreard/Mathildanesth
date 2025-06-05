@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../../lib/logger";
 import { leaveStatisticsService, LeaveStatistics, LeaveStatisticsFilters } from '../services/leaveStatisticsService';
 import { Department } from '@/modules/organization/types';
 import { LeaveType, LeaveStatus } from '@/modules/leaves/types/leave';
@@ -80,7 +81,7 @@ export function useLeaveStatistics({
             const data = await leaveStatisticsService.getLeaveStatistics(filtersToUse);
             setStatistics(data);
         } catch (error) {
-            console.error('Erreur lors du chargement des statistiques:', error);
+            logger.error('Erreur lors du chargement des statistiques:', error);
             setStatsError('Impossible de charger les statistiques');
         } finally {
             setIsLoadingStats(false);
@@ -120,7 +121,7 @@ export function useLeaveStatistics({
             );
             setTeamAvailability(data);
         } catch (error) {
-            console.error('Erreur lors du chargement de la disponibilité d\'équipe:', error);
+            logger.error('Erreur lors du chargement de la disponibilité d\'équipe:', error);
             setAvailabilityError('Impossible de charger les données de disponibilité');
         } finally {
             setIsLoadingAvailability(false);
@@ -142,7 +143,7 @@ export function useLeaveStatistics({
             const data = await leaveStatisticsService.getLeaveTrends(aggregation, filtersToUse);
             setTrends(data);
         } catch (error) {
-            console.error('Erreur lors du chargement des tendances:', error);
+            logger.error('Erreur lors du chargement des tendances:', error);
             setTrendsError('Impossible de charger les tendances');
         } finally {
             setIsLoadingTrends(false);
@@ -160,7 +161,7 @@ export function useLeaveStatistics({
             const data = await leaveStatisticsService.getPeakPeriods(threshold);
             setPeakPeriods(data);
         } catch (error) {
-            console.error('Erreur lors du chargement des périodes de pointe:', error);
+            logger.error('Erreur lors du chargement des périodes de pointe:', error);
             setPeaksError('Impossible de charger les périodes de pointe');
         } finally {
             setIsLoadingPeaks(false);
@@ -191,7 +192,7 @@ export function useLeaveStatistics({
 
             return true;
         } catch (error) {
-            console.error('Erreur lors de la génération du rapport:', error);
+            logger.error('Erreur lors de la génération du rapport:', error);
             return false;
         }
     }, [filters]);

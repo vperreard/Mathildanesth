@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../lib/logger";
 import { Specialty } from '@prisma/client';
 import axios from 'axios';
 import { PlusIcon, PencilIcon, TrashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -60,7 +61,7 @@ export default function SpecialtyManager() {
             const response = await axios.get<SpecialtyWithSurgeons[]>('/api/specialties');
             setSpecialties(response.data);
         } catch (err: any) {
-            console.error("Fetch specialties error:", err);
+            logger.error("Fetch specialties error:", err);
             setError(err.response?.data?.message || err.message || 'Impossible de charger les spécialités.');
         } finally {
             setIsLoading(false);
@@ -79,7 +80,7 @@ export default function SpecialtyManager() {
                 const response = await axios.get<Surgeon[]>('/api/chirurgiens');
                 setSurgeons(response.data);
             } catch (err: any) {
-                console.error('Fetch surgeons error:', err);
+                logger.error('Fetch surgeons error:', err);
             }
         };
         fetchSurgeons();
@@ -126,7 +127,7 @@ export default function SpecialtyManager() {
             await fetchSpecialties(); // Re-fetch the list
             resetForm(); // Reset form after successful submission
         } catch (err: any) {
-            console.error("Submit specialty error:", err);
+            logger.error("Submit specialty error:", err);
             setFormError(err.response?.data?.message || err.message || 'Une erreur est survenue.');
         } finally {
             setIsSubmitting(false);
@@ -143,7 +144,7 @@ export default function SpecialtyManager() {
             await axios.delete(`http://localhost:3000/api/specialties/${id}`);
             setSpecialties(prev => prev.filter(s => s.id !== id)); // Optimistic update
         } catch (err: any) {
-            console.error("Delete specialty error:", err);
+            logger.error("Delete specialty error:", err);
             setError(err.response?.data?.message || err.message || 'Impossible de supprimer la spécialité (vérifiez si elle est utilisée).');
         }
     };

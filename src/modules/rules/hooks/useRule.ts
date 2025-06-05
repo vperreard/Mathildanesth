@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { Rule } from '../types/rule';
 import { RuleService } from '../services/ruleService';
 import { useToast } from '@/components/ui/use-toast';
@@ -146,7 +147,7 @@ export const useRule = ({
 
     // Vérifier conflits (non implémenté)
     const checkRuleConflicts = useCallback(async (): Promise<void> => {
-        console.warn('checkRuleConflicts non implémenté dans RuleService');
+        logger.warn('checkRuleConflicts non implémenté dans RuleService');
     }, []);
 
     // Charger les règles initialement si aucun ID n'est fourni

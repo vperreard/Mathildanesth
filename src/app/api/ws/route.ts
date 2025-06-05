@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { logger } from "@/lib/logger";
 import { initSocket } from '@/lib/socket';
 
 export async function GET(req: NextRequest) {
@@ -7,7 +8,7 @@ export async function GET(req: NextRequest) {
         const io = initSocket(res as any);
         return new Response('WebSocket server initialized', { status: 200 });
     } catch (error) {
-        console.error('Erreur lors de l\'initialisation du serveur WebSocket:', error);
+        logger.error('Erreur lors de l\'initialisation du serveur WebSocket:', error);
         return new Response('Erreur serveur', { status: 500 });
     }
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
 
@@ -6,7 +7,7 @@ import { headers } from 'next/headers';
 const hasRequiredRole = async (): Promise<boolean> => {
     const headersList = await headers();
     const userRoleString = headersList.get('x-user-role');
-    console.log(`[Helper hasRequiredRole] Header 'x-user-role': ${userRoleString}`);
+    logger.info(`[Helper hasRequiredRole] Header 'x-user-role': ${userRoleString}`);
     return !!userRoleString && ['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(userRoleString);
 };
 
@@ -14,13 +15,13 @@ const hasRequiredRole = async (): Promise<boolean> => {
 export async function GET(request: Request) {
     const headersList = await headers();
     const receivedRole = headersList.get('x-user-role');
-    console.log(`[GET /api/chirurgiens] Rôle reçu dans l'API : ${receivedRole}`);
+    logger.info(`[GET /api/chirurgiens] Rôle reçu dans l'API : ${receivedRole}`);
 
     if (!await hasRequiredRole()) {
-        console.log(`[GET /api/chirurgiens] Accès refusé (403) pour le rôle : ${receivedRole}`);
+        logger.info(`[GET /api/chirurgiens] Accès refusé (403) pour le rôle : ${receivedRole}`);
         return new NextResponse(JSON.stringify({ message: 'Accès non autorisé' }), { status: 403 });
     }
-    console.log(`[GET /api/chirurgiens] Accès autorisé pour le rôle : ${receivedRole}`);
+    logger.info(`[GET /api/chirurgiens] Accès autorisé pour le rôle : ${receivedRole}`);
 
     try {
         const { searchParams } = new URL(request.url);
@@ -57,7 +58,7 @@ export async function GET(request: Request) {
         const surgeons = await prisma.surgeon.findMany(queryOptions);
         return NextResponse.json(surgeons);
     } catch (error) {
-        console.error("Erreur GET /api/chirurgiens:", error);
+        logger.error("Erreur GET /api/chirurgiens:", error);
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 }
@@ -106,7 +107,7 @@ export async function POST(request: Request) {
         return new NextResponse(JSON.stringify(newSurgeon), { status: 201 });
 
     } catch (error: any) {
-        console.error("Erreur POST /api/chirurgiens:", error);
+        logger.error("Erreur POST /api/chirurgiens:", error);
         // Gérer les erreurs potentielles (ex: contrainte unique si on en ajoute)
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }

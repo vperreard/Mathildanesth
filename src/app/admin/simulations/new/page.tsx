@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon, Loader2, Save, PlusCircle, XCircle } from 'lucide-react';
@@ -98,7 +99,7 @@ export default function NewSimulationPage() {
                     setSites(sitesData.data);
                 }
             } catch (error) {
-                console.error('Erreur lors du chargement des données initiales:', error);
+                logger.error('Erreur lors du chargement des données initiales:', error);
                 toast.error('Erreur lors du chargement des données initiales');
             } finally {
                 setIsLoading(false);
@@ -178,7 +179,7 @@ export default function NewSimulationPage() {
             // Rediriger vers la page du scénario créé
             router.push(`/admin/simulations/scenarios/${result.data.id}`);
         } catch (error) {
-            console.error('Erreur lors de la création du scénario:', error);
+            logger.error('Erreur lors de la création du scénario:', error);
             toast.error(error instanceof Error ? error.message : 'Erreur lors de la création du scénario');
         } finally {
             setIsSaving(false);

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X } from 'lucide-react';
 // import { useNotifications } from '../../hooks/useNotifications'; // Temporairement désactivé
@@ -48,7 +49,7 @@ export const NotificationCenter: React.FC = () => {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    console.warn('Erreur d\'authentification lors de la récupération des notifications');
+                    logger.warn('Erreur d\'authentification lors de la récupération des notifications');
                     return;
                 }
                 throw new Error(`Erreur ${response.status}: ${response.statusText}`);
@@ -59,7 +60,7 @@ export const NotificationCenter: React.FC = () => {
             setNotifications(notifications);
             setUnreadCount(notifications.filter((n: Notification) => !n.read).length);
         } catch (error) {
-            console.error('Erreur lors de la récupération des notifications:', error);
+            logger.error('Erreur lors de la récupération des notifications:', error);
             setNotifications([]);
             setUnreadCount(0);
         }
@@ -90,7 +91,7 @@ export const NotificationCenter: React.FC = () => {
             );
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (error) {
-            console.error('Erreur lors du marquage de la notification:', error);
+            logger.error('Erreur lors du marquage de la notification:', error);
         }
     };
 
@@ -117,7 +118,7 @@ export const NotificationCenter: React.FC = () => {
             setNotifications([]);
             setUnreadCount(0);
         } catch (error) {
-            console.error('Erreur lors de la suppression des notifications:', error);
+            logger.error('Erreur lors de la suppression des notifications:', error);
         }
     };
 

@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { logger } from "../logger";
 import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { Role } from '@prisma/client';
@@ -239,7 +240,7 @@ export function withAuthorization<T extends any[]>(
                 );
             }
 
-            console.error('Authorization error:', error);
+            logger.error('Authorization error:', error);
             return new Response(
                 JSON.stringify({ error: 'Internal server error' }),
                 { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -257,7 +258,7 @@ export function logSecurityAction(
     resource: string,
     details?: any
 ) {
-    console.log(`[SECURITY] User ${userId} performed ${action} on ${resource}`, {
+    logger.info(`[SECURITY] User ${userId} performed ${action} on ${resource}`, {
         timestamp: new Date().toISOString(),
         userId,
         action,

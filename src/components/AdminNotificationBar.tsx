@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
+import { logger } from "../lib/logger";
 interface LeaveRequest {
     id: number;
     applicant: string;
@@ -24,7 +25,7 @@ const AdminNotificationBar: React.FC = () => {
             setPendingRequests(pending);
             setCurrentIndex(0);
         } catch (error) {
-            console.error(error);
+            logger.error(error);
         }
     };
 
@@ -44,7 +45,7 @@ const AdminNotificationBar: React.FC = () => {
             if (!res.ok) throw new Error('Erreur lors de la validation');
             await fetchPendingRequests();
         } catch (error) {
-            console.error(error);
+            logger.error(error);
         }
     };
 

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { logger } from "../../../lib/logger";
 import { useTranslation } from 'react-i18next';
 import {
     LeaveConflict,
@@ -167,7 +168,7 @@ export const LeaveConflictRecommendation: React.FC<LeaveConflictRecommendationPr
                 setErrorMessage(t('leaves.recommendations.error.apply_failed'));
             }
         } catch (error) {
-            console.error('Erreur lors de l\'application de la stratégie:', error);
+            logger.error('Erreur lors de l\'application de la stratégie:', error);
             setErrorMessage(t('leaves.recommendations.error.apply_failed'));
         } finally {
             setIsApplying(false);

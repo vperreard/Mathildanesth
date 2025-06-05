@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useReducer } from 'react';
+import { logger } from "../../../lib/logger";
 import { produce } from 'immer';
 import { CalendarEvent } from '../components/CalendarGrid';
 
@@ -153,7 +154,7 @@ export const useCalendarEvents = ({
             dispatch({ type: 'FETCH_SUCCESS', payload: events });
         } catch (error) {
             dispatch({ type: 'FETCH_ERROR', error: error as Error });
-            console.error('Erreur lors du chargement des événements:', error);
+            logger.error('Erreur lors du chargement des événements:', error);
         }
     }, [fetchEvents, dateRange, filters]);
 

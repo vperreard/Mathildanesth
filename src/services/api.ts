@@ -1,4 +1,5 @@
 import { User } from '../types/user';
+import { logger } from "../lib/logger";
 import { Attribution, ValidationResult } from '../types/attribution';
 import { apiConfig } from '../config/api';
 import Cookies from 'js-cookie';
@@ -56,7 +57,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error) {
-            console.error('Erreur API:', error);
+            logger.error('Erreur API:', error);
             throw error;
         }
     }
@@ -81,7 +82,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error) {
-            console.error('Erreur API:', error);
+            logger.error('Erreur API:', error);
             throw error;
         }
     }
@@ -101,7 +102,7 @@ export class ApiService {
                 throw new Error('Erreur lors de la sauvegarde des gardes/vacations');
             }
         } catch (error) {
-            console.error('Erreur API:', error);
+            logger.error('Erreur API:', error);
             throw error;
         }
     }
@@ -131,7 +132,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error) {
-            console.error('Erreur API (generatePlanning):', error);
+            logger.error('Erreur API (generatePlanning):', error);
             throw error;
         }
     }
@@ -152,7 +153,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error) {
-            console.error('Erreur API (validatePlanning):', error);
+            logger.error('Erreur API (validatePlanning):', error);
             throw error;
         }
     }
@@ -172,7 +173,7 @@ export class ApiService {
                 throw new Error('Erreur lors de l\'approbation du planning');
             }
         } catch (error) {
-            console.error('Erreur API (approvePlanning):', error);
+            logger.error('Erreur API (approvePlanning):', error);
             throw error;
         }
     }
@@ -198,7 +199,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error) {
-            console.error('Erreur API (getUserPreferences):', error);
+            logger.error('Erreur API (getUserPreferences):', error);
             throw error;
         }
     }
@@ -221,7 +222,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde des préférences utilisateur:', error);
+            logger.error('Erreur lors de la sauvegarde des préférences utilisateur:', error);
             throw error;
         }
     }
@@ -244,7 +245,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde des assignations par lots:', error);
+            logger.error('Erreur lors de la sauvegarde des assignations par lots:', error);
             throw error;
         }
     }

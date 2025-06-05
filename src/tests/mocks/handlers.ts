@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw';
+import { logger } from "../../lib/logger";
 import { BlocDayPlanning, ValidationResult, BlocRoomAssignment } from '@/types/bloc-planning-types';
 
 // Créer des handlers basiques pour les tests
@@ -294,7 +295,7 @@ export const handlers = [
     // Mock POST /api/affectations/batch
     http.post('/api/affectations/batch', async ({ request }) => {
         const attributions = await request.json();
-        console.log(">>> MSW: Mocking POST /api/affectations/batch", attributions);
+        logger.info(">>> MSW: Mocking POST /api/affectations/batch", attributions);
         return HttpResponse.json({ success: true, updatedCount: Array.isArray(attributions) ? attributions.length : 0 });
     }),
 ]; 

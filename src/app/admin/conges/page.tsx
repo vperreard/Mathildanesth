@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -92,7 +93,7 @@ export default function AdminLeavesPage() {
             setRequests(response.data);
             setLoading(false);
         } catch (error) {
-            console.error('Erreur lors du chargement des demandes de congés:', error);
+            logger.error('Erreur lors du chargement des demandes de congés:', error);
             toast.error('Erreur lors du chargement des demandes de congés');
             setLoading(false);
         }
@@ -103,7 +104,7 @@ export default function AdminLeavesPage() {
             const response = await axios.get('/api/conges/types');
             setTypes(response.data);
         } catch (error) {
-            console.error('Erreur lors du chargement des types de congés:', error);
+            logger.error('Erreur lors du chargement des types de congés:', error);
         }
     };
 
@@ -135,7 +136,7 @@ export default function AdminLeavesPage() {
                 setSelectedRequest(prev => prev ? { ...prev, status: 'APPROVED' } : null);
             }
         } catch (error) {
-            console.error('Erreur lors de l\'approbation de la demande:', error);
+            logger.error('Erreur lors de l\'approbation de la demande:', error);
             toast.error('Erreur lors de l\'approbation de la demande');
         } finally {
             setProcessingId(null);
@@ -159,7 +160,7 @@ export default function AdminLeavesPage() {
                 setSelectedRequest(prev => prev ? { ...prev, status: 'REJECTED' } : null);
             }
         } catch (error) {
-            console.error('Erreur lors du refus de la demande:', error);
+            logger.error('Erreur lors du refus de la demande:', error);
             toast.error('Erreur lors du refus de la demande');
         } finally {
             setProcessingId(null);

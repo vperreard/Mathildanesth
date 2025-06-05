@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { logger } from "../../../lib/logger";
 import { User } from '@/types/user';
 import { eventBus, IntegrationEventType } from '../../integration/services/EventBusService';
 
@@ -139,7 +140,7 @@ export class AuditService {
         eventBus.subscribe(IntegrationEventType.AUDIT_ACTION, this.handleGenericAuditEvent.bind(this));
 
         if (this.debug) {
-            console.debug('[AuditService] Event subscriptions initialized');
+            logger.debug('[AuditService] Event subscriptions initialized');
         }
     }
 
@@ -170,7 +171,7 @@ export class AuditService {
                 }
             });
         } catch (error) {
-            console.error(`[AuditService] Error handling leave event:`, error);
+            logger.error(`[AuditService] Error handling leave event:`, error);
         }
     }
 
@@ -200,7 +201,7 @@ export class AuditService {
                 }
             });
         } catch (error) {
-            console.error(`[AuditService] Error handling quota event:`, error);
+            logger.error(`[AuditService] Error handling quota event:`, error);
         }
     }
 
@@ -214,7 +215,7 @@ export class AuditService {
             // Le payload contient directement les données d'audit
             await this.createAuditEntry(payload);
         } catch (error) {
-            console.error(`[AuditService] Error handling generic audit event:`, error);
+            logger.error(`[AuditService] Error handling generic audit event:`, error);
         }
     }
 
@@ -309,12 +310,12 @@ export class AuditService {
             });
 
             if (this.debug) {
-                console.debug(`[AuditService] Created audit entry: ${response.data.id}`, response.data);
+                logger.debug(`[AuditService] Created audit entry: ${response.data.id}`, response.data);
             }
 
             return response.data;
         } catch (error) {
-            console.error('[AuditService] Error creating audit entry:', error);
+            logger.error('[AuditService] Error creating audit entry:', error);
             throw error;
         }
     }
@@ -331,7 +332,7 @@ export class AuditService {
 
             return response.data;
         } catch (error) {
-            console.error('[AuditService] Error searching audit entries:', error);
+            logger.error('[AuditService] Error searching audit entries:', error);
             throw error;
         }
     }
@@ -347,7 +348,7 @@ export class AuditService {
 
             return response.data;
         } catch (error) {
-            console.error(`[AuditService] Error fetching audit entry ${id}:`, error);
+            logger.error(`[AuditService] Error fetching audit entry ${id}:`, error);
             throw error;
         }
     }

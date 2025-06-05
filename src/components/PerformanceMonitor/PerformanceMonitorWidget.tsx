@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { logger } from "../../lib/logger";
 import { performanceMonitor } from '@/lib/performance/performanceMonitor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -85,7 +86,7 @@ export const PerformanceMonitorWidget: React.FC<{
 
         // Écouter les alertes de performance
         performanceMonitor.onPerformanceDegradation((metric, value) => {
-            console.warn(`Performance alert: ${metric} = ${value}`);
+            logger.warn(`Performance alert: ${metric} = ${value}`);
         });
 
         return () => clearInterval(interval);

@@ -4,6 +4,7 @@ jest.mock('@/lib/prisma');
 
 
 import React, { useEffect, useState } from 'react';
+import { logger } from "../../../lib/logger";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -51,7 +52,7 @@ export default function PerformanceDashboardClient() {
                 setCacheStats(data);
             }
         } catch (error) {
-            console.error('Failed to fetch cache stats:', error);
+            logger.error('Failed to fetch cache stats:', error);
         }
     };
 
@@ -63,7 +64,7 @@ export default function PerformanceDashboardClient() {
                 setPerformanceMetrics(data.metrics || []);
             }
         } catch (error) {
-            console.error('Failed to fetch performance metrics:', error);
+            logger.error('Failed to fetch performance metrics:', error);
         }
     };
 
@@ -91,7 +92,7 @@ export default function PerformanceDashboardClient() {
                 await refreshData();
             }
         } catch (error) {
-            console.error('Failed to clear cache:', error);
+            logger.error('Failed to clear cache:', error);
         }
     };
 

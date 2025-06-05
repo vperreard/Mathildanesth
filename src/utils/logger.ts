@@ -1,3 +1,5 @@
+import { logger } from "../lib/logger";
+
 // Do not import winston statically here
 
 let loggerInstance: any | null = null; // Use 'any' or create a minimal interface if needed for type safety
@@ -31,10 +33,10 @@ async function initializeLogger() {
                 loggerInstance.add(new transports.File({ filename: 'logs/error.log', level: 'error' }));
                 loggerInstance.add(new transports.File({ filename: 'logs/combined.log' }));
 
-                console.log('Winston logger initialized on server.');
+                logger.info('Winston logger initialized on server.');
 
             } catch (error) {
-                console.error('Failed to initialize Winston logger:', error);
+                logger.error('Failed to initialize Winston logger:', error);
                 // Fallback to console logging if Winston fails
                 loggerInstance = console;
             }
@@ -42,7 +44,7 @@ async function initializeLogger() {
     } else {
         // On the client, use a simple console logger mock
         if (!loggerInstance) {
-            console.log('Initializing console logger for client.');
+            logger.info('Initializing console logger for client.');
             loggerInstance = {
                 info: console.info,
                 warn: console.warn,
@@ -92,8 +94,8 @@ export { loggerProxy as logger };
 
 // Export a synchronous logger for compatibility
 export const logger = {
-    info: (...args: any[]) => console.info(...args),
-    warn: (...args: any[]) => console.warn(...args),
-    error: (...args: any[]) => console.error(...args),
-    debug: (...args: any[]) => console.debug(...args),
+    info: (...args: any[]) => logger.info(...args),
+    warn: (...args: any[]) => logger.warn(...args),
+    error: (...args: any[]) => logger.error(...args),
+    debug: (...args: any[]) => logger.debug(...args),
 }; 

@@ -1,5 +1,6 @@
 import { ConflictType, ConflictSeverity, LeaveConflict } from '@/modules/leaves/types/conflict';
 
+import { logger } from "../../lib/logger";
 // Types d'événements
 export enum ConflictEventType {
     CONFLICT_DETECTED = 'conflict_detected',
@@ -154,7 +155,7 @@ class ConflictEventBus {
                 try {
                     handler(completeEvent);
                 } catch (error) {
-                    console.error(`Erreur dans le gestionnaire d'événement pour ${event.type}:`, error);
+                    logger.error(`Erreur dans le gestionnaire d'événement pour ${event.type}:`, error);
                 }
             });
         }

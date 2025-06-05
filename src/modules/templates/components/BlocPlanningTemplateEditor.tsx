@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     Card,
     CardHeader,
@@ -238,7 +239,7 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({ affectation
                                 size="small"
                                 color="primary"
                                 onClick={() => {
-                                    console.log(`[DraggableAffectation] Crayon cliqué pour affectation ID: ${affectation.id}, Type: ${affectation.type}, Jour: ${affectation.jour}`);
+                                    logger.info(`[DraggableAffectation] Crayon cliqué pour affectation ID: ${affectation.id}, Type: ${affectation.type}, Jour: ${affectation.jour}`);
                                     onEdit(affectation);
                                 }}
                                 sx={{ mr: 1 }}
@@ -572,19 +573,19 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
     // Ouvrir le panel de configuration pour une affectation
     const handleEditAffectation = (affectation: TemplateAffectation) => {
-        console.log(`[BlocPlanningTemplateEditor] DEBUT handleEditAffectation pour affectation ID: ${affectation.id}, Type: ${affectation.type}, Jour: ${affectation.jour}`);
-        console.log('[BlocEditor DEBUG] handleEditAffectation - Garde/Vacation sélectionnée (avant setState):', JSON.parse(JSON.stringify(affectation)));
-        console.log('[BlocEditor DEBUG] État actuel de configPanelOpen (avant setState):', configPanelOpen);
+        logger.info(`[BlocPlanningTemplateEditor] DEBUT handleEditAffectation pour affectation ID: ${affectation.id}, Type: ${affectation.type}, Jour: ${affectation.jour}`);
+        logger.info('[BlocEditor DEBUG] handleEditAffectation - Garde/Vacation sélectionnée (avant setState):', JSON.parse(JSON.stringify(affectation)));
+        logger.info('[BlocEditor DEBUG] État actuel de configPanelOpen (avant setState):', configPanelOpen);
         setSelectedAffectation(affectation);
         setConfigPanelOpen(true);
         onMuiModalOpenChange?.(true); // Notifie le parent que le modal MUI est ouvert
-        console.log('[BlocEditor DEBUG] État de configPanelOpen (après setState): true (attendu)');
-        console.log('[BlocEditor DEBUG] selectedAffectation (après setState):', JSON.parse(JSON.stringify(affectation)));
+        logger.info('[BlocEditor DEBUG] État de configPanelOpen (après setState): true (attendu)');
+        logger.info('[BlocEditor DEBUG] selectedAffectation (après setState):', JSON.parse(JSON.stringify(affectation)));
     };
 
     // Fermer le panel de configuration
     const handleCloseConfigPanel = () => {
-        console.log('[BlocPlanningTemplateEditor] handleCloseConfigPanel appelé. Call stack:', new Error().stack);
+        logger.info('[BlocPlanningTemplateEditor] handleCloseConfigPanel appelé. Call stack:', new Error().stack);
         setConfigPanelOpen(false);
         setSelectedAffectation(null);
         onMuiModalOpenChange?.(false);
@@ -592,27 +593,27 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
     // Gérer la modification de la configuration d'une affectation (appelé par AssignmentConfigPanel)
     const handleConfigurationChange = (updatedConfig: AffectationConfiguration) => {
-        console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - updatedConfig reçue:', JSON.parse(JSON.stringify(updatedConfig)));
+        logger.info('[BlocPlanningTemplateEditor] handleConfigurationChange - updatedConfig reçue:', JSON.parse(JSON.stringify(updatedConfig)));
 
         if (!selectedAffectation) {
-            console.error("[BlocPlanningTemplateEditor] handleConfigurationChange - selectedAffectation est null. Impossible de mettre à jour la configuration.");
+            logger.error("[BlocPlanningTemplateEditor] handleConfigurationChange - selectedAffectation est null. Impossible de mettre à jour la configuration.");
             toast.error("Erreur: Aucune affectation sélectionnée pour la mise à jour de la configuration.");
             setConfigPanelOpen(false);
             onMuiModalOpenChange?.(false);
             return;
         }
 
-        console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - selectedAffectation.configuration?.postes AVANT calcul:', selectedAffectation.configuration?.postes ? JSON.parse(JSON.stringify(selectedAffectation.configuration.postes)) : 'undefined ou null');
-        console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - updatedConfig.postes:', updatedConfig.postes ? JSON.parse(JSON.stringify(updatedConfig.postes)) : 'undefined ou null');
+        logger.info('[BlocPlanningTemplateEditor] handleConfigurationChange - selectedAffectation.configuration?.postes AVANT calcul:', selectedAffectation.configuration?.postes ? JSON.parse(JSON.stringify(selectedAffectation.configuration.postes)) : 'undefined ou null');
+        logger.info('[BlocPlanningTemplateEditor] handleConfigurationChange - updatedConfig.postes:', updatedConfig.postes ? JSON.parse(JSON.stringify(updatedConfig.postes)) : 'undefined ou null');
 
         let finalPostesRequis = 0;
         if (updatedConfig.postes && Array.isArray(updatedConfig.postes)) {
             finalPostesRequis = updatedConfig.postes.reduce((sum, poste) => sum + (Number(poste.quantite) || 0), 0);
-            console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - finalPostesRequis calculé à partir de updatedConfig.postes:', finalPostesRequis);
+            logger.info('[BlocPlanningTemplateEditor] handleConfigurationChange - finalPostesRequis calculé à partir de updatedConfig.postes:', finalPostesRequis);
         } else {
             // Si pas de postes dans la config, on essaie de garder la valeur existante sur selectedAffectation
             finalPostesRequis = selectedAffectation.postesRequis || 0;
-            console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - finalPostesRequis basé sur selectedAffectation.postesRequis car updatedConfig.postes est vide/nul:', finalPostesRequis);
+            logger.info('[BlocPlanningTemplateEditor] handleConfigurationChange - finalPostesRequis basé sur selectedAffectation.postesRequis car updatedConfig.postes est vide/nul:', finalPostesRequis);
         }
 
         // Créer une nouvelle affectation mise à jour
@@ -622,7 +623,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
             postesRequis: finalPostesRequis, // Met à jour le nombre de postes requis
         };
 
-        console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - affectationToUpdate avant handleUpdateAffectation:', JSON.parse(JSON.stringify(affectationToUpdate)));
+        logger.info('[BlocPlanningTemplateEditor] handleConfigurationChange - affectationToUpdate avant handleUpdateAffectation:', JSON.parse(JSON.stringify(affectationToUpdate)));
 
         handleUpdateAffectation(affectationToUpdate); // Utilise la fonction existante pour mettre à jour la liste
         // setSelectedAffectation(null); // Déjà fait dans handleCloseConfigPanel
@@ -633,7 +634,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         // Il faut s'assurer que handleCloseConfigPanel est appelé correctement.
         // Pour l'instant, on se concentre sur la mise à jour des données.
         // La ligne ci-dessous est commentée car la fermeture est gérée par handleCloseConfigPanel
-        // console.log("[BlocPlanningTemplateEditor] handleConfigurationChange - Fermeture du panel commentée pour test de visibilité.");
+        // logger.info("[BlocPlanningTemplateEditor] handleConfigurationChange - Fermeture du panel commentée pour test de visibilité.");
         // On s'attend à ce que AssignmentConfigPanel appelle son propre `onClose` ou que l'utilisateur ferme manuellement,
         // ce qui déclenchera handleCloseConfigPanel.
     };
@@ -667,13 +668,13 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
     // Ouvrir le panel pour éditer une variation existante
     const handleEditVariation = (variation: ConfigurationVariation) => {
-        console.log(`[!!! BlocPlanningTemplateEditor] DEBUT handleEditVariation. Variation reçue:`, JSON.parse(JSON.stringify(variation)));
-        console.log(`[!!! BlocPlanningTemplateEditor] Avant setVariationPanelOpen(true). variationPanelOpen était: ${variationPanelOpen}`);
+        logger.info(`[!!! BlocPlanningTemplateEditor] DEBUT handleEditVariation. Variation reçue:`, JSON.parse(JSON.stringify(variation)));
+        logger.info(`[!!! BlocPlanningTemplateEditor] Avant setVariationPanelOpen(true). variationPanelOpen était: ${variationPanelOpen}`);
         setSelectedVariation(variation);
         setSelectedAffectationId(variation.affectationId);
         setVariationPanelOpen(true);
         onMuiModalOpenChange?.(true);
-        console.log(`[!!! BlocPlanningTemplateEditor] APRES setVariationPanelOpen(true). variationPanelOpen devrait être true.`);
+        logger.info(`[!!! BlocPlanningTemplateEditor] APRES setVariationPanelOpen(true). variationPanelOpen devrait être true.`);
     };
 
     // Fermer le panel de variation
@@ -686,7 +687,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
     // Sauvegarder une variation
     const handleSaveVariation = (updatedVariation: ConfigurationVariation) => {
-        console.log(`[BlocPlanningTemplateEditor] handleSaveVariation appelée avec:`, JSON.parse(JSON.stringify(updatedVariation)));
+        logger.info(`[BlocPlanningTemplateEditor] handleSaveVariation appelée avec:`, JSON.parse(JSON.stringify(updatedVariation)));
         const variationIndex = (modèle.variations || []).findIndex(v => v.id === updatedVariation.id);
 
         if (variationIndex >= 0) {
@@ -721,8 +722,8 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
     // Mettre à jour une affectation après configuration
     const handleUpdateAffectation = (updatedAffectation: TemplateAffectation) => {
-        console.log('[BlocEditor DEBUG] handleUpdateAffectation - Garde/Vacation reçue pour mise à jour:', JSON.stringify(updatedAffectation, null, 2));
-        console.log('[BlocEditor DEBUG] handleUpdateAffectation - Postes dans updatedAffectation.configuration:', JSON.stringify(updatedAffectation.configuration?.postes, null, 2));
+        logger.info('[BlocEditor DEBUG] handleUpdateAffectation - Garde/Vacation reçue pour mise à jour:', JSON.stringify(updatedAffectation, null, 2));
+        logger.info('[BlocEditor DEBUG] handleUpdateAffectation - Postes dans updatedAffectation.configuration:', JSON.stringify(updatedAffectation.configuration?.postes, null, 2));
         updateTemplate(prev => ({
             ...prev,
             affectations: prev.affectations.map(a =>
@@ -735,11 +736,11 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
     // Valider la trameModele avant sauvegarde
     const validateTemplate = (): boolean => {
         const newErrors: Record<string, string> = {};
-        console.log("[validateTemplate] Validation en cours pour la tableau de service:", JSON.parse(JSON.stringify(modèle)));
+        logger.info("[validateTemplate] Validation en cours pour la tableau de service:", JSON.parse(JSON.stringify(modèle)));
 
         if (!modèle.nom.trim()) {
             newErrors.nom = 'Le nom de la trameModele est requis';
-            console.log("[validateTemplate] Erreur: Nom de trameModele vide.");
+            logger.info("[validateTemplate] Erreur: Nom de trameModele vide.");
         }
 
         // Vérifier que les gardes/vacations ouvertes ont au moins un poste requis
@@ -748,20 +749,20 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         if (invalidAffectation) {
             // newErrors.affectations = `L'affectation ${invalidAffectation.type} du ${DAYS_LABEL[invalidAffectation.jour]} doit avoir au moins un poste requis`;
             newErrors.affectations = `L'affectation ${invalidAffectation.type} du ${DAYS_LABEL[invalidAffectation.jour]} (ID: ${invalidAffectation.id}) doit avoir au moins un poste requis (actuel: ${invalidAffectation.postesRequis}, ouvert: ${invalidAffectation.ouvert})`;
-            console.log("[validateTemplate] Erreur: Garde/Vacation invalide trouvée:", JSON.parse(JSON.stringify(invalidAffectation)));
+            logger.info("[validateTemplate] Erreur: Garde/Vacation invalide trouvée:", JSON.parse(JSON.stringify(invalidAffectation)));
         }
 
         // Vérifier que les variations ont un nom
         const invalidVariation = modèle.variations?.find(v => !v.nom.trim());
         if (invalidVariation) {
             newErrors.variations = `Toutes les variations doivent avoir un nom`;
-            console.log("[validateTemplate] Erreur: Variation avec nom vide trouvée.");
+            logger.info("[validateTemplate] Erreur: Variation avec nom vide trouvée.");
         }
 
         setErrors(newErrors);
         // return Object.keys(newErrors).length === 0;
         const isValid = Object.keys(newErrors).length === 0;
-        console.log("[validateTemplate] Résultat de la validation:", isValid, "Erreurs:", newErrors);
+        logger.info("[validateTemplate] Résultat de la validation:", isValid, "Erreurs:", newErrors);
         return isValid;
     };
 
@@ -779,7 +780,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                 roles: initialTemplate?.roles || modèle.roles || [RoleType.TOUS]
             };
             // Log amélioré pour voir les gardes/vacations
-            console.log(
+            logger.info(
                 '[BlocPlanningTemplateEditor] Contenu de templateToSave AVANT appel à props.onSave:',
                 JSON.parse(JSON.stringify(templateToSave)), // Pour un affichage propre de l'objet
                 `Nombre d\'affectations: ${templateToSave.affectations?.length || 0}`,
@@ -790,7 +791,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
             toast.success("Tableau de service sauvegardée avec succès !");
             setIsModified(false);
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde de la tableau de service:', error);
+            logger.error('Erreur lors de la sauvegarde de la tableau de service:', error);
             setErrors({ save: 'Erreur lors de la sauvegarde de la trameModele' });
         } finally {
             setIsLoading(false);
@@ -809,7 +810,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
             // Le chargement initial des types est maintenant géré par TemplateManager
             // templateService.getAvailableAffectationTypes() ne devrait plus être appelé ici directement
             // Si la liste est vide, cela signifie que le parent n'a rien fourni ou que rien n'est disponible.
-            console.warn("[BlocPlanningTemplateEditor] availableAffectationTypes est vide ou non fourni.");
+            logger.warn("[BlocPlanningTemplateEditor] availableAffectationTypes est vide ou non fourni.");
         }
     }, [availableAffectationTypes]);
 
@@ -820,7 +821,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
             const invalidVariations = modèle.variations.filter(v => !validAffectationIds.has(v.affectationId));
 
             if (invalidVariations.length > 0) {
-                console.warn(`[BlocPlanningTemplateEditor] ${invalidVariations.length} variations référencent des gardes/vacations inexistantes et seront supprimées.`,
+                logger.warn(`[BlocPlanningTemplateEditor] ${invalidVariations.length} variations référencent des gardes/vacations inexistantes et seront supprimées.`,
                     invalidVariations.map(v => ({ id: v.id, affectationId: v.affectationId })));
 
                 updateTemplate(prev => ({
@@ -835,18 +836,18 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
     useEffect(() => {
         // LOGS AJOUTÉS ICI pour déboguer modèle.affectations
         if (modèle) {
-            console.log(`[BlocEditor debug] ID tableau de service: ${modèle.id}`);
-            console.log('[BlocEditor debug] Modèle état: ', JSON.parse(JSON.stringify(modèle || {})));
+            logger.info(`[BlocEditor debug] ID tableau de service: ${modèle.id}`);
+            logger.info('[BlocEditor debug] Modèle état: ', JSON.parse(JSON.stringify(modèle || {})));
 
             // Validation et correction du modèle
             if (!modèle.affectations) {
-                console.warn('[BlocEditor debug] modèle.affectations est undefined, initialisation avec []');
+                logger.warn('[BlocEditor debug] modèle.affectations est undefined, initialisation avec []');
                 updateTemplate(prev => ({
                     ...prev,
                     affectations: []
                 }));
             } else if (!Array.isArray(modèle.affectations)) {
-                console.warn('[BlocEditor debug] modèle.affectations n\'est pas un array, conversion en []');
+                logger.warn('[BlocEditor debug] modèle.affectations n\'est pas un array, conversion en []');
                 updateTemplate(prev => ({
                     ...prev,
                     affectations: []
@@ -868,13 +869,13 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
         setIsLoading(true);
         try {
-            // console.log(`[BlocEditor loadTrames] ID reçu: ${id}`);
+            // logger.info(`[BlocEditor loadTrames] ID reçu: ${id}`);
 
             // Recherche de la trameModele dans les modèles fournis par les props
             const tramePourEdition = templatesFromProps?.find(t => String(t.id) === String(id));
 
             if (tramePourEdition) {
-                // console.log(`[BlocEditor loadTrames] tramePourEdition (avant typeof check): `, tramePourEdition);
+                // logger.info(`[BlocEditor loadTrames] tramePourEdition (avant typeof check): `, tramePourEdition);
 
                 // Vérification et normalisation des gardes/vacations et variations
                 const affectations = Array.isArray(tramePourEdition.affectations) ? tramePourEdition.affectations: [];
@@ -888,7 +889,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                     JSON.stringify(modèle.variations || []) !== JSON.stringify(variations)) {
 
                     // Mise à jour du modèle uniquement si différent
-                    // console.log(`[BlocEditor loadTrames] Mise à jour du modèle avec la trameModele trouvée.`);
+                    // logger.info(`[BlocEditor loadTrames] Mise à jour du modèle avec la trameModele trouvée.`);
                     setTemplate({
                         ...tramePourEdition,
                         affectations: gardesVacations,
@@ -896,13 +897,13 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                     });
                     setIsModified(false);
                 } else {
-                    // console.log(`[BlocEditor loadTrames] Modèle déjà à jour, pas de setTemplate.`);
+                    // logger.info(`[BlocEditor loadTrames] Modèle déjà à jour, pas de setTemplate.`);
                 }
             } else {
                 setError(`Tableau de service avec id ${id} non trouvée.`);
             }
         } catch (err) {
-            console.error(`[BlocEditor loadTrames] Erreur:`, err);
+            logger.error(`[BlocEditor loadTrames] Erreur:`, err);
             setError(err instanceof Error ? err.message : 'Erreur inconnue lors du chargement');
         } finally {
             setIsLoading(false);
@@ -912,11 +913,11 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
     // useEffect principal pour gérer le chargement et l'initialisation du modèle
     // Dépendances : uniquement les props et les callbacks stables, pas modèle
     useEffect(() => {
-        // console.log("[BlocEditor useEffect]", { initialTplId: initialTemplate?.id, selectedId: selectedTemplateId, currentTplId: modèle.id });
+        // logger.info("[BlocEditor useEffect]", { initialTplId: initialTemplate?.id, selectedId: selectedTemplateId, currentTplId: modèle.id });
 
         // Si un ID est sélectionné et qu'il est différent du modèle actuel, charger la trameModele
         if (selectedTemplateId && selectedTemplateId !== modèle.id) {
-            // console.log(`[BlocEditor useEffect] Chargement via selectedTemplateId: ${selectedTemplateId}`);
+            // logger.info(`[BlocEditor useEffect] Chargement via selectedTemplateId: ${selectedTemplateId}`);
             loadTrames(selectedTemplateId);
             return; // Sortir pour éviter d'exécuter les autres branches
         }
@@ -934,7 +935,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                 JSON.stringify(currentAffectations) !== JSON.stringify(initialAffectations) ||
                 JSON.stringify(currentVariations) !== JSON.stringify(initialVariations)) {
 
-                // console.log("[BlocEditor useEffect] Application de initialTemplate");
+                // logger.info("[BlocEditor useEffect] Application de initialTemplate");
                 setTemplate({
                     ...initialTemplate,
                     affectations: initialAffectations,
@@ -947,7 +948,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
         // Si ni ID sélectionné ni initialTemplate, et que le modèle n'est pas vide, le réinitialiser
         if (!selectedTemplateId && !initialTemplate && modèle.id !== EMPTY_TEMPLATE.id) {
-            // console.log("[BlocEditor useEffect] Reset vers EMPTY_TEMPLATE");
+            // logger.info("[BlocEditor useEffect] Reset vers EMPTY_TEMPLATE");
             setTemplate(EMPTY_TEMPLATE);
             setIsModified(false);
             return;
@@ -967,7 +968,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                 JSON.stringify(currentAffectations) !== JSON.stringify(initialAffectations) ||
                 JSON.stringify(currentVariations) !== JSON.stringify(initialVariations)) {
 
-                // console.log("[BlocEditor useEffect] Synchronisation avec initialTemplate (même ID)");
+                // logger.info("[BlocEditor useEffect] Synchronisation avec initialTemplate (même ID)");
                 setTemplate({
                     ...initialTemplate,
                     affectations: initialAffectations,
@@ -1205,7 +1206,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                                         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                                             <ShadSelect
                                                 onValueChange={(value: string) => {
-                                                    console.log('[BlocPlanningTemplateEditor] ShadSelect onValueChange - new value (code):', value);
+                                                    logger.info('[BlocPlanningTemplateEditor] ShadSelect onValueChange - new value (code):', value);
                                                     setNewAffectationType(value);
                                                     if (errors.newAffectation) setErrors(prev => ({ ...prev, newAffectation: '' }));
                                                 }}
@@ -1357,9 +1358,9 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                 <Dialog
                     open={configPanelOpen}
                     onClose={(event, reason) => {
-                        // console.log("[BlocPlanningTemplateEditor] onClose du Dialog AssignmentConfigPanel (test avec IconButton). Reason:", reason);
+                        // logger.info("[BlocPlanningTemplateEditor] onClose du Dialog AssignmentConfigPanel (test avec IconButton). Reason:", reason);
                         if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
-                            // console.log("[BlocPlanningTemplateEditor] Fermeture du Dialog AssignmentConfigPanel (test avec IconButton) via backdrop ou escape.");
+                            // logger.info("[BlocPlanningTemplateEditor] Fermeture du Dialog AssignmentConfigPanel (test avec IconButton) via backdrop ou escape.");
                         }
                         handleCloseConfigPanel();
                     }}
@@ -1385,17 +1386,17 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                     </DialogTitle>
                     <DialogContent dividers sx={{ p: 2 }}>
                         {(() => {
-                            // console.log('[BlocEditor DEBUG] Rendu Dialog pour AssignmentConfigPanel. configPanelOpen:', configPanelOpen);
-                            // console.log('[BlocEditor DEBUG] selectedAffectation dans le rendu:', selectedAffectation ? JSON.parse(JSON.stringify(selectedAffectation)) : null);
+                            // logger.info('[BlocEditor DEBUG] Rendu Dialog pour AssignmentConfigPanel. configPanelOpen:', configPanelOpen);
+                            // logger.info('[BlocEditor DEBUG] selectedAffectation dans le rendu:', selectedAffectation ? JSON.parse(JSON.stringify(selectedAffectation)) : null);
                             if (isLoading) {
-                                // console.log('[BlocEditor DEBUG] Affichage CircularProgress car isLoading est true.');
+                                // logger.info('[BlocEditor DEBUG] Affichage CircularProgress car isLoading est true.');
                                 return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}><CircularProgress /></Box>;
                             }
                             if (!selectedAffectation) {
-                                // console.error('[BlocEditor ERROR] selectedAffectation est null DANS LE RENDU du DialogContent. Ne devrait pas arriver si configPanelOpen est true ET selectedAffectation est la condition.');
+                                // logger.error('[BlocEditor ERROR] selectedAffectation est null DANS LE RENDU du DialogContent. Ne devrait pas arriver si configPanelOpen est true ET selectedAffectation est la condition.');
                                 return <Alert severity="error">Erreur: Aucune affectation sélectionnée pour la configuration.</Alert>;
                             }
-                            // console.log('[BlocEditor DEBUG] Passage des props à AssignmentConfigPanel:', {
+                            // logger.info('[BlocEditor DEBUG] Passage des props à AssignmentConfigPanel:', {
                             //     affectation: JSON.parse(JSON.stringify(selectedAffectation)),
                             //     availablePostes: availablePostes || [],
                             //     isLoading
@@ -1417,9 +1418,9 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                 <Dialog
                     open={variationPanelOpen}
                     onClose={(event, reason) => {
-                        // console.log("[BlocPlanningTemplateEditor] onClose du Dialog VariationConfigPanel. Reason:", reason);
+                        // logger.info("[BlocPlanningTemplateEditor] onClose du Dialog VariationConfigPanel. Reason:", reason);
                         if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
-                            // console.log("[BlocPlanningTemplateEditor] Fermeture du Dialog VariationConfigPanel via backdrop ou escape.");
+                            // logger.info("[BlocPlanningTemplateEditor] Fermeture du Dialog VariationConfigPanel via backdrop ou escape.");
                         }
                         handleCloseVariationPanel();
                     }}
@@ -1429,11 +1430,11 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                     PaperProps={{
                         sx: { /* Styles originaux à conserver si présents, sinon supprimer sx */ },
                         onClick: (e: React.MouseEvent) => {
-                            // console.log('[MUI Dialog Paper] onClick event on VariationConfigPanel');
+                            // logger.info('[MUI Dialog Paper] onClick event on VariationConfigPanel');
                             e.stopPropagation();
                         },
                         onPointerDown: (e: React.PointerEvent) => {
-                            // console.log('[MUI Dialog Paper] onPointerDown event on VariationConfigPanel');
+                            // logger.info('[MUI Dialog Paper] onPointerDown event on VariationConfigPanel');
                             e.stopPropagation();
                         }
                     }}

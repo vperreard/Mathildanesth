@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { useForm, Controller } from 'react-hook-form';
 import { format, addMinutes, parseISO } from 'date-fns';
 import { CalendarEventType } from '../types/event';
@@ -199,7 +200,7 @@ export const OperationForm: React.FC<OperationFormProps> = ({
                         setConflictDetails(null);
                     }
                 } catch (error) {
-                    console.error('Erreur lors de la vérification des conflits:', error);
+                    logger.error('Erreur lors de la vérification des conflits:', error);
                 } finally {
                     setIsValidating(false);
                 }
@@ -239,7 +240,7 @@ export const OperationForm: React.FC<OperationFormProps> = ({
                         : 'Nouvelle opération planifiée avec succès'
                 );
             } catch (error) {
-                console.error('Erreur lors de la soumission du formulaire:', error);
+                logger.error('Erreur lors de la soumission du formulaire:', error);
                 showError('Une erreur est survenue lors de l\'enregistrement');
             } finally {
                 setIsSubmitting(false);

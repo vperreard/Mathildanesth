@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logger } from "../lib/logger";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -41,7 +42,7 @@ class ReportService {
 
             return response.data;
         } catch (error) {
-            console.error('Erreur lors de la génération du rapport:', error);
+            logger.error('Erreur lors de la génération du rapport:', error);
             throw error;
         }
     }
@@ -58,7 +59,7 @@ class ReportService {
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
         } catch (error) {
-            console.error('Erreur lors du téléchargement du rapport:', error);
+            logger.error('Erreur lors du téléchargement du rapport:', error);
             throw error;
         }
     }
@@ -68,7 +69,7 @@ class ReportService {
             const response = await axios.get('http://localhost:3000/api/reports/modèles');
             return response.data;
         } catch (error) {
-            console.error('Erreur lors de la récupération des modèles de rapport:', error);
+            logger.error('Erreur lors de la récupération des modèles de rapport:', error);
             throw error;
         }
     }
@@ -77,7 +78,7 @@ class ReportService {
         try {
             await axios.post('http://localhost:3000/api/reports/modèles', modèle);
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde du modèle de rapport:', error);
+            logger.error('Erreur lors de la sauvegarde du modèle de rapport:', error);
             throw error;
         }
     }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { headers } from 'next/headers';
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
                 return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
             }
-            console.log('[DEV MODE] Authentification par en-tête uniquement pour POST /api/sectors/reorder');
+            logger.info('[DEV MODE] Authentification par en-tête uniquement pour POST /api/sectors/reorder');
         }
 
         // Récupérer les données
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Les données sont invalides' }, { status: 400 });
         }
 
-        console.log('Mise à jour de l\'ordre des secteurs:', sectors);
+        logger.info('Mise à jour de l\'ordre des secteurs:', sectors);
 
         // Traiter chaque secteur
         const updatePromises = sectors.map((sector: SectorOrder) => {
@@ -44,14 +45,14 @@ export async function POST(request: NextRequest) {
         });
 
         const results = await Promise.all(updatePromises);
-        console.log(`${results.length} secteurs mis à jour`);
+        logger.info(`${results.length} secteurs mis à jour`);
 
         return NextResponse.json({
             success: true,
             message: `${results.length} secteurs mis à jour`
         });
     } catch (error) {
-        console.error('Erreur lors de la mise à jour de l\'ordre des secteurs:', error);
+        logger.error('Erreur lors de la mise à jour de l\'ordre des secteurs:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour de l\'ordre des secteurs' },
             { status: 500 }

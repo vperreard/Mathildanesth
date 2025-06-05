@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import { logger } from "../../lib/logger";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Button from '@/components/ui/button';
 import { DatePickerComponent } from '@/components/ui/date-picker';
@@ -34,7 +35,7 @@ export const PlanningView: React.FC<PlanningViewProps> = ({ userId }) => {
             setPlanning(data);
         } catch (error) {
             toast.error('Erreur lors du chargement du planning');
-            console.error(error);
+            logger.error(error);
         } finally {
             setLoading(false);
         }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { useSession } from 'next-auth/react';
 import { leaveNotificationService } from '../services/notificationService';
 import {
@@ -70,7 +71,7 @@ export const useLeaveNotifications = (options: {
                 loading: false
             }));
         } catch (error) {
-            console.error('Erreur lors du chargement des notifications:', error);
+            logger.error('Erreur lors du chargement des notifications:', error);
             setState(prev => ({
                 ...prev,
                 error: 'Impossible de charger les notifications',
@@ -133,7 +134,7 @@ export const useLeaveNotifications = (options: {
                 };
             });
         } catch (error) {
-            console.error('Erreur lors du marquage de la notification:', error);
+            logger.error('Erreur lors du marquage de la notification:', error);
         }
     }, []);
 
@@ -150,7 +151,7 @@ export const useLeaveNotifications = (options: {
                 unreadCount: 0
             }));
         } catch (error) {
-            console.error('Erreur lors du marquage de toutes les notifications:', error);
+            logger.error('Erreur lors du marquage de toutes les notifications:', error);
         }
     }, [userId]);
 
@@ -170,7 +171,7 @@ export const useLeaveNotifications = (options: {
                 };
             });
         } catch (error) {
-            console.error('Erreur lors de la suppression de la notification:', error);
+            logger.error('Erreur lors de la suppression de la notification:', error);
         }
     }, []);
 
@@ -187,7 +188,7 @@ export const useLeaveNotifications = (options: {
                 unreadCount: 0
             }));
         } catch (error) {
-            console.error('Erreur lors de la suppression de toutes les notifications:', error);
+            logger.error('Erreur lors de la suppression de toutes les notifications:', error);
         }
     }, [userId]);
 
@@ -201,7 +202,7 @@ export const useLeaveNotifications = (options: {
                 config: { ...prev.config, ...config }
             }));
         } catch (error) {
-            console.error('Erreur lors de la mise à jour de la configuration:', error);
+            logger.error('Erreur lors de la mise à jour de la configuration:', error);
         }
     }, []);
 

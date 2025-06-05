@@ -1,5 +1,6 @@
 import Redis from 'ioredis';
 
+import { logger } from "./logger";
 // Configuration Redis optimisée pour performance
 const REDIS_CONFIG = {
     host: process.env.REDIS_HOST || 'localhost',
@@ -48,7 +49,7 @@ class RedisCacheService {
     constructor() {
         // Désactivé Redis en développement pour éviter les erreurs
         if (process.env.NODE_ENV === 'development') {
-            console.warn('Redis désactivé en mode développement - utilisation du cache mémoire');
+            logger.warn('Redis désactivé en mode développement - utilisation du cache mémoire');
             this.isConnected = false;
         } else {
             this.initializeClient();
@@ -69,17 +70,17 @@ class RedisCacheService {
             this.client = new Redis(REDIS_CONFIG);
 
             this.client.on('connect', () => {
-                console.log('✅ Redis connected');
+                logger.info('✅ Redis connected');
                 this.isConnected = true;
             });
 
             this.client.on('error', (error) => {
-                console.warn('⚠️ Redis connection error:', error.message);
+                logger.warn('⚠️ Redis connection error:', error.message);
                 this.isConnected = false;
             });
 
             this.client.on('close', () => {
-                console.log('📴 Redis connection closed');
+                logger.info('📴 Redis connection closed');
                 this.isConnected = false;
             });
 
@@ -88,7 +89,7 @@ class RedisCacheService {
             this.isConnected = true;
 
         } catch (error) {
-            console.warn('⚠️ Redis initialization failed, using fallback cache:', error);
+            logger.warn('⚠️ Redis initialization failed, using fallback cache:', error);
             this.client = null;
             this.isConnected = false;
         }
@@ -105,7 +106,7 @@ class RedisCacheService {
             // Fallback vers cache mémoire
             return this.getFallback<T>(key);
         } catch (error) {
-            console.warn(`Cache get error for key ${key}:`, error);
+            logger.warn(`Cache get error for key ${key}:`, error);
             return this.getFallback<T>(key);
         }
     }
@@ -121,7 +122,7 @@ class RedisCacheService {
             this.setFallback(key, value, ttl);
             return true;
         } catch (error) {
-            console.warn(`Cache set error for key ${key}:`, error);
+            logger.warn(`Cache set error for key ${key}:`, error);
             this.setFallback(key, value, ttl);
             return false;
         }
@@ -136,7 +137,7 @@ class RedisCacheService {
             this.fallbackCache.delete(key);
             return true;
         } catch (error) {
-            console.warn(`Cache delete error for key ${key}:`, error);
+            logger.warn(`Cache delete error for key ${key}:`, error);
             return false;
         }
     }
@@ -151,7 +152,7 @@ class RedisCacheService {
             return this.fallbackCache.has(key) && 
                    this.fallbackCache.get(key)!.expires > Date.now();
         } catch (error) {
-            console.warn(`Cache exists error for key ${key}:`, error);
+            logger.warn(`Cache exists error for key ${key}:`, error);
             return false;
         }
     }
@@ -164,7 +165,7 @@ class RedisCacheService {
             
             this.fallbackCache.clear();
         } catch (error) {
-            console.warn('Cache flush error:', error);
+            logger.warn('Cache flush error:', error);
         }
     }
 
@@ -245,7 +246,7 @@ class RedisCacheService {
     async warmCache(userId: string): Promise<void> {
         try {
             // Simuler le chargement des données critiques
-            console.log(`🔥 Warming cache for user ${userId}...`);
+            logger.info(`🔥 Warming cache for user ${userId}...`);
             
             // Ici on pourrait précharger :
             // - Profil utilisateur
@@ -254,7 +255,7 @@ class RedisCacheService {
             // - Préférences
             
         } catch (error) {
-            console.warn('Cache warming failed:', error);
+            logger.warn('Cache warming failed:', error);
         }
     }
 

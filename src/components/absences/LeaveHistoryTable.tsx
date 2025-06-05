@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { Table, Tag, Typography, Button, Empty, Tooltip, Skeleton } from 'antd';
 import { SwapOutlined, CalendarOutlined, InfoCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, RightOutlined } from '@ant-design/icons';
 import {
@@ -65,7 +66,7 @@ export const LeaveHistoryTable: React.FC<LeaveHistoryTableProps> = ({
                 setTransferHistory(transfers);
                 setCarryOverHistory(carryOvers);
             } catch (err) {
-                console.error('Erreur lors de la récupération de l\'historique', err);
+                logger.error('Erreur lors de la récupération de l\'historique', err);
                 setError('Impossible de charger l\'historique des transactions');
             } finally {
                 setLoading(false);

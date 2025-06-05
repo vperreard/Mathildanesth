@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 
 interface RouteParams {
@@ -70,7 +71,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     return NextResponse.json(serializedRule);
   } catch (error) {
-    console.error(`Erreur lors du changement de statut de la règle ${params.id}:`, error);
+    logger.error(`Erreur lors du changement de statut de la règle ${params.id}:`, error);
     return NextResponse.json(
       { error: 'Erreur serveur lors du changement de statut de la règle' },
       { status: 500 }

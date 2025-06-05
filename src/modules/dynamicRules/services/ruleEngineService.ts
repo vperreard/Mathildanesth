@@ -9,6 +9,7 @@ import {
     ActionType,
     RuleEngineOptions
 } from '../types/rule';
+import { logger } from "../../../lib/logger";
 import { EventBusService } from '@/services/eventBusService';
 
 /**
@@ -225,7 +226,7 @@ export class RuleEngineService {
             }
         } catch (error) {
             result.error = error as Error;
-            console.error(`Erreur lors de l'évaluation de la règle ${rule.id}:`, error);
+            logger.error(`Erreur lors de l'évaluation de la règle ${rule.id}:`, error);
         }
 
         return result;
@@ -345,7 +346,7 @@ export class RuleEngineService {
                 context
             );
         } catch (error) {
-            console.error(`Erreur lors de l'accès au champ ${condition.field}:`, error);
+            logger.error(`Erreur lors de l'accès au champ ${condition.field}:`, error);
             fieldValue = undefined;
         }
 
@@ -414,7 +415,7 @@ export class RuleEngineService {
                 }
                 break;
             default:
-                console.warn(`Opérateur non supporté: ${condition.operator}`);
+                logger.warn(`Opérateur non supporté: ${condition.operator}`);
                 return false;
         }
 
@@ -433,7 +434,7 @@ export class RuleEngineService {
         try {
             // Tracer l'exécution si activé
             if (this.options.traceExecution) {
-                console.log(`Exécution de l'action ${action.id} de type ${action.type}`, action);
+                logger.info(`Exécution de l'action ${action.id} de type ${action.type}`, action);
             }
 
             switch (action.type) {
@@ -501,29 +502,29 @@ export class RuleEngineService {
                         const message = action.parameters.message || `Action ${action.id} exécutée`;
 
                         if (logLevel === 'error') {
-                            console.error(message, action.parameters.details);
+                            logger.error(message, action.parameters.details);
                         } else if (logLevel === 'warn') {
-                            console.warn(message, action.parameters.details);
+                            logger.warn(message, action.parameters.details);
                         } else {
-                            console.log(message, action.parameters.details);
+                            logger.info(message, action.parameters.details);
                         }
                     }
                     break;
 
                 default:
-                    console.warn(`Type d'action non implémenté: ${action.type}`);
+                    logger.warn(`Type d'action non implémenté: ${action.type}`);
                     return false;
             }
 
             return true;
         } catch (error) {
-            console.error(`Erreur lors de l'exécution de l'action ${action.id}:`, error);
+            logger.error(`Erreur lors de l'exécution de l'action ${action.id}:`, error);
 
             // Exécuter l'action de fallback si spécifiée
             if (action.fallbackAction) {
                 const fallbackAction = this.findActionById(action.fallbackAction);
                 if (fallbackAction) {
-                    console.log(`Exécution de l'action de fallback ${fallbackAction.id}`);
+                    logger.info(`Exécution de l'action de fallback ${fallbackAction.id}`);
                     return this.executeAction(fallbackAction, context);
                 }
             }
@@ -585,7 +586,7 @@ export class RuleEngineService {
             // eslint-disable-next-line no-eval
             return eval(evaluableFormula);
         } catch (error) {
-            console.error(`Erreur lors de l'évaluation de la formule ${formula}:`, error);
+            logger.error(`Erreur lors de l'évaluation de la formule ${formula}:`, error);
             return null;
         }
     }

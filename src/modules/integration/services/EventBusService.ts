@@ -7,6 +7,7 @@
 
 import { EventBusProfiler } from './EventBusProfiler';
 
+import { logger } from "../../../lib/logger";
 export enum IntegrationEventType {
     // Événements liés aux congés
     LEAVE_CREATED = 'LEAVE_CREATED',
@@ -106,7 +107,7 @@ export class EventBusService {
      */
     private constructor() {
         if (this.debug) {
-            console.debug('[EventBus] Initialized');
+            logger.debug('[EventBus] Initialized');
         }
 
         // Configurer les événements à haute fréquence par défaut
@@ -143,7 +144,7 @@ export class EventBusService {
         );
 
         if (this.debug) {
-            console.debug(`[EventBus] Queue processor started with interval ${this.queueConfig.processingInterval}ms`);
+            logger.debug(`[EventBus] Queue processor started with interval ${this.queueConfig.processingInterval}ms`);
         }
     }
 
@@ -171,7 +172,7 @@ export class EventBusService {
                     this.profiler.recordQueueTime(event.type, queueTime);
 
                     if (queueTime > 1000 && this.debug) {
-                        console.warn(`[EventBus] Event ${event.type} spent ${queueTime.toFixed(2)}ms in queue.`);
+                        logger.warn(`[EventBus] Event ${event.type} spent ${queueTime.toFixed(2)}ms in queue.`);
                     }
                 }
 
@@ -186,10 +187,10 @@ export class EventBusService {
             this.queueStats.processingTime.max = Math.max(this.queueStats.processingTime.max, processingTime);
 
             if (this.debug && processingTime > 50) {
-                console.debug(`[EventBus] Processed ${batchSize} events in ${processingTime.toFixed(2)}ms`);
+                logger.debug(`[EventBus] Processed ${batchSize} events in ${processingTime.toFixed(2)}ms`);
             }
         } catch (error) {
-            console.error('[EventBus] Error processing event queue:', error);
+            logger.error('[EventBus] Error processing event queue:', error);
         } finally {
             this.isProcessingQueue = false;
         }
@@ -230,7 +231,7 @@ export class EventBusService {
                         const subscriberId = (handler as any).name || 'unknown-subscriber';
                         this.profiler.endSubscriberProfiling(event.type, subscriberId, 0, true);
 
-                        console.error(`[EventBus] Error in event handler for ${event.type}:`, error);
+                        logger.error(`[EventBus] Error in event handler for ${event.type}:`, error);
                     }
                 }
             }
@@ -248,12 +249,12 @@ export class EventBusService {
                     const subscriberId = `wildcard-${(handler as any).name || 'unknown'}`;
                     this.profiler.endSubscriberProfiling(event.type, subscriberId, 0, true);
 
-                    console.error(`[EventBus] Error in wildcard event handler:`, error);
+                    logger.error(`[EventBus] Error in wildcard event handler:`, error);
                 }
             }
 
             if (this.debug) {
-                console.debug(`[EventBus] Event delivered: ${event.type}`);
+                logger.debug(`[EventBus] Event delivered: ${event.type}`);
             }
         } finally {
             // Terminer le profilage de l'événement global
@@ -275,7 +276,7 @@ export class EventBusService {
         this.startQueueProcessor();
 
         if (this.debug) {
-            console.debug('[EventBus] Queue configuration updated', this.queueConfig);
+            logger.debug('[EventBus] Queue configuration updated', this.queueConfig);
         }
     }
 
@@ -301,7 +302,7 @@ export class EventBusService {
         this.subscribers.get(eventType)!.add(handler as EventHandler);
 
         if (this.debug) {
-            console.debug(`[EventBus] Subscribed to ${eventType}`);
+            logger.debug(`[EventBus] Subscribed to ${eventType}`);
         }
 
         return () => {
@@ -318,7 +319,7 @@ export class EventBusService {
         this.wildCardSubscribers.add(handler);
 
         if (this.debug) {
-            console.debug('[EventBus] Subscribed to all events');
+            logger.debug('[EventBus] Subscribed to all events');
         }
 
         return () => {
@@ -341,7 +342,7 @@ export class EventBusService {
         }
 
         if (this.debug) {
-            console.debug(`[EventBus] Unsubscribed from ${eventType}`);
+            logger.debug(`[EventBus] Unsubscribed from ${eventType}`);
         }
     }
 
@@ -365,7 +366,7 @@ export class EventBusService {
         }
 
         if (this.debug) {
-            console.debug(`[EventBus] Event published: ${event.type}`);
+            logger.debug(`[EventBus] Event published: ${event.type}`);
         }
     }
 
@@ -391,7 +392,7 @@ export class EventBusService {
         if (this.eventQueue.length >= this.queueConfig.maxQueueSize) {
             // File d'attente pleine, journaliser un avertissement
             this.queueStats.queueOverflows++;
-            console.warn(`[EventBus] Queue overflow detected. Event ${event.type} dropped. Consider increasing queue size or processing rate.`);
+            logger.warn(`[EventBus] Queue overflow detected. Event ${event.type} dropped. Consider increasing queue size or processing rate.`);
 
             // On pourrait implémenter une stratégie de rejet ici (p.ex. rejeter les événements moins prioritaires ou plus anciens)
             return;
@@ -402,7 +403,7 @@ export class EventBusService {
         this.queueStats.maxQueueLength = Math.max(this.queueStats.maxQueueLength, this.eventQueue.length);
 
         if (this.debug) {
-            console.debug(`[EventBus] Event ${event.type} enqueued. Queue length: ${this.eventQueue.length}`);
+            logger.debug(`[EventBus] Event ${event.type} enqueued. Queue length: ${this.eventQueue.length}`);
         }
     }
 
@@ -492,7 +493,7 @@ export class EventBusService {
         this.eventQueue = [];
 
         if (this.debug) {
-            console.debug(`[EventBus] Queue flushed, ${queueLength} events dropped`);
+            logger.debug(`[EventBus] Queue flushed, ${queueLength} events dropped`);
         }
     }
 
@@ -505,7 +506,7 @@ export class EventBusService {
             this.queueProcessorTimer = null;
 
             if (this.debug) {
-                console.debug('[EventBus] Queue processor stopped');
+                logger.debug('[EventBus] Queue processor stopped');
             }
         }
     }
@@ -521,7 +522,7 @@ export class EventBusService {
         this.eventHistory = [];
 
         if (this.debug) {
-            console.debug('[EventBus] Resources disposed');
+            logger.debug('[EventBus] Resources disposed');
         }
     }
 
@@ -552,7 +553,7 @@ export class EventBusService {
         }
 
         if (this.debug) {
-            console.debug(`[EventBus] Profiling ${enabled ? 'enabled' : 'disabled'}`);
+            logger.debug(`[EventBus] Profiling ${enabled ? 'enabled' : 'disabled'}`);
         }
     }
 
@@ -577,7 +578,7 @@ export class EventBusService {
         };
 
         if (this.debug) {
-            console.debug('[EventBus] Performance metrics reset');
+            logger.debug('[EventBus] Performance metrics reset');
         }
     }
 }

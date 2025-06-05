@@ -1,4 +1,5 @@
 import { RuleV2, RuleSimulation, SimulationUser, SimulationViolation, SimulationMetrics } from '../types/ruleV2.types';
+import { logger } from "../../../../lib/logger";
 import { RuleEngineV2 } from './RuleEngineV2';
 import { prisma } from '@/lib/prisma';
 import { addDays, eachDayOfInterval, isWeekend, format } from 'date-fns';
@@ -104,7 +105,7 @@ export class RuleSimulator {
 
       simulation.status = 'completed';
     } catch (error) {
-      console.error('Simulation error:', error);
+      logger.error('Simulation error:', error);
       simulation.status = 'failed';
     }
 

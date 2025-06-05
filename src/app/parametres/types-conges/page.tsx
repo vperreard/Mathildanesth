@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { LeaveTypeSetting } from '@prisma/client'; // Importer le type généré par Prisma
 import LeaveTypeFormModal from '@/components/admin/LeaveTypeFormModal'; // Importer le modal
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
@@ -56,7 +57,7 @@ export default function ManageLeaveTypesPage() {
             const data: LeaveTypeSettingData[] = await response.json();
             setLeaveTypes(data);
         } catch (err: any) {
-            console.error("Erreur lors de la récupération des types de congés:", err);
+            logger.error("Erreur lors de la récupération des types de congés:", err);
             setError(err.message || "Impossible de charger les types de congés.");
         } finally {
             setIsLoading(false);
@@ -110,7 +111,7 @@ export default function ManageLeaveTypesPage() {
             fetchLeaveTypes(); // Recharger la liste
 
         } catch (err: any) {
-            console.error("Erreur lors de la suppression:", err);
+            logger.error("Erreur lors de la suppression:", err);
             alert(`Erreur lors de la suppression: ${err.message}`);
         }
     };

@@ -1,5 +1,6 @@
 import { PrismaClient, OperatingRoom, OperatingSector, BlocRoomAssignment, Period, Site, Prisma, Leave, SchoolHolidayPeriod, PublicHoliday, LeaveType, ActivityCategory, ProfessionalRole, LeaveStatus } from '@prisma/client';
 
+import { logger } from "../../../lib/logger";
 import { prisma } from "@/lib/prisma";
 
 // Définition des types pour les rapports
@@ -107,7 +108,7 @@ export class AnalyticsService {
             // Si Period.JOURNEE_ENTIERE n'existe pas, adaptez avec la bonne valeur de votre enum Prisma
             case Period.JOURNEE_ENTIERE: return this.DEFAULT_STANDARD_OPERATIONAL_HOURS_PER_DAY;
             default:
-                console.warn(`Période non reconnue ou non configurée dans getPeriodDurationInHours: ${period}. Valeur par défaut 0h.`);
+                logger.warn(`Période non reconnue ou non configurée dans getPeriodDurationInHours: ${period}. Valeur par défaut 0h.`);
                 return 0;
         }
     }
@@ -240,7 +241,7 @@ export class AnalyticsService {
             assignmentTypesToQuery = relevantActivityTypes.flatMap(at => [at.name, at.code].filter(Boolean) as string[]);
             if (assignmentTypesToQuery.length === 0) {
                 // No relevant activity types found, so no attributions will match unless explicit types were given
-                console.warn("No ActivityTypes found for GARDE/ASTREINTE categories. getGuardDutyDistributionStats might return empty if no explicit targetAssignmentTypesInput are provided.");
+                logger.warn("No ActivityTypes found for GARDE/ASTREINTE categories. getGuardDutyDistributionStats might return empty if no explicit targetAssignmentTypesInput are provided.");
             }
         }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { cn } from '@/lib/utils';
 import { 
   AlertTriangle,
@@ -61,7 +62,7 @@ const generateBannerNotifications = (): BannerNotification[] => [
     message: 'Redistribution de 2 gardes permettrait +15% d\'efficacité.',
     action: {
       label: 'Appliquer',
-      onClick: () => console.log('Optimiser')
+      onClick: () => logger.info('Optimiser')
     },
     autoHide: 10000
   }

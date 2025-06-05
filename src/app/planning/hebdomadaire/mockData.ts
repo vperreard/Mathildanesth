@@ -1,5 +1,6 @@
 import { Attribution, Room, User, UserRole, Shift } from './types';
 
+import { logger } from "../../../lib/logger";
 // Fonction pour générer des utilisateurs mock
 export function getMockUsers(): User[] {
     return [
@@ -57,7 +58,7 @@ export async function fetchRooms(): Promise<Room[]> {
         const response = await fetch('http://localhost:3000/api/operating-rooms');
 
         if (!response.ok) {
-            console.error('Erreur lors de la récupération des salles depuis l\'API:', response.statusText);
+            logger.error('Erreur lors de la récupération des salles depuis l\'API:', response.statusText);
             // En cas d'erreur, retourner les salles mock
             return getMockRooms();
         }
@@ -75,7 +76,7 @@ export async function fetchRooms(): Promise<Room[]> {
             isActive: room.isActive !== undefined ? room.isActive : true
         }));
     } catch (error) {
-        console.error('Erreur lors de la récupération des salles:', error);
+        logger.error('Erreur lors de la récupération des salles:', error);
         // En cas d'erreur, retourner les salles mock
         return getMockRooms();
     }

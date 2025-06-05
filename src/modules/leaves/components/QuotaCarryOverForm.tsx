@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { useLeaveQuota, CalculateCarryOverParams, LeaveTypeQuota } from '../hooks/useLeaveQuota';
 import { LeaveType } from '../types/leave';
 import { QuotaCarryOverRule } from '../types/quota';
@@ -148,7 +149,7 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
                 const rules = await quotaAdvancedService.getActiveCarryOverRules(userId);
                 setCarryOverRules(rules);
             } catch (err) {
-                console.error('Erreur lors du chargement des règles de report:', err);
+                logger.error('Erreur lors du chargement des règles de report:', err);
                 setError(`Impossible de charger les règles de report: ${err instanceof Error ? err.message : String(err)}`);
             } finally {
                 setLoadingRules(false);

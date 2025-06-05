@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,7 +67,7 @@ export default function PlanningValidationPage() {
             setValidationResult(data.validation || null);
             setUsers(data.users || []);
         } catch (error) {
-            console.error('Erreur lors du chargement du planning:', error);
+            logger.error('Erreur lors du chargement du planning:', error);
             toast({
                 title: "Erreur",
                 description: "Impossible de charger le planning",
@@ -115,7 +116,7 @@ export default function PlanningValidationPage() {
             const result = await response.json();
             setValidationResult(result);
         } catch (error) {
-            console.error('Erreur de validation:', error);
+            logger.error('Erreur de validation:', error);
         }
     };
 

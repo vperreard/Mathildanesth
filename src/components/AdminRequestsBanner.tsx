@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
@@ -54,7 +55,7 @@ const AdminRequestsBanner: React.FC = () => {
                     // Non autorisé, ne pas afficher d'erreur
                     setPendingLeaves([]);
                 } else {
-                    console.error('Erreur lors du chargement des demandes en attente:', err);
+                    logger.error('Erreur lors du chargement des demandes en attente:', err);
                     setError(err.response?.data?.error || 'Erreur lors du chargement des demandes');
                 }
             } finally {
@@ -82,7 +83,7 @@ const AdminRequestsBanner: React.FC = () => {
                 setPendingLeaves(response.data);
             }
         } catch (err: any) {
-            console.error("Erreur lors de l'approbation:", err);
+            logger.error("Erreur lors de l'approbation:", err);
             setError(err.response?.data?.error || "Erreur lors de l'approbation");
         } finally {
             setProcessingId(null);
@@ -102,7 +103,7 @@ const AdminRequestsBanner: React.FC = () => {
                 setPendingLeaves(response.data);
             }
         } catch (err: any) {
-            console.error("Erreur lors du rejet:", err);
+            logger.error("Erreur lors du rejet:", err);
             setError(err.response?.data?.error || "Erreur lors du rejet");
         } finally {
             setProcessingId(null);

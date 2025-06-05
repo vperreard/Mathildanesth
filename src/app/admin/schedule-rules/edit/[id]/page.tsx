@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../../lib/logger";
 import { useRouter } from 'next/navigation';
 import { useScheduleRules } from '@/modules/dynamicRules/hooks/useScheduleRules';
 import { RuleForm } from '@/modules/dynamicRules/components/RuleForm';
@@ -48,7 +49,7 @@ export default function EditRulePage({ params }: EditRulePageProps) {
                 }
                 setRule(fetchedRule);
             } catch (err) {
-                console.error('Erreur lors du chargement de la règle:', err);
+                logger.error('Erreur lors du chargement de la règle:', err);
                 setError('Erreur lors du chargement de la règle');
             } finally {
                 setIsLoading(false);
@@ -85,7 +86,7 @@ export default function EditRulePage({ params }: EditRulePageProps) {
 
             router.push('/admin/planningMedical-rules');
         } catch (error) {
-            console.error('Erreur lors de la mise à jour de la règle:', error);
+            logger.error('Erreur lors de la mise à jour de la règle:', error);
             toast({
                 variant: 'destructive',
                 title: 'Erreur',

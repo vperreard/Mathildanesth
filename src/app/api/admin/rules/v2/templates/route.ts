@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { RuleTemplate } from '@/modules/dynamicRules/v2/types/ruleV2.types';
@@ -347,7 +348,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error fetching templates:', error);
+    logger.error('Error fetching templates:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des templates' },
       { status: 500 }
@@ -432,7 +433,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error creating from template:', error);
+    logger.error('Error creating from template:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la création depuis le template' },
       { status: 500 }

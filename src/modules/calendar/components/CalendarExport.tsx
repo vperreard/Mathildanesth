@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { CalendarEventType, CalendarExportFormat, ExportOptions } from '../types/event';
 // import { exportCalendarEvents, downloadBlob } from '../services/calendrierService'; // COMMENTÉ
 import { format as formatDate } from 'date-fns';
@@ -178,12 +179,12 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
 
             // Télécharger le fichier
             // downloadBlob(blob, `${fileName}${fileExtension}`); // COMMENTÉ
-            console.warn('La fonctionnalité d\'export est temporairement désactivée en raison d\'imports manquants.'); // TEMPORAIRE
+            logger.warn('La fonctionnalité d\'export est temporairement désactivée en raison d\'imports manquants.'); // TEMPORAIRE
 
             // Fermer le modal
             handleCloseModal();
         } catch (error) {
-            console.error('Erreur lors de l\'export:', error);
+            logger.error('Erreur lors de l\'export:', error);
             // TODO: Afficher un message d'erreur
         } finally {
             setIsLoading(false);

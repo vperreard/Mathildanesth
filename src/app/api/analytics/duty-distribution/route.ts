@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { analyticsService } from '@/modules/analytics/services/analyticsService';
 import { ActivityCategory, ProfessionalRole } from '@prisma/client'; // Import enums
 import { getServerSession } from 'next-auth';
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
     );
     return NextResponse.json(stats);
   } catch (error) {
-    console.error('Erreur lors de la récupération des statistiques de distribution:', error);
+    logger.error('Erreur lors de la récupération des statistiques de distribution:', error);
     return NextResponse.json(
       {
         success: false,

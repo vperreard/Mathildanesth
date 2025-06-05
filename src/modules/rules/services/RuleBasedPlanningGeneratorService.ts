@@ -1,4 +1,5 @@
 import { PlanningGeneratorService } from '@/modules/planning/services/PlanningGeneratorService';
+import { logger } from "../../../lib/logger";
 import { User } from '@/types/user';
 import { Attribution } from '@/types/attribution';
 import { Rule, RuleType } from '@/modules/dynamicRules/types/rule';
@@ -70,7 +71,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
             );
 
             // Journaliser le chargement des règles
-            console.log(`${this.dynamicRules.length} règles de planning chargées`);
+            logger.info(`${this.dynamicRules.length} règles de planning chargées`);
 
             // Émettre un événement pour notifier du chargement des règles
             this.eventBus.emit({
@@ -78,7 +79,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
                 data: { count: this.dynamicRules.length }
             });
         } catch (error) {
-            console.error('Erreur lors du chargement des règles:', error);
+            logger.error('Erreur lors du chargement des règles:', error);
             throw error;
         }
     }
@@ -88,7 +89,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
      * @override
      */
     public async generatePlanning(): Promise<Attribution[]> {
-        console.log('Début de la génération de planning basée sur les règles...');
+        logger.info('Début de la génération de planning basée sur les règles...');
 
         if (this.dynamicRules.length === 0) {
             await this.loadRules();
@@ -98,11 +99,11 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         this.optimizationScores = [];
 
         const initialAssignments = await super.generatePlanning();
-        console.log(`Planning initial généré avec ${initialAssignments.length} gardes/vacations.`);
+        logger.info(`Planning initial généré avec ${initialAssignments.length} gardes/vacations.`);
 
         const optimizedResult = await this.optimizePlanning(initialAssignments);
 
-        console.log(
+        logger.info(
             `Génération terminée. Score final: ${optimizedResult.score.toFixed(2)}. ` +
             `${optimizedResult.validAssignments.length} gardes/vacations valides. ` +
             `${optimizedResult.violatedRules.length} règles violées.`
@@ -123,7 +124,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
      * Génère un planning en respectant les règles dynamiques et retourne des détails complets (incluant les violations et scores)
      */
     public async generatePlanningWithDetails(): Promise<OptimizationResult> {
-        console.log('Début de la génération de planning détaillée basée sur les règles...');
+        logger.info('Début de la génération de planning détaillée basée sur les règles...');
 
         if (this.dynamicRules.length === 0) {
             await this.loadRules();
@@ -133,11 +134,11 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         this.optimizationScores = [];
 
         const initialAssignments = await super.generatePlanning();
-        console.log(`Planning initial généré (pour détails) avec ${initialAssignments.length} gardes/vacations.`);
+        logger.info(`Planning initial généré (pour détails) avec ${initialAssignments.length} gardes/vacations.`);
 
         const optimizedResult = await this.optimizePlanning(initialAssignments);
 
-        console.log(
+        logger.info(
             `Génération détaillée terminée. Score final: ${optimizedResult.score.toFixed(2)}. ` +
             `${optimizedResult.validAssignments.length} gardes/vacations valides. ` +
             `${optimizedResult.violatedRules.length} règles violées.`
@@ -158,28 +159,28 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
      * Optimise un planning existant en appliquant les règles dynamiques
      */
     private async optimizePlanning(attributions: Attribution[]): Promise<OptimizationResult> {
-        console.log("Début de l'optimisation du planning...");
+        logger.info("Début de l'optimisation du planning...");
         let currentAssignments = [...attributions];
         let bestResult: OptimizationResult = this.evaluatePlanningQuality(currentAssignments);
-        console.log(`Score initial: ${bestResult.score.toFixed(2)}, Règles violées: ${bestResult.violatedRules.length}`);
+        logger.info(`Score initial: ${bestResult.score.toFixed(2)}, Règles violées: ${bestResult.violatedRules.length}`);
 
         this.optimizationAttempts = 0;
         this.optimizationScores = [bestResult.score];
 
         while (this.optimizationAttempts < this.maxOptimizationAttempts) {
             this.optimizationAttempts++;
-            console.log(`--- Tentative d'optimisation #${this.optimizationAttempts} ---`);
+            logger.info(`--- Tentative d'optimisation #${this.optimizationAttempts} ---`);
             const violatedRuleIds = new Set(bestResult.violatedRules.map(v => v.ruleId));
             if (violatedRuleIds.size === 0) {
-                console.log(`Aucune règle violée, arrêt de l'optimisation.`); break;
+                logger.info(`Aucune règle violée, arrêt de l'optimisation.`); break;
             }
 
             const problematicAssignments = this.identifyProblematicAssignments(currentAssignments, violatedRuleIds);
             if (problematicAssignments.length === 0) {
-                console.log('Aucune affectation problématique identifiée pour les règles violées, arrêt.');
+                logger.info('Aucune affectation problématique identifiée pour les règles violées, arrêt.');
                 break;
             }
-            console.log(`${problematicAssignments.length} gardes/vacations problématiques identifiées.`);
+            logger.info(`${problematicAssignments.length} gardes/vacations problématiques identifiées.`);
 
             const improvedAssignments = await this.generateAlternativeAssignments(
                 currentAssignments,
@@ -188,22 +189,22 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
 
             const newResult = this.evaluatePlanningQuality(improvedAssignments);
             this.optimizationScores.push(newResult.score);
-            console.log(`Tentative #${this.optimizationAttempts}: Score = ${newResult.score.toFixed(2)}, Violations = ${newResult.violatedRules.length}`);
+            logger.info(`Tentative #${this.optimizationAttempts}: Score = ${newResult.score.toFixed(2)}, Violations = ${newResult.violatedRules.length}`);
 
             if (newResult.score > bestResult.score || (newResult.score === bestResult.score && newResult.violatedRules.length < bestResult.violatedRules.length)) {
-                console.log(`Amélioration trouvée. Nouveau meilleur score: ${newResult.score.toFixed(2)}`);
+                logger.info(`Amélioration trouvée. Nouveau meilleur score: ${newResult.score.toFixed(2)}`);
                 bestResult = newResult;
                 currentAssignments = improvedAssignments;
             }
 
             if (bestResult.violatedRules.length === 0) {
-                console.log('Score optimal atteint (aucune violation).');
+                logger.info('Score optimal atteint (aucune violation).');
                 break;
             }
         }
 
-        console.log(`Optimisation terminée après ${this.optimizationAttempts} tentatives.`);
-        console.log(`Scores: ${this.optimizationScores.map(s => s.toFixed(2)).join(', ')}`);
+        logger.info(`Optimisation terminée après ${this.optimizationAttempts} tentatives.`);
+        logger.info(`Scores: ${this.optimizationScores.map(s => s.toFixed(2)).join(', ')}`);
 
         return bestResult;
     }
@@ -213,7 +214,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
      * Remplace l'ancienne méthode qui simulait l'évaluation.
      */
     private evaluatePlanningQuality(attributions: Attribution[]): OptimizationResult {
-        console.log(`Évaluation de la qualité du planning avec ${attributions.length} gardes/vacations.`);
+        logger.info(`Évaluation de la qualité du planning avec ${attributions.length} gardes/vacations.`);
         const context = {
             attributions,
             users: this.users,
@@ -243,7 +244,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
                 };
             });
 
-        console.log(`${violatedRules.length} règles violées sur ${evaluationResults.length} évaluées.`);
+        logger.info(`${violatedRules.length} règles violées sur ${evaluationResults.length} évaluées.`);
 
         // Calculer les scores
         const ruleComplianceScore = this.calculateRuleComplianceScore(violatedRules.length, evaluationResults.length);
@@ -272,7 +273,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         // Implémentation simplifiée : retourne toutes les gardes/vacations pour l'instant.
         // Une meilleure implémentation analyserait le contexte de chaque règle violée
         // pour identifier les gardes/vacations spécifiques qui causent la violation.
-        console.log(`Identification des gardes/vacations problématiques pour ${violatedRuleIds.size} règles violées... (Simplifié)`);
+        logger.info(`Identification des gardes/vacations problématiques pour ${violatedRuleIds.size} règles violées... (Simplifié)`);
         // TODO: Implémenter une logique plus fine pour lier violations et gardes/vacations.
         return attributions.filter((attribution, index) => index < 5); // Limiter pour tester
     }
@@ -285,7 +286,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         currentAssignments: Attribution[],
         problematicAssignments: Attribution[]
     ): Promise<Attribution[]> {
-        console.log(`Génération d'alternatives pour ${problematicAssignments.length} gardes/vacations...`);
+        logger.info(`Génération d'alternatives pour ${problematicAssignments.length} gardes/vacations...`);
         let newAssignments = [...currentAssignments];
         let changesMade = 0;
 
@@ -297,10 +298,10 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
                     assign.id === problematicAssignment.id ? alternative : assign
                 );
                 changesMade++;
-                console.log(`Alternative trouvée pour l'affectation ${problematicAssignment.id}`);
+                logger.info(`Alternative trouvée pour l'affectation ${problematicAssignment.id}`);
             }
         }
-        console.log(`${changesMade} alternatives appliquées.`);
+        logger.info(`${changesMade} alternatives appliquées.`);
         return newAssignments;
     }
 
@@ -322,7 +323,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         const availableUsers = super.getAvailableUsers(date, shiftType)
             .filter(user => user.id !== problematicAssignment.userId); // Exclure l'utilisateur actuel
 
-        console.log(`Recherche d'alternative pour ${currentUser.email} le ${formatDate(date, 'yyyy-MM-dd')} (${shiftType}). ${availableUsers.length} autres utilisateurs disponibles.`);
+        logger.info(`Recherche d'alternative pour ${currentUser.email} le ${formatDate(date, 'yyyy-MM-dd')} (${shiftType}). ${availableUsers.length} autres utilisateurs disponibles.`);
 
         for (const potentialUser of availableUsers) {
             const potentialAssignment: Attribution = {
@@ -345,7 +346,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
 
             // Si l'alternative est meilleure que de simplement supprimer l'affectation problématique
             if (tempEvaluation.score > evalWithoutProblem.score) {
-                console.log(`  -> Utilisateur alternatif ${potentialUser.email} améliore le score.`);
+                logger.info(`  -> Utilisateur alternatif ${potentialUser.email} améliore le score.`);
                 // Retourner une copie propre de l'alternative
                 return { ...potentialAssignment, id: problematicAssignment.id }; // Rétablir l'ID original
             }
@@ -354,7 +355,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         // 2. Si aucun utilisateur alternatif n'améliore, envisager d'autres stratégies
         //    (changer le type de shift, laisser vacant, etc.) - Non implémenté ici
 
-        console.log(`  -> Aucune alternative trouvée pour l'affectation ${problematicAssignment.id}.`);
+        logger.info(`  -> Aucune alternative trouvée pour l'affectation ${problematicAssignment.id}.`);
         return null;
     }
 
@@ -384,12 +385,12 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
     /*
     private simulateRuleEvaluation(rule: Rule, attributions: Attribution[]): boolean {
         // ... ancienne logique ...
-        console.warn("Utilisation de simulateRuleEvaluation - à remplacer par le vrai moteur de règles.");
+        logger.warn("Utilisation de simulateRuleEvaluation - à remplacer par le vrai moteur de règles.");
         // Simulation simple : échoue aléatoirement avec une probabilité basée sur la priorité
         const failProbability = (100 - rule.priority) / 200; // Plus haute priorité = moins de chance d'échouer
         const passed = Math.random() > failProbability;
         if (!passed) {
-             console.log(`Simulation: Règle "${rule.name}" (priorité ${rule.priority}) échouée.`);
+             logger.info(`Simulation: Règle "${rule.name}" (priorité ${rule.priority}) échouée.`);
         }
         return passed;
     }

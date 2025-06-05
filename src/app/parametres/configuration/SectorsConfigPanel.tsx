@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { logger } from "../../../lib/logger";
 import axios from 'axios';
 import {
     PlusIcon,
@@ -240,10 +241,10 @@ const SectorsConfigPanel: React.FC = () => {
         setSitesLoading(true);
         setSitesError(null);
         try {
-            console.log("Fetching sites from API...");
+            logger.info("Fetching sites from API...");
             const response = await axios.get<Site[]>('/api/sites');
             const fetchedSites = response.data || [];
-            console.log("Sites fetched successfully:", fetchedSites);
+            logger.info("Sites fetched successfully:", fetchedSites);
             // Trier les sites par nom par défaut pour la cohérence
             fetchedSites.sort((a, b) => a.name.localeCompare(b.name));
             setSites(fetchedSites);
@@ -256,7 +257,7 @@ const SectorsConfigPanel: React.FC = () => {
                 setFormData(prev => ({ ...prev, siteId: null }));
             }
         } catch (err: any) {
-            console.error("Erreur lors du chargement des sites:", err);
+            logger.error("Erreur lors du chargement des sites:", err);
             setSitesError(err.response?.data?.error || err.message || 'Impossible de charger les sites.');
             toast.error('Erreur lors du chargement des sites');
         } finally {
@@ -277,7 +278,7 @@ const SectorsConfigPanel: React.FC = () => {
 
             setSectors(fetchedSectors);
         } catch (error: any) {
-            console.error("Erreur lors du chargement des secteurs:", error);
+            logger.error("Erreur lors du chargement des secteurs:", error);
             setSectorsError(error.response?.data?.error || error.message || 'Impossible de charger les secteurs.');
             toast.error('Erreur lors du chargement des secteurs');
             // Ne plus utiliser de données mock ici
@@ -304,21 +305,21 @@ const SectorsConfigPanel: React.FC = () => {
                             const uniqueIds = [...new Set(ids.filter(id => typeof id === 'number'))];
                             validatedOrder[key] = uniqueIds;
                         } else {
-                            console.warn(`Invalid or corrupt data in localStorage for sectorOrderConfig site key ${key}. Contents:`, ids, `Skipping this key.`);
+                            logger.warn(`Invalid or corrupt data in localStorage for sectorOrderConfig site key ${key}. Contents:`, ids, `Skipping this key.`);
                         }
                     });
                 } else {
-                    console.warn("Invalid structure for sectorOrderConfig in localStorage. Resetting to empty.", parsedOrder);
+                    logger.warn("Invalid structure for sectorOrderConfig in localStorage. Resetting to empty.", parsedOrder);
                 }
                 setSectorOrder({ orderedSectorIdsBySite: validatedOrder });
-                console.log("Ordre des secteurs chargé (et validé/nettoyé) depuis localStorage:", validatedOrder);
+                logger.info("Ordre des secteurs chargé (et validé/nettoyé) depuis localStorage:", validatedOrder);
             } catch (e) {
-                console.error("Erreur lors du parsing de l'ordre des secteurs depuis localStorage (ou données corrompues):", e);
+                logger.error("Erreur lors du parsing de l'ordre des secteurs depuis localStorage (ou données corrompues):", e);
                 localStorage.removeItem('sectorOrderConfig'); // Nettoyer si invalide
                 setSectorOrder({ orderedSectorIdsBySite: {} }); // Réinitialiser à un état vide
             }
         } else {
-            console.log("Aucun sectorOrderConfig trouvé dans localStorage. Initialisation à un état vide.");
+            logger.info("Aucun sectorOrderConfig trouvé dans localStorage. Initialisation à un état vide.");
             setSectorOrder({ orderedSectorIdsBySite: {} }); // Initialiser si rien n'est stocké
         }
     }, [fetchSites, fetchSectors]); // Dépendances correctes
@@ -334,9 +335,9 @@ const SectorsConfigPanel: React.FC = () => {
                 }
             });
             localStorage.setItem('sectorOrderConfig', JSON.stringify({ orderedSectorIdsBySite: orderToSave }));
-            console.log("Ordre des secteurs sauvegardé dans localStorage:", orderToSave);
+            logger.info("Ordre des secteurs sauvegardé dans localStorage:", orderToSave);
         } catch (e) {
-            console.error("Erreur lors de la sauvegarde de l'ordre des secteurs dans localStorage:", e);
+            logger.error("Erreur lors de la sauvegarde de l'ordre des secteurs dans localStorage:", e);
         }
     }, []);
 
@@ -346,7 +347,7 @@ const SectorsConfigPanel: React.FC = () => {
             e.preventDefault(); // Empêcher le drag si pas en mode réorganisation
             return;
         }
-        console.log(`Drag Start: Sector ${sectorId}`);
+        logger.info(`Drag Start: Sector ${sectorId}`);
         setDraggingSectorId(sectorId);
         e.dataTransfer.effectAllowed = 'move';
         // Optionnel: passer l'ID dans dataTransfer
@@ -354,7 +355,7 @@ const SectorsConfigPanel: React.FC = () => {
     };
 
     const handleDragEnd = (e: React.DragEvent) => {
-        console.log("Drag End");
+        logger.info("Drag End");
         // Retirer les styles visuels du drop target
         if (dragOverSiteId) {
             const targetElement = document.getElementById(safeId('drop-target-site', dragOverSiteId));
@@ -375,7 +376,7 @@ const SectorsConfigPanel: React.FC = () => {
         e.dataTransfer.dropEffect = 'move';
 
         if (siteId !== dragOverSiteId) {
-            console.log(`Drag Over Site: ${siteId}`);
+            logger.info(`Drag Over Site: ${siteId}`);
             // Retirer l'ancien highlight
             if (dragOverSiteId) {
                 const oldTarget = document.getElementById(safeId('drop-target-site', dragOverSiteId));
@@ -398,7 +399,7 @@ const SectorsConfigPanel: React.FC = () => {
         if (!draggingSectorId || sectorId === draggingSectorId) return; // Ne rien faire si on survole le secteur qu'on déplace
 
         if (sectorId !== dragOverSectorId) {
-            console.log(`Drag Over Sector: ${sectorId}`);
+            logger.info(`Drag Over Sector: ${sectorId}`);
             const targetElement = e.currentTarget as HTMLElement;
             const rect = targetElement.getBoundingClientRect();
             const verticalMidpoint = rect.top + rect.height / 2;
@@ -445,13 +446,13 @@ const SectorsConfigPanel: React.FC = () => {
     // Quand on lâche le secteur
     const handleDrop = (e: React.DragEvent, targetSiteId: string) => {
         e.preventDefault();
-        console.log(`Drop on Site: ${targetSiteId}, Sector Over: ${dragOverSectorId}`);
+        logger.info(`Drop on Site: ${targetSiteId}, Sector Over: ${dragOverSectorId}`);
         if (draggingSectorId === null) return;
 
         const droppedSectorId = draggingSectorId; // Pour clarté
 
         setSectorOrder(prevOrder => {
-            console.log("setSectorOrder - prevOrder.orderedSectorIdsBySite:", JSON.stringify(prevOrder.orderedSectorIdsBySite, null, 2));
+            logger.info("setSectorOrder - prevOrder.orderedSectorIdsBySite:", JSON.stringify(prevOrder.orderedSectorIdsBySite, null, 2));
             const newOrderedIdsBySite = JSON.parse(JSON.stringify(prevOrder.orderedSectorIdsBySite));
 
             const currentSectorInfo = sectors.find(s => s.id === droppedSectorId);
@@ -490,7 +491,7 @@ const SectorsConfigPanel: React.FC = () => {
             }
 
             const newOrderConfig = { orderedSectorIdsBySite: newOrderedIdsBySite };
-            console.log("New sector order calculated (handleDrop):", JSON.stringify(newOrderConfig, null, 2));
+            logger.info("New sector order calculated (handleDrop):", JSON.stringify(newOrderConfig, null, 2));
             saveSectorOrderToStorage(newOrderConfig); // Sauvegarder dans localStorage
             return newOrderConfig;
         });
@@ -501,12 +502,12 @@ const SectorsConfigPanel: React.FC = () => {
                 if (s.id === droppedSectorId) {
                     // Convertir la chaîne "null" en null primitif pour le stockage dans l'état
                     const newSiteId = targetSiteId === 'null' ? null : targetSiteId;
-                    console.log(`Updating siteId for Sector ${droppedSectorId} to ${newSiteId} (original target: ${targetSiteId})`);
+                    logger.info(`Updating siteId for Sector ${droppedSectorId} to ${newSiteId} (original target: ${targetSiteId})`);
                     return { ...s, siteId: newSiteId };
                 }
                 return s;
             });
-            console.log("Sectors state updated with new siteId:", updatedSectors.map(s => ({ id: s.id, siteId: s.siteId })));
+            logger.info("Sectors state updated with new siteId:", updatedSectors.map(s => ({ id: s.id, siteId: s.siteId })));
             // applySectorOrder n'est plus appelé ici, useMemo(displayedSectors) s'en chargera
             return updatedSectors;
         });
@@ -521,10 +522,10 @@ const SectorsConfigPanel: React.FC = () => {
 
     // Appliquer l'ordre stocké à la liste des secteurs pour l'affichage
     const applySectorOrder = useCallback((sectorsToSort: Sector[], orderedIdsBySite: { [siteId: string]: number[] }): Sector[] => {
-        console.log("Applying sector order. Sectors:", sectorsToSort, "Order:", orderedIdsBySite);
+        logger.info("Applying sector order. Sectors:", sectorsToSort, "Order:", orderedIdsBySite);
         if (!sectorsToSort || sectorsToSort.length === 0) return [];
         if (!orderedIdsBySite || Object.keys(orderedIdsBySite).length === 0) {
-            console.log("No order config found, returning original sectors.");
+            logger.info("No order config found, returning original sectors.");
             return sectorsToSort; // Pas d'ordre défini, retourner l'original
         }
 
@@ -545,23 +546,23 @@ const SectorsConfigPanel: React.FC = () => {
                         unassignedSectors.splice(indexToRemove, 1);
                     }
                 } else {
-                    console.warn(`Sector ${sectorIdNum} found in order for site ${siteId}, but mismatch in sector data or not found.`);
+                    logger.warn(`Sector ${sectorIdNum} found in order for site ${siteId}, but mismatch in sector data or not found.`);
                 }
             });
         });
 
         // Ajouter les secteurs non présents dans l'ordre à la fin (par exemple, nouveaux secteurs)
         const finalSectors = [...orderedSectors, ...unassignedSectors];
-        console.log("Sectors after applying order:", finalSectors);
+        logger.info("Sectors after applying order:", finalSectors);
         return finalSectors;
 
     }, []);
 
     // Calculer les secteurs à afficher, triés par site et par ordre manuel
     const displayedSectors = useMemo(() => {
-        console.log("Recalculating displayedSectors. Current `sectors` state:", JSON.stringify(sectors.map(s => ({ id: s.id, name: s.name, siteId: s.siteId }))));
-        console.log("Current `sectorOrder` state:", JSON.stringify(sectorOrder));
-        console.log("Recalculating displayedSectors with new logic...");
+        logger.info("Recalculating displayedSectors. Current `sectors` state:", JSON.stringify(sectors.map(s => ({ id: s.id, name: s.name, siteId: s.siteId }))));
+        logger.info("Current `sectorOrder` state:", JSON.stringify(sectorOrder));
+        logger.info("Recalculating displayedSectors with new logic...");
         const sectorsById: { [id: number]: Sector } = {};
         sectors.forEach(s => sectorsById[s.id] = s);
 
@@ -572,18 +573,18 @@ const SectorsConfigPanel: React.FC = () => {
         sites.forEach(site => {
             const siteIdStr = site.id;
             const orderedIdsForSite = sectorOrder.orderedSectorIdsBySite[siteIdStr] || [];
-            console.log(`Site ${siteIdStr}: Processing ${orderedIdsForSite.length} ordered IDs from state:`, orderedIdsForSite);
+            logger.info(`Site ${siteIdStr}: Processing ${orderedIdsForSite.length} ordered IDs from state:`, orderedIdsForSite);
             orderedIdsForSite.forEach(id => {
                 if (sectorsById[id] && sectorsById[id].siteId === siteIdStr) {
                     if (!processedSectorIds.has(id)) {
                         finalSortedSectors.push(sectorsById[id]);
                         processedSectorIds.add(id);
                     } else {
-                        console.warn(`Sector ${id} for site ${siteIdStr} was already processed but found again in ordered list.`);
+                        logger.warn(`Sector ${id} for site ${siteIdStr} was already processed but found again in ordered list.`);
                     }
                 } else {
                     // Peut arriver si l'ordre contient un ID qui n'est plus assigné à ce site
-                    console.warn(`Ordered sector ${id} for site ${siteIdStr} has mismatched siteId (${sectorsById[id]?.siteId}) or not found.`);
+                    logger.warn(`Ordered sector ${id} for site ${siteIdStr} has mismatched siteId (${sectorsById[id]?.siteId}) or not found.`);
                 }
             });
         });
@@ -591,7 +592,7 @@ const SectorsConfigPanel: React.FC = () => {
         // 2. Traiter les secteurs non assignés explicitement ordonnés
         const nullSiteKey = 'null';
         const unassignedOrderedIds = sectorOrder.orderedSectorIdsBySite[nullSiteKey] || [];
-        console.log(`Site null (ordered): Processing ${unassignedOrderedIds.length} IDs from state:`, unassignedOrderedIds);
+        logger.info(`Site null (ordered): Processing ${unassignedOrderedIds.length} IDs from state:`, unassignedOrderedIds);
         unassignedOrderedIds.forEach(id => {
             // Ici on s'attend à ce que sector.siteId soit null (primitif)
             if (sectorsById[id] && sectorsById[id].siteId === null) { // Check against primitive null
@@ -599,10 +600,10 @@ const SectorsConfigPanel: React.FC = () => {
                     finalSortedSectors.push(sectorsById[id]);
                     processedSectorIds.add(id);
                 } else {
-                    console.warn(`Unassigned sector ${id} (ordered) was already processed.`);
+                    logger.warn(`Unassigned sector ${id} (ordered) was already processed.`);
                 }
             } else {
-                console.warn(`Ordered unassigned sector ${id} has mismatched siteId (found: ${sectorsById[id]?.siteId}, expected: null) or sector not found.`);
+                logger.warn(`Ordered unassigned sector ${id} has mismatched siteId (found: ${sectorsById[id]?.siteId}, expected: null) or sector not found.`);
             }
         });
 
@@ -622,7 +623,7 @@ const SectorsConfigPanel: React.FC = () => {
         sites.forEach(site => {
             const siteIdStr = site.id;
             if (remainingSectorsBySite[siteIdStr]) {
-                console.log(`Site ${siteIdStr}: Adding ${remainingSectorsBySite[siteIdStr].length} remaining (unordered) sectors.`);
+                logger.info(`Site ${siteIdStr}: Adding ${remainingSectorsBySite[siteIdStr].length} remaining (unordered) sectors.`);
                 finalSortedSectors.push(...remainingSectorsBySite[siteIdStr]);
                 remainingSectorsBySite[siteIdStr].forEach(s => processedSectorIds.add(s.id)); // Marquer comme traités
                 delete remainingSectorsBySite[siteIdStr]; // Retirer pour ne pas les traiter en orphelins
@@ -631,7 +632,7 @@ const SectorsConfigPanel: React.FC = () => {
 
         // 5. Ajouter les secteurs restants non assignés (ceux sous la clé 'null')
         if (remainingSectorsBySite[nullSiteKey]) {
-            console.log(`Site null: Adding ${remainingSectorsBySite[nullSiteKey].length} remaining (unordered) unassigned sectors.`);
+            logger.info(`Site null: Adding ${remainingSectorsBySite[nullSiteKey].length} remaining (unordered) unassigned sectors.`);
             finalSortedSectors.push(...remainingSectorsBySite[nullSiteKey]);
             remainingSectorsBySite[nullSiteKey].forEach(s => processedSectorIds.add(s.id));
             delete remainingSectorsBySite[nullSiteKey];
@@ -640,13 +641,13 @@ const SectorsConfigPanel: React.FC = () => {
         // 6. Ajouter les éventuels secteurs orphelins (siteId qui n'existe plus dans `sites`)
         Object.keys(remainingSectorsBySite).forEach(orphanSiteKey => {
             if (remainingSectorsBySite[orphanSiteKey] && remainingSectorsBySite[orphanSiteKey].length > 0) {
-                console.warn(`Site ${orphanSiteKey} (orphaned?): Adding ${remainingSectorsBySite[orphanSiteKey].length} sectors.`);
+                logger.warn(`Site ${orphanSiteKey} (orphaned?): Adding ${remainingSectorsBySite[orphanSiteKey].length} sectors.`);
                 finalSortedSectors.push(...remainingSectorsBySite[orphanSiteKey]);
                 // Pas besoin de marquer processedSectorIds ici car ils sont déjà filtrés par le !processedSectorIds.has(sector.id) initial
             }
         });
 
-        console.log("Final displayedSectors (new logic):", finalSortedSectors.map(s => ({ id: s.id, name: s.name, siteId: s.siteId, order: s.displayOrder })));
+        logger.info("Final displayedSectors (new logic):", finalSortedSectors.map(s => ({ id: s.id, name: s.name, siteId: s.siteId, order: s.displayOrder })));
         return finalSortedSectors;
     }, [sectors, sites, sectorOrder]); // Dépendances : secteurs bruts, sites, et l'ordre manuel
 
@@ -677,8 +678,8 @@ const SectorsConfigPanel: React.FC = () => {
 
     // --- Fonction pour sauvegarder l'ordre en BDD --- 
     const saveSectorOrderToDatabase = async () => {
-        console.log("Attempting to save sector order to database...");
-        console.log("Current user role:", user?.role);
+        logger.info("Attempting to save sector order to database...");
+        logger.info("Current user role:", user?.role);
 
         if (authLoading) {
             toast.error("Vérification de l'authentification en cours. Veuillez réessayer.");
@@ -713,8 +714,8 @@ const SectorsConfigPanel: React.FC = () => {
                     orderedSectorIds: sectorIds
                 }));
 
-            console.log("Sites valides:", Array.from(validSiteIds));
-            console.log("Payload filtré for /api/sectors/reorder-by-site:", payload);
+            logger.info("Sites valides:", Array.from(validSiteIds));
+            logger.info("Payload filtré for /api/sectors/reorder-by-site:", payload);
 
             const response = await axios.post('http://localhost:3000/api/sectors/reorder-by-site', { sitesOrder: payload });
 
@@ -730,12 +731,12 @@ const SectorsConfigPanel: React.FC = () => {
                 };
                 setSectorOrder(cleanedOrderConfig);
                 saveSectorOrderToStorage(cleanedOrderConfig);
-                console.log("Ordre local nettoyé:", cleanedOrderConfig);
+                logger.info("Ordre local nettoyé:", cleanedOrderConfig);
             } else {
                 throw new Error(response.data.error || "Erreur inconnue lors de la sauvegarde de l'ordre");
             }
         } catch (error: any) {
-            console.error("Erreur lors de l'enregistrement de l'ordre des secteurs en BDD:", error);
+            logger.error("Erreur lors de l'enregistrement de l'ordre des secteurs en BDD:", error);
             const errorMsg = error.response?.data?.error || error.message || "Erreur lors de l'enregistrement de l'ordre des secteurs";
             toast.error(errorMsg);
             setError(errorMsg);
@@ -839,7 +840,7 @@ const SectorsConfigPanel: React.FC = () => {
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
         } catch (err: any) {
-            console.error("Erreur lors de la soumission du formulaire secteur:", err);
+            logger.error("Erreur lors de la soumission du formulaire secteur:", err);
             const errorMsg = err.response?.data?.error || err.message || 'Une erreur est survenue.';
             setFormError(errorMsg);
             toast.error(`Erreur: ${errorMsg}`);
@@ -893,7 +894,7 @@ const SectorsConfigPanel: React.FC = () => {
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
         } catch (err: any) {
-            console.error("Erreur lors de la suppression du secteur:", err);
+            logger.error("Erreur lors de la suppression du secteur:", err);
             const errorMsg = err.response?.data?.error || err.message || 'Impossible de supprimer le secteur.';
             toast.error(`Erreur: ${errorMsg}`);
             setError(errorMsg); // Afficher l'erreur générale
@@ -952,7 +953,7 @@ const SectorsConfigPanel: React.FC = () => {
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
         } catch (err: any) {
-            console.error("Erreur lors de la soumission du formulaire site:", err);
+            logger.error("Erreur lors de la soumission du formulaire site:", err);
             const errorMsg = err.response?.data?.error || err.message || 'Une erreur est survenue.';
             setSiteFormError(errorMsg);
             toast.error(`Erreur: ${errorMsg}`);
@@ -992,7 +993,7 @@ const SectorsConfigPanel: React.FC = () => {
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
         } catch (err: any) {
-            console.error("Erreur lors de la suppression du site:", err);
+            logger.error("Erreur lors de la suppression du site:", err);
             const errorMsg = err.response?.data?.error || err.message || 'Impossible de supprimer le site.';
             toast.error(`Erreur: ${errorMsg}`);
             setError(errorMsg); // Afficher l'erreur générale
@@ -1037,7 +1038,7 @@ const SectorsConfigPanel: React.FC = () => {
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
         } catch (error) {
-            console.error('Erreur lors de la réinitialisation de l\'ordre:', error);
+            logger.error('Erreur lors de la réinitialisation de l\'ordre:', error);
             setSaveError(true);
             setTimeout(() => setSaveError(false), 3000);
         } finally {

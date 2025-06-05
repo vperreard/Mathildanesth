@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
   Table,
   TableBody,
@@ -98,11 +99,40 @@ export default function ReglesSupervisionAdmin() {
         blocPlanningService.getAllSupervisorRules(),
         blocPlanningService.getAllOperatingSectors(),
       ]);
-      setRegles(reglesData);
-      setSecteurs(secteursData);
+      // Adapter les données du service au format attendu par le composant
+      const adaptedRegles = (reglesData || []).map(regle => {
+        // Mapper le type d'enum vers le type attendu
+        let mappedType: 'BASIQUE' | 'SPECIFIQUE' | 'EXCEPTION' = 'BASIQUE';
+        if (regle.type === 'SECTOR_RESTRICTION' || regle.type === 'SPECIALTY_REQUIREMENT') {
+          mappedType = 'SPECIFIQUE';
+        } else if (regle.type === 'REQUIRED_COMPETENCE') {
+          mappedType = 'EXCEPTION';
+        }
+        
+        return {
+          id: regle.id || '',
+          nom: regle.name || '',
+          description: regle.description,
+          type: mappedType,
+          secteurId: regle.sectorIds?.[0]?.toString(),
+          conditions: regle.conditions || {
+            maxSallesParMAR: regle.value || 1,
+          },
+          priorite: regle.value || 1,
+          estActif: regle.isActive
+        };
+      });
+      
+      setRegles(adaptedRegles);
+      // Adapter les données des secteurs pour ajouter la propriété salles requise
+      const adaptedSectors = (secteursData || []).map(sector => ({
+        ...sector,
+        salles: []
+      } as BlocSector));
+      setSecteurs(adaptedSectors);
     } catch (err) {
       setError('Erreur lors du chargement des données');
-      console.error('Erreur de chargement:', err);
+      logger.error('Erreur de chargement:', err);
     } finally {
       setIsLoading(false);
     }
@@ -285,11 +315,21 @@ export default function ReglesSupervisionAdmin() {
     setIsSubmitting(true);
 
     try {
-      const regleData: Omit<SupervisionRule, 'id' | 'createdAt' | 'updatedAt'> = {
-        nom: currentRegle.nom.trim(),
+      // Convertir le type pour correspondre au service
+      let serviceType: 'MAX_ROOMS_PER_SUPERVISOR' | 'REQUIRED_COMPETENCE' | 'SECTOR_RESTRICTION' | 'SPECIALTY_REQUIREMENT' = 'MAX_ROOMS_PER_SUPERVISOR';
+      if (currentRegle.type === 'SPECIFIQUE') {
+        serviceType = 'SECTOR_RESTRICTION';
+      } else if (currentRegle.type === 'EXCEPTION') {
+        serviceType = 'REQUIRED_COMPETENCE';
+      }
+
+      const serviceData = {
+        name: currentRegle.nom.trim(),
         description: currentRegle.description.trim() || undefined,
-        secteurId: currentRegle.secteurId,
-        type: currentRegle.type,
+        type: serviceType,
+        value: currentRegle.maxSallesParMAR,
+        isActive: currentRegle.estActif,
+        sectorIds: currentRegle.secteurId ? [parseInt(currentRegle.secteurId)] : undefined,
         conditions: {
           maxSallesParMAR: currentRegle.maxSallesParMAR,
           maxSallesExceptionnel: currentRegle.maxSallesExceptionnel,
@@ -305,16 +345,33 @@ export default function ReglesSupervisionAdmin() {
               : undefined,
           incompatibilites:
             currentRegle.incompatibilites.length > 0 ? currentRegle.incompatibilites : undefined,
-        },
-        priorite: currentRegle.priorite,
-        estActif: currentRegle.estActif,
+        }
       };
 
       let updatedRegle: SupervisionRule;
 
       if (currentRegle.id) {
         // Mise à jour
-        updatedRegle = await blocPlanningService.updateSupervisorRule(currentRegle.id, regleData);
+        const serviceResult = await blocPlanningService.updateSupervisorRule(currentRegle.id, serviceData as any);
+        // Adapter le résultat du service au format attendu
+        updatedRegle = {
+          id: serviceResult.id || currentRegle.id || '',
+          nom: serviceResult.name || currentRegle.nom,
+          description: serviceResult.description,
+          type: currentRegle.type, // Garder le type original
+          secteurId: currentRegle.secteurId,
+          conditions: serviceResult.conditions || {
+            maxSallesParMAR: currentRegle.maxSallesParMAR,
+            maxSallesExceptionnel: currentRegle.maxSallesExceptionnel,
+            supervisionInterne: currentRegle.supervisionInterne,
+            supervisionContigues: currentRegle.supervisionContigues,
+            competencesRequises: currentRegle.competencesRequises,
+            supervisionDepuisAutreSecteur: currentRegle.supervisionDepuisAutreSecteur,
+            incompatibilites: currentRegle.incompatibilites
+          },
+          priorite: serviceResult.value || currentRegle.priorite,
+          estActif: serviceResult.isActive !== undefined ? serviceResult.isActive : currentRegle.estActif
+        } as unknown as SupervisionRule;
         setRegles(prev => prev.map(r => (r.id === currentRegle.id ? updatedRegle : r)));
         toast({
           title: 'Règle mise à jour',
@@ -322,7 +379,26 @@ export default function ReglesSupervisionAdmin() {
         });
       } else {
         // Création
-        updatedRegle = await blocPlanningService.createSupervisorRule(regleData);
+        const serviceResult = await blocPlanningService.createSupervisorRule(serviceData as any);
+        // Adapter le résultat du service au format attendu
+        updatedRegle = {
+          id: serviceResult.id || '',
+          nom: serviceResult.name || '',
+          description: serviceResult.description,
+          type: currentRegle.type, // Garder le type original
+          secteurId: currentRegle.secteurId,
+          conditions: serviceResult.conditions || {
+            maxSallesParMAR: currentRegle.maxSallesParMAR,
+            maxSallesExceptionnel: currentRegle.maxSallesExceptionnel,
+            supervisionInterne: currentRegle.supervisionInterne,
+            supervisionContigues: currentRegle.supervisionContigues,
+            competencesRequises: currentRegle.competencesRequises,
+            supervisionDepuisAutreSecteur: currentRegle.supervisionDepuisAutreSecteur,
+            incompatibilites: currentRegle.incompatibilites
+          },
+          priorite: serviceResult.value || 1,
+          estActif: serviceResult.isActive !== undefined ? serviceResult.isActive : true
+        } as unknown as SupervisionRule;
         setRegles(prev => [...prev, updatedRegle]);
         toast({
           title: 'Règle ajoutée',

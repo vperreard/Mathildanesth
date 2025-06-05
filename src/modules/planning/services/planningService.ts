@@ -1,3 +1,5 @@
+import { logger } from "../../../lib/logger";
+
 /**
  * Service de gestion du planning
  * Fournit des méthodes pour gérer les plannings et les indisponibilités
@@ -20,7 +22,7 @@ export class PlanningService {
         metadata?: Record<string, any>
     ): Promise<void> {
         // Implémentation à venir
-        console.debug(`Planning: Ajout d'un marqueur d'indisponibilité pour l'utilisateur ${userId}`);
+        logger.debug(`Planning: Ajout d'un marqueur d'indisponibilité pour l'utilisateur ${userId}`);
         // Ici, vous ajouteriez le code pour créer un marqueur d'indisponibilité
         // dans la base de données ou autre système de stockage
     }
@@ -40,7 +42,7 @@ export class PlanningService {
         reason: string
     ): Promise<void> {
         // Implémentation à venir
-        console.debug(`Planning: Suppression des marqueurs d'indisponibilité pour l'utilisateur ${userId}`);
+        logger.debug(`Planning: Suppression des marqueurs d'indisponibilité pour l'utilisateur ${userId}`);
         // Ici, vous ajouteriez le code pour supprimer les marqueurs d'indisponibilité
         // de la base de données ou autre système de stockage
     }

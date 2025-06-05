@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon, Calendar, Clock, Loader2, Play, Eye, PencilIcon, Filter, Download } from 'lucide-react';
@@ -85,7 +86,7 @@ export default function ScenarioDetailsPage({ params }: { params: Promise<{ scen
                 const data = await response.json();
                 setScenario(data.data);
             } catch (err: unknown) {
-                console.error('Erreur lors du chargement du scénario:', err);
+                logger.error('Erreur lors du chargement du scénario:', err);
                 const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
                 setError(errorMessage);
             } finally {
@@ -132,7 +133,7 @@ export default function ScenarioDetailsPage({ params }: { params: Promise<{ scen
                 });
             }
         } catch (err: unknown) {
-            console.error('Erreur lors du démarrage de la simulation:', err);
+            logger.error('Erreur lors du démarrage de la simulation:', err);
             const errorMessage = err instanceof Error ? err.message : 'Erreur lors du démarrage de la simulation';
             toast.error(errorMessage);
         } finally {

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
@@ -203,7 +204,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         setIsLoadingTrames(true);
         try {
             const tramesDataDTO = await TrameHebdomadaireService.getAllTrames();
-            console.log('[DEBUG] fetchTrames - DTO data:', tramesDataDTO);
+            logger.info('[DEBUG] fetchTrames - DTO data:', tramesDataDTO);
             // Mapper DTO en TrameHebdomadaire local
             const tramesDataLocal: TrameHebdomadaire[] = tramesDataDTO.map(dto => {
                 const localAffectations: AffectationTrame[] = (dto.affectations || []).map((affDto): AffectationTrame => ({
@@ -233,7 +234,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             setTrames(tramesDataLocal);
             setIsLoadingTrames(false);
         } catch (err) {
-            console.error("Erreur lors du chargement des trames:", err);
+            logger.error("Erreur lors du chargement des trames:", err);
             setError("Impossible de charger les trameModeles. Veuillez réessayer plus tard.");
             setIsLoadingTrames(false);
         }
@@ -249,16 +250,16 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                 PersonnelService.getIADEs()
             ]);
 
-            console.log('[DEBUG] Chirurgiens Data:', chirurgiensData);
-            console.log('[DEBUG] MARs Data:', marsData);
-            console.log('[DEBUG] IADEs Data:', iadesData);
+            logger.info('[DEBUG] Chirurgiens Data:', chirurgiensData);
+            logger.info('[DEBUG] MARs Data:', marsData);
+            logger.info('[DEBUG] IADEs Data:', iadesData);
 
             setChirurgiens(chirurgiensData);
             setMars(marsData);
             setIades(iadesData);
             setIsLoadingPersonnel(false);
         } catch (err) {
-            console.error("Erreur lors du chargement du personnel:", err);
+            logger.error("Erreur lors du chargement du personnel:", err);
             setError("Impossible de charger les données du personnel. Veuillez réessayer plus tard.");
             setIsLoadingPersonnel(false);
         }
@@ -269,17 +270,17 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         setIsLoadingSalles(true);
         try {
             const sallesDataAPI = await SalleService.getSalles();
-            console.log('[DEBUG] Salles Data API:', sallesDataAPI);
+            logger.info('[DEBUG] Salles Data API:', sallesDataAPI);
             // Mapper OperatingRoomFromAPI en Salle locale
             const sallesDataLocal: Salle[] = sallesDataAPI.map(apiSalle => ({
                 id: apiSalle.id ? apiSalle.id.toString() : `salle-generated-${Math.random()}`, // Assurer que l'id est string
                 name: apiSalle.name || 'Salle sans nom', // Utiliser name, fallback si besoin
             }));
-            console.log('[DEBUG] Salles Data Local:', sallesDataLocal);
+            logger.info('[DEBUG] Salles Data Local:', sallesDataLocal);
             setSalles(sallesDataLocal);
             setIsLoadingSalles(false);
         } catch (err) {
-            console.error("Erreur lors du chargement des salles:", err);
+            logger.error("Erreur lors du chargement des salles:", err);
             setError("Impossible de charger les salles. Veuillez réessayer plus tard.");
             setIsLoadingSalles(false);
         }
@@ -302,9 +303,9 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                 description: newTrameDescription || null,
             };
 
-            console.log('[DEBUG] handleCreateNewTrame - Payload for create:', payloadForCreate);
+            logger.info('[DEBUG] handleCreateNewTrame - Payload for create:', payloadForCreate);
             const createdTrameDTO = await TrameHebdomadaireService.createTrame(payloadForCreate);
-            console.log('[DEBUG] handleCreateNewTrame - Created DTO:', createdTrameDTO);
+            logger.info('[DEBUG] handleCreateNewTrame - Created DTO:', createdTrameDTO);
 
             // Mapper le DTO retourné vers TrameHebdomadaire local
             const createdTrameLocal: TrameHebdomadaire = {
@@ -329,7 +330,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             setIsCreating(false);
             setIsSaving(false);
         } catch (err) {
-            console.error("Erreur lors de la création de la trameModele:", err);
+            logger.error("Erreur lors de la création de la trameModele:", err);
             setError("Impossible de créer la trameModele. Veuillez réessayer plus tard.");
             setIsSaving(false);
         }
@@ -354,7 +355,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                 throw new Error("La suppression a échoué");
             }
         } catch (err) {
-            console.error(`Erreur lors de la suppression de la trameModele ${trameId}:`, err);
+            logger.error(`Erreur lors de la suppression de la trameModele ${trameId}:`, err);
             setError("Impossible de supprimer la trameModele. Veuillez réessayer plus tard.");
             setIsSaving(false);
         }
@@ -368,9 +369,9 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             aff => aff.jourSemaine === jour && aff.periode === periode
         );
 
-        console.log('[DEBUG] openAffectationModal - Jour:', jour, 'Periode:', periode);
-        console.log('[DEBUG] openAffectationModal - Selected TrameModele:', selectedTrame);
-        console.log('[DEBUG] openAffectationModal - Existing Affectation:', existingAffectation);
+        logger.info('[DEBUG] openAffectationModal - Jour:', jour, 'Periode:', periode);
+        logger.info('[DEBUG] openAffectationModal - Selected TrameModele:', selectedTrame);
+        logger.info('[DEBUG] openAffectationModal - Existing Affectation:', existingAffectation);
 
         setEditingCellInfo({ jour, periode, affectation: existingAffectation || null });
         setCurrentModalSalleId(existingAffectation?.salleId || null);
@@ -413,7 +414,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                 affectations: newAffectations
             };
 
-            console.log('[DEBUG] handleSaveAffectation - Updated TrameModele for State (local affectations):', updatedTrameForState);
+            logger.info('[DEBUG] handleSaveAffectation - Updated TrameModele for State (local affectations):', updatedTrameForState);
 
             // TODO IMPORTANT: La sauvegarde des affectations doit se faire via une API dédiée,
             // par exemple /api/trameModele-modeles/{trameId}/affectations.
@@ -433,7 +434,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                 recurrenceType: selectedTrame.recurrenceType,
                 joursSemaineActifs: selectedTrame.joursSemaineActifs,
             };
-            console.log('[DEBUG] handleSaveAffectation - DTO for updateTrame (details only):', trameDetailsToUpdate);
+            logger.info('[DEBUG] handleSaveAffectation - DTO for updateTrame (details only):', trameDetailsToUpdate);
 
             await TrameHebdomadaireService.updateTrame(selectedTrame.id, trameDetailsToUpdate);
 
@@ -451,7 +452,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             // toast.success('Détails de la trameModele sauvegardés. Sauvegarde des affectations à implémenter via API dédiée.');
 
         } catch (err) {
-            console.error("Erreur lors de la sauvegarde de l'affectation:", err);
+            logger.error("Erreur lors de la sauvegarde de l'affectation:", err);
             setError("Impossible de sauvegarder l'affectation. Veuillez réessayer plus tard.");
         } finally {
             setIsSaving(false);
@@ -478,7 +479,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             // Par exemple DELETE /api/trameModele-modeles/{trameId}/affectations/{affectationId}
             // Pour l'instant, on met à jour uniquement l'état local.
 
-            console.log('[DEBUG] handleRemoveAffectationInModal - Affectation to remove ID:', affectationIdToRemove);
+            logger.info('[DEBUG] handleRemoveAffectationInModal - Affectation to remove ID:', affectationIdToRemove);
             // Simuler un appel API ou appeler le vrai service de suppression d'affectation si disponible.
             // await AffectationService.deleteAffectation(selectedTrame.id, affectationIdToRemove);
 
@@ -493,7 +494,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             // toast.info('Affectation retirée localement. Sauvegarde via API dédiée à implémenter.');
 
         } catch (err) {
-            console.error("Erreur lors de la suppression de l'affectation:", err);
+            logger.error("Erreur lors de la suppression de l'affectation:", err);
             setError("Impossible de supprimer l'affectation. Veuillez réessayer plus tard.");
         } finally {
             setIsSaving(false);

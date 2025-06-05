@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
       simulationId: simulationResult.id,
     });
   } catch (error) {
-    console.error('Erreur lors du démarrage de la simulation:', error);
+    logger.error('Erreur lors du démarrage de la simulation:', error);
     return NextResponse.json(
       {
         success: false,
@@ -183,7 +184,7 @@ async function startSimulation(resultId: string, scenario: any) {
       },
     });
   } catch (error) {
-    console.error("Erreur lors de l'exécution de la simulation:", error);
+    logger.error("Erreur lors de l'exécution de la simulation:", error);
 
     // Marquer la simulation comme échouée
     await prisma.simulationResult.update({

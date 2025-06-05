@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { PrismaClient, AssignmentSwapStatus } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/assignment-notification-utils';
@@ -11,7 +12,7 @@ import { prisma } from "@/lib/prisma";
  * Récupère les demandes d'échange d'affectations pour l'utilisateur authentifié
  */
 export async function GET(request: NextRequest) {
-    console.log("\n--- GET /api/affectations/echange START ---");
+    logger.info("\n--- GET /api/affectations/echange START ---");
 
     // Authentification
     const token = request.cookies.get('token')?.value ||
@@ -19,13 +20,13 @@ export async function GET(request: NextRequest) {
             request.headers.get('Authorization')?.substring(7) : null);
 
     if (!token) {
-        console.error("GET /api/affectations/echange: Token manquant");
+        logger.error("GET /api/affectations/echange: Token manquant");
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const authResult = await verifyAuthToken(token);
     if (!authResult.authenticated) {
-        console.error("GET /api/affectations/echange: Token invalide");
+        logger.error("GET /api/affectations/echange: Token invalide");
         return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
     }
 
@@ -105,8 +106,8 @@ export async function GET(request: NextRequest) {
             where: whereClause
         });
 
-        console.log(`GET /api/affectations/echange: Récupéré ${swapRequests.length} demandes sur ${totalCount} au total`);
-        console.log("--- GET /api/affectations/echange END ---\n");
+        logger.info(`GET /api/affectations/echange: Récupéré ${swapRequests.length} demandes sur ${totalCount} au total`);
+        logger.info("--- GET /api/affectations/echange END ---\n");
 
         return NextResponse.json({
             items: swapRequests,
@@ -116,7 +117,7 @@ export async function GET(request: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error("GET /api/affectations/echange: Erreur serveur", error);
+        logger.error("GET /api/affectations/echange: Erreur serveur", error);
         return NextResponse.json({
             error: 'Erreur lors de la récupération des demandes d\'échange',
             details: error.message
@@ -129,7 +130,7 @@ export async function GET(request: NextRequest) {
  * Crée une nouvelle demande d'échange d'affectation
  */
 export async function POST(request: NextRequest) {
-    console.log("\n--- POST /api/affectations/echange START ---");
+    logger.info("\n--- POST /api/affectations/echange START ---");
 
     // Authentification
     const token = request.cookies.get('token')?.value ||
@@ -137,13 +138,13 @@ export async function POST(request: NextRequest) {
             request.headers.get('Authorization')?.substring(7) : null);
 
     if (!token) {
-        console.error("POST /api/affectations/echange: Token manquant");
+        logger.error("POST /api/affectations/echange: Token manquant");
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const authResult = await verifyAuthToken(token);
     if (!authResult.authenticated) {
-        console.error("POST /api/affectations/echange: Token invalide");
+        logger.error("POST /api/affectations/echange: Token invalide");
         return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
     }
 
@@ -161,14 +162,14 @@ export async function POST(request: NextRequest) {
 
         // Validation des données
         if (!proposedAssignmentId) {
-            console.warn("POST /api/affectations/echange: proposedAssignmentId manquant");
+            logger.warn("POST /api/affectations/echange: proposedAssignmentId manquant");
             return NextResponse.json({
                 error: 'L\'ID de l\'affectation proposée est requis'
             }, { status: 400 });
         }
 
         if (!targetUserId) {
-            console.warn("POST /api/affectations/echange: targetUserId manquant");
+            logger.warn("POST /api/affectations/echange: targetUserId manquant");
             return NextResponse.json({
                 error: 'L\'ID de l\'utilisateur cible est requis'
             }, { status: 400 });
@@ -180,14 +181,14 @@ export async function POST(request: NextRequest) {
         });
 
         if (!proposedAssignment) {
-            console.warn(`POST /api/affectations/echange: Affectation ${proposedAssignmentId} introuvable`);
+            logger.warn(`POST /api/affectations/echange: Affectation ${proposedAssignmentId} introuvable`);
             return NextResponse.json({
                 error: 'L\'affectation proposée n\'existe pas'
             }, { status: 404 });
         }
 
         if (proposedAssignment.userId !== initiatorUserId) {
-            console.warn(`POST /api/affectations/echange: L'affectation ${proposedAssignmentId} n'appartient pas à l'utilisateur ${initiatorUserId}`);
+            logger.warn(`POST /api/affectations/echange: L'affectation ${proposedAssignmentId} n'appartient pas à l'utilisateur ${initiatorUserId}`);
             return NextResponse.json({
                 error: 'Vous ne pouvez proposer que vos propres affectations en échange'
             }, { status: 403 });
@@ -200,14 +201,14 @@ export async function POST(request: NextRequest) {
             });
 
             if (!requestedAssignment) {
-                console.warn(`POST /api/affectations/echange: Affectation demandée ${requestedAssignmentId} introuvable`);
+                logger.warn(`POST /api/affectations/echange: Affectation demandée ${requestedAssignmentId} introuvable`);
                 return NextResponse.json({
                     error: 'L\'affectation demandée n\'existe pas'
                 }, { status: 404 });
             }
 
             if (requestedAssignment.userId !== targetUserId) {
-                console.warn(`POST /api/affectations/echange: L'affectation ${requestedAssignmentId} n'appartient pas à l'utilisateur ${targetUserId}`);
+                logger.warn(`POST /api/affectations/echange: L'affectation ${requestedAssignmentId} n'appartient pas à l'utilisateur ${targetUserId}`);
                 return NextResponse.json({
                     error: 'L\'affectation demandée n\'appartient pas à l\'utilisateur cible'
                 }, { status: 400 });
@@ -271,14 +272,14 @@ export async function POST(request: NextRequest) {
             return { swapRequest, notification };
         });
 
-        console.log(`POST /api/affectations/echange: Créé la demande d'échange ${result.swapRequest.id}`);
-        console.log(`POST /api/affectations/echange: Envoyé la notification ${result.notification?.id}`);
-        console.log("--- POST /api/affectations/echange END ---\n");
+        logger.info(`POST /api/affectations/echange: Créé la demande d'échange ${result.swapRequest.id}`);
+        logger.info(`POST /api/affectations/echange: Envoyé la notification ${result.notification?.id}`);
+        logger.info("--- POST /api/affectations/echange END ---\n");
 
         return NextResponse.json(result.swapRequest, { status: 201 });
 
     } catch (error: any) {
-        console.error("POST /api/affectations/echange: Erreur serveur", error);
+        logger.error("POST /api/affectations/echange: Erreur serveur", error);
         
         // Log d'audit pour l'échec
         await auditService.logAction({

@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { logger } from "../lib/logger";
 import { toast } from 'react-toastify';
 
 // 🔧 CORRECTION TYPE ANY : Types spécifiques pour les données de notification
@@ -48,7 +49,7 @@ class NotificationService {
 
     private constructor() {
         // WebSocket complètement désactivé
-        console.log('NotificationService: WebSocket désactivé');
+        logger.info('NotificationService: WebSocket désactivé');
     }
 
     public static getInstance(): NotificationService {
@@ -60,7 +61,7 @@ class NotificationService {
 
     private initializeSocket() {
         // Complètement désactivé pour éviter les erreurs WebSocket 401
-        console.log('WebSocket temporairement désactivé pour éviter les erreurs 401');
+        logger.info('WebSocket temporairement désactivé pour éviter les erreurs 401');
         return;
         
         if (typeof window !== 'undefined') {
@@ -72,11 +73,11 @@ class NotificationService {
             });
 
             this.socket.on('connect', () => {
-                console.log('Connecté au serveur de notifications');
+                logger.info('Connecté au serveur de notifications');
             });
 
             this.socket.on('disconnect', () => {
-                console.log('Déconnecté du serveur de notifications');
+                logger.info('Déconnecté du serveur de notifications');
             });
 
             this.socket.on('notification', (notification: Notification) => {
@@ -124,7 +125,7 @@ class NotificationService {
 
     public sendNotification(notification: Omit<Notification, 'id' | 'createdAt'>): void {
         // WebSocket désactivé - notification ignorée
-        console.log('Notification ignorée (WebSocket désactivé):', notification.title);
+        logger.info('Notification ignorée (WebSocket désactivé):', notification.title);
     }
 
     /**

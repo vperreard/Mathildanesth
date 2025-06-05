@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import {
     Dialog,
     DialogContent,
@@ -111,7 +112,7 @@ export function QuickReplacementModal({
                 setCandidates(data.candidates || []);
             }
         } catch (error) {
-            console.error('Erreur lors de la recherche de remplaçants:', error);
+            logger.error('Erreur lors de la recherche de remplaçants:', error);
         } finally {
             setIsLoading(false);
         }

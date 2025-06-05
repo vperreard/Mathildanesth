@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { verifyAuthToken, getAuthTokenServer } from '@/lib/auth-server-utils';
 import { prisma } from '@/lib/prisma';
 import { withUserRateLimit } from '@/lib/rateLimit';
@@ -108,7 +109,7 @@ async function handler(req: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('API /auth/me error:', error);
+    logger.error('API /auth/me error:', error);
     return NextResponse.json({ authenticated: false, error: 'Erreur serveur' }, { status: 500 });
   }
 }

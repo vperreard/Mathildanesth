@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -50,7 +51,7 @@ export async function GET(req: Request) {
 
         return NextResponse.json(templates);
     } catch (error) {
-        console.error('Erreur lors de la récupération des templates de simulation:', error);
+        logger.error('Erreur lors de la récupération des templates de simulation:', error);
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }
@@ -97,7 +98,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json(template, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la création du template de simulation:', error);
+        logger.error('Erreur lors de la création du template de simulation:', error);
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }

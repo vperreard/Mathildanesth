@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { logger } from "../../../../lib/logger";
 import { OperatingSector } from '@/modules/planning/bloc-operatoire/types';
 import {
   useOperatingSectorsQuery,
@@ -69,7 +70,12 @@ export function OperatingSectorList() {
         await updateMutation.mutateAsync({ id, data: formData });
         toast.success('Secteur mis à jour avec succès !');
       } else {
-        await createMutation.mutateAsync({ ...formData, salles: [] });
+        // Ajout de salles vide par défaut pour la création
+        const newSector: Omit<OperatingSector, 'id'> = {
+          ...formData,
+          salles: []
+        };
+        await createMutation.mutateAsync(newSector);
         toast.success('Secteur créé avec succès !');
       }
       handleCloseForm();
@@ -77,7 +83,7 @@ export function OperatingSectorList() {
       toast.error(
         `Erreur lors de la sauvegarde du secteur: ${error instanceof Error ? error.message : String(error)}`
       );
-      console.error('Erreur sauvegarde secteur:', error);
+      logger.error('Erreur sauvegarde secteur:', error);
     }
   };
 
@@ -101,7 +107,7 @@ export function OperatingSectorList() {
       toast.error(
         `Erreur lors de la suppression du secteur: ${error instanceof Error ? error.message : String(error)}`
       );
-      console.error('Erreur suppression secteur:', error);
+      logger.error('Erreur suppression secteur:', error);
       // Garder la modale ouverte en cas d'erreur pour feedback
     }
   };

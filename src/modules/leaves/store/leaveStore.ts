@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { logger } from "../../../lib/logger";
 import { devtools, persist } from 'zustand/middleware';
 import axios from 'axios';
 import {
@@ -75,7 +76,7 @@ export const useLeaveStore = create<LeaveState>()(
                         const response = await axios.get<LeaveWithUser[]>(`/api/conges?userId=${userId}`);
                         set({ leaves: response.data, isLoading: false });
                     } catch (error: any) {
-                        console.error('Erreur lors du chargement des congés:', error);
+                        logger.error('Erreur lors du chargement des congés:', error);
                         set({
                             error: error.response?.data?.error || 'Impossible de charger les demandes de congés.',
                             isLoading: false
@@ -89,7 +90,7 @@ export const useLeaveStore = create<LeaveState>()(
                         const response = await axios.get<LeaveBalance>(`/api/conges/balance?userId=${userId}&year=${year}`);
                         set({ leaveBalance: response.data, isLoading: false });
                     } catch (error: any) {
-                        console.error('Erreur lors du chargement du solde de congés:', error);
+                        logger.error('Erreur lors du chargement du solde de congés:', error);
                         set({
                             error: error.response?.data?.error || 'Impossible de charger le solde de congés.',
                             isLoading: false
@@ -109,7 +110,7 @@ export const useLeaveStore = create<LeaveState>()(
                         }));
                         return newLeave;
                     } catch (error: any) {
-                        console.error('Erreur lors de la création du congé:', error);
+                        logger.error('Erreur lors de la création du congé:', error);
                         set({
                             error: error.response?.data?.error || 'Impossible de créer la demande de congé.',
                             isSubmitting: false
@@ -131,7 +132,7 @@ export const useLeaveStore = create<LeaveState>()(
                         }));
                         return updatedLeave;
                     } catch (error: any) {
-                        console.error('Erreur lors de la mise à jour du congé:', error);
+                        logger.error('Erreur lors de la mise à jour du congé:', error);
                         set({
                             error: error.response?.data?.error || 'Impossible de mettre à jour la demande de congé.',
                             isSubmitting: false
@@ -153,7 +154,7 @@ export const useLeaveStore = create<LeaveState>()(
                         }));
                         return cancelledLeave;
                     } catch (error: any) {
-                        console.error('Erreur lors de l\'annulation du congé:', error);
+                        logger.error('Erreur lors de l\'annulation du congé:', error);
                         set({
                             error: error.response?.data?.error || 'Impossible d\'annuler la demande de congé.',
                             isSubmitting: false
@@ -175,7 +176,7 @@ export const useLeaveStore = create<LeaveState>()(
                         }));
                         return approvedLeave;
                     } catch (error: any) {
-                        console.error('Erreur lors de l\'approbation du congé:', error);
+                        logger.error('Erreur lors de l\'approbation du congé:', error);
                         set({
                             error: error.response?.data?.error || 'Impossible d\'approuver la demande de congé.',
                             isSubmitting: false
@@ -197,7 +198,7 @@ export const useLeaveStore = create<LeaveState>()(
                         }));
                         return rejectedLeave;
                     } catch (error: any) {
-                        console.error('Erreur lors du rejet du congé:', error);
+                        logger.error('Erreur lors du rejet du congé:', error);
                         set({
                             error: error.response?.data?.error || 'Impossible de rejeter la demande de congé.',
                             isSubmitting: false
@@ -246,7 +247,7 @@ export const useLeaveStore = create<LeaveState>()(
                         set({ isLoading: false });
                         return response.data;
                     } catch (error: any) {
-                        console.error('Erreur lors de la vérification des conflits:', error);
+                        logger.error('Erreur lors de la vérification des conflits:', error);
                         set({
                             error: error.response?.data?.error || 'Impossible de vérifier les conflits.',
                             isLoading: false
@@ -266,7 +267,7 @@ export const useLeaveStore = create<LeaveState>()(
                         set({ isLoading: false });
                         return response.data;
                     } catch (error: any) {
-                        console.error('Erreur lors de la vérification des droits:', error);
+                        logger.error('Erreur lors de la vérification des droits:', error);
                         set({
                             error: error.response?.data?.error || 'Impossible de vérifier les droits à congés.',
                             isLoading: false

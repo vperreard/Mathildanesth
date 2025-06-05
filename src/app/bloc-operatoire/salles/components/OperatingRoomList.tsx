@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
+import { logger } from "../../../../lib/logger";
 import { OperatingRoom } from '@/modules/planning/bloc-operatoire/types';
 import {
     useOperatingRoomsQuery,
@@ -77,7 +78,7 @@ export function OperatingRoomList() {
             handleCloseForm();
         } catch (error) {
             toast.error(`Erreur lors de la sauvegarde de la salle: ${error instanceof Error ? error.message : String(error)}`);
-            console.error("Erreur sauvegarde salle:", error);
+            logger.error("Erreur sauvegarde salle:", error);
         }
     };
 
@@ -99,7 +100,7 @@ export function OperatingRoomList() {
             closeDeleteDialog();
         } catch (error) {
             toast.error(`Erreur lors de la suppression de la salle: ${error instanceof Error ? error.message : String(error)}`);
-            console.error("Erreur suppression salle:", error);
+            logger.error("Erreur suppression salle:", error);
         }
     };
 

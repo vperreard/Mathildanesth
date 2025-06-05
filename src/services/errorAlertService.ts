@@ -1,4 +1,5 @@
 import { ErrorDetails } from '../hooks/useErrorHandler';
+import { logger } from "../lib/logger";
 import { flushErrorQueue } from './errorLoggingService';
 
 interface AlertConfig {
@@ -80,7 +81,7 @@ const sendEmailAlert = async (errors: Array<{ key: string, error: ErrorDetails }
 
         return response.ok;
     } catch (e) {
-        console.error('Échec de l\'envoi d\'alerte par email:', e);
+        logger.error('Échec de l\'envoi d\'alerte par email:', e);
         return false;
     }
 };
@@ -134,7 +135,7 @@ const sendSlackAlert = async (errors: Array<{ key: string, error: ErrorDetails }
 
         return response.ok;
     } catch (e) {
-        console.error('Échec de l\'envoi d\'alerte Slack:', e);
+        logger.error('Échec de l\'envoi d\'alerte Slack:', e);
         return false;
     }
 };
@@ -165,7 +166,7 @@ const sendPushNotification = async (errors: Array<{ key: string, error: ErrorDet
 
         return response.ok;
     } catch (e) {
-        console.error('Échec de l\'envoi de notification push:', e);
+        logger.error('Échec de l\'envoi de notification push:', e);
         return false;
     }
 };
@@ -196,7 +197,7 @@ const processAlertQueue = async () => {
     // S'assurer que les erreurs sont bien envoyées au serveur
     flushErrorQueue();
 
-    console.log(`Alertes envoyées: Email: ${results[0]}, Slack: ${results[1]}, Push: ${results[2]}`);
+    logger.info(`Alertes envoyées: Email: ${results[0]}, Slack: ${results[1]}, Push: ${results[2]}`);
 };
 
 /**

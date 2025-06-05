@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../lib/logger";
 import { prisma } from '@/lib/prisma';
 import { usePerformance } from '@/context/PerformanceContext';
 import { usePathname } from 'next/navigation';
@@ -100,13 +101,13 @@ export function useQueryPerformance(): QueryPerformanceHookReturn {
                     if (cacheStats) {
                         updateCacheStats(cacheStats);
                     } else {
-                        console.debug('[Performance] Aucune statistique de cache disponible');
+                        logger.debug('[Performance] Aucune statistique de cache disponible');
                     }
                 } else {
-                    console.debug('[Performance] Méthode $cacheStats non disponible sur cette instance Prisma');
+                    logger.debug('[Performance] Méthode $cacheStats non disponible sur cette instance Prisma');
                 }
             } catch (error) {
-                console.debug('[Performance] Erreur lors de la récupération des statistiques de cache:', error);
+                logger.debug('[Performance] Erreur lors de la récupération des statistiques de cache:', error);
             }
         };
 

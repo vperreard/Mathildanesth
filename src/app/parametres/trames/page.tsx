@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { logger } from "../../../lib/logger";
 import { TemplateManager } from '@/modules/templates/components/TemplateManager';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,14 +53,14 @@ export default function TramesPlanningPage() {
 
     // Mettre à jour l'URL lorsque l'onglet change et forcer le rechargement
     const handleTabChange = (value: string) => {
-        console.log(`🔄 [TramesPlanningPage] Changement d'onglet: ${activeTab} → ${value}`);
+        logger.info(`🔄 [TramesPlanningPage] Changement d'onglet: ${activeTab} → ${value}`);
         setActiveTab(value);
         router.replace(`/parametres/trames?tab=${value}`);
 
         // Forcer le rechargement des données quand on change d'onglet
         // pour synchroniser les vues
         setRefreshKey(Date.now());
-        console.log(`🔄 [TramesPlanningPage] Nouveau refreshKey: ${Date.now()}`);
+        logger.info(`🔄 [TramesPlanningPage] Nouveau refreshKey: ${Date.now()}`);
     };
 
     return (

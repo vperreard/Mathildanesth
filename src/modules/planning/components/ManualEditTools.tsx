@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from "../../../lib/logger";
 import { Card, Button, Select, Popover, PopoverTrigger, PopoverContent, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
 import { BlocRoomAssignment } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 import { User, Users, Pencil, CheckCircle, XCircle, AlertTriangle, Clock } from 'lucide-react';
@@ -79,7 +80,7 @@ export default function ManualEditTools({
             setValidationResult(null);
             setActiveTab('attribution');
         } catch (error) {
-            console.error('Erreur lors de la modification de l\'affectation:', error);
+            logger.error('Erreur lors de la modification de l\'affectation:', error);
         } finally {
             setIsLoading(false);
         }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { LeaveStatus, LeaveType as PrismaLeaveType } from '@prisma/client';
 import { withAuth, SecurityChecks } from '@/middleware/authorization';
@@ -57,7 +58,7 @@ async function getHandler(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
-    console.log(`[API /api/conges] Requête GET reçue pour userId: ${userId}`);
+    logger.info(`[API /api/conges] Requête GET reçue pour userId: ${userId}`);
 
     if (!userId) {
       return NextResponse.json({ error: 'Le paramètre userId est manquant' }, { status: 400 });
@@ -156,7 +157,7 @@ async function getHandler(request: NextRequest) {
     const formattedLeaves: LeaveWithUserFrontend[] = leaves
       .map(leave => {
         if (!leave.user) {
-          console.error(`Utilisateur non trouvé pour le congé ID: ${leave.id}`);
+          logger.error(`Utilisateur non trouvé pour le congé ID: ${leave.id}`);
           return null; // Marquer pour filtrage
         }
 
@@ -195,7 +196,7 @@ async function getHandler(request: NextRequest) {
 
     return NextResponse.json(formattedLeaves);
   } catch (error) {
-    console.error(`[API /api/conges] Erreur lors de la récupération des congés:`, error);
+    logger.error(`[API /api/conges] Erreur lors de la récupération des congés:`, error);
     return NextResponse.json(
       { error: 'Erreur serveur lors de la récupération des congés.' },
       { status: 500 }
@@ -225,7 +226,7 @@ async function postHandler(request: NextRequest) {
     }
 
     const body = await request.json();
-    console.log('[API /conges POST] Corps de la requête reçu:', JSON.stringify(body, null, 2));
+    logger.info('[API /conges POST] Corps de la requête reçu:', JSON.stringify(body, null, 2));
 
     const { userId, startDate, endDate, typeCode, reason } = body;
 
@@ -266,7 +267,7 @@ async function postHandler(request: NextRequest) {
       details: { typeCode, startDate, endDate },
     });
 
-    console.log('[API /conges POST] Valeurs extraites:', {
+    logger.info('[API /conges POST] Valeurs extraites:', {
       userId,
       startDate,
       endDate,
@@ -280,7 +281,7 @@ async function postHandler(request: NextRequest) {
 
     // --- Validation des données ---
     if (!userId || !startDate || !endDate || !typeCode) {
-      console.log('[API /conges POST] Validation échouée:', {
+      logger.info('[API /conges POST] Validation échouée:', {
         hasUserId: !!userId,
         hasStartDate: !!startDate,
         hasEndDate: !!endDate,
@@ -366,7 +367,7 @@ async function postHandler(request: NextRequest) {
         },
       });
 
-      console.log(
+      logger.info(
         '[API /conges POST] Données utilisateur récupérées:',
         JSON.stringify(
           {
@@ -394,7 +395,7 @@ async function postHandler(request: NextRequest) {
 
       // S'assurer que les valeurs de nom et prénom ne sont jamais undefined
       const adaptedUser = adaptUserFields(newLeave.user);
-      console.log('[API /conges POST] Utilisateur adapté:', JSON.stringify(adaptedUser, null, 2));
+      logger.info('[API /conges POST] Utilisateur adapté:', JSON.stringify(adaptedUser, null, 2));
 
       const firstName = adaptedUser?.prenom || adaptedUser?.firstName || '(Prénom non défini)';
       const lastName = adaptedUser?.nom || adaptedUser?.lastName || '(Nom non défini)';
@@ -445,13 +446,13 @@ async function postHandler(request: NextRequest) {
         }
       );
 
-      console.log(
+      logger.info(
         '[API /conges POST] Congé créé avec succès:',
         JSON.stringify(formattedLeave, null, 2)
       );
       return NextResponse.json(formattedLeave, { status: 201 }); // 201 Created
     } catch (error) {
-      console.error('[API /conges POST] Erreur lors de la création du congé:', error);
+      logger.error('[API /conges POST] Erreur lors de la création du congé:', error);
 
       // Log d'audit pour l'échec
       await auditService.logAction({
@@ -473,7 +474,7 @@ async function postHandler(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error('[API /conges POST] Erreur générale:', error);
+    logger.error('[API /conges POST] Erreur générale:', error);
     return NextResponse.json(
       { error: 'Erreur serveur lors de la création de la demande de congé.' },
       { status: 500 }

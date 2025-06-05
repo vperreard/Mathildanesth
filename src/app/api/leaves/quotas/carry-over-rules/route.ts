@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(rules);
     } catch (error) {
-        console.error('Erreur lors de la récupération des règles de report :', error);
+        logger.error('Erreur lors de la récupération des règles de report :', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des règles de report' },
             { status: 500 }
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(rule, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la création de la règle de report :', error);
+        logger.error('Erreur lors de la création de la règle de report :', error);
         return NextResponse.json(
             { error: 'Erreur lors de la création de la règle de report' },
             { status: 500 }

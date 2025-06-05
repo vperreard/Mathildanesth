@@ -9,6 +9,7 @@
  */
 
 import React from 'react';
+import { logger } from "./logger";
 import { Analytics } from '@vercel/analytics/react';
 
 export interface PerformanceMetric {
@@ -206,7 +207,7 @@ class PerformanceMonitor {
 
         // Log dans la console en développement
         if (process.env.NODE_ENV === 'development') {
-            console.warn(`🚨 Performance Alert [${severity.toUpperCase()}]:`, alertData);
+            logger.warn(`🚨 Performance Alert [${severity.toUpperCase()}]:`, alertData);
         }
 
         // En production, on pourrait envoyer vers un service de monitoring
@@ -227,9 +228,9 @@ class PerformanceMonitor {
             //   body: JSON.stringify(alertData)
             // });
 
-            console.info('Alert sent to monitoring service:', alertData);
+            logger.info('Alert sent to monitoring service:', alertData);
         } catch (error) {
-            console.error('Failed to send alert:', error);
+            logger.error('Failed to send alert:', error);
         }
     }
 
@@ -247,7 +248,7 @@ class PerformanceMonitor {
                 });
             }
         } catch (error) {
-            console.debug('Analytics tracking failed:', error);
+            logger.debug('Analytics tracking failed:', error);
         }
     }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { logger } from "../../../../lib/logger";
 import { useRouter } from 'next/navigation';
 import { useScheduleRules } from '@/modules/dynamicRules/hooks/useScheduleRules';
 import { RuleForm } from '@/modules/dynamicRules/components/RuleForm';
@@ -38,7 +39,7 @@ export default function NewRulePage() {
 
             router.push('/admin/planningMedical-rules');
         } catch (error) {
-            console.error('Erreur lors de la création de la règle:', error);
+            logger.error('Erreur lors de la création de la règle:', error);
             toast({
                 variant: 'destructive',
                 title: 'Erreur',

@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 
+import { logger } from "./logger";
 // Types pour la pagination
 export interface PaginationParams {
     page?: number;
@@ -114,7 +115,7 @@ export class OptimizedPaginator<T> {
         }
 
         if (cleaned > 0) {
-            console.log(`[Pagination] Cache nettoyé: ${cleaned} entrées supprimées`);
+            logger.info(`[Pagination] Cache nettoyé: ${cleaned} entrées supprimées`);
         }
     }
 
@@ -252,13 +253,13 @@ export class OptimizedPaginator<T> {
 
             // Log des requêtes lentes
             if (queryTime > 1000) {
-                console.warn(`[Pagination] Requête lente détectée: ${queryTime.toFixed(2)}ms pour ${this.model}`);
+                logger.warn(`[Pagination] Requête lente détectée: ${queryTime.toFixed(2)}ms pour ${this.model}`);
             }
 
             return result;
 
         } catch (error) {
-            console.error(`[Pagination] Erreur lors de la requête ${this.model}:`, error);
+            logger.error(`[Pagination] Erreur lors de la requête ${this.model}:`, error);
             throw error;
         }
     }
@@ -304,7 +305,7 @@ export class OptimizedPaginator<T> {
             return result;
 
         } catch (error) {
-            console.error(`[Pagination] Erreur lors du comptage ${this.model}:`, error);
+            logger.error(`[Pagination] Erreur lors du comptage ${this.model}:`, error);
             throw error;
         }
     }
@@ -353,7 +354,7 @@ export class OptimizedPaginator<T> {
             return suggestions;
 
         } catch (error) {
-            console.error(`[Pagination] Erreur lors des suggestions ${this.model}:`, error);
+            logger.error(`[Pagination] Erreur lors des suggestions ${this.model}:`, error);
             return [];
         }
     }

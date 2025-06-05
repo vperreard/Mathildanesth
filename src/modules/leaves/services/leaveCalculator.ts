@@ -9,6 +9,7 @@ import {
     isSameDay,
     formatDate
 } from '@/utils/dateUtils';
+import { logger } from "../../../lib/logger";
 import { fr } from 'date-fns/locale';
 import { isAfter, parseISO, format, getYear, isEqual, isBefore, isWithinInterval, addDays } from 'date-fns';
 
@@ -205,7 +206,7 @@ export const calculateLeaveCountedDays = async (
         for (const day of days) {
             const dayWeekEnd = getEndOfWeek(day);
             if (!dayWeekEnd) {
-                console.warn("Impossible de déterminer la fin de semaine pour", day);
+                logger.warn("Impossible de déterminer la fin de semaine pour", day);
                 continue;
             }
 

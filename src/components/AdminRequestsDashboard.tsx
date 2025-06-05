@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from "../lib/logger";
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowRight, Calendar, CheckCircle, Clock, Filter, Users, XCircle, ArchiveIcon } from 'lucide-react';
@@ -285,7 +286,7 @@ export default function AdminRequestsDashboard() {
                                     )}
                                     {request.status !== 'en-attente' && (
                                         <button
-                                            onClick={() => console.log("Archiver la requête:", request.id)} // Remplacer par la vraie logique d'archivage
+                                            onClick={() => logger.info("Archiver la requête:", request.id)} // Remplacer par la vraie logique d'archivage
                                             className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition-colors flex items-center"
                                         >
                                             <ArchiveIcon className="w-3.5 h-3.5 mr-1.5" />

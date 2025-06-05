@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { LeaveType, LeaveBalance, LeaveAllowanceCheckResult } from '../types/leave';
 import { fetchLeaveBalance, checkLeaveAllowance } from '../services/leaveService';
 import {
@@ -243,7 +244,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
             setTransferRules(rules);
         } catch (err) {
             setError(err as Error);
-            console.error('Erreur lors de la récupération des quotas de congés', err);
+            logger.error('Erreur lors de la récupération des quotas de congés', err);
         } finally {
             setLoading(false);
         }
@@ -319,7 +320,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
                 leaveType
             };
         } catch (error) {
-            console.error('Erreur lors de la vérification des quotas', error);
+            logger.error('Erreur lors de la vérification des quotas', error);
             return {
                 isValid: false,
                 message: 'Une erreur est survenue lors de la vérification des quotas.',
@@ -361,7 +362,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
             return result;
         } catch (err) {
             const error = err as Error;
-            console.error('Erreur lors du transfert de quotas :', error);
+            logger.error('Erreur lors du transfert de quotas :', error);
             throw error;
         }
     }, [transferRules, refreshQuotas, leaveBalance?.useSimulation]);
@@ -388,7 +389,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
             }
         } catch (err) {
             const error = err as Error;
-            console.error('Erreur lors de la simulation du transfert :', error);
+            logger.error('Erreur lors de la simulation du transfert :', error);
             throw error;
         }
     }, [transferRules, leaveBalance?.useSimulation]);
@@ -414,7 +415,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
             }
         } catch (err) {
             const error = err as Error;
-            console.error('Erreur lors du calcul du report :', error);
+            logger.error('Erreur lors du calcul du report :', error);
             throw error;
         }
     }, [leaveBalance?.useSimulation]);
@@ -446,7 +447,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
             }
         } catch (err) {
             const error = err as Error;
-            console.error('Erreur lors de l\'exécution du report :', error);
+            logger.error('Erreur lors de l\'exécution du report :', error);
             throw error;
         }
     }, [refreshQuotas, leaveBalance?.useSimulation]);

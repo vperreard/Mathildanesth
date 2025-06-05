@@ -1,5 +1,6 @@
 import { connectToDatabase } from '../../lib/mongodb.js';
 
+import { logger } from "../../lib/logger";
 /**
  * Liste des spécialités chirurgicales
  */
@@ -31,7 +32,7 @@ export const specialtiesToSeed = [
  */
 export async function seedSpecialties() {
   try {
-    console.log("Démarrage de l'initialisation des spécialités chirurgicales...");
+    logger.info("Démarrage de l'initialisation des spécialités chirurgicales...");
 
     // Connexion à la base de données
     const { db } = await connectToDatabase();
@@ -41,8 +42,8 @@ export async function seedSpecialties() {
     const existingSpecialties = await specialtiesCollection.countDocuments();
 
     if (existingSpecialties > 0) {
-      console.log(`${existingSpecialties} spécialités existent déjà dans la base de données.`);
-      console.log('Vérification des spécialités manquantes...');
+      logger.info(`${existingSpecialties} spécialités existent déjà dans la base de données.`);
+      logger.info('Vérification des spécialités manquantes...');
 
       // Récupérer toutes les spécialités existantes
       const existingSpecialtiesData = await specialtiesCollection.find().toArray();
@@ -55,20 +56,20 @@ export async function seedSpecialties() {
 
       if (specialtiesToAdd.length > 0) {
         await specialtiesCollection.insertMany(specialtiesToAdd);
-        console.log(`${specialtiesToAdd.length} nouvelles spécialités ont été ajoutées.`);
+        logger.info(`${specialtiesToAdd.length} nouvelles spécialités ont été ajoutées.`);
       } else {
-        console.log('Aucune nouvelle spécialité à ajouter.');
+        logger.info('Aucune nouvelle spécialité à ajouter.');
       }
     } else {
       // Aucune spécialité n'existe, ajouter toutes les spécialités
       await specialtiesCollection.insertMany(specialtiesToSeed);
-      console.log(`${specialtiesToSeed.length} spécialités ont été ajoutées.`);
+      logger.info(`${specialtiesToSeed.length} spécialités ont été ajoutées.`);
     }
 
-    console.log('Initialisation des spécialités chirurgicales terminée avec succès!');
+    logger.info('Initialisation des spécialités chirurgicales terminée avec succès!');
     return true;
   } catch (error) {
-    console.error("Erreur lors de l'initialisation des spécialités chirurgicales:", error);
+    logger.error("Erreur lors de l'initialisation des spécialités chirurgicales:", error);
     throw error;
   }
 }
@@ -78,7 +79,7 @@ export async function seedSpecialties() {
 //     seedSpecialties()
 //         .then(() => process.exit(0))
 //         .catch(error => {
-//             console.error('Erreur lors du seed des spécialités:', error);
+//             logger.error('Erreur lors du seed des spécialités:', error);
 //             process.exit(1);
 //         });
 // }

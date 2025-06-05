@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
@@ -317,7 +318,7 @@ export async function GET(req: NextRequest) {
             topUsers
         });
     } catch (error) {
-        console.error('Erreur lors de la récupération des données du dashboard:', error);
+        logger.error('Erreur lors de la récupération des données du dashboard:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des données' },
             { status: 500 }

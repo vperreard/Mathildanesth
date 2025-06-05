@@ -1,5 +1,6 @@
 import { AppEvent, EventType, BaseEvent } from './EventTypes';
 
+import { logger } from "../../lib/logger";
 // Type de fonction pour les gestionnaires d'événements
 export type EventHandler<T extends BaseEvent = AppEvent> = (event: T) => void;
 
@@ -74,7 +75,7 @@ class EventService {
             try {
                 handler(event);
             } catch (error) {
-                console.error(`Erreur lors du traitement de l'événement ${event.type}:`, error);
+                logger.error(`Erreur lors du traitement de l'événement ${event.type}:`, error);
             }
         });
     }
@@ -109,9 +110,9 @@ class EventService {
     private logDebug(message: string, data?: any): void {
         if (this.debugMode) {
             if (data) {
-                console.debug(`[EventService] ${message}`, data);
+                logger.debug(`[EventService] ${message}`, data);
             } else {
-                console.debug(`[EventService] ${message}`);
+                logger.debug(`[EventService] ${message}`);
             }
         }
     }

@@ -3,6 +3,7 @@
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { useLeaveApi } from './useLeaveApi';
 import { useUserApi } from '../../utilisateurs/hooks/useUserApi';
 import { useDepartmentApi } from '../../organization/hooks/useDepartmentApi';
@@ -144,7 +145,7 @@ export const useLeaveConflictAnalytics = (
         } catch (err) {
             const errorObj = err instanceof Error ? err : new Error('Erreur lors du chargement des données d\'analyse');
             setError(errorObj);
-            console.error('Erreur dans useLeaveConflictAnalytics.loadData:', err);
+            logger.error('Erreur dans useLeaveConflictAnalytics.loadData:', err);
         } finally {
             setLoading(false);
         }
@@ -170,7 +171,7 @@ export const useLeaveConflictAnalytics = (
         } catch (err) {
             const errorObj = err instanceof Error ? err : new Error('Erreur lors de la génération du rapport');
             setError(errorObj);
-            console.error('Erreur dans useLeaveConflictAnalytics.generateReport:', err);
+            logger.error('Erreur dans useLeaveConflictAnalytics.generateReport:', err);
         }
     }, [analyticsService, filter]);
 

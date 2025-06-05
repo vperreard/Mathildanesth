@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { analyticsService } from '@/modules/analytics/services/analyticsService';
 import { z } from 'zod';
 
@@ -35,7 +36,7 @@ export async function GET(request: Request) {
         );
         return NextResponse.json(stats);
     } catch (error) {
-        console.error("[API /api/analytics/room-utilization] Erreur lors de la récupération des statistiques:", error);
+        logger.error("[API /api/analytics/room-utilization] Erreur lors de la récupération des statistiques:", error);
         const errorMessage = 'Une erreur interne est survenue lors du traitement de votre demande.';
         if (error instanceof Error) {
             // Ne pas exposer les messages d'erreur internes détaillés au client en production.

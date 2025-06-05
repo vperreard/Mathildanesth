@@ -1,3 +1,5 @@
+import { logger } from "../../lib/logger";
+
 import { DisplayPersonnelIncompatibility } from '@/app/api/admin/incompatibilites/route'; // Importer le type
 
 const API_BASE_URL = '/api/admin/incompatibilites';
@@ -28,7 +30,7 @@ export async function getPersonnelIncompatibilities(): Promise<DisplayPersonnelI
 
         return await response.json();
     } catch (error) {
-        console.error("Erreur lors de la récupération des incompatibilités via le service:", error);
+        logger.error("Erreur lors de la récupération des incompatibilités via le service:", error);
         // Propager l'erreur pour que le composant appelant puisse la gérer (ex: afficher un message à l'utilisateur)
         throw error;
     }

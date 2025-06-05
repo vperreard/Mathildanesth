@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { logger } from "../../../lib/logger";
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -130,7 +131,7 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
             const holidays = await holidayCalendarService.getHolidayEvents(startDateStr, endDateStr);
             setHolidayEvents(holidays);
         } catch (error) {
-            console.error('Erreur lors du chargement des jours fériés:', error);
+            logger.error('Erreur lors du chargement des jours fériés:', error);
             setHolidayEvents([]);
         } finally {
             setHolidaysLoading(false);

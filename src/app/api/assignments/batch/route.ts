@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
                         });
                     }
                 } catch (error) {
-                    console.error(`Erreur lors du traitement de l'affectation: ${error}`);
+                    logger.error(`Erreur lors du traitement de l'affectation: ${error}`);
                     return { error: `Échec pour l'affectation de l'utilisateur ${attribution.userId}` };
                 }
             })
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
             { status: 200 }
         );
     } catch (error) {
-        console.error('Erreur lors du traitement des affectations par lots:', error);
+        logger.error('Erreur lors du traitement des affectations par lots:', error);
         return NextResponse.json(
             { error: 'Une erreur est survenue lors du traitement des affectations' },
             { status: 500 }

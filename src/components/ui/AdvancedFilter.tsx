@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../lib/logger";
 import { Button, Badge, Input, Checkbox } from '@/components/ui';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -211,7 +212,7 @@ export default function AdvancedFilter({
                 setShowSaveDialog(false);
                 // Après la sauvegarde, on présume que le filtre sera ajouté à savedFilters via les props
             } catch (error) {
-                console.error('Erreur lors de la sauvegarde du filtre:', error);
+                logger.error('Erreur lors de la sauvegarde du filtre:', error);
             }
         }
     };

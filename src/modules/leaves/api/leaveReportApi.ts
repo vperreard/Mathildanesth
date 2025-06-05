@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { logger } from "../../../lib/logger";
 import { format, parse, isValid } from 'date-fns';
 import { Leave, LeaveStatus, LeaveType } from '../types/leave';
 import { QuotaTransfer } from '../types/quota';
@@ -157,7 +158,7 @@ export class LeaveReportApi {
 
             return response.data;
         } catch (error) {
-            console.error(`Erreur lors de la récupération du rapport ${reportType}:`, error);
+            logger.error(`Erreur lors de la récupération du rapport ${reportType}:`, error);
             throw error;
         } finally {
             const duration = performance.now() - startTime;
@@ -243,7 +244,7 @@ export class LeaveReportApi {
 
             return response.data;
         } catch (error) {
-            console.error('Erreur lors de la récupération du rapport personnalisé:', error);
+            logger.error('Erreur lors de la récupération du rapport personnalisé:', error);
             throw error;
         } finally {
             const duration = performance.now() - startTime;
@@ -285,7 +286,7 @@ export class LeaveReportApi {
             // Retourner l'ID de la tâche d'exportation
             return response.data.id || response.data.exportTaskId;
         } catch (error) {
-            console.error(`Erreur lors de l'exportation du rapport ${reportType}:`, error);
+            logger.error(`Erreur lors de l'exportation du rapport ${reportType}:`, error);
             throw error;
         } finally {
             const duration = performance.now() - startTime;
@@ -306,7 +307,7 @@ export class LeaveReportApi {
 
             return response.data;
         } catch (error) {
-            console.error(`Erreur lors de la vérification du statut d'exportation ${exportTaskId}:`, error);
+            logger.error(`Erreur lors de la vérification du statut d'exportation ${exportTaskId}:`, error);
             throw error;
         }
     }
@@ -325,7 +326,7 @@ export class LeaveReportApi {
 
             return response.data;
         } catch (error) {
-            console.error(`Erreur lors du téléchargement du fichier d'exportation ${exportTaskId}:`, error);
+            logger.error(`Erreur lors du téléchargement du fichier d'exportation ${exportTaskId}:`, error);
             throw error;
         }
     }

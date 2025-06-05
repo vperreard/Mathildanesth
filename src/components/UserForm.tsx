@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle, Ref } from 'react';
+import { logger } from "../lib/logger";
 // Importer les TYPES depuis /types/user
 import {
     User, UserFormData, Weekday,
@@ -279,14 +280,14 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
             // alias: formData.alias || null, // Alias n'est pas dans le state UserFormState
         };
 
-        console.log("Data to send (UserForm):", dataToSend);
-        console.log("Selected skills (UserForm):", Array.from(selectedSkillIds));
-        console.log("Selected sites (UserForm):", selectedSites);
+        logger.info("Data to send (UserForm):", dataToSend);
+        logger.info("Selected skills (UserForm):", Array.from(selectedSkillIds));
+        logger.info("Selected sites (UserForm):", selectedSites);
 
         try {
             await onSubmit(dataToSend, Array.from(selectedSkillIds), selectedSites);
         } catch (err: any) {
-            console.error("Form submission error:", err);
+            logger.error("Form submission error:", err);
             setError(err.message || 'Une erreur est survenue lors de la soumission.');
         }
     };

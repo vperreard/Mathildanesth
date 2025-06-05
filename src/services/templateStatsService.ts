@@ -1,3 +1,5 @@
+import { logger } from "../lib/logger";
+
 // Service pour les statistiques des modèles de simulation
 
 export interface TemplateUsageStats {
@@ -34,7 +36,7 @@ export async function fetchTemplateStats(): Promise<TemplateStats> {
 
         return await response.json() as TemplateStats;
     } catch (error) {
-        console.error('Erreur lors de la récupération des statistiques:', error);
+        logger.error('Erreur lors de la récupération des statistiques:', error);
 
         // Retourner des données simulées en cas d'erreur
         return getMockStats();

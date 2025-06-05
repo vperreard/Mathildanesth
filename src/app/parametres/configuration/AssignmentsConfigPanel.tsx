@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     Plus, Trash2, Edit, Calendar, MapPin, Tag, User, Save, X,
     Clock, Info, ArrowRight, CheckCircle2, XCircle, Bell, AlertTriangle, Loader2,
@@ -105,11 +106,11 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                 const response = await axios.get<ActivityType[]>('/api/activity-types');
                 setActivityTypes(response.data);
             } else if (isAuthLoading) {
-                console.log("Auth en cours de chargement, attente avant de fetcher les types d'activité.");
+                logger.info("Auth en cours de chargement, attente avant de fetcher les types d'activité.");
                 return;
             }
         } catch (err: any) {
-            console.error("Erreur lors du chargement des types d'activité:", err);
+            logger.error("Erreur lors du chargement des types d'activité:", err);
             setError(`Impossible de charger les types d'activité: ${err.message}. Utilisation des données mockées.`);
             setActivityTypes(MOCK_ACTIVITY_TYPES);
         } finally {
@@ -168,12 +169,12 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log("[AssignmentsConfigPanel] handleSubmit triggered.");
+        logger.info("[AssignmentsConfigPanel] handleSubmit triggered.");
         setError(null);
 
         if (isAuthLoading || !isAuthenticated) {
             toast.error("Vous devez être authentifié.");
-            console.warn("[AssignmentsConfigPanel] handleSubmit aborted: User not authenticated.");
+            logger.warn("[AssignmentsConfigPanel] handleSubmit aborted: User not authenticated.");
             return;
         }
 
@@ -189,7 +190,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
             defaultPeriod: formData.defaultPeriod || null,
         };
 
-        console.log("[AssignmentsConfigPanel] Raw dataToSubmit before cleaning:", JSON.parse(JSON.stringify(dataToSubmit)));
+        logger.info("[AssignmentsConfigPanel] Raw dataToSubmit before cleaning:", JSON.parse(JSON.stringify(dataToSubmit)));
 
         Object.keys(dataToSubmit).forEach(key => {
             const K = key as keyof typeof dataToSubmit;
@@ -198,42 +199,42 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
             }
         });
 
-        console.log("[AssignmentsConfigPanel] Cleaned dataToSubmit:", JSON.parse(JSON.stringify(dataToSubmit)));
+        logger.info("[AssignmentsConfigPanel] Cleaned dataToSubmit:", JSON.parse(JSON.stringify(dataToSubmit)));
 
         const url = currentActivityType
             ? `/api/activity-types/${currentActivityType.id}`
             : '/api/activity-types';
         const method = currentActivityType ? 'PUT' : 'POST';
 
-        console.log(`[AssignmentsConfigPanel] Method: ${method}, URL: ${url}`);
+        logger.info(`[AssignmentsConfigPanel] Method: ${method}, URL: ${url}`);
 
         try {
             let response;
             if (method === 'PUT') {
-                console.log("[AssignmentsConfigPanel] PRE-AWAIT axios.put...");
+                logger.info("[AssignmentsConfigPanel] PRE-AWAIT axios.put...");
                 response = await axios.put(url, dataToSubmit);
-                console.log("[AssignmentsConfigPanel] POST-AWAIT axios.put. Response received (or error if it threw).");
-                console.log("[AssignmentsConfigPanel] axios.put response:", response);
+                logger.info("[AssignmentsConfigPanel] POST-AWAIT axios.put. Response received (or error if it threw).");
+                logger.info("[AssignmentsConfigPanel] axios.put response:", response);
                 toast.success('Type d\'activité modifié avec succès');
             } else {
-                console.log("[AssignmentsConfigPanel] PRE-AWAIT axios.post...");
+                logger.info("[AssignmentsConfigPanel] PRE-AWAIT axios.post...");
                 response = await axios.post(url, dataToSubmit);
-                console.log("[AssignmentsConfigPanel] POST-AWAIT axios.post. Response received (or error if it threw).");
-                console.log("[AssignmentsConfigPanel] axios.post response:", response);
+                logger.info("[AssignmentsConfigPanel] POST-AWAIT axios.post. Response received (or error if it threw).");
+                logger.info("[AssignmentsConfigPanel] axios.post response:", response);
                 toast.success('Type d\'activité ajouté avec succès');
             }
             resetFormAndCloseModal();
             await fetchActivityTypes();
         } catch (err: any) {
-            console.error("[AssignmentsConfigPanel] Error during submission (handleSubmit):", err);
+            logger.error("[AssignmentsConfigPanel] Error during submission (handleSubmit):", err);
             if (err.response) {
-                console.error('[AssignmentsConfigPanel] Error response data (handleSubmit):', err.response.data);
-                console.error('[AssignmentsConfigPanel] Error response status (handleSubmit):', err.response.status);
-                console.error('[AssignmentsConfigPanel] Error response headers (handleSubmit):', err.response.headers);
+                logger.error('[AssignmentsConfigPanel] Error response data (handleSubmit):', err.response.data);
+                logger.error('[AssignmentsConfigPanel] Error response status (handleSubmit):', err.response.status);
+                logger.error('[AssignmentsConfigPanel] Error response headers (handleSubmit):', err.response.headers);
             } else if (err.request) {
-                console.error('[AssignmentsConfigPanel] Error request data (handleSubmit):', err.request);
+                logger.error('[AssignmentsConfigPanel] Error request data (handleSubmit):', err.request);
             } else {
-                console.error('[AssignmentsConfigPanel] Error message (handleSubmit):', err.message);
+                logger.error('[AssignmentsConfigPanel] Error message (handleSubmit):', err.message);
             }
             const errorMessage = err.response?.data?.error || err.message || 'Une erreur est survenue.';
             setError(errorMessage);
@@ -243,7 +244,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
 
     const handleDelete = async (activityTypeId: string) => {
         setIsDeleting(true);
-        console.log('[AssignmentsConfigPanel] Attempting to delete activity type with ID:', activityTypeId);
+        logger.info('[AssignmentsConfigPanel] Attempting to delete activity type with ID:', activityTypeId);
 
         const confirmed = window.confirm(`Êtes-vous sûr de vouloir supprimer ce type d'activité ?`);
         if (!confirmed) {
@@ -251,22 +252,22 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
             return;
         }
 
-        console.log('[AssignmentsConfigPanel] User confirmed deletion for ID:', activityTypeId);
+        logger.info('[AssignmentsConfigPanel] User confirmed deletion for ID:', activityTypeId);
         try {
-            console.log('[AssignmentsConfigPanel] Calling axios.delete for', `/api/activity-types/${activityTypeId}`);
+            logger.info('[AssignmentsConfigPanel] Calling axios.delete for', `/api/activity-types/${activityTypeId}`);
             const response = await axios.delete(`http://localhost:3000/api/activity-types/${activityTypeId}`);
-            console.log('[AssignmentsConfigPanel] axios.delete response:', response);
+            logger.info('[AssignmentsConfigPanel] axios.delete response:', response);
 
             // Mettre à jour la liste après la suppression
             fetchActivityTypes();
             toast.success("Type d'activité supprimé avec succès");
         } catch (error: any) {
-            console.error('[AssignmentsConfigPanel] Error during deletion:', error);
+            logger.error('[AssignmentsConfigPanel] Error during deletion:', error);
 
             if (error.response) {
-                console.log('[AssignmentsConfigPanel] Error response data:', error.response.data);
-                console.log('[AssignmentsConfigPanel] Error response status:', error.response.status);
-                console.log('[AssignmentsConfigPanel] Error response headers:', error.response.headers);
+                logger.info('[AssignmentsConfigPanel] Error response data:', error.response.data);
+                logger.info('[AssignmentsConfigPanel] Error response status:', error.response.status);
+                logger.info('[AssignmentsConfigPanel] Error response headers:', error.response.headers);
 
                 if (error.response.status === 409) {
                     // Erreur de conflit - le type d'activité est utilisé ailleurs

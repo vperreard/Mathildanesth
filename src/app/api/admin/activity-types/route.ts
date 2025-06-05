@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { ActivityCategory } from '@prisma/client'; // Rétablir l'import direct, Prisma generate a été lancé
@@ -29,7 +30,7 @@ export async function GET() {
         });
         return NextResponse.json(activityTypes);
     } catch (error) {
-        console.error('[API GET /admin/activity-types]', error);
+        logger.error('[API GET /admin/activity-types]', error);
         return NextResponse.json({ message: "Erreur lors de la récupération des types d'activités." }, { status: 500 });
     }
 }
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json(newActivityType, { status: 201 });
     } catch (error: any) {
-        console.error('[API POST /admin/activity-types]', error);
+        logger.error('[API POST /admin/activity-types]', error);
         // Gestion spécifique des erreurs Prisma (ex: contrainte unique violée non interceptée plus haut)
         if (error.code === 'P2002' && error.meta?.target?.includes('name')) {
             return NextResponse.json({ message: `Un type d'activité avec ce nom existe déjà.` }, { status: 409 });

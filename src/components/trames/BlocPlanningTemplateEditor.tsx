@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import {
     Card,
     CardContent,
@@ -95,10 +96,10 @@ const BlocPlanningTemplateEditor: React.FC = () => {
         if (selectedTrameId) {
             const foundTrame = trameModeles.find(t => t.id === selectedTrameId);
             if (foundTrame) {
-                console.log("[BlocEditor] Mise à jour de selectedTrame:", foundTrame.id, "avec", foundTrame.affectations.length, "affectations");
+                logger.info("[BlocEditor] Mise à jour de selectedTrame:", foundTrame.id, "avec", foundTrame.affectations.length, "affectations");
                 setSelectedTrame(foundTrame);
             } else {
-                console.log("[BlocEditor] Aucune trameModele trouvée avec ID:", selectedTrameId);
+                logger.info("[BlocEditor] Aucune trameModele trouvée avec ID:", selectedTrameId);
                 setSelectedTrame(null);
                 setHasUnsavedChanges(false);
             }
@@ -152,15 +153,15 @@ const BlocPlanningTemplateEditor: React.FC = () => {
     useEffect(() => {
         // Cet effet est déclenché après chaque mise à jour des trameModeles
         // Il permet de s'assurer que le composant se re-rend correctement
-        console.log("[BlocEditor] useEffect pour mise à jour des trames:", selectedTrameId ? "TrameModele sélectionnée existe" : "Aucune trameModele sélectionnée");
+        logger.info("[BlocEditor] useEffect pour mise à jour des trames:", selectedTrameId ? "TrameModele sélectionnée existe" : "Aucune trameModele sélectionnée");
 
         // Si une trameModele est sélectionnée, s'assurer que selectedTrame reflète les dernières données
         if (selectedTrameId) {
             const currentSelectedTrame = trameModeles.find(t => t.id === selectedTrameId);
             if (currentSelectedTrame && currentSelectedTrame.affectations.length > 0) {
-                console.log("[BlocEditor] TrameModele sélectionnée a", currentSelectedTrame.affectations.length, "affectations");
+                logger.info("[BlocEditor] TrameModele sélectionnée a", currentSelectedTrame.affectations.length, "affectations");
                 // Forcer un re-render en déclenchant un log des dernières affectations
-                console.log("[BlocEditor] Dernières affectations:",
+                logger.info("[BlocEditor] Dernières affectations:",
                     currentSelectedTrame.affectations.slice(-3).map(a => ({
                         id: a.id,
                         jour: a.jourSemaine,
@@ -235,7 +236,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             }
             setHasUnsavedChanges(false);
         } catch (error) {
-            console.error('Erreur lors du chargement des trames:', error);
+            logger.error('Erreur lors du chargement des trames:', error);
             toast.error('Impossible de charger les trameModeles');
         } finally {
             setIsLoading(false);
@@ -263,10 +264,10 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             setMars(marsData); // Déjà Personnel[]
             setIades(iadesData); // Déjà Personnel[]
 
-            console.log("[BlocEditor] Données de support chargées (salles):", sallesData.slice(0, 2));
+            logger.info("[BlocEditor] Données de support chargées (salles):", sallesData.slice(0, 2));
         } catch (error) {
             toast.error("Erreur lors du chargement des données de support.");
-            console.error("[BlocEditor] Erreur loadSupportData:", error);
+            logger.error("[BlocEditor] Erreur loadSupportData:", error);
         }
     };
 
@@ -274,10 +275,10 @@ const BlocPlanningTemplateEditor: React.FC = () => {
         setSelectedTrameId(trameId);
         const trameToSelect = trameModeles.find(t => t.id === trameId);
         if (trameToSelect) {
-            console.log("[BlocEditor] TrameModele sélectionnée:", trameToSelect.id);
+            logger.info("[BlocEditor] TrameModele sélectionnée:", trameToSelect.id);
             setSelectedTrame(trameToSelect);
         } else {
-            console.log("[BlocEditor] Aucune trameModele trouvée avec ID:", trameId);
+            logger.info("[BlocEditor] Aucune trameModele trouvée avec ID:", trameId);
             setSelectedTrame(null);
         }
         setHasUnsavedChanges(false);
@@ -358,7 +359,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                 setHasUnsavedChanges(false);
             }
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde de la trameModele:', error);
+            logger.error('Erreur lors de la sauvegarde de la trameModele:', error);
             toast.error('Impossible de sauvegarder la trameModele. Vérifiez la console.');
         } finally {
             setIsLoading(false);
@@ -407,7 +408,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                     setSelectedTrameId(savedTrame.id);
                 }
             } catch (error) {
-                console.error('Erreur lors de l\'import de la trameModele:', error);
+                logger.error('Erreur lors de l\'import de la trameModele:', error);
                 toast.error('Impossible d\'importer la trameModele: format invalide ou erreur.');
             } finally {
                 setIsLoading(false);
@@ -431,7 +432,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             setSelectedTrameId(null);
             await loadTrames();
         } catch (error) {
-            console.error('Erreur lors de la suppression de la trameModele:', error);
+            logger.error('Erreur lors de la suppression de la trameModele:', error);
             toast.error('Impossible de supprimer la trameModele.');
         } finally {
             setIsLoading(false);
@@ -451,11 +452,11 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             setTrames(currentTrames => {
                 const trameToUpdate = currentTrames.find(t => t.id === selectedTrameId);
                 if (!trameToUpdate) {
-                    console.error("[BlocEditor] TrameModele non trouvée lors de la tentative de vidage.");
+                    logger.error("[BlocEditor] TrameModele non trouvée lors de la tentative de vidage.");
                     return currentTrames;
                 }
                 const clearedTrame = { ...trameToUpdate, affectations: [] };
-                console.log(`[BlocEditor] Vidage des affectations pour la trameModele ID: ${selectedTrameId}`);
+                logger.info(`[BlocEditor] Vidage des affectations pour la trameModele ID: ${selectedTrameId}`);
                 return currentTrames.map(t =>
                     t.id === selectedTrameId ? clearedTrame : t
                 );
@@ -505,11 +506,11 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             return;
         }
 
-        console.log("[BlocEditor] Activité reçue par handleSaveActivity:", JSON.stringify(activity, null, 2));
+        logger.info("[BlocEditor] Activité reçue par handleSaveActivity:", JSON.stringify(activity, null, 2));
 
         // Vérifier si l'activité est valide avant de l'ajouter
         if (!activity.nomAffichage || !activity.typeActivite) {
-            console.error("[BlocEditor] Activité invalide sans nomAffichage ou typeActivite:", activity);
+            logger.error("[BlocEditor] Activité invalide sans nomAffichage ou typeActivite:", activity);
             toast.error("Erreur: données d'activité incomplètes");
             return;
         }
@@ -522,10 +523,10 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                     const existingIndex = newAffectations.findIndex(a => a.id === activity.id);
 
                     if (existingIndex > -1) {
-                        console.log(`[BlocEditor] Mise à jour de l'activité existante ID: ${activity.id} pour la période ${activity.periode}`);
+                        logger.info(`[BlocEditor] Mise à jour de l'activité existante ID: ${activity.id} pour la période ${activity.periode}`);
                         newAffectations[existingIndex] = activity;
                     } else {
-                        console.log(`[BlocEditor] Ajout d'une nouvelle activité ID: ${activity.id} pour la période ${activity.periode}`);
+                        logger.info(`[BlocEditor] Ajout d'une nouvelle activité ID: ${activity.id} pour la période ${activity.periode}`);
                         newAffectations.push(activity);
                     }
                     return { ...t, affectations: newAffectations };
@@ -793,7 +794,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
 
                                                                 // Log simplifié pour la consultation
                                                                 if (row.key === 'CONSULT_1' && jour === 'LUNDI' && periode === 'MATIN') {
-                                                                    console.log(`[BlocEditor RENDER CONSULT] LUN-MATIN-CONSULT_1 - activityRowKey: ${activityForCell?.activityRowKey}, marId: ${activityForCell?.marId}, found: ${!!activityForCell}`);
+                                                                    logger.info(`[BlocEditor RENDER CONSULT] LUN-MATIN-CONSULT_1 - activityRowKey: ${activityForCell?.activityRowKey}, marId: ${activityForCell?.marId}, found: ${!!activityForCell}`);
                                                                 }
 
                                                                 const marName = activityForCell?.marId ? (personnel.find(p => String(p.id) === String(activityForCell.marId))?.nom || `ID:${String(activityForCell.marId)?.substring(0, 4)}`) : null;

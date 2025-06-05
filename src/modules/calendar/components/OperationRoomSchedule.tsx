@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { useCalendarContext, useCalendarEvents, useCalendarNavigation } from '../context/CalendarContext';
 import { CalendarViewType, AnyCalendarEvent, CalendarEventType } from '../types/event';
 import { format, addDays, startOfWeek, parseISO, isSameDay, subDays } from 'date-fns';
@@ -141,7 +142,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
                 setSectors(mockSectors);
                 showSuccess('Secteurs et salles chargés avec succès');
             } catch (error) {
-                console.error('Erreur lors du chargement des secteurs et salles:', error);
+                logger.error('Erreur lors du chargement des secteurs et salles:', error);
                 showError('Erreur lors du chargement des secteurs et salles');
             } finally {
                 setIsLoadingSectors(false);

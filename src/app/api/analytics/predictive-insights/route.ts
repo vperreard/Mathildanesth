@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { getPredictiveInsights } from '@/services/analyticsService';
@@ -29,7 +30,7 @@ export async function GET() {
       metadata,
     });
   } catch (error) {
-    console.error('Erreur lors de la génération des insights prédictifs:', error);
+    logger.error('Erreur lors de la génération des insights prédictifs:', error);
     return NextResponse.json(
       {
         success: false,

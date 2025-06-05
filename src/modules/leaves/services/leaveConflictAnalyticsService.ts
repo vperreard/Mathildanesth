@@ -4,6 +4,7 @@
  */
 
 import { LeaveConflict, ConflictType, ConflictSeverity } from '../types/conflict';
+import { logger } from "../../../lib/logger";
 import { Leave, LeaveType, LeaveStatus } from '../types/leave';
 import { User } from '../../../types/user';
 import { Department } from '../../../types/department';
@@ -686,7 +687,7 @@ export class LeaveConflictAnalyticsService {
                 ],
             };
         } catch (error) {
-            console.error('Erreur lors de la récupération des statistiques de conflits:', error);
+            logger.error('Erreur lors de la récupération des statistiques de conflits:', error);
             throw new Error('Impossible de récupérer les statistiques de conflits');
         }
     }
@@ -710,7 +711,7 @@ export class LeaveConflictAnalyticsService {
                 { period: '2023-12', count: 13, byType: { [ConflictType.TEAM_ABSENCE]: 5, [ConflictType.SPECIALTY_CAPACITY]: 3 } },
             ];
         } catch (error) {
-            console.error('Erreur lors de la récupération des tendances de conflits:', error);
+            logger.error('Erreur lors de la récupération des tendances de conflits:', error);
             throw new Error('Impossible de récupérer les tendances de conflits');
         }
     }
@@ -739,7 +740,7 @@ export class LeaveConflictAnalyticsService {
                 ],
             };
         } catch (error) {
-            console.error(`Erreur lors de la récupération des statistiques pour l'équipe ${teamId}:`, error);
+            logger.error(`Erreur lors de la récupération des statistiques pour l'équipe ${teamId}:`, error);
             throw new Error(`Impossible de récupérer les statistiques pour l'équipe ${teamId}`);
         }
     }
@@ -788,7 +789,7 @@ export class LeaveConflictAnalyticsService {
                 }
             ];
         } catch (error) {
-            console.error('Erreur lors de la génération des recommandations:', error);
+            logger.error('Erreur lors de la génération des recommandations:', error);
             throw new Error('Impossible de générer des recommandations');
         }
     }
@@ -829,7 +830,7 @@ export class LeaveConflictAnalyticsService {
                 },
             };
         } catch (error) {
-            console.error('Erreur lors de l\'analyse de l\'impact des conflits:', error);
+            logger.error('Erreur lors de l\'analyse de l\'impact des conflits:', error);
             throw new Error('Impossible d\'analyser l\'impact des conflits');
         }
     }
@@ -872,7 +873,7 @@ export class LeaveConflictAnalyticsService {
                 }
             ];
         } catch (error) {
-            console.error('Erreur lors de l\'identification des périodes à risque:', error);
+            logger.error('Erreur lors de l\'identification des périodes à risque:', error);
             throw new Error('Impossible d\'identifier les périodes à risque');
         }
     }
@@ -891,7 +892,7 @@ export class LeaveConflictAnalyticsService {
                 '2023-07,45,18,11\n' +
                 '...';
         } catch (error) {
-            console.error('Erreur lors de l\'export des données:', error);
+            logger.error('Erreur lors de l\'export des données:', error);
             throw new Error('Impossible d\'exporter les données d\'analyse');
         }
     }

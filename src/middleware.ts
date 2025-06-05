@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "./lib/logger";
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 
 export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
     
-    console.log(`[MIDDLEWARE] ${request.method} ${pathname}`);
+    logger.info(`[MIDDLEWARE] ${request.method} ${pathname}`);
     
     // Ignorer les ressources statiques
     if (
@@ -43,7 +44,7 @@ export async function middleware(request: NextRequest) {
         return pathname === route || pathname.startsWith(route + '/') || pathname.startsWith(route + '?');
     });
     
-    console.log(`[MIDDLEWARE] isPublicRoute: ${isPublicRoute}`);
+    logger.info(`[MIDDLEWARE] isPublicRoute: ${isPublicRoute}`);
     
     // Get auth token
     const authCookie = request.cookies.get('auth_token');
@@ -59,19 +60,19 @@ export async function middleware(request: NextRequest) {
                 isAuthenticated = true;
                 userId = authResult.userId.toString();
                 userRole = authResult.role || null;
-                console.log(`[MIDDLEWARE] User authenticated: ${userId} (${userRole})`);
+                logger.info(`[MIDDLEWARE] User authenticated: ${userId} (${userRole})`);
             }
         } catch (error) {
-            console.error('[MIDDLEWARE] Token verification failed:', error);
+            logger.error('[MIDDLEWARE] Token verification failed:', error);
         }
     }
     
     // Check authentication for protected routes
     if (!pathname.startsWith('/api/') && !isPublicRoute) {
-        console.log(`[MIDDLEWARE] Protected route ${pathname}, authenticated: ${isAuthenticated}`);
+        logger.info(`[MIDDLEWARE] Protected route ${pathname}, authenticated: ${isAuthenticated}`);
         
         if (!isAuthenticated) {
-            console.log(`[MIDDLEWARE] Redirecting to login`);
+            logger.info(`[MIDDLEWARE] Redirecting to login`);
             const url = new URL('/auth/connexion', request.url);
             url.searchParams.set('redirect', pathname);
             return NextResponse.redirect(url);

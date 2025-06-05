@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { removeAuthToken } from '@/lib/auth-utils';
 import { withAuthRateLimit } from '@/lib/rateLimit';
 import { auditService } from '@/services/OptimizedAuditService';
@@ -6,7 +7,7 @@ import { verifyAuthToken } from '@/lib/auth-server-utils';
 
 async function handler(req: any) {
     try {
-        console.log("API LOGOUT: Tentative de déconnexion");
+        logger.info("API LOGOUT: Tentative de déconnexion");
 
         // Vérifier l'utilisateur actuel pour l'audit
         const authHeader = req.headers.get('authorization');
@@ -28,11 +29,11 @@ async function handler(req: any) {
             await auditService.logLogout(userId);
         }
 
-        console.log("API LOGOUT: Cookie d'authentification supprimé avec succès");
+        logger.info("API LOGOUT: Cookie d'authentification supprimé avec succès");
         return NextResponse.json({ message: 'Déconnexion réussie' });
 
     } catch (error) {
-        console.error("API LOGOUT ERROR:", error);
+        logger.error("API LOGOUT ERROR:", error);
         return NextResponse.json(
             { message: 'Erreur interne du serveur lors de la déconnexion' },
             { status: 500 }

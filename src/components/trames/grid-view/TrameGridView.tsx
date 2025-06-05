@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -137,9 +138,9 @@ const TrameGridView: React.FC<{
                 if (parsed.categoryFilter) setCategoryFilter(parsed.categoryFilter);
                 if (parsed.showPersonnel !== undefined) setShowPersonnel(parsed.showPersonnel);
                 if (parsed.compactView !== undefined) setCompactView(parsed.compactView);
-                console.log(`Préférences de filtrage chargées pour la trameModele ${trameModele.id}:`, parsed);
+                logger.info(`Préférences de filtrage chargées pour la trameModele ${trameModele.id}:`, parsed);
             } catch (error) {
-                console.error('Erreur lors du chargement des préférences de filtrage:', error);
+                logger.error('Erreur lors du chargement des préférences de filtrage:', error);
             }
         }
     }, [trameModele.id, filterStorageKey]);
@@ -155,7 +156,7 @@ const TrameGridView: React.FC<{
         };
 
         localStorage.setItem(filterStorageKey, JSON.stringify(filtersToSave));
-        console.log(`Préférences de filtrage sauvegardées pour la trameModele ${trameModele.id}:`, filtersToSave);
+        logger.info(`Préférences de filtrage sauvegardées pour la trameModele ${trameModele.id}:`, filtersToSave);
     }, [sectorFilter, selectedSectorIds, categoryFilter, showPersonnel, compactView, trameModele.id, filterStorageKey]);
 
     // Utiliser les vraies salles ou les mockées si vides
@@ -194,14 +195,14 @@ const TrameGridView: React.FC<{
             // Détection par type de salle (plus spécifique d'abord)
             if (roomNameLower.includes('garde') || roomNameLower.includes('astreinte')) {
                 if (sectorNameLower.includes('garde') || sectorNameLower.includes('astreinte')) {
-                    console.log(`[SMART_DETECTION] Salle "${room.name}" assignée au secteur "${sector.name}" par type garde/astreinte`);
+                    logger.info(`[SMART_DETECTION] Salle "${room.name}" assignée au secteur "${sector.name}" par type garde/astreinte`);
                     return sector.id;
                 }
             }
 
             if (roomNameLower.includes('consultation') || roomNameLower.includes('cs')) {
                 if (sectorNameLower.includes('consultation') || sectorNameLower.includes('cs')) {
-                    console.log(`[SMART_DETECTION] Salle "${room.name}" assignée au secteur "${sector.name}" par type consultation`);
+                    logger.info(`[SMART_DETECTION] Salle "${room.name}" assignée au secteur "${sector.name}" par type consultation`);
                     return sector.id;
                 }
             }
@@ -210,13 +211,13 @@ const TrameGridView: React.FC<{
             const normalizedSectorName = sectorNameLower.replace(/[^a-z0-9]/gi, '').toLowerCase();
             const normalizedRoomName = roomNameLower.replace(/[^a-z0-9]/gi, '').toLowerCase();
             if (normalizedRoomName.includes(normalizedSectorName) && normalizedSectorName.length > 3) {
-                console.log(`[SMART_DETECTION] Salle "${room.name}" assignée au secteur "${sector.name}" par correspondance de nom`);
+                logger.info(`[SMART_DETECTION] Salle "${room.name}" assignée au secteur "${sector.name}" par correspondance de nom`);
                 return sector.id;
             }
         }
 
         // Si aucune correspondance trouvée, retourner l'operatingSectorId original (peut être null)
-        console.log(`[SMART_DETECTION] Aucun secteur trouvé pour la salle "${room.name}" (operatingSectorId: ${room.operatingSectorId})`);
+        logger.info(`[SMART_DETECTION] Aucun secteur trouvé pour la salle "${room.name}" (operatingSectorId: ${room.operatingSectorId})`);
         return room.operatingSectorId;
     }, [sectorsMap, sectors]);
 
@@ -236,8 +237,8 @@ const TrameGridView: React.FC<{
         if (!enrichedRooms.length) return [];
 
         // Journalisation pour le débogage
-        console.log("Secteurs disponibles:", sectors);
-        console.log("Salles enrichies:", enrichedRooms);
+        logger.info("Secteurs disponibles:", sectors);
+        logger.info("Salles enrichies:", enrichedRooms);
 
         // Créer une map des secteurs avec leur displayOrder comme clé de tri
         const sectorOrderMap = new Map();
@@ -255,7 +256,7 @@ const TrameGridView: React.FC<{
             });
 
             // Journalisation pour le débogage
-            console.log("Secteurs triés:", sortedSectors.map(s => ({ id: s.id, name: s.name, order: s.displayOrder })));
+            logger.info("Secteurs triés:", sortedSectors.map(s => ({ id: s.id, name: s.name, order: s.displayOrder })));
 
             // Utiliser l'index du secteur trié comme ordre de tri
             sortedSectors.forEach((sector, index) => {
@@ -271,7 +272,7 @@ const TrameGridView: React.FC<{
 
             // Journalisation pour le débogage des salles spécifiques
             if (a.name.includes("Garde") || b.name.includes("Garde")) {
-                console.log(`[SORT_DEBUG] Comparaison salles: ${a.name} (secteur: ${a.operatingSectorId}, ordre: ${sectorOrderA}) vs ${b.name} (secteur: ${b.operatingSectorId}, ordre: ${sectorOrderB})`);
+                logger.info(`[SORT_DEBUG] Comparaison salles: ${a.name} (secteur: ${a.operatingSectorId}, ordre: ${sectorOrderA}) vs ${b.name} (secteur: ${b.operatingSectorId}, ordre: ${sectorOrderB})`);
             }
 
             // Si les deux salles ont un secteur défini, comparer leur ordre de secteur
@@ -324,7 +325,7 @@ const TrameGridView: React.FC<{
         }));
 
         // Journalisation pour le débogage
-        console.log("Salles virtuelles créées:", virtualRooms);
+        logger.info("Salles virtuelles créées:", virtualRooms);
 
         // Créer une map des secteurs avec leur displayOrder comme clé de tri
         const sectorOrderMap = new Map();
@@ -418,7 +419,7 @@ const TrameGridView: React.FC<{
             });
         }
 
-        console.log(`Salles filtrées: ${filtered.length}/${roomsWithVirtualRooms.length} salles affichées`);
+        logger.info(`Salles filtrées: ${filtered.length}/${roomsWithVirtualRooms.length} salles affichées`);
         return filtered;
     }, [roomsWithVirtualRooms, sectorFilter, selectedSectorIds, categoryFilter, sectorsMap]);
 
@@ -450,11 +451,11 @@ const TrameGridView: React.FC<{
     const filteredAffectations = useMemo(() => {
         // Vérifier si les affectations existent
         if (!trameModele.affectations || trameModele.affectations.length === 0) {
-            console.log("Aucune affectation trouvée dans la trameModele");
+            logger.info("Aucune affectation trouvée dans la trameModele");
             return [];
         }
 
-        console.log("Affectations dans la trameModele:", trameModele.affectations);
+        logger.info("Affectations dans la trameModele:", trameModele.affectations);
 
         if (showWeekType === 'ALL') {
             return trameModele.affectations;
@@ -516,7 +517,7 @@ const TrameGridView: React.FC<{
         setCompactView(false);
         // Supprimer les préférences sauvegardées
         localStorage.removeItem(filterStorageKey);
-        console.log(`Filtres réinitialisés pour la trameModele ${trameModele.id}`);
+        logger.info(`Filtres réinitialisés pour la trameModele ${trameModele.id}`);
     }, [trameModele.id, filterStorageKey]);
 
     // Fonction pour éditer une affectation existante
@@ -524,7 +525,7 @@ const TrameGridView: React.FC<{
         (affectationId: string) => {
             if (readOnly) return;
 
-            console.log(`Édition de l'affectation ${affectationId}`);
+            logger.info(`Édition de l'affectation ${affectationId}`);
 
             // Logique d'édition à implémenter plus tard
             // Par exemple, ouvrir une boîte de dialogue ou mettre à jour l'état
@@ -550,7 +551,7 @@ const TrameGridView: React.FC<{
                 onTrameChange(updatedTrame);
             }
 
-            console.log(`Affectation ${affectationId} supprimée`);
+            logger.info(`Affectation ${affectationId} supprimée`);
         },
         [trameModele, readOnly, onTrameChange]
     );
@@ -577,7 +578,7 @@ const TrameGridView: React.FC<{
                 onTrameChange(updatedTrame);
             }
 
-            console.log(`État actif de l'affectation ${affectationId} basculé`);
+            logger.info(`État actif de l'affectation ${affectationId} basculé`);
         },
         [trameModele, readOnly, onTrameChange]
     );
@@ -707,7 +708,7 @@ const TrameGridView: React.FC<{
             if (!destination) return;
 
             // Ici on implémenterait la logique pour déplacer une affectation
-            console.log('Affectation déplacée:', { source, destination, draggableId });
+            logger.info('Affectation déplacée:', { source, destination, draggableId });
 
             // Mise à jour du state
             // ...
@@ -772,7 +773,7 @@ const TrameGridView: React.FC<{
                 onTrameChange(updatedTrame);
             }
 
-            console.log(`Nouvelle affectation créée pour ${roomId}, jour ${dayCode}, période ${period}`);
+            logger.info(`Nouvelle affectation créée pour ${roomId}, jour ${dayCode}, période ${period}`);
         },
         [trameModele, readOnly, onTrameChange, roomsWithVirtualRooms, mockActivityTypes]
     );

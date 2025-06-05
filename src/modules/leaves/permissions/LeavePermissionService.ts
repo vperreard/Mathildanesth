@@ -4,6 +4,7 @@
  */
 
 import { User } from '@/types/user';
+import { logger } from "../../../lib/logger";
 import { eventBus, IntegrationEventType } from '../../integration/services/EventBusService';
 import { auditService, AuditActionType, AuditSeverity } from '../services/AuditService';
 import { getSession } from 'next-auth/react';
@@ -256,7 +257,7 @@ export class LeavePermissionService {
                 this.invalidateUserCache(payload.targetId);
 
                 if (this.debug) {
-                    console.debug(`[LeavePermissionService] Cache invalidated for user ${payload.targetId} due to permission change`);
+                    logger.debug(`[LeavePermissionService] Cache invalidated for user ${payload.targetId} due to permission change`);
                 }
             }
         });
@@ -284,7 +285,7 @@ export class LeavePermissionService {
         });
 
         if (this.debug) {
-            console.debug('[LeavePermissionService] Cache configuration updated');
+            logger.debug('[LeavePermissionService] Cache configuration updated');
         }
     }
 
@@ -313,7 +314,7 @@ export class LeavePermissionService {
             this.clearCache();
         }
         if (this.debug) {
-            console.debug(`[LeavePermissionService] Cache ${enabled ? 'enabled' : 'disabled'}`);
+            logger.debug(`[LeavePermissionService] Cache ${enabled ? 'enabled' : 'disabled'}`);
         }
     }
 
@@ -324,7 +325,7 @@ export class LeavePermissionService {
         this.permissionCache.clear();
 
         if (this.debug) {
-            console.debug(`[LeavePermissionService] Cache cleared`);
+            logger.debug(`[LeavePermissionService] Cache cleared`);
         }
     }
 
@@ -335,7 +336,7 @@ export class LeavePermissionService {
         const count = this.permissionCache.invalidateByPrefix(`userId=${userId}`);
 
         if (this.debug && count > 0) {
-            console.debug(`[LeavePermissionService] Invalidated ${count} cache entries for user ${userId}`);
+            logger.debug(`[LeavePermissionService] Invalidated ${count} cache entries for user ${userId}`);
         }
     }
 
@@ -468,10 +469,10 @@ export class LeavePermissionService {
             this.clearCache();
 
             if (this.debug) {
-                console.debug('[LeavePermissionService] Custom permissions loaded', this.customPermissions.size);
+                logger.debug('[LeavePermissionService] Custom permissions loaded', this.customPermissions.size);
             }
         } catch (error) {
-            console.error('Erreur lors du chargement des permissions personnalisées:', error);
+            logger.error('Erreur lors du chargement des permissions personnalisées:', error);
         }
     }
 
@@ -505,7 +506,7 @@ export class LeavePermissionService {
 
             return userObject;
         } catch (error) {
-            console.error('Erreur lors de la récupération de l\'utilisateur actuel:', error);
+            logger.error('Erreur lors de la récupération de l\'utilisateur actuel:', error);
             return null;
         }
     }
@@ -587,7 +588,7 @@ export class LeavePermissionService {
             this.cachePermissionResult(permission, currentUser.id, false, targetUserId, targetDepartmentId);
             return false;
         } catch (error) {
-            console.error(`Erreur lors de la vérification de la permission ${permission}:`, error);
+            logger.error(`Erreur lors de la vérification de la permission ${permission}:`, error);
             return false;
         }
     }
@@ -651,7 +652,7 @@ export class LeavePermissionService {
             const data = await response.json();
             return data.managerId === managerId;
         } catch (error) {
-            console.error('Erreur lors de la vérification d\'appartenance à l\'équipe:', error);
+            logger.error('Erreur lors de la vérification d\'appartenance à l\'équipe:', error);
             return false;
         }
     }
@@ -673,7 +674,7 @@ export class LeavePermissionService {
 
             return user1.departmentId === user2.departmentId;
         } catch (error) {
-            console.error('Erreur lors de la vérification d\'appartenance au département:', error);
+            logger.error('Erreur lors de la vérification d\'appartenance au département:', error);
             return false;
         }
     }
@@ -747,18 +748,18 @@ export class LeavePermissionService {
      * Accorder une permission spécifique à un utilisateur
      */
     public async grantPermission(userId: string, permission: LeavePermission): Promise<boolean> {
-        console.log(`[DEBUG] grantPermission called for user: ${userId}, permission: ${permission}`);
+        logger.info(`[DEBUG] grantPermission called for user: ${userId}, permission: ${permission}`);
         const currentUser = await this.getCurrentUser();
         if (!currentUser) {
-            console.error("[DEBUG] grantPermission: Current user not found");
+            logger.error("[DEBUG] grantPermission: Current user not found");
             return false;
         }
-        console.log(`[DEBUG] grantPermission: Current user performing action: id=${currentUser.id}, role=${currentUser.role}`);
+        logger.info(`[DEBUG] grantPermission: Current user performing action: id=${currentUser.id}, role=${currentUser.role}`);
 
         const hasAuth = await this.hasPermission(LeavePermission.MANAGE_LEAVE_RULES, currentUser);
-        console.log(`[DEBUG] grantPermission: hasAuth (MANAGE_LEAVE_RULES) for ${currentUser.id}: ${hasAuth}`);
+        logger.info(`[DEBUG] grantPermission: hasAuth (MANAGE_LEAVE_RULES) for ${currentUser.id}: ${hasAuth}`);
         if (!hasAuth) {
-            console.error(`[DEBUG] grantPermission: User ${currentUser.id} does not have permission to MANAGE_LEAVE_RULES.`);
+            logger.error(`[DEBUG] grantPermission: User ${currentUser.id} does not have permission to MANAGE_LEAVE_RULES.`);
             return false;
         }
 
@@ -785,7 +786,7 @@ export class LeavePermissionService {
         if (permissionChanged) {
             this.customPermissions.set(userId, userPerms);
             const success = await this.saveCustomPermissions(userId, userPerms);
-            console.log(`[DEBUG] grantPermission: saveCustomPermissions result for ${userId}: ${success}`);
+            logger.info(`[DEBUG] grantPermission: saveCustomPermissions result for ${userId}: ${success}`);
 
             if (success) {
                 await auditService.logPermissionChange(currentUser.id, userId, permission, true);
@@ -798,7 +799,7 @@ export class LeavePermissionService {
             }
             return success;
         }
-        console.log(`[DEBUG] grantPermission: No actual change for ${userId}, permission ${permission}. Returning false.`);
+        logger.info(`[DEBUG] grantPermission: No actual change for ${userId}, permission ${permission}. Returning false.`);
         return false; // Aucune modification réelle n'a été apportée ou la sauvegarde a échoué
     }
 
@@ -806,16 +807,16 @@ export class LeavePermissionService {
      * Révoquer une permission spécifique d'un utilisateur
      */
     public async revokePermission(userId: string, permission: LeavePermission): Promise<boolean> {
-        console.log(`[DEBUG] revokePermission called for user: ${userId}, permission: ${permission}`);
+        logger.info(`[DEBUG] revokePermission called for user: ${userId}, permission: ${permission}`);
         const currentUser = await this.getCurrentUser();
         if (!currentUser) {
-            console.error("Current user not found in revokePermission");
+            logger.error("Current user not found in revokePermission");
             return false;
         }
 
         const hasAuth = await this.hasPermission(LeavePermission.MANAGE_LEAVE_RULES, currentUser);
         if (!hasAuth) {
-            console.error(`User ${currentUser.id} does not have permission to MANAGE_LEAVE_RULES.`);
+            logger.error(`User ${currentUser.id} does not have permission to MANAGE_LEAVE_RULES.`);
             return false;
         }
 
@@ -841,7 +842,7 @@ export class LeavePermissionService {
         if (permissionChanged) {
             this.customPermissions.set(userId, userPerms);
             const success = await this.saveCustomPermissions(userId, userPerms);
-            console.log(`[DEBUG] revokePermission: saveCustomPermissions result for ${userId}: ${success}`);
+            logger.info(`[DEBUG] revokePermission: saveCustomPermissions result for ${userId}: ${success}`);
 
             if (success) {
                 await auditService.logPermissionChange(currentUser.id, userId, permission, false);
@@ -854,7 +855,7 @@ export class LeavePermissionService {
             }
             return success;
         }
-        console.log(`[DEBUG] revokePermission: No actual change for ${userId}, permission ${permission}. Returning false.`);
+        logger.info(`[DEBUG] revokePermission: No actual change for ${userId}, permission ${permission}. Returning false.`);
         return false; // Aucune modification réelle n'a été apportée ou la sauvegarde a échoué
     }
 
@@ -862,9 +863,9 @@ export class LeavePermissionService {
      * Enregistrer les permissions personnalisées d'un utilisateur
      */
     private async saveCustomPermissions(userId: string, permissions: UserCustomPermissions): Promise<boolean> {
-        console.log(`[DEBUG] saveCustomPermissions called for user: ${userId}, permissions:`, JSON.stringify(permissions));
+        logger.info(`[DEBUG] saveCustomPermissions called for user: ${userId}, permissions:`, JSON.stringify(permissions));
         if (!this.permissionsLoaded) {
-            console.warn("Tentative de sauvegarde des permissions personnalisées avant leur chargement complet.");
+            logger.warn("Tentative de sauvegarde des permissions personnalisées avant leur chargement complet.");
         }
         try {
             const response = await fetch(`http://localhost:3000/api/leaves/permissions/${userId}/custom`, {
@@ -875,21 +876,21 @@ export class LeavePermissionService {
                     deniedPermissions: permissions.deniedPermissions,   // Doit être un tableau
                 }),
             });
-            console.log(`[DEBUG] saveCustomPermissions fetch response for ${userId}: status=${response.status}, ok=${response.ok}`);
+            logger.info(`[DEBUG] saveCustomPermissions fetch response for ${userId}: status=${response.status}, ok=${response.ok}`);
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error(`Erreur API lors de la sauvegarde des permissions pour ${userId}: ${response.status} ${response.statusText}`, errorText);
-                console.error(`API error saving custom permissions for ${userId}: ${response.statusText}`, { userId, error: errorText });
+                logger.error(`Erreur API lors de la sauvegarde des permissions pour ${userId}: ${response.status} ${response.statusText}`, errorText);
+                logger.error(`API error saving custom permissions for ${userId}: ${response.statusText}`, { userId, error: errorText });
                 return false;
             }
 
             const data = await response.json();
-            console.log(`[DEBUG] saveCustomPermissions fetch response data for ${userId}:`, JSON.stringify(data));
+            logger.info(`[DEBUG] saveCustomPermissions fetch response data for ${userId}:`, JSON.stringify(data));
             return data.success === true;
         } catch (error) {
-            console.error(`Erreur réseau ou autre lors de la sauvegarde des permissions pour ${userId}:`, error);
-            console.error(`Network or other error saving custom permissions for ${userId}`, { userId, error });
+            logger.error(`Erreur réseau ou autre lors de la sauvegarde des permissions pour ${userId}:`, error);
+            logger.error(`Network or other error saving custom permissions for ${userId}`, { userId, error });
             return false;
         }
     }
@@ -944,7 +945,7 @@ export class LeavePermissionService {
 
             return result;
         } catch (error) {
-            console.error(`Erreur lors de la récupération des permissions pour l'utilisateur ${userId}:`, error);
+            logger.error(`Erreur lors de la récupération des permissions pour l'utilisateur ${userId}:`, error);
             return [];
         }
     }
@@ -1004,7 +1005,7 @@ export class LeavePermissionService {
 
             return true;
         } catch (error) {
-            console.error(`Erreur lors de la réinitialisation des permissions pour l'utilisateur ${userId}:`, error);
+            logger.error(`Erreur lors de la réinitialisation des permissions pour l'utilisateur ${userId}:`, error);
             // S'assurer que l'erreur est également journalisée si elle n'a pas été interceptée avant
             const currentUser = await this.getCurrentUser(); // Peut être null si l'erreur est précoce
             if (currentUser && !(error instanceof Error && error.message.includes('réinitialisation des permissions'))) {
@@ -1033,7 +1034,7 @@ export class LeavePermissionService {
         this.permissionCache.preloadFrequentPermissions(userId);
 
         if (this.debug) {
-            console.debug(`[LeavePermissionService] Preloaded frequent permissions for user ${userId}`);
+            logger.debug(`[LeavePermissionService] Preloaded frequent permissions for user ${userId}`);
         }
     }
 

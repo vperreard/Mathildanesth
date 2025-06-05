@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { promises as fs } from 'fs';
 import path from 'path';
 import { CalendarExportFormat } from '@/modules/calendrier/types/event';
@@ -127,7 +128,7 @@ export async function POST(request: NextRequest) {
         try {
             await fs.unlink(filePath);
         } catch (unlinkError) {
-            console.warn('Impossible de supprimer le fichier temporaire:', unlinkError);
+            logger.warn('Impossible de supprimer le fichier temporaire:', unlinkError);
         }
 
         // Log d'audit pour l'export
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest) {
             }
         });
     } catch (error) {
-        console.error('Erreur lors de l\'export du calendrier:', error);
+        logger.error('Erreur lors de l\'export du calendrier:', error);
         
         // Log d'audit pour l'échec
         await auditService.logAction({

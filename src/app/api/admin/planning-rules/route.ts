@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
         });
 
     } catch (error) {
-        console.error('Erreur lors de la récupération des règles:', error);
+        logger.error('Erreur lors de la récupération des règles:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la récupération de la configuration' },
             { status: 500 }
@@ -110,7 +111,7 @@ export async function PUT(request: Request) {
         });
 
     } catch (error) {
-        console.error('Erreur lors de la sauvegarde des règles:', error);
+        logger.error('Erreur lors de la sauvegarde des règles:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la sauvegarde de la configuration' },
             { status: 500 }
@@ -178,7 +179,7 @@ export async function POST(request: Request) {
         );
 
     } catch (error) {
-        console.error('Erreur dans l\'action:', error);
+        logger.error('Erreur dans l\'action:', error);
         return NextResponse.json(
             { error: 'Erreur lors du traitement' },
             { status: 500 }

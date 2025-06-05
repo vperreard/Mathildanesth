@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import { useSession } from 'next-auth/react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -91,12 +92,12 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
             if (result.success) {
                 setNewMessage('');
             } else {
-                console.error('Erreur lors de l\'envoi du message:', result.error);
+                logger.error('Erreur lors de l\'envoi du message:', result.error);
                 // À améliorer avec un toast ou une notification visuelle
                 alert(`Erreur: ${result.error}`);
             }
         } catch (error) {
-            console.error('Erreur lors de l\'envoi du message:', error);
+            logger.error('Erreur lors de l\'envoi du message:', error);
         } finally {
             setIsSubmitting(false);
         }
@@ -113,11 +114,11 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
                 setEditingMessageId(null);
                 setEditingContent('');
             } else {
-                console.error('Erreur lors de la modification du message:', result.error);
+                logger.error('Erreur lors de la modification du message:', result.error);
                 alert(`Erreur: ${result.error}`);
             }
         } catch (error) {
-            console.error('Erreur lors de la modification du message:', error);
+            logger.error('Erreur lors de la modification du message:', error);
         } finally {
             setIsSubmitting(false);
         }
@@ -130,11 +131,11 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
         try {
             const result = await deleteMessage(messageId);
             if (!result.success) {
-                console.error('Erreur lors de la suppression du message:', result.error);
+                logger.error('Erreur lors de la suppression du message:', result.error);
                 alert(`Erreur: ${result.error}`);
             }
         } catch (error) {
-            console.error('Erreur lors de la suppression du message:', error);
+            logger.error('Erreur lors de la suppression du message:', error);
         }
     };
 
@@ -149,11 +150,11 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
                 setReplyToId(null);
                 setReplyContent('');
             } else {
-                console.error('Erreur lors de l\'envoi de la réponse:', result.error);
+                logger.error('Erreur lors de l\'envoi de la réponse:', result.error);
                 alert(`Erreur: ${result.error}`);
             }
         } catch (error) {
-            console.error('Erreur lors de l\'envoi de la réponse:', error);
+            logger.error('Erreur lors de l\'envoi de la réponse:', error);
         } finally {
             setIsSubmitting(false);
         }

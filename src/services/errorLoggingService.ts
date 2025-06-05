@@ -1,5 +1,6 @@
 import { ErrorDetails } from '../hooks/useErrorHandler';
 
+import { logger } from "../lib/logger";
 // Configuration pour le logging des erreurs
 interface LoggingConfig {
     enableConsoleLogging: boolean;
@@ -33,7 +34,7 @@ export const configureErrorLogging = (customConfig: Partial<LoggingConfig>) => {
 export const logError = (key: string, error: ErrorDetails): void => {
     // Logging dans la console en développement
     if (config.enableConsoleLogging) {
-        console.error(`[${error.severity.toUpperCase()}] ${key}:`, {
+        logger.error(`[${error.severity.toUpperCase()}] ${key}:`, {
             message: error.message,
             code: error.code,
             context: error.context,
@@ -87,12 +88,12 @@ export const flushErrorQueue = async (): Promise<void> => {
         if (!response.ok) {
             // Si le serveur ne répond pas correctement, remettre les erreurs dans la file d'attente
             errorQueue.push(...errors);
-            console.error('Échec de l\'envoi des logs d\'erreur au serveur:', await response.text());
+            logger.error('Échec de l\'envoi des logs d\'erreur au serveur:', await response.text());
         }
     } catch (e) {
         // En cas d'erreur de réseau, remettre les erreurs dans la file d'attente
         errorQueue.push(...errors);
-        console.error('Erreur lors de l\'envoi des logs d\'erreur au serveur:', e);
+        logger.error('Erreur lors de l\'envoi des logs d\'erreur au serveur:', e);
     }
 };
 
@@ -104,7 +105,7 @@ export const flushErrorQueue = async (): Promise<void> => {
 function setupUnloadListener() {
     // Vérifie si on est bien dans un environnement navigateur
     if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && navigator.sendBeacon) {
-        console.log("Setting up beforeunload listener for error logging.");
+        logger.info("Setting up beforeunload listener for error logging.");
         window.addEventListener('beforeunload', () => {
             const queueToSend = [...errorQueue]; // Create a copy of the queue
             if (queueToSend.length > 0) {
@@ -112,18 +113,18 @@ function setupUnloadListener() {
                     // Send the copy
                     const success = navigator.sendBeacon('/api/log-client-errors', JSON.stringify(queueToSend));
                     if (success) {
-                        console.log(`Successfully queued ${queueToSend.length} errors via sendBeacon on unload.`);
+                        logger.info(`Successfully queued ${queueToSend.length} errors via sendBeacon on unload.`);
                         // Don't attempt to modify the original errorQueue here
                     } else {
-                        console.warn('sendBeacon failed to queue errors on unload.');
+                        logger.warn('sendBeacon failed to queue errors on unload.');
                     }
                 } catch (error) {
-                    console.error('Error using sendBeacon on unload:', error);
+                    logger.error('Error using sendBeacon on unload:', error);
                 }
             }
         });
     } else {
-        console.log("Skipping beforeunload listener setup (not in a browser environment or sendBeacon not supported).");
+        logger.info("Skipping beforeunload listener setup (not in a browser environment or sendBeacon not supported).");
     }
 }
 

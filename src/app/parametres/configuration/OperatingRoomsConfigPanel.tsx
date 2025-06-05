@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { logger } from "../../../lib/logger";
 import axios from 'axios';
 import {
     PlusIcon,
@@ -276,7 +277,7 @@ const detectRoomType = (room: OperatingRoom, sectors: OperatingSector[], sites: 
 
             // Si le site a un secteur par défaut dans ses métadonnées
             if (roomSite.defaultSector && normalizeSectorName(roomSite.defaultSector) === normalizeSectorName(targetSectorNameForDetection)) {
-                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) assignée au secteur "${targetSectorNameForDetection}" car: secteur par défaut du site`);
+                if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) assignée au secteur "${targetSectorNameForDetection}" car: secteur par défaut du site`);
                 return targetSectorNameForDetection;
             }
         }
@@ -320,7 +321,7 @@ const detectRoomType = (room: OperatingRoom, sectors: OperatingSector[], sites: 
     if (room.roomType && Object.entries(sectorTypeCounts).some(([sector, type]) => type === room.roomType)) {
         const matchingSector = Object.entries(sectorTypeCounts).find(([sector, type]) => type === room.roomType)?.[0];
         if (matchingSector) {
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) assignée au secteur "${matchingSector}" car: correspondance par type de salle`);
+            if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) assignée au secteur "${matchingSector}" car: correspondance par type de salle`);
             return matchingSector;
         }
     }
@@ -357,7 +358,7 @@ const associateSitesToRooms = (rooms: OperatingRoom[], sites: OperatingSite[]): 
 
         // Si nous avons détecté un site
         if (detectedSiteId) {
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_SITE_ASSOC] Salle "${room.name}" associée au site ID: ${detectedSiteId}`);
+            if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_SITE_ASSOC] Salle "${room.name}" associée au site ID: ${detectedSiteId}`);
             return {
                 ...room,
                 siteId: detectedSiteId
@@ -380,14 +381,14 @@ const associateSitesToRooms = (rooms: OperatingRoom[], sites: OperatingSite[]): 
 const getSectorRooms = (sectorName: string, allRooms: OperatingRoom[], sectorsData: OperatingSector[], sitesData: OperatingSite[]): OperatingRoom[] => {
     if (!allRooms || !sectorName) return [];
 
-    if (DEBUG_MODE) console.log(`[ORCP_DEBUG] getSectorRooms: Traitement du secteur "${sectorName}"`);
+    if (DEBUG_MODE) logger.info(`[ORCP_DEBUG] getSectorRooms: Traitement du secteur "${sectorName}"`);
 
     // Trouver l'ID du secteur cible en cherchant directement par nom
     const targetSectorObject = sectorsData.find(s => s.name === sectorName);
     const targetSectorId = targetSectorObject?.id;
 
     if (DEBUG_MODE && targetSectorId) {
-        console.log(`[ORCP_DEBUG] getSectorRooms: ID du secteur cible "${sectorName}" est ${targetSectorId}`);
+        logger.info(`[ORCP_DEBUG] getSectorRooms: ID du secteur cible "${sectorName}" est ${targetSectorId}`);
     }
 
     // Filtrer les salles pour ce secteur
@@ -396,13 +397,13 @@ const getSectorRooms = (sectorName: string, allRooms: OperatingRoom[], sectorsDa
 
         // 1. Correspondance prioritaire par sectorId (si le secteur cible a un ID)
         if (targetSectorId && room.sectorId === targetSectorId) {
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}, sectorId: ${room.sectorId}) assignée au secteur "${sectorName}" (ID: ${targetSectorId}) car: correspondance de sectorId.`);
+            if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}, sectorId: ${room.sectorId}) assignée au secteur "${sectorName}" (ID: ${targetSectorId}) car: correspondance de sectorId.`);
             return true;
         }
 
         // 2. Correspondance exacte du nom de secteur textuel
         if (room.sector === sectorName) {
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}, room.sector: "${room.sector}") assignée au secteur "${sectorName}" car: correspondance exacte du nom de secteur textuel.`);
+            if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}, room.sector: "${room.sector}") assignée au secteur "${sectorName}" car: correspondance exacte du nom de secteur textuel.`);
             return true;
         }
 
@@ -412,7 +413,7 @@ const getSectorRooms = (sectorName: string, allRooms: OperatingRoom[], sectorsDa
             const existingSectorForRoomId = sectorsData.find(s => s.id === room.sectorId);
             if (!existingSectorForRoomId) {
                 canBeDetectedByType = true;
-                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) a un sectorId (${room.sectorId}) qui ne correspond à aucun secteur connu. Détection par type autorisée.`);
+                if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) a un sectorId (${room.sectorId}) qui ne correspond à aucun secteur connu. Détection par type autorisée.`);
             }
         }
 
@@ -420,7 +421,7 @@ const getSectorRooms = (sectorName: string, allRooms: OperatingRoom[], sectorsDa
             const suggestedSectorByDetection = detectRoomType(room, sectorsData, sitesData, sectorName);
             // Comparer les noms normalisés pour la détection
             if (suggestedSectorByDetection && normalizeSectorName(suggestedSectorByDetection) === normalizeSectorName(sectorName)) {
-                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) assignée au secteur "${sectorName}" car: détection intelligente de type.`);
+                if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) assignée au secteur "${sectorName}" car: détection intelligente de type.`);
                 return true;
             }
         }
@@ -430,15 +431,15 @@ const getSectorRooms = (sectorName: string, allRooms: OperatingRoom[], sectorsDa
 
     // Loguer les résultats en mode debug
     if (DEBUG_MODE) {
-        console.log(`[ORCP_DEBUG] Secteur "${sectorName}" contient ${filteredRooms.length} salles`);
-        console.log(`[ORCP_DEBUG] Valeur exacte du secteur: "${sectorName}" (type: ${typeof sectorName})`);
+        logger.info(`[ORCP_DEBUG] Secteur "${sectorName}" contient ${filteredRooms.length} salles`);
+        logger.info(`[ORCP_DEBUG] Valeur exacte du secteur: "${sectorName}" (type: ${typeof sectorName})`);
 
         if (filteredRooms.length === 0) {
-            console.log(`[ORCP_DEBUG_DETAIL] Le secteur "${sectorName}" ne contient aucune salle`);
+            logger.info(`[ORCP_DEBUG_DETAIL] Le secteur "${sectorName}" ne contient aucune salle`);
         } else {
-            console.log(`[ORCP_DEBUG_DETAIL] Le secteur "${sectorName}" contient ${filteredRooms.length} salles:`);
+            logger.info(`[ORCP_DEBUG_DETAIL] Le secteur "${sectorName}" contient ${filteredRooms.length} salles:`);
             filteredRooms.forEach(room => {
-                console.log(`[ORCP_DEBUG_DETAIL] - ${room.id}: ${room.name} (secteur="${room.sector}")`);
+                logger.info(`[ORCP_DEBUG_DETAIL] - ${room.id}: ${room.name} (secteur="${room.sector}")`);
             });
         }
     }
@@ -503,27 +504,27 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
     // Calcul des salles filtrées par site
     const allRoomsFilteredBySite = useMemo(() => {
-        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER_SITE] Filtre site actif: ${selectedSiteId === null ? 'Aucun (tous sites)' : selectedSiteId}`);
+        if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_FILTER_SITE] Filtre site actif: ${selectedSiteId === null ? 'Aucun (tous sites)' : selectedSiteId}`);
         if (!selectedSiteId) {
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER_SITE] Retour de toutes les salles (${rooms.length}) car aucun filtre de site.`);
+            if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_FILTER_SITE] Retour de toutes les salles (${rooms.length}) car aucun filtre de site.`);
             return rooms;
         }
         const filtered = rooms.filter(room => {
             const roomSector = sectors.find(s => s.id === room.sectorId);
             if (roomSector?.siteId === selectedSiteId) {
-                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER_SITE] Salle "${room.name}" (pas de siteId propre, mais secteur ${roomSector.name} est du site ${selectedSiteId}) -> incluse`);
+                if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_FILTER_SITE] Salle "${room.name}" (pas de siteId propre, mais secteur ${roomSector.name} est du site ${selectedSiteId}) -> incluse`);
                 return true;
             }
             if (room.siteId === selectedSiteId) {
-                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER_SITE] Salle "${room.name}" (siteId: ${room.siteId}) correspond au filtre ${selectedSiteId} -> incluse`);
+                if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_FILTER_SITE] Salle "${room.name}" (siteId: ${room.siteId}) correspond au filtre ${selectedSiteId} -> incluse`);
                 return true;
             }
             // Uniquement si "Tous les sites" est sélectionné (selectedSiteId === null), ce qui est géré par le premier `if`
             // donc ici, si la salle n'a pas de siteId et que son secteur n'est pas du site sélectionné, on l'exclut.
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER_SITE] Salle "${room.name}" (siteId: ${room.siteId}, secteur: ${roomSector?.name} siteId: ${roomSector?.siteId}) ne correspond pas au filtre ${selectedSiteId} -> exclue`);
+            if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_FILTER_SITE] Salle "${room.name}" (siteId: ${room.siteId}, secteur: ${roomSector?.name} siteId: ${roomSector?.siteId}) ne correspond pas au filtre ${selectedSiteId} -> exclue`);
             return false;
         });
-        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER_SITE] Salles après filtre de site (${selectedSiteId}): ${filtered.length} salles`);
+        if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_FILTER_SITE] Salles après filtre de site (${selectedSiteId}): ${filtered.length} salles`);
         return filtered;
     }, [rooms, selectedSiteId, sectors]);
 
@@ -556,7 +557,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
             const roomsInThisGlobalSector = getSectorRooms(globalSectorName, rooms, sectors, sites);
             roomsInThisGlobalSector.forEach(room => ids.add(room.id));
         });
-        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_GLOBAL_ASSIGNED_IDS] IDs des salles assignées globalement (total ${ids.size}):`, Array.from(ids));
+        if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_GLOBAL_ASSIGNED_IDS] IDs des salles assignées globalement (total ${ids.size}):`, Array.from(ids));
         return ids;
     }, [rooms, sectors, sites, sectorNames]);
 
@@ -565,21 +566,21 @@ const OperatingRoomsConfigPanel: React.FC = () => {
         const unassigned = allRoomsFilteredBySite.filter(room => {
             const isTrulyAssignedGlobally = trulyAssignedRoomIdsGlobalCheck.has(room.id);
             if (DEBUG_MODE && !isTrulyAssignedGlobally) {
-                console.log(`[ORCP_DEBUG_UNASSIGNED] Salle "${room.name}" (ID: ${room.id}, siteId: ${room.siteId}) est considérée NON ASSIGNÉE (check global) pour affichage dans "non assignées" (filtre site: ${selectedSiteId}).`);
+                logger.info(`[ORCP_DEBUG_UNASSIGNED] Salle "${room.name}" (ID: ${room.id}, siteId: ${room.siteId}) est considérée NON ASSIGNÉE (check global) pour affichage dans "non assignées" (filtre site: ${selectedSiteId}).`);
             }
             // if (DEBUG_MODE && isTrulyAssignedGlobally) {
-            //     console.log(`[ORCP_DEBUG_UNASSIGNED] Salle "${room.name}" (ID: ${room.id}) est ASSIGNÉE (check global), ne sera pas dans "non assignées".`);
+            //     logger.info(`[ORCP_DEBUG_UNASSIGNED] Salle "${room.name}" (ID: ${room.id}) est ASSIGNÉE (check global), ne sera pas dans "non assignées".`);
             // }
             return !isTrulyAssignedGlobally;
         });
-        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_UNASSIGNED] Salles non assignées finales (total ${unassigned.length} pour site ${selectedSiteId}): ${unassigned.map(r => `${r.name} (siteId ${r.siteId})`).join(', ') || 'Aucune'}`);
+        if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_UNASSIGNED] Salles non assignées finales (total ${unassigned.length} pour site ${selectedSiteId}): ${unassigned.map(r => `${r.name} (siteId ${r.siteId})`).join(', ') || 'Aucune'}`);
         return unassigned;
     }, [allRoomsFilteredBySite, trulyAssignedRoomIdsGlobalCheck, selectedSiteId]); // selectedSiteId pour la cohérence du log
 
     // Fonction pour récupérer les données
     const fetchData = async () => {
         setIsLoading(true);
-        console.log("[ORCP_LOG] Début de fetchData...");
+        logger.info("[ORCP_LOG] Début de fetchData...");
 
         try {
             const apiBaseUrl = window.location.origin;
@@ -593,9 +594,9 @@ const OperatingRoomsConfigPanel: React.FC = () => {
             // Récupérer les sites
             const sitesResponse = await axios.get(`${apiBaseUrl}/api/sites`);
 
-            console.log("[ORCP_LOG] Données brutes SALLES (réponse API):", roomsResponse);
-            console.log("[ORCP_LOG] Données brutes SECTEURS (réponse API):", sectorsResponse);
-            console.log("[ORCP_LOG] Données brutes SITES (réponse API):", sitesResponse);
+            logger.info("[ORCP_LOG] Données brutes SALLES (réponse API):", roomsResponse);
+            logger.info("[ORCP_LOG] Données brutes SECTEURS (réponse API):", sectorsResponse);
+            logger.info("[ORCP_LOG] Données brutes SITES (réponse API):", sitesResponse);
 
             let normalizedSectors: OperatingSector[] = [];
             let normalizedRooms: OperatingRoom[] = [];
@@ -603,19 +604,19 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
             // Transformer les données des secteurs
             if (sectorsResponse.data && Array.isArray(sectorsResponse.data)) {
-                console.log("[ORCP_LOG] Contenu de sectorsResponse.data:", sectorsResponse.data);
+                logger.info("[ORCP_LOG] Contenu de sectorsResponse.data:", sectorsResponse.data);
                 normalizedSectors = normalizeOperatingSectors(sectorsResponse.data);
             }
 
             // Transformer les données des salles
             if (roomsResponse.data && Array.isArray(roomsResponse.data)) {
-                console.log("[ORCP_LOG] Contenu de roomsResponse.data:", roomsResponse.data);
+                logger.info("[ORCP_LOG] Contenu de roomsResponse.data:", roomsResponse.data);
                 normalizedRooms = normalizeOperatingRooms(roomsResponse.data);
             }
 
             // Transformer les données des sites
             if (sitesResponse.data && Array.isArray(sitesResponse.data)) {
-                console.log("[ORCP_LOG] Contenu de sitesResponse.data:", sitesResponse.data);
+                logger.info("[ORCP_LOG] Contenu de sitesResponse.data:", sitesResponse.data);
                 sitesList = sitesResponse.data;
             }
 
@@ -631,7 +632,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                         else {
                             // Si sectorId ne correspond à aucun secteur connu, garder room.sector tel quel (probablement vide)
                             // et logguer cette situation si pertinent.
-                            if (DEBUG_MODE) console.warn(`[ORCP_WARN] Salle ID ${room.id} a un sectorId ${room.sectorId} qui ne correspond à aucun secteur connu.`);
+                            if (DEBUG_MODE) logger.warn(`[ORCP_WARN] Salle ID ${room.id} a un sectorId ${room.sectorId} qui ne correspond à aucun secteur connu.`);
                         }
                     }
                     return room;
@@ -641,15 +642,15 @@ const OperatingRoomsConfigPanel: React.FC = () => {
             // Associer les sites aux salles
             normalizedRooms = associateSitesToRooms(normalizedRooms, sitesList);
 
-            console.log("[ORCP_LOG] Secteurs normalisés:", normalizedSectors);
+            logger.info("[ORCP_LOG] Secteurs normalisés:", normalizedSectors);
 
             // Extraire les noms de secteurs uniques
             const uniqueSectorNames = Array.from(new Set(
                 normalizedSectors.map(sector => sector.name) // CORRECTION: utiliser les vrais noms des secteurs
             ));
-            console.log("[ORCP_LOG] Noms de secteurs uniques:", uniqueSectorNames);
+            logger.info("[ORCP_LOG] Noms de secteurs uniques:", uniqueSectorNames);
 
-            console.log("[ORCP_LOG] Données transformées des salles (avec secteur normalisé):", normalizedRooms);
+            logger.info("[ORCP_LOG] Données transformées des salles (avec secteur normalisé):", normalizedRooms);
 
             // Initialiser l'ordre des salles par secteur
             const newRoomOrder: RoomOrderConfig = {};
@@ -671,7 +672,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
             }
 
         } catch (error) {
-            console.error("Erreur lors du chargement des données:", error);
+            logger.error("Erreur lors du chargement des données:", error);
             setError("Erreur lors du chargement des données");
         } finally {
             setIsLoading(false);
@@ -718,7 +719,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
         if (selectedSiteId === null) return rooms;
         if (!rooms || !rooms.length) return [];
 
-        console.log('[ORCP_DEBUG_SITE] Filtrage des salles par site:', selectedSiteId);
+        logger.info('[ORCP_DEBUG_SITE] Filtrage des salles par site:', selectedSiteId);
 
         // Vérifier si les salles ont des informations de site
         const hasSiteInfo = rooms.some(room =>
@@ -727,14 +728,14 @@ const OperatingRoomsConfigPanel: React.FC = () => {
         );
 
         if (!hasSiteInfo && selectedSiteId) {
-            console.log('[ORCP_DEBUG_SITE] Aucune salle n\'a d\'information de site, affichage de toutes les salles');
+            logger.info('[ORCP_DEBUG_SITE] Aucune salle n\'a d\'information de site, affichage de toutes les salles');
             return rooms;
         }
 
         return rooms.filter(room => {
             // Pour le débogage
             if (DEBUG_MODE) {
-                console.log(`[ORCP_DEBUG_SITE] Salle ${room.id} (${room.name}):`,
+                logger.info(`[ORCP_DEBUG_SITE] Salle ${room.id} (${room.name}):`,
                     { siteId: room.siteId, site: room.site });
             }
 
@@ -888,7 +889,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                 setShowSuccess(false);
             }, 3000);
         } catch (error) {
-            console.error("Erreur lors de la soumission :", error);
+            logger.error("Erreur lors de la soumission :", error);
             setFormError("Une erreur est survenue lors de la soumission du formulaire");
         } finally {
             setIsSubmitting(false);
@@ -896,9 +897,9 @@ const OperatingRoomsConfigPanel: React.FC = () => {
     };
 
     const handleAddClick = () => {
-        if (DEBUG_MODE) console.log("[ORCP_DEBUG_ADD] Clic sur Ajouter une salle");
+        if (DEBUG_MODE) logger.info("[ORCP_DEBUG_ADD] Clic sur Ajouter une salle");
         const defaultSiteIdForNewRoom = selectedSiteId || (sites.length > 0 ? sites[0].id : null);
-        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_ADD] Site ID par défaut pour nouvelle salle: ${defaultSiteIdForNewRoom}`);
+        if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_ADD] Site ID par défaut pour nouvelle salle: ${defaultSiteIdForNewRoom}`);
 
         setFormData({
             name: '',
@@ -916,13 +917,13 @@ const OperatingRoomsConfigPanel: React.FC = () => {
     };
 
     const handleEditClick = (room: OperatingRoom) => {
-        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Clic sur Modifier salle:`, room);
+        if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_EDIT] Clic sur Modifier salle:`, room);
         let effectiveSectorName = room.sector || '';
         let effectiveSectorId = room.sectorId || null;
         let finalSectorValueForForm = '';
 
         if (!effectiveSectorId && room.id) {
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" n'a pas de sectorId. Tentative de détection...`);
+            if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_EDIT] Salle "${room.name}" n'a pas de sectorId. Tentative de détection...`);
             // Itérer sur tous les noms de secteur connus dans le système
             for (const sn of sectorNames) {
                 const roomsInSectorCandidate = getSectorRooms(sn, [room], sectors, sites);
@@ -931,7 +932,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                     if (detectedSectorObject) {
                         effectiveSectorName = detectedSectorObject.name; // Utiliser le nom canonique du secteur
                         effectiveSectorId = detectedSectorObject.id;
-                        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" (ID: ${room.id}) : secteur DÉTECTÉ -> ${effectiveSectorName} (ID: ${effectiveSectorId})`);
+                        if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_EDIT] Salle "${room.name}" (ID: ${room.id}) : secteur DÉTECTÉ -> ${effectiveSectorName} (ID: ${effectiveSectorId})`);
                     }
                     break;
                 }
@@ -940,13 +941,13 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
         if (effectiveSectorId) {
             finalSectorValueForForm = String(effectiveSectorId);
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : Utilisation de l'ID de secteur ${effectiveSectorId} pour le formulaire.`);
+            if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : Utilisation de l'ID de secteur ${effectiveSectorId} pour le formulaire.`);
         } else if (effectiveSectorName && effectiveSectorName.toLowerCase() !== 'secteur non défini' && effectiveSectorName.trim() !== '') {
             finalSectorValueForForm = effectiveSectorName; // Pourrait être un nom de secteur à créer
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : Utilisation du nom de secteur textuel "${effectiveSectorName}" pour le formulaire.`);
+            if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : Utilisation du nom de secteur textuel "${effectiveSectorName}" pour le formulaire.`);
         } else {
             finalSectorValueForForm = '';
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : Pas de secteur défini, formulaire vide pour secteur.`);
+            if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : Pas de secteur défini, formulaire vide pour secteur.`);
         }
 
         let formSiteId = room.siteId || null;
@@ -954,7 +955,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
             const sectorData = sectors.find(s => s.id === effectiveSectorId);
             if (sectorData && sectorData.siteId) {
                 formSiteId = sectorData.siteId;
-                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : siteId hérité du secteur ${sectorData.name} -> ${formSiteId}`);
+                if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : siteId hérité du secteur ${sectorData.name} -> ${formSiteId}`);
             }
         }
 
@@ -963,10 +964,10 @@ const OperatingRoomsConfigPanel: React.FC = () => {
             // et qu'un filtre de site est actif sur l'UI, on pré-remplit avec ce site.
             // Cela aide si l'utilisateur ajoute une salle "sans secteur" pendant qu'un site est filtré.
             formSiteId = selectedSiteId;
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : siteId pré-rempli avec le filtre de site actif ${selectedSiteId} car pas d'autre siteId trouvé.`);
+            if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : siteId pré-rempli avec le filtre de site actif ${selectedSiteId} car pas d'autre siteId trouvé.`);
         }
 
-        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Préparation du formulaire pour "${room.name}": sectorValue="${finalSectorValueForForm}", siteId=${formSiteId}`);
+        if (DEBUG_MODE) logger.info(`[ORCP_DEBUG_EDIT] Préparation du formulaire pour "${room.name}": sectorValue="${finalSectorValueForForm}", siteId=${formSiteId}`);
 
         setFormData({
             name: room.name,
@@ -993,7 +994,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                 setRooms(prevRooms => prevRooms.filter(room => room.id !== id));
                 toast.success("La salle a été supprimée avec succès");
             } catch (error) {
-                console.error("Erreur lors de la suppression de la salle:", error);
+                logger.error("Erreur lors de la suppression de la salle:", error);
                 toast.error("Erreur lors de la suppression de la salle");
             }
         }
@@ -1815,12 +1816,12 @@ const runTest = async () => {
 
     if (!forceTest) return;
 
-    console.log("=== DÉBUT DES TESTS AUTOMATIQUES ===");
+    logger.info("=== DÉBUT DES TESTS AUTOMATIQUES ===");
     try {
         // Simuler les tests
-        console.log("Test terminé avec succès");
+        logger.info("Test terminé avec succès");
     } catch (error) {
-        console.error("Erreur pendant les tests:", error);
+        logger.error("Erreur pendant les tests:", error);
     }
 };
 

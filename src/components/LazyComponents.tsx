@@ -1,6 +1,7 @@
 'use client';
 
 import { lazy, Suspense } from 'react';
+import { logger } from "../lib/logger";
 import { LoadingSpinner } from './ui/loading-spinner';
 
 // Lazy load des composants volumineux identifiés dans l'audit
@@ -115,7 +116,7 @@ export const dynamicImport = async function<T>(
             return module.default;
         } catch (error) {
             if (i === retries - 1) {
-                console.error('Failed to load component after retries:', error);
+                logger.error('Failed to load component after retries:', error);
                 throw error;
             }
             // Wait before retry

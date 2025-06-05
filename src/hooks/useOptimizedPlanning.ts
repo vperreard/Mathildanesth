@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import { Attribution } from '@/types/attribution';
 import { User } from '@/types/user';
 import { debounce } from 'lodash';
@@ -149,7 +150,7 @@ export function useOptimizedPlanning({
             queryClient.invalidateQueries({ queryKey });
         },
         onError: (error) => {
-            console.error('Erreur de sauvegarde:', error);
+            logger.error('Erreur de sauvegarde:', error);
         }
     });
 

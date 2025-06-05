@@ -1,13 +1,14 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { logger } from "../../../../lib/logger";
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Import dynamique depuis le nouveau dossier local
 const BlocPlanningComponent = dynamic(
   () => import('./BlocPlanning').catch((error) => {
-    console.error('Erreur chargement BlocPlanning:', error);
+    logger.error('Erreur chargement BlocPlanning:', error);
     return { default: () => <PlaceholderComponent componentName="BlocPlanning" /> };
   }),
   {
@@ -18,7 +19,7 @@ const BlocPlanningComponent = dynamic(
 
 const OptimizedBlocPlanningComponent = dynamic(
   () => import('./OptimizedBlocPlanning').catch((error) => {
-    console.error('Erreur chargement OptimizedBlocPlanning:', error);
+    logger.error('Erreur chargement OptimizedBlocPlanning:', error);
     return { default: () => <PlaceholderComponent componentName="OptimizedBlocPlanning" /> };
   }),
   {

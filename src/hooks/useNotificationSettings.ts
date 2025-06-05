@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import {
     NotificationSettings
 } from '@/modules/notifications/components/NotificationSettingsForm';
@@ -38,7 +39,7 @@ export const useNotificationSettings = ({ userId }: UseNotificationSettingsProps
             const userSettings = await getUserNotificationSettings(userId);
             setSettings(userSettings);
         } catch (err) {
-            console.error('Erreur lors du chargement des préférences:', err);
+            logger.error('Erreur lors du chargement des préférences:', err);
             setError('Une erreur est survenue lors du chargement de vos préférences.');
         } finally {
             setIsLoading(false);
@@ -55,7 +56,7 @@ export const useNotificationSettings = ({ userId }: UseNotificationSettingsProps
             await saveUserNotificationSettings(userId, updatedSettings);
             setSettings(updatedSettings);
         } catch (err) {
-            console.error('Erreur lors de l\'enregistrement des préférences:', err);
+            logger.error('Erreur lors de l\'enregistrement des préférences:', err);
             setError('Une erreur est survenue lors de l\'enregistrement de vos préférences.');
             throw err;
         } finally {
@@ -74,7 +75,7 @@ export const useNotificationSettings = ({ userId }: UseNotificationSettingsProps
             // Recharger les paramètres par défaut
             await loadSettings();
         } catch (err) {
-            console.error('Erreur lors de la réinitialisation des préférences:', err);
+            logger.error('Erreur lors de la réinitialisation des préférences:', err);
             setError('Une erreur est survenue lors de la réinitialisation de vos préférences.');
             throw err;
         } finally {

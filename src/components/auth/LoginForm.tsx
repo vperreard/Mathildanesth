@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logger } from "../../lib/logger";
 import { useAuth } from '@/hooks/useAuth';
 
 interface LoginFormProps {
@@ -27,7 +28,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, idPrefix =
             // Si "Se souvenir de moi" est coché, sauvegarder les identifiants
             if (rememberMe) {
                 localStorage.setItem('saved_credentials', JSON.stringify({ login, password }));
-                console.log("Identifiants sauvegardés dans localStorage");
+                logger.info("Identifiants sauvegardés dans localStorage");
             } else {
                 localStorage.removeItem('saved_credentials');
             }

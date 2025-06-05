@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -159,7 +160,7 @@ const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
 
             setSimulationResult(result);
         } catch (error) {
-            console.error("Erreur lors de la simulation de report:", error);
+            logger.error("Erreur lors de la simulation de report:", error);
         } finally {
             setIsSimulating(false);
         }

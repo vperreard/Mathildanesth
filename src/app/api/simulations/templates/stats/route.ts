@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
@@ -139,7 +140,7 @@ export async function GET() {
       categoryBreakdown,
     });
   } catch (error) {
-    console.error('Erreur lors de la récupération des statistiques:', error);
+    logger.error('Erreur lors de la récupération des statistiques:', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
