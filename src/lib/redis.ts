@@ -14,7 +14,7 @@ if (typeof window === 'undefined' && !isEdgeRuntime) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     Redis = require('ioredis').default || require('ioredis');
   } catch (error: unknown) {
-    logger.warn('IORedis non disponible:', error instanceof Error ? error : new Error(String(error)));
+    logger.warn('IORedis non disponible:', { error: error });
     Redis = null;
   }
 }
@@ -59,7 +59,7 @@ if (typeof window === 'undefined' && !isEdgeRuntime && Redis) {
     });
 
     redisInstance.on('error', (error: unknown) => {
-      logger.error('Erreur de connexion Redis:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur de connexion Redis:', { error: error });
     });
 
     redisInstance.on('close', () => {
@@ -70,7 +70,7 @@ if (typeof window === 'undefined' && !isEdgeRuntime && Redis) {
       logger.warn('Tentative de reconnexion au serveur Redis...');
     });
   } catch (error: unknown) {
-    logger.warn('Impossible de créer la connexion Redis:', error instanceof Error ? error : new Error(String(error)));
+    logger.warn('Impossible de créer la connexion Redis:', { error: error });
     redisInstance = null;
   }
 } else if (isEdgeRuntime) {
@@ -108,7 +108,10 @@ class RedisCacheClient {
    * Wrapper pour toutes les opérations Redis
    * Vérifie si le cache est activé avant d'exécuter la commande
    */
-  private async executeIfEnabled<T>(operation: RedisOperation, ...args: unknown[]): Promise<T | null> {
+  private async executeIfEnabled<T>(
+    operation: RedisOperation,
+    ...args: unknown[]
+  ): Promise<T | null> {
     if (!this.enabled) {
       return null;
     }
@@ -116,7 +119,7 @@ class RedisCacheClient {
     try {
       return await operation.apply(this.client, args);
     } catch (error: unknown) {
-      logger.error(`Erreur Redis pour l'opération ${operation.name}:`, error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Erreur Redis pour l'opération ${operation.name}:`, { error: error });
       return null;
     }
   }
@@ -199,7 +202,7 @@ class RedisCacheClient {
       const result = await this.client.ping();
       return result === 'PONG';
     } catch (error: unknown) {
-      logger.error('Erreur lors du ping Redis:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors du ping Redis:', { error: error });
       return false;
     }
   }
