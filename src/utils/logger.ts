@@ -1,69 +1,64 @@
+// Logger utility for Winston integration
+
 // Do not import winston statically here
 
 let loggerInstance: any | null = null; // Use 'any' or create a minimal interface if needed for type safety
 
 async function initializeLogger() {
-    // Initialize only on the server
-    if (typeof window === 'undefined') {
-        if (!loggerInstance) {
-            try {
-                // Dynamically import winston only on the server
-                const winston = (await import('winston')).default;
-                const { transports, format } = winston;
+  // Initialize only on the server
+  if (typeof window === 'undefined') {
+    if (!loggerInstance) {
+      try {
+        // Dynamically import winston only on the server
+        const winston = (await import('winston')).default;
+        const { transports, format } = winston;
 
-                loggerInstance = winston.createLogger({
-                    level: process.env.LOG_LEVEL || 'info',
-                    format: format.combine(
-                        format.timestamp(),
-                        format.json()
-                    ),
-                    transports: [
-                        new transports.Console({
-                            format: format.combine(
-                                format.colorize(),
-                                format.simple()
-                            )
-                        })
-                    ]
-                });
+        loggerInstance = winston.createLogger({
+          level: process.env.LOG_LEVEL || 'info',
+          format: format.combine(format.timestamp(), format.json()),
+          transports: [
+            new transports.Console({
+              format: format.combine(format.colorize(), format.simple()),
+            }),
+          ],
+        });
 
-                // Add file transports only on the server
-                loggerInstance.add(new transports.File({ filename: 'logs/error.log', level: 'error' }));
-                loggerInstance.add(new transports.File({ filename: 'logs/combined.log' }));
+        // Add file transports only on the server
+        loggerInstance.add(new transports.File({ filename: 'logs/error.log', level: 'error' }));
+        loggerInstance.add(new transports.File({ filename: 'logs/combined.log' }));
 
-                console.log('Winston logger initialized on server.');
-
-            } catch (error) {
-                console.error('Failed to initialize Winston logger:', error);
-                // Fallback to console logging if Winston fails
-                loggerInstance = console;
-            }
-        }
-    } else {
-        // On the client, use a simple console logger mock
-        if (!loggerInstance) {
-            console.log('Initializing console logger for client.');
-            loggerInstance = {
-                info: console.info,
-                warn: console.warn,
-                error: console.error,
-                debug: console.debug,
-                // Add other levels if needed, mapping to console methods
-            };
-        }
+        console.info('Winston logger initialized on server.');
+      } catch (error) {
+        console.error('Failed to initialize Winston logger:', error);
+        // Fallback to console logging if Winston fails
+        loggerInstance = console;
+      }
     }
-    return loggerInstance;
+  } else {
+    // On the client, use a simple console logger mock
+    if (!loggerInstance) {
+      console.info('Initializing console logger for client.');
+      loggerInstance = {
+        info: console.info,
+        warn: console.warn,
+        error: console.error,
+        debug: console.debug,
+        // Add other levels if needed, mapping to console methods
+      };
+    }
+  }
+  return loggerInstance;
 }
 
 // Export an async function to get the logger
 // Ensures logger is initialized before use
 export async function getLogger() {
-    if (!loggerInstance) {
-        await initializeLogger();
-    }
-    // If initialization failed on server, loggerInstance might be console
-    // If on client, it will be the console mock
-    return loggerInstance || console; // Fallback to console just in case
+  if (!loggerInstance) {
+    await initializeLogger();
+  }
+  // If initialization failed on server, loggerInstance might be console
+  // If on client, it will be the console mock
+  return loggerInstance || console; // Fallback to console just in case
 }
 
 // Optional: Export a synchronous proxy object if needed for compatibility,
@@ -92,8 +87,24 @@ export { loggerProxy as logger };
 
 // Export a synchronous logger for compatibility
 export const logger = {
-    info: (...args: any[]) => console.info(...args),
-    warn: (...args: any[]) => console.warn(...args),
-    error: (...args: any[]) => console.error(...args),
-    debug: (...args: any[]) => console.debug(...args),
-}; 
+  info: (...args: any[]) => {
+    getLogger()
+      .then(l => l.info(...args))
+      .catch(console.error);
+  },
+  warn: (...args: any[]) => {
+    getLogger()
+      .then(l => l.warn(...args))
+      .catch(console.error);
+  },
+  error: (...args: any[]) => {
+    getLogger()
+      .then(l => l.error(...args))
+      .catch(console.error);
+  },
+  debug: (...args: any[]) => {
+    getLogger()
+      .then(l => l.debug(...args))
+      .catch(console.error);
+  },
+};

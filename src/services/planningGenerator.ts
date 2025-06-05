@@ -32,12 +32,15 @@ import { differenceInDays } from 'date-fns';
 import { RuleEngineV2 } from '@/modules/dynamicRules/v2/services/RuleEngineV2';
 import { RuleContext } from '@/modules/dynamicRules/v2/types/ruleV2.types';
 
-// Simulation Logger
+// Import logger from lib
+import { logger as appLogger } from '@/lib/logger';
+
+// Use app logger with compatibility wrapper
 const logger = {
-  log: console.log,
-  warn: console.warn,
-  error: console.error,
-  debug: console.debug,
+  log: (message: string, ...args: any[]) => appLogger.info(message, ...args),
+  warn: (message: string, ...args: any[]) => appLogger.warn(message, ...args),
+  error: (message: string, ...args: any[]) => appLogger.error(message, ...args),
+  debug: (message: string, ...args: any[]) => appLogger.debug(message, ...args),
 };
 
 /**

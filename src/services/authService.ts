@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { AuthCacheService } from '@/lib/auth/authCache';
 import { logger } from '@/lib/logger';
 
+/**
+ * Response structure for login operations
+ */
 interface LoginResponse {
   user: {
     id: number;
@@ -14,7 +17,17 @@ interface LoginResponse {
   token: string;
 }
 
+/**
+ * Authentication service handling user login, logout, and session management
+ */
 export const authService = {
+  /**
+   * Authenticates a user with email and password
+   * @param email - User's email address
+   * @param password - User's password (plain text, will be hashed for comparison)
+   * @returns Promise resolving to login response with user data and JWT token
+   * @throws {Error} If credentials are invalid, account is disabled, or account is locked
+   */
   async login(email: string, password: string): Promise<LoginResponse> {
     try {
       // Find user
@@ -59,11 +72,11 @@ export const authService = {
         });
 
         logger.warn('Login attempt failed: invalid password', { email });
-        
+
         if (lockedUntil) {
           throw new Error('Account locked due to too many failed attempts');
         }
-        
+
         throw new Error('Invalid credentials');
       }
 
@@ -78,11 +91,9 @@ export const authService = {
       });
 
       // Generate JWT token
-      const token = jwt.sign(
-        { userId: user.id, role: user.role },
-        process.env.JWT_SECRET!,
-        { expiresIn: '24h' }
-      );
+      const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET!, {
+        expiresIn: '24h',
+      });
 
       // Cache auth data
       await AuthCacheService.cacheAuthToken(token, {
@@ -115,6 +126,12 @@ export const authService = {
     }
   },
 
+  /**
+   * Validates a JWT token and returns the payload
+   * @param token - JWT token to validate
+   * @returns Promise resolving to the token payload
+   * @throws {Error} If token is invalid or expired
+   */
   async validateToken(token: string): Promise<any> {
     try {
       // Check cache first
@@ -190,7 +207,11 @@ export const authService = {
     }
   },
 
-  async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    userId: number,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },

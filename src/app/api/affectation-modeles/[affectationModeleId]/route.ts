@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
-import { logger } from '@/lib/logger';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { AuditService } from '@/services/AuditService';
 

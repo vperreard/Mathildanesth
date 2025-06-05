@@ -3,7 +3,6 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { checkUserRole } from '@/lib/auth-server-utils';
 import type { UserRole } from '@/lib/auth-client-utils';
-import { logger } from '@/lib/logger';
 import { AuditService } from '@/services/AuditService';
 
 const ALLOWED_ROLES_CREATE: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'];

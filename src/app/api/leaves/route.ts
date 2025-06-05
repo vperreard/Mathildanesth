@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { LeaveStatus, LeaveType as PrismaLeaveType } from '@prisma/client';
 import { withAuth, SecurityChecks } from '@/middleware/authorization';
-import { logger } from '@/lib/logger';
 import { auth } from '@/lib/auth';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { BusinessRulesValidator } from '@/services/businessRulesValidator';
@@ -51,6 +50,43 @@ const mapCodeToLeaveType = (code: string): PrismaLeaveType => {
 /**
  * GET /api/conges?userId=123
  * Récupère les congés d'un utilisateur.
+ *
+ * @description Endpoint sécurisé pour récupérer la liste des congés d'un utilisateur.
+ * Applique des règles de sécurité strictes : un utilisateur ne peut voir que ses propres congés,
+ * sauf s'il est administrateur. Inclut les informations complètes de l'utilisateur pour chaque congé.
+ *
+ * @param {NextRequest} request - Requête HTTP avec token JWT dans l'en-tête Authorization
+ * @param {string} request.url - URL contenant le paramètre userId en query string
+ *
+ * @returns {NextResponse<LeaveWithUserFrontend[]>} Liste des congés avec informations utilisateur
+ *
+ * @throws {400} Si le paramètre userId est manquant
+ * @throws {401} Si le token d'authentification est manquant ou invalide
+ * @throws {403} Si l'utilisateur n'a pas les permissions pour voir ces congés
+ * @throws {500} En cas d'erreur serveur
+ *
+ * @example
+ * // Requête
+ * GET /api/conges?userId=123
+ * Headers: { Authorization: 'Bearer eyJhbGc...' }
+ *
+ * // Réponse
+ * [
+ *   {
+ *     id: "leave-1",
+ *     startDate: "2025-06-10",
+ *     endDate: "2025-06-20",
+ *     status: "APPROVED",
+ *     type: "ANNUAL",
+ *     user: { id: 123, nom: "Martin", prenom: "Jean", ... }
+ *   }
+ * ]
+ *
+ * @security
+ * - Authentification JWT requise
+ * - Vérification des permissions (utilisateur = ses congés, admin = tous)
+ * - Audit trail de tous les accès
+ * - Protection contre les injections via Prisma
  */
 async function getHandler(request: NextRequest) {
   try {
