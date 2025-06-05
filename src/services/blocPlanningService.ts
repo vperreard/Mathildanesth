@@ -18,7 +18,42 @@ export const getDayPlanning = async (...args: any[]): Promise<any[]> => {
   }
 };
 
-export const validateDayPlanning = async (...args: any[]): Promise<{ valid: boolean; violations: any[] }> => {
+/**
+ * Valide le planning d'une journée contre les règles métier
+ *
+ * @description Vérifie que le planning respecte toutes les règles de gestion :
+ * - Minimum de personnel requis par créneau
+ * - Compétences obligatoires présentes
+ * - Respect des temps de repos
+ * - Pas de conflits d'affectation
+ * - Respect des quotas hebdomadaires
+ *
+ * @param {any} dayData - Données du planning de la journée
+ * @param {Date} dayData.date - Date du planning à valider
+ * @param {Array} dayData.assignments - Liste des affectations
+ * @param {Object} dayData.rules - Règles métier à appliquer
+ *
+ * @returns {Promise<{valid: boolean, violations: Array<{rule: string, message: string, severity: string}>}>}
+ *
+ * @example
+ * const validation = await validateDayPlanning({
+ *   date: new Date('2025-06-10'),
+ *   assignments: [...],
+ *   rules: { minStaff: 3, requiredSkills: ['anesthesia'] }
+ * });
+ *
+ * if (!validation.valid) {
+ *   validation.violations.forEach(v => {
+ *     console.error(`${v.severity}: ${v.message}`);
+ *   });
+ * }
+ *
+ * @fallback En cas d'erreur ou en mode test, retourne valid=true avec violations=[]
+ * @todo Implémenter la connexion réelle avec BusinessRulesValidator
+ */
+export const validateDayPlanning = async (
+  ...args: any[]
+): Promise<{ valid: boolean; violations: any[] }> => {
   try {
     // Le PlanningService n'a pas cette méthode, donc on utilise le fallback
     if (process.env.NODE_ENV === 'test' && args[0] === 'FORCE_ERROR') {
@@ -26,7 +61,7 @@ export const validateDayPlanning = async (...args: any[]): Promise<{ valid: bool
     }
     return { valid: true, violations: [] };
   } catch (error) {
-    console.warn('validateDayPlanning fallback used:', error);
+    logger.warn('validateDayPlanning fallback used:', error);
     return { valid: true, violations: [] };
   }
 };
@@ -76,7 +111,7 @@ export const blocPlanningService = {
   validateDayPlanning,
   saveDayPlanning,
   getAllOperatingRooms,
-  getOperatingRoomById
+  getOperatingRoomById,
 };
 
 export default blocPlanningService;

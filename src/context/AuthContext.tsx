@@ -15,7 +15,7 @@ import { User } from '@/types/user'; // Importer le type User
 import {
   getClientAuthToken,
   setClientAuthToken,
-  removeClientAuthToken
+  removeClientAuthToken,
 } from '@/lib/auth-client-utils'; // Mise à jour de l'import
 // import Cookies from 'js-cookie'; // Plus nécessaire ici
 
@@ -78,6 +78,32 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+/**
+ * Provider de contexte d'authentification
+ *
+ * @description Gère l'état global de l'authentification dans l'application.
+ * Fournit les méthodes de connexion/déconnexion et maintient l'état de l'utilisateur
+ * connecté avec mise en cache pour optimiser les performances.
+ *
+ * @param {AuthProviderProps} props
+ * @param {ReactNode} props.children - Composants enfants qui auront accès au contexte
+ *
+ * @features
+ * - Cache utilisateur avec TTL de 5 minutes
+ * - Configuration automatique des intercepteurs Axios
+ * - Gestion des tokens JWT dans les cookies HTTPOnly
+ * - Récupération automatique de l'utilisateur au chargement
+ * - Redirection intelligente après connexion
+ *
+ * @example
+ * // Dans _app.tsx ou layout.tsx
+ * <AuthProvider>
+ *   <App />
+ * </AuthProvider>
+ *
+ * // Dans un composant
+ * const { user, login, logout, isLoading } = useAuth();
+ */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -126,6 +152,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     fetchCurrentUser();
   }, [fetchCurrentUser]);
 
+  /**
+   * Connecte un utilisateur avec ses identifiants
+   *
+   * @description Authentifie l'utilisateur via l'API, stocke le token JWT,
+   * met en cache les informations utilisateur et redirige vers le tableau de bord.
+   *
+   * @param {Object} credentials - Identifiants de connexion
+   * @param {string} credentials.login - Nom d'utilisateur ou email
+   * @param {string} credentials.password - Mot de passe
+   *
+   * @returns {Promise<User>} L'utilisateur connecté
+   *
+   * @throws {Error} Si les identifiants sont incorrects
+   *
+   * @example
+   * try {
+   *   const user = await login({
+   *     login: 'jmartin',
+   *     password: 'SecurePass123!'
+   *   });
+   *   console.log('Connecté en tant que:', user.nom);
+   * } catch (error) {
+   *   console.error('Échec de connexion:', error.message);
+   * }
+   *
+   * @performance
+   * - Mise en cache immédiate après connexion réussie
+   * - Timeout de 10 secondes pour éviter les blocages
+   * - Token stocké dans cookie HTTPOnly sécurisé
+   */
   const login = async (credentials: { login: string; password: string }) => {
     try {
       const config = {
@@ -140,7 +196,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Mettre en cache immédiatement
         userCache.set(response.data.token, {
           user: response.data.user,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
 
@@ -168,14 +224,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const value = useMemo(() => ({
-    user,
-    isLoading,
-    login,
-    logout,
-    refetchUser: fetchCurrentUser,
-    isAuthenticated: !!user,
-  }), [user, isLoading, fetchCurrentUser]);
+  const value = useMemo(
+    () => ({
+      user,
+      isLoading,
+      login,
+      logout,
+      refetchUser: fetchCurrentUser,
+      isAuthenticated: !!user,
+    }),
+    [user, isLoading, fetchCurrentUser]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
