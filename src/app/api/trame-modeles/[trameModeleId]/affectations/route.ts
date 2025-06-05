@@ -9,7 +9,10 @@ import { AuditService } from '@/services/AuditService';
 const ALLOWED_ROLES_CREATE: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'];
 const ALLOWED_ROLES_READ: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'USER'];
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ trameModeleId: string }> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ trameModeleId: string }> }
+) {
   try {
     // Vérifier l'authentification et les rôles
     const authCheck = await checkUserRole(ALLOWED_ROLES_CREATE);
@@ -213,7 +216,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ trameModeleId: string }> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ trameModeleId: string }> }
+) {
   try {
     // Vérifier l'authentification et les rôles
     const authCheck = await checkUserRole(ALLOWED_ROLES_READ);
@@ -226,7 +232,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const userId = authCheck.user?.id || 0;
     const { trameModeleId } = await params;
-    console.log(`[API GET /trameModele-modeles/${trameModeleId}/affectations] Début du traitement.`);
+    console.log(
+      `[API GET /trameModele-modeles/${trameModeleId}/affectations] Début du traitement.`
+    );
 
     console.log('\n--- GET /api/trameModele-modeles/[trameModeleId]/affectations START ---');
 
@@ -234,11 +242,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       console.warn(
         'GET /api/trameModele-modeles/[trameModeleId]/affectations: Invalid trameModeleId'
       );
-      return NextResponse.json({ error: 'ID du template de trameModele invalide' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'ID du template de trameModele invalide' },
+        { status: 400 }
+      );
     }
     const trameId = parseInt(trameModeleId);
 
-    try {
     console.log(`GET .../affectations: Retrieving affectations for trameModeleId ${trameId}...`);
 
     // Vérifier l'existence du TrameModele parent
