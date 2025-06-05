@@ -1,13 +1,13 @@
 // prisma/seed-leaves-test.ts
 // Script pour créer des congés test réalistes pour les MARS et IADES (juin-septembre 2025)
 
-import { PrismaClient, ProfessionalRole, LeaveType, LeaveStatus } from '@prisma/client';
+import { PrismaClient, LeaveType, LeaveStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 // Période des vacances d'été officielles
-const SUMMER_VACATION_START = new Date('2025-07-04');
-const SUMMER_VACATION_END = new Date('2025-08-31');
+// const SUMMER_VACATION_START = new Date('2025-07-04');
+// const SUMMER_VACATION_END = new Date('2025-08-31');
 
 // Fonction utilitaire pour ajouter des jours à une date
 function addDays(date: Date, days: number): Date {

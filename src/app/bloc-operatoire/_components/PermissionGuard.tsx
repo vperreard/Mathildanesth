@@ -91,9 +91,6 @@ function PermissionGuard({
 
   // Vérifier une permission spécifique
   if (requiredPermission) {
-    // Importer le système de permissions
-    const { hasPermission, parsePermission } = await import('@/lib/permissions');
-
     // Vérifier si la permission est valide
     const permission = parsePermission(requiredPermission);
     if (!permission) {

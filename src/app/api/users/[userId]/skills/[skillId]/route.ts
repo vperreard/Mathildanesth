@@ -3,21 +3,15 @@ import { prisma } from '@/lib/prisma';
 import { userSkillParamsSchema } from '@/lib/schemas/skillSchemas';
 import { getCurrentUser, isAdmin, handleApiError } from '@/lib/apiUtils';
 
-interface UserSkillDetailParams {
-    params: {
-        userId: string;
-        skillId: string;
-    };
-}
-
-export async function DELETE(request: NextRequest, { params }: UserSkillDetailParams) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ userId: string; skillId: string }> }) {
     try {
         const currentUser = await getCurrentUser();
         if (!isAdmin(currentUser)) {
             return NextResponse.json({ message: "Accès non autorisé." }, { status: 403 });
         }
 
-        const validation = userSkillParamsSchema.safeParse(params);
+        const resolvedParams = await params;
+        const validation = userSkillParamsSchema.safeParse(resolvedParams);
         if (!validation.success) {
             return NextResponse.json({ message: "Identifiants invalides.", errors: validation.error.flatten().fieldErrors }, { status: 400 });
         }

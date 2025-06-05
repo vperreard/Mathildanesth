@@ -3,14 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { userIdSchema, assignSkillSchema } from '@/lib/schemas/skillSchemas';
 import { getCurrentUser, isAdmin, handleApiError } from '@/lib/apiUtils';
 
-interface UserSkillsParams {
-    params: {
-        userId: string;
-    };
-}
-
 // GET /api/utilisateurs/[userId]/skills - Liste les compétences d'un utilisateur spécifique (admin)
-export async function GET(request: NextRequest, { params }: UserSkillsParams) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
     try {
         const currentUser = await getCurrentUser();
         if (!isAdmin(currentUser)) {
@@ -19,7 +13,8 @@ export async function GET(request: NextRequest, { params }: UserSkillsParams) {
             return NextResponse.json({ message: "Accès non autorisé." }, { status: 403 });
         }
 
-        const { userId } = userIdSchema.parse(params);
+        const resolvedParams = await params;
+        const { userId } = userIdSchema.parse(resolvedParams);
 
         const userSkills = await prisma.userSkill.findMany({
             where: { userId },
@@ -46,14 +41,15 @@ export async function GET(request: NextRequest, { params }: UserSkillsParams) {
 }
 
 // POST /api/utilisateurs/[userId]/skills - Assigne une compétence à un utilisateur
-export async function POST(request: NextRequest, { params }: UserSkillsParams) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
     try {
         const currentUser = await getCurrentUser();
         if (!isAdmin(currentUser)) {
             return NextResponse.json({ message: "Accès non autorisé." }, { status: 403 });
         }
 
-        const { userId } = userIdSchema.parse(params);
+        const resolvedParams = await params;
+        const { userId } = userIdSchema.parse(resolvedParams);
         const body = await request.json();
         const validation = assignSkillSchema.safeParse(body);
 

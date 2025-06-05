@@ -104,22 +104,22 @@ export const waitForXHR = (timeout: number = 10000): Cypress.Chainable => {
                     }
                 }
 
-                win.XMLHttpRequest.prototype.open = function () {
+                win.XMLHttpRequest.prototype.open = function (this: XMLHttpRequest, ...args: any[]) {
                     openXhr++;
-                    return originalOpen.apply(this, arguments);
+                    return originalOpen.apply(this, args as any);
                 };
 
-                win.XMLHttpRequest.prototype.send = function () {
+                win.XMLHttpRequest.prototype.send = function (this: XMLHttpRequest, ...args: any[]) {
                     const xhr = this;
-                    xhr.onreadystatechange = function () {
+                    xhr.onreadystatechange = function (...stateArgs: any[]) {
                         if (xhr.readyState === 4) {
                             openXhr--;
                         }
                         if (originalOnreadystatechange) {
-                            originalOnreadystatechange.apply(xhr, arguments);
+                            originalOnreadystatechange.apply(xhr, stateArgs as any);
                         }
                     };
-                    return originalSend.apply(xhr, arguments);
+                    return originalSend.apply(xhr, args as any);
                 };
 
                 setTimeout(() => {
@@ -163,7 +163,7 @@ export const dragAndDrop = (
         delay?: number;
     } = {}
 ): Cypress.Chainable => {
-    const { force = false, position = 'center', delay = 0 } = options;
+    const { force = false, position: _position = 'center', delay = 0 } = options;
 
     return cy.get(sourceSelector).then(($source) => {
         const sourceElement = $source[0];
@@ -259,8 +259,8 @@ export const dragAndDrop = (
 export const isInViewport = (selector: string): Cypress.Chainable<boolean> => {
     return cy.get(selector).then(($el) => {
         const rect = $el[0].getBoundingClientRect();
-        const windowHeight = Cypress.$(cy.state('window')).height() || 0;
-        const windowWidth = Cypress.$(cy.state('window')).width() || 0;
+        const windowHeight = Cypress.config('viewportHeight') || 0;
+        const windowWidth = Cypress.config('viewportWidth') || 0;
 
         return (
             rect.top >= 0 &&
@@ -331,7 +331,7 @@ export const scrollToElement = (
         ensureScrollable?: boolean;
     } = {}
 ): Cypress.Chainable => {
-    const { duration = 300, offset = { top: 0, left: 0 }, ensureScrollable = true } = options;
+    const { duration = 300, offset = { top: 0, left: 0 }, ensureScrollable: _ensureScrollable = true } = options;
 
     return cy.get(selector).then(($el) => {
         const element = $el[0];

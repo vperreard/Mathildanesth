@@ -1,21 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { withAuth } from '@/middleware/authorization';
+import { checkUserRole } from '@/lib/auth-server-utils';
+import type { UserRole } from '@/lib/auth-client-utils';
 import { logger } from '@/lib/logger';
+
+const ALLOWED_ROLES: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'];
 
 /**
  * POST /api/trameModele-modeles/[trameModeleId]/apply
  * Appliquer une trameModele template - ADMIN uniquement
  */
-export const POST = withAuth({
-    requireAuth: true,
-    allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
-    resourceType: 'trame_modele',
-    action: 'apply'
-})(async (req: NextRequest, context: { params: { trameModeleId: string } }) => {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ trameModeleId: string }> }) {
     try {
-        const trameModeleId = parseInt(context.params.trameModeleId);
-        const userId = parseInt(req.headers.get('x-user-id') || '0');
+        // Vérifier l'authentification et les rôles
+        const authCheck = await checkUserRole(ALLOWED_ROLES);
+        if (!authCheck.hasRequiredRole) {
+            return NextResponse.json(
+                { error: authCheck.error || 'Authentification requise' },
+                { status: 401 }
+            );
+        }
+
+        const { trameModeleId } = await params;
+        const trameModeleIdNum = parseInt(trameModeleId);
+        const userId = authCheck.user?.id || 0;
         const { startDate, endDate, siteId, options } = await req.json();
 
         // Validation des paramètres
@@ -28,7 +36,7 @@ export const POST = withAuth({
 
         // Vérifier que la trameModele existe
         const trameModele = await prisma.trameModele.findUnique({
-            where: { id: trameModeleId },
+            where: { id: trameModeleIdNum },
             include: {
                 affectations: true
             }
@@ -101,4 +109,4 @@ export const POST = withAuth({
             { status: 500 }
         );
     }
-});
+}

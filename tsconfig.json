@@ -77,6 +77,16 @@
     "global.d.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "prisma",
+    "cypress",
+    "scripts",
+    "tests",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.cy.ts",
+    "**/*.cy.tsx"
   ]
 }

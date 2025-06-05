@@ -36,7 +36,7 @@ const ClientFormSchema = z.object({
     nom: z.string().min(1, { message: "Le nom est requis." }),
     secteurId: z.string().min(1, { message: "Le secteur est requis." }), // Garder en string pour le Select
     description: z.string().optional(),
-    estActif: z.boolean().default(true),
+    estActif: z.boolean(),
     // Ajouter d'autres champs simples si besoin (capacite, equipements)
 });
 type FormData = z.infer<typeof ClientFormSchema>;
@@ -68,7 +68,7 @@ export function OperatingRoomForm({
 }: OperatingRoomFormProps) {
     const isEditing = !!initialData;
 
-    const { data: sectors = [], isLoading: isLoadingSectors } = useOperatingSectorsQuery({}, { enabled: isOpen });
+    const { data: sectors = [], isLoading: isLoadingSectors } = useOperatingSectorsQuery();
 
     // Initialiser le formulaire avec des strings pour secteurId
     const form = useForm<FormData>({

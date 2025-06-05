@@ -95,7 +95,7 @@ Cypress.Commands.add('runPa11yAudit', () => {
 });
 
 // Gérer les erreurs non gérées et les rejets de promesses
-Cypress.on('uncaught:exception', (err, runnable) => {
+Cypress.on('uncaught:exception', (err, _runnable) => {
   // Journaliser l'erreur pour le débogage
   console.error('Exception non capturée:', err.message, err.stack);
 
