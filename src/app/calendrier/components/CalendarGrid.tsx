@@ -18,7 +18,7 @@ export interface CalendarEvent {
     backgroundColor?: string;
     borderColor?: string;
     textColor?: string;
-    extendedProps?: any;
+    extendedProps?: unknown;
 }
 
 export interface CalendarGridProps {
@@ -45,7 +45,7 @@ export interface CalendarGridProps {
         snapDuration?: string;
         slotDuration?: string;
         slotLabelInterval?: string;
-        slotLabelFormat?: any;
+        slotLabelFormat?: unknown;
         slotMinTime?: string;
         slotMaxTime?: string;
     };
@@ -86,7 +86,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     const calendarRef = useRef<FullCalendar | null>(null);
 
     // Handlers pour les événements du calendrier
-    const handleEventClick = (info: any) => {
+    const handleEventClick = (info: unknown) => {
         if (onEventClick && info.event.extendedProps) {
             onEventClick({
                 ...info.event.extendedProps,
@@ -99,7 +99,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         }
     };
 
-    const handleEventDrop = (info: any) => {
+    const handleEventDrop = (info: unknown) => {
         if (onEventDrop) {
             const eventId = info.event.id;
             const newStart = info.event.start;
@@ -108,7 +108,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         }
     };
 
-    const handleEventResize = (info: any) => {
+    const handleEventResize = (info: unknown) => {
         if (onEventResize) {
             const eventId = info.event.id;
             const newStart = info.event.start;
@@ -117,20 +117,20 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         }
     };
 
-    const handleDateSelect = (info: any) => {
+    const handleDateSelect = (info: unknown) => {
         if (onDateSelect) {
             onDateSelect(info.start, info.end);
         }
     };
 
-    const handleViewChange = (info: any) => {
+    const handleViewChange = (info: unknown) => {
         if (onViewChange) {
             const newView = info.view.type as CalendarViewType;
             onViewChange(newView);
         }
     };
 
-    const handleDatesSet = (info: any) => {
+    const handleDatesSet = (info: unknown) => {
         if (onDateRangeChange) {
             onDateRangeChange(info.view.currentStart, info.view.currentEnd);
         }

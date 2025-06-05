@@ -214,15 +214,15 @@ export class PermissionCacheService {
                             // Entrée expirée, la supprimer
                             sessionStorage.removeItem(distributedKey);
                         }
-                    } catch (error) {
-                        logger.error(`[PermissionCacheService] Error parsing cache entry for key ${key}:`, error);
+                    } catch (error: unknown) {
+                        logger.error(`[PermissionCacheService] Error parsing cache entry for key ${key}:`, error instanceof Error ? error : new Error(String(error)));
                         // Supprimer l'entrée corrompue
                         sessionStorage.removeItem(distributedKey);
                     }
                 }
-            } catch (error) {
+            } catch (error: unknown) {
                 // Ignorer les erreurs de sessionStorage (ex: en navigation privée)
-                logger.warn('[PermissionCacheService] SessionStorage access error:', error);
+                logger.warn('[PermissionCacheService] SessionStorage access error:', error instanceof Error ? error : new Error(String(error)));
             }
         }
 
@@ -291,9 +291,9 @@ export class PermissionCacheService {
 
             sessionStorage.setItem(distributedKey, serializedEntry);
             this.stats.distributedSaves++;
-        } catch (error) {
+        } catch (error: unknown) {
             // Ignorer les erreurs de sessionStorage (ex: quota dépassé, navigation privée)
-            logger.warn('[PermissionCacheService] Error storing in distributed cache:', error);
+            logger.warn('[PermissionCacheService] Error storing in distributed cache:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -345,7 +345,7 @@ export class PermissionCacheService {
         try {
             const distributedKey = this.getDistributedKey(key);
             sessionStorage.removeItem(distributedKey);
-        } catch (error) {
+        } catch (error: unknown) {
             // Ignorer les erreurs de sessionStorage
         }
     }
@@ -376,7 +376,7 @@ export class PermissionCacheService {
                     count++;
                 }
             }
-        } catch (error) {
+        } catch (error: unknown) {
             // Ignorer les erreurs de sessionStorage
         }
 
@@ -405,7 +405,7 @@ export class PermissionCacheService {
                     sessionStorage.removeItem(key);
                 }
             }
-        } catch (error) {
+        } catch (error: unknown) {
             // Ignorer les erreurs de sessionStorage
         }
 
@@ -493,7 +493,7 @@ export class PermissionCacheService {
                                 // Entrée expirée, la supprimer
                                 sessionStorage.removeItem(fullKey);
                             }
-                        } catch (error) {
+                        } catch (error: unknown) {
                             // Entrée corrompue, la supprimer
                             sessionStorage.removeItem(fullKey);
                         }
@@ -506,8 +506,8 @@ export class PermissionCacheService {
             if (this.debug) {
                 logger.debug(`[PermissionCacheService] Loaded ${loadedCount} entries from distributed cache`);
             }
-        } catch (error) {
-            logger.warn('[PermissionCacheService] Error loading distributed cache:', error);
+        } catch (error: unknown) {
+            logger.warn('[PermissionCacheService] Error loading distributed cache:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 

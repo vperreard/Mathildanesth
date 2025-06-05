@@ -146,7 +146,7 @@ export class TrameIntegrationService {
       performanceMonitor.endMeasure('trame_integration_generate');
       return result;
 
-    } catch (error) {
+    } catch (error: unknown) {
       performanceMonitor.endMeasure('trame_integration_generate');
       result.message = `Erreur lors de la génération : ${error instanceof Error ? error.message : String(error)}`;
       return result;
@@ -197,7 +197,7 @@ export class TrameIntegrationService {
         totalAssignments += result.assignmentsCreated;
         warnings.push(...result.warnings);
 
-      } catch (error) {
+      } catch (error: unknown) {
         warnings.push(
           `Erreur lors de l'application de la trameModele ${trameModele.name}: ${
             error instanceof Error ? error.message : String(error)
@@ -291,7 +291,7 @@ export class TrameIntegrationService {
    * Sauvegarde les gardes/vacations générées
    */
   private async saveGeneratedAssignments(
-    attributions: any[],
+    attributions: unknown[],
     siteId: string
   ): Promise<{ count: number }> {
     let count = 0;
@@ -311,8 +311,8 @@ export class TrameIntegrationService {
           }
         });
         count++;
-      } catch (error) {
-        logger.error('Erreur lors de la sauvegarde de l\'affectation:', error);
+      } catch (error: unknown) {
+        logger.error('Erreur lors de la sauvegarde de l\'affectation:', error instanceof Error ? error : new Error(String(error)));
       }
     }
 

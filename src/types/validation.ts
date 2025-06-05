@@ -25,7 +25,7 @@ export interface Violation {
     message: string;
 
     /** Données supplémentaires sur la violation */
-    data?: Record<string, any>;
+    data?: Record<string, unknown>;
 }
 
 /**

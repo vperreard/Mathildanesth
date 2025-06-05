@@ -90,7 +90,7 @@ export const flushErrorQueue = async (): Promise<void> => {
             errorQueue.push(...errors);
             logger.error('Échec de l\'envoi des logs d\'erreur au serveur:', await response.text());
         }
-    } catch (e) {
+    } catch (e: unknown) {
         // En cas d'erreur de réseau, remettre les erreurs dans la file d'attente
         errorQueue.push(...errors);
         logger.error('Erreur lors de l\'envoi des logs d\'erreur au serveur:', e);
@@ -118,8 +118,8 @@ function setupUnloadListener() {
                     } else {
                         logger.warn('sendBeacon failed to queue errors on unload.');
                     }
-                } catch (error) {
-                    logger.error('Error using sendBeacon on unload:', error);
+                } catch (error: unknown) {
+                    logger.error('Error using sendBeacon on unload:', error instanceof Error ? error : new Error(String(error)));
                 }
             }
         });

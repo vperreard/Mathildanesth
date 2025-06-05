@@ -78,7 +78,7 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ title, data }) => {
                                 fill="#8884d8"
                                 dataKey="value"
                             >
-                                {chartData.datasets[0].data.map((entry: any, index: number) => (
+                                {chartData.datasets[0].data.map((entry: unknown, index: number) => (
                                     <Cell
                                         key={`cell-${index}`}
                                         fill={COLORS[index % COLORS.length]}

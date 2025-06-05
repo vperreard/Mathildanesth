@@ -42,7 +42,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     try {
       const date = new Date(dateString);
       return formatDistanceToNow(date, { addSuffix: true, locale: fr });
-    } catch (err) {
+    } catch (err: unknown) {
       return 'Date inconnue';
     }
   };

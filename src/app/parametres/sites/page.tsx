@@ -59,8 +59,8 @@ export default function SitesPage() {
             });
 
             setSites(sortedSites);
-        } catch (error) {
-            logger.error("Erreur de chargement des sites:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur de chargement des sites:", error instanceof Error ? error : new Error(String(error)));
             setError(error instanceof Error ? error.message : "Erreur inconnue lors du chargement des sites");
             toast.error("Impossible de charger les sites");
         } finally {
@@ -95,8 +95,8 @@ export default function SitesPage() {
             setIsCreateModalOpen(false);
 
             toast.success("Site créé avec succès");
-        } catch (error) {
-            logger.error("Erreur lors de la création du site:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la création du site:", error instanceof Error ? error : new Error(String(error)));
             toast.error(error instanceof Error ? error.message : "Erreur lors de la création du site");
         }
     };
@@ -133,8 +133,8 @@ export default function SitesPage() {
 
             setIsEditModalOpen(false);
             toast.success("Site mis à jour avec succès");
-        } catch (error) {
-            logger.error("Erreur lors de la mise à jour du site:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la mise à jour du site:", error instanceof Error ? error : new Error(String(error)));
             toast.error(error instanceof Error ? error.message : "Erreur lors de la mise à jour du site");
         }
     };
@@ -151,8 +151,8 @@ export default function SitesPage() {
 
             setIsDeleteModalOpen(false);
             toast.success("Site supprimé avec succès");
-        } catch (error) {
-            logger.error("Erreur lors de la suppression du site:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la suppression du site:", error instanceof Error ? error : new Error(String(error)));
             toast.error(error instanceof Error ? error.message : "Erreur lors de la suppression du site");
         }
     };
@@ -197,8 +197,8 @@ export default function SitesPage() {
             });
 
             // Pas besoin de mettre à jour la liste des sites car déjà fait avec setSites
-        } catch (error) {
-            logger.error("Erreur lors de la réorganisation des sites:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la réorganisation des sites:", error instanceof Error ? error : new Error(String(error)));
             toast.error("Erreur lors de la mise à jour de l'ordre des sites");
             // Recharger les sites en cas d'erreur
             fetchSites();

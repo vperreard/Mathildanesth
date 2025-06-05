@@ -65,7 +65,7 @@ export const LeaveHistoryTable: React.FC<LeaveHistoryTableProps> = ({
                 ]);
                 setTransferHistory(transfers);
                 setCarryOverHistory(carryOvers);
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error('Erreur lors de la récupération de l\'historique', err);
                 setError('Impossible de charger l\'historique des transactions');
             } finally {

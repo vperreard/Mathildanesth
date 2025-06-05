@@ -173,7 +173,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
 
             // Charger les données additionnelles (chirurgiens, personnel, salles)
             await loadAdditionalData();
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du chargement du planning:', err);
             setError('Impossible de charger le planning. Veuillez réessayer ultérieurement.');
         } finally {
@@ -212,7 +212,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                 { id: 204, name: 'Salle 4', sectorId: 303, sector: { id: 303, name: 'Ophtalmologie' } }
             ];
             setRooms(mockRooms);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du chargement des données additionnelles:', err);
         }
     };
@@ -281,7 +281,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                 setIsPrimaryAnesthetist(false);
                 setShowAddStaffDialog(false);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de l\'ajout du personnel:', err);
             setError('Impossible d\'ajouter le membre du personnel. Veuillez réessayer.');
         }
@@ -326,7 +326,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
 
             // Revalider le planning
             await validatePlanning();
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la sauvegarde du planning:', err);
             setError('Impossible de sauvegarder le planning. Veuillez réessayer.');
         } finally {
@@ -350,7 +350,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                 conflicts: validationResult.conflicts || [],
                 status: validationResult.isValid ? BlocPlanningStatus.VALIDATED : BlocPlanningStatus.CONFLICT
             } : null);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la validation du planning:', err);
             setError('Impossible de valider le planning. Veuillez réessayer.');
         } finally {

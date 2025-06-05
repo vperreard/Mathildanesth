@@ -7,8 +7,8 @@ export async function GET(req: NextRequest) {
         const res = new Response();
         const io = initSocket(res as any);
         return new Response('WebSocket server initialized', { status: 200 });
-    } catch (error) {
-        logger.error('Erreur lors de l\'initialisation du serveur WebSocket:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'initialisation du serveur WebSocket:', error instanceof Error ? error : new Error(String(error)));
         return new Response('Erreur serveur', { status: 500 });
     }
 }

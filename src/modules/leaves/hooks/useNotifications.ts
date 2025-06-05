@@ -70,8 +70,8 @@ export const useLeaveNotifications = (options: {
                 unreadCount,
                 loading: false
             }));
-        } catch (error) {
-            logger.error('Erreur lors du chargement des notifications:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des notifications:', error instanceof Error ? error : new Error(String(error)));
             setState(prev => ({
                 ...prev,
                 error: 'Impossible de charger les notifications',
@@ -133,8 +133,8 @@ export const useLeaveNotifications = (options: {
                     unreadCount: Math.max(0, prev.unreadCount - 1)
                 };
             });
-        } catch (error) {
-            logger.error('Erreur lors du marquage de la notification:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du marquage de la notification:', error instanceof Error ? error : new Error(String(error)));
         }
     }, []);
 
@@ -150,8 +150,8 @@ export const useLeaveNotifications = (options: {
                 notifications: prev.notifications.map(n => ({ ...n, read: true })),
                 unreadCount: 0
             }));
-        } catch (error) {
-            logger.error('Erreur lors du marquage de toutes les notifications:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du marquage de toutes les notifications:', error instanceof Error ? error : new Error(String(error)));
         }
     }, [userId]);
 
@@ -170,8 +170,8 @@ export const useLeaveNotifications = (options: {
                     unreadCount: wasUnread ? Math.max(0, prev.unreadCount - 1) : prev.unreadCount
                 };
             });
-        } catch (error) {
-            logger.error('Erreur lors de la suppression de la notification:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la suppression de la notification:', error instanceof Error ? error : new Error(String(error)));
         }
     }, []);
 
@@ -187,8 +187,8 @@ export const useLeaveNotifications = (options: {
                 notifications: [],
                 unreadCount: 0
             }));
-        } catch (error) {
-            logger.error('Erreur lors de la suppression de toutes les notifications:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la suppression de toutes les notifications:', error instanceof Error ? error : new Error(String(error)));
         }
     }, [userId]);
 
@@ -201,8 +201,8 @@ export const useLeaveNotifications = (options: {
                 ...prev,
                 config: { ...prev.config, ...config }
             }));
-        } catch (error) {
-            logger.error('Erreur lors de la mise à jour de la configuration:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la mise à jour de la configuration:', error instanceof Error ? error : new Error(String(error)));
         }
     }, []);
 

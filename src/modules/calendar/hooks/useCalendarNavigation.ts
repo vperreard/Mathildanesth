@@ -87,7 +87,7 @@ export const useCalendarNavigation = (
                 default:
                     return format(currentDate, 'MMMM yyyy', { locale: fr });
             }
-        } catch (error) {
+        } catch (error: unknown) {
             // En cas d'erreur de date invalide, retourner une valeur par défaut
             return "Date invalide";
         }

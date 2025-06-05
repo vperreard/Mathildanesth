@@ -62,7 +62,7 @@ export default function OptimizedDraggableCalendar({
         setIsDragging(true);
     }, []);
 
-    const handleDragEnd = useCallback((result: any) => {
+    const handleDragEnd = useCallback((result: unknown) => {
         setIsDragging(false);
         
         if (!result.destination) return;

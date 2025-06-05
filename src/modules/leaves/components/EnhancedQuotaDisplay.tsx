@@ -29,7 +29,7 @@ export const EnhancedQuotaDisplay: React.FC<EnhancedQuotaDisplayProps> = ({
         try {
             const enhancedQuotas = await quotaAdvancedService.getEnhancedQuotaState(userId, year);
             setQuotaStates(enhancedQuotas);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(`Erreur lors du chargement des quotas : ${err instanceof Error ? err.message : String(err)}`);
         } finally {
             setLoading(false);

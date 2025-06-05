@@ -219,13 +219,13 @@ export async function requireMessagePermission(
  */
 export function withAuthorization<T extends any[]>(
     authFunction: (...args: T) => Promise<AuthorizedSession>,
-    handler: (session: AuthorizedSession, ...args: any[]) => Promise<Response>
+    handler: (session: AuthorizedSession, ...args: unknown[]) => Promise<Response>
 ) {
-    return async (...args: any[]): Promise<Response> => {
+    return async (...args: unknown[]): Promise<Response> => {
         try {
             const session = await authFunction(...(args as T));
             return await handler(session, ...args);
-        } catch (error) {
+        } catch (error: unknown) {
             if (error instanceof AuthenticationError) {
                 return new Response(
                     JSON.stringify({ error: 'Authentication required' }),
@@ -240,7 +240,7 @@ export function withAuthorization<T extends any[]>(
                 );
             }
 
-            logger.error('Authorization error:', error);
+            logger.error('Authorization error:', error instanceof Error ? error : new Error(String(error)));
             return new Response(
                 JSON.stringify({ error: 'Internal server error' }),
                 { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -256,7 +256,7 @@ export function logSecurityAction(
     userId: number | string,
     action: string,
     resource: string,
-    details?: any
+    details?: unknown
 ) {
     logger.info(`[SECURITY] User ${userId} performed ${action} on ${resource}`, {
         timestamp: new Date().toISOString(),

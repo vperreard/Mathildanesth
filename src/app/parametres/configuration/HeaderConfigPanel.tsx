@@ -13,7 +13,7 @@ interface HeaderConfig {
 
 interface AdminConfig {
     header: HeaderConfig;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 const HeaderConfigPanel: React.FC = () => {
@@ -42,7 +42,7 @@ const HeaderConfigPanel: React.FC = () => {
                 if (data.header) {
                     setConfig(data.header);
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 setError(err.message || 'Une erreur est survenue');
             } finally {
                 setLoading(false);
@@ -85,7 +85,7 @@ const HeaderConfigPanel: React.FC = () => {
 
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(err.message || 'Une erreur est survenue');
         } finally {
             setSaving(false);
@@ -104,7 +104,7 @@ const HeaderConfigPanel: React.FC = () => {
             if (data.header) {
                 setConfig(data.header);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(err.message || 'Une erreur est survenue');
         } finally {
             setLoading(false);
@@ -112,7 +112,7 @@ const HeaderConfigPanel: React.FC = () => {
     };
 
     // Mettre à jour un champ spécifique de la configuration
-    const handleChange = (field: keyof HeaderConfig, value: any) => {
+    const handleChange = (field: keyof HeaderConfig, value: unknown) => {
         setConfig(prev => ({ ...prev, [field]: value }));
     };
 

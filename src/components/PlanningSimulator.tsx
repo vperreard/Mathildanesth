@@ -234,7 +234,7 @@ export const PlanningSimulatorComponent: React.FC<PlanningSimulatorProps> = ({
             });
 
             setLoading(null);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(`Erreur de génération: ${err instanceof Error ? err.message : String(err)}`);
             setLoading(null);
         }
@@ -249,7 +249,7 @@ export const PlanningSimulatorComponent: React.FC<PlanningSimulatorProps> = ({
             } else {
                 setError('Simulation introuvable');
             }
-        } catch (err) {
+        } catch (err: unknown) {
             setError(`Erreur lors de l'application: ${err instanceof Error ? err.message : String(err)}`);
         }
     };

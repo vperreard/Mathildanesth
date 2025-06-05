@@ -103,7 +103,7 @@ export const useCalendarSettings = ({
                     localStorage.setItem(`calendar-settings-${userId}`, JSON.stringify(response.data));
                 }
 
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error('Erreur dans useCalendarSettings:', err);
                 setError(err instanceof Error ? err : new Error('Erreur inconnue'));
             } finally {
@@ -143,7 +143,7 @@ export const useCalendarSettings = ({
                 // Envoyer à l'API de manière asynchrone
                 await axios.put(`http://localhost:3000/api/utilisateurs/${userId}/calendrier-settings`, currentSettings);
 
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error('Erreur lors de la mise à jour des paramètres:', err);
                 setError(err instanceof Error ? err : new Error('Erreur inconnue'));
             }

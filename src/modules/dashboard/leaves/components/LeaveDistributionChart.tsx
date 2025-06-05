@@ -67,7 +67,7 @@ const LeaveDistributionChart = ({ data, mode, title }: LeaveDistributionChartPro
             },
             tooltip: {
                 callbacks: {
-                    label: (context: any) => {
+                    label: (context: unknown) => {
                         const label = context.label || '';
                         const value = context.raw || 0;
                         return `${label}: ${value} ${mode === 'count' ? 'demandes' : 'jours'}`;

@@ -37,7 +37,7 @@ function ProfilePageContent() {
             try {
                 const response = await axios.get<UserSkill[]>(`${window.location.origin}/api/me/skills`);
                 setUserSkills(response.data);
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error('Erreur lors du chargement des compétences:', err);
                 setSkillsError('Impossible de charger vos compétences.');
             } finally {
@@ -79,7 +79,7 @@ function ProfilePageContent() {
             setConfirmPassword('');
             setTimeout(() => setSuccessMessage(null), 5000);
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur changement mot de passe:", err);
             if (axios.isAxiosError(err) && err.response) {
                 setError(err.response.data.message || 'Erreur lors de la mise à jour du mot de passe.');

@@ -81,7 +81,7 @@ export function useNotificationPreferences() {
             const data = await response.json();
             setPreferences(data);
             return data;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err.message || 'Erreur inconnue';
             setError(errorMessage);
             logger.error('Erreur lors de la récupération des préférences de notifications:', errorMessage);
@@ -125,7 +125,7 @@ export function useNotificationPreferences() {
             setPreferences(updatedData);
             toast.success('Préférences de notifications mises à jour');
             return true;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err.message || 'Erreur inconnue';
             setError(errorMessage);
             toast.error(`Erreur: ${errorMessage}`);

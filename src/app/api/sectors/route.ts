@@ -18,7 +18,7 @@ function parseRules(rulesJson: Prisma.JsonValue): { maxRoomsPerSupervisor: numbe
             if (typeof parsed === 'object' && parsed !== null && 'maxRoomsPerSupervisor' in parsed && typeof parsed.maxRoomsPerSupervisor === 'number') {
                 return { maxRoomsPerSupervisor: parsed.maxRoomsPerSupervisor };
             }
-        } catch (e) {
+        } catch (e: unknown) {
             logger.warn("Failed to parse rules JSON string:", rulesJson, e);
         }
     }
@@ -79,8 +79,8 @@ export async function GET(request: NextRequest) {
         logger.info("--- GET /api/sectors END (Prisma - operatingSector - JSON Rules) ---\n");
         return NextResponse.json(formattedSectors);
 
-    } catch (error) {
-        logger.error('Error during GET /api/sectors (Prisma - operatingSector): ', error);
+    } catch (error: unknown) {
+        logger.error('Error during GET /api/sectors (Prisma - operatingSector): ', error instanceof Error ? error : new Error(String(error)));
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2021') {
             logger.error("Prisma Error P2021: Table or Model 'OperatingSector' not found.");
             return NextResponse.json({ error: 'Erreur de base de données: La table des secteurs est introuvable.' }, { status: 500 });
@@ -154,8 +154,8 @@ export async function POST(request: NextRequest) {
         logger.info("--- POST /api/sectors END (Prisma - operatingSector - JSON Rules) ---\n");
         return NextResponse.json(responseData, { status: 201 });
 
-    } catch (error) {
-        logger.error('Error during POST /api/sectors (Prisma - operatingSector): ', error);
+    } catch (error: unknown) {
+        logger.error('Error during POST /api/sectors (Prisma - operatingSector): ', error instanceof Error ? error : new Error(String(error)));
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2002') {
                 const target = error.meta?.target as string[] | undefined;

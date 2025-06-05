@@ -25,8 +25,8 @@ async function comparePasswords(plainPassword: string, hashedPassword: string): 
     try {
         // Si bcrypt est utilisé, sinon utiliser votre logique de comparaison
         return await bcrypt.compare(plainPassword, hashedPassword);
-    } catch (error) {
-        logger.error("Erreur lors de la comparaison des mots de passe:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la comparaison des mots de passe:", error instanceof Error ? error : new Error(String(error)));
         return false;
     }
 }
@@ -109,22 +109,22 @@ export const authOptions: NextAuthOptions = {
                         email: user.email,
                         role: user.role
                     };
-                } catch (error) {
-                    logger.error("Erreur d'authentification:", error);
+                } catch (error: unknown) {
+                    logger.error("Erreur d'authentification:", error instanceof Error ? error : new Error(String(error)));
                     return null;
                 }
             }
         })
     ],
     callbacks: {
-        async jwt({ token, user }: any) {
+        async jwt({ token, user }: unknown) {
             if (user) {
                 token.userId = parseInt(user.id);
                 token.role = user.role;
             }
             return token;
         },
-        async session({ session, token }: any) {
+        async session({ session, token }: unknown) {
             if (session.user && token) {
                 session.user.id = token.userId;
                 session.user.role = token.role;
@@ -175,7 +175,7 @@ export async function verifyToken(token: string): Promise<TokenPayload & jose.JW
         }
 
         return payload as TokenPayload & jose.JWTVerifyResult['payload'];
-    } catch (error: any) {
+    } catch (error: unknown) {
         // Gérer les erreurs spécifiques de jose (ex: JWTExpired, JWTInvalid)
         // Ne pas logger en mode test pour éviter la pollution des logs
         if (process.env.NODE_ENV !== 'test') {
@@ -198,7 +198,7 @@ export async function verifyToken(token: string): Promise<TokenPayload & jose.JW
 /**
  * Récupère l'utilisateur depuis le cookie de session
  */
-export async function getUserFromCookie(request: any): Promise<any> {
+export async function getUserFromCookie(request: unknown): Promise<unknown> {
     try {
         // Récupérer le token depuis les cookies
         const token = request.cookies?.get?.('auth-token')?.value || 
@@ -225,8 +225,8 @@ export async function getUserFromCookie(request: any): Promise<any> {
         }
 
         return null;
-    } catch (error) {
-        logger.error('Erreur lors de la récupération de l\'utilisateur:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération de l\'utilisateur:', error instanceof Error ? error : new Error(String(error)));
         return null;
     }
 } 

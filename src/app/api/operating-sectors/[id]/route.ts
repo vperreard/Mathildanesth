@@ -39,8 +39,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     return NextResponse.json(sector);
-  } catch (error) {
-    logger.error('Erreur GET /api/operating-sectors/[id]:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur GET /api/operating-sectors/[id]:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ message: 'Erreur interne du serveur' }, { status: 500 });
   }
 }
@@ -122,8 +122,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     return NextResponse.json(updatedSector);
-  } catch (error) {
-    logger.error('Erreur PUT /api/operating-sectors/[id]:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur PUT /api/operating-sectors/[id]:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         message: 'Erreur interne du serveur',
@@ -193,8 +193,8 @@ export async function DELETE(
     });
 
     return NextResponse.json({ message: 'Secteur supprimé avec succès' });
-  } catch (error) {
-    logger.error('Erreur DELETE /api/operating-sectors/[id]:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur DELETE /api/operating-sectors/[id]:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ message: 'Erreur interne du serveur' }, { status: 500 });
   }
 }

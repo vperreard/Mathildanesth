@@ -20,7 +20,7 @@ export interface EditorAffectation {
     operatingRoomId?: number;
     priorite: number;
     isActive: boolean;
-    detailsJson?: any;
+    detailsJson?: unknown;
 
     // Relations enrichies pour l'UI
     activityType?: ActivityType;

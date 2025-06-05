@@ -35,7 +35,7 @@ export async function fetchWithAuth<T = any>(url: string, options: FetchOptions 
 
         const response = await axios(config);
         return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
         // Gestion des erreurs
         if (error.response) {
             // Erreur de réponse (non-2xx)

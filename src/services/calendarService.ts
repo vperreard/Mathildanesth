@@ -23,9 +23,9 @@ export async function getPublicHolidays(startYear: number, endYear: number): Pro
         const response = await axios.get(`${CONFIG.API_BASE_URL}/api/jours-feries?startYear=${startYear}&endYear=${endYear}`);
 
         // Convertir les dates en objets Date
-        return response.data.map((holiday: any) => new Date(holiday.date));
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des jours fériés:', error);
+        return response.data.map((holiday: unknown) => new Date(holiday.date));
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des jours fériés:', error instanceof Error ? error : new Error(String(error)));
 
         // En cas d'erreur, retourner une liste vide pour ne pas bloquer les fonctionnalités
         return [];

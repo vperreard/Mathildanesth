@@ -50,7 +50,7 @@ class BlocPlanningDragDropService {
                 target,
                 error: 'Type de glisser-déposer non pris en charge'
             };
-        } catch (error) {
+        } catch (error: unknown) {
             logError({
                 message: 'Erreur lors du traitement du drop',
                 context: { item, target, error }
@@ -233,7 +233,7 @@ class BlocPlanningDragDropService {
                     fin: newSupervisor.periodes[0].fin
                 }
             };
-        } catch (error) {
+        } catch (error: unknown) {
             logError({
                 message: 'Erreur lors de l\'assignation d\'un superviseur à une salle',
                 context: { item, target, error }
@@ -353,7 +353,7 @@ class BlocPlanningDragDropService {
                     fin: item.fin
                 }
             };
-        } catch (error) {
+        } catch (error: unknown) {
             logError({
                 message: 'Erreur lors du déplacement d\'une période',
                 context: { item, target, error }
@@ -423,7 +423,7 @@ class BlocPlanningDragDropService {
                 item,
                 target
             };
-        } catch (error) {
+        } catch (error: unknown) {
             logError({
                 message: 'Erreur lors de l\'application d\'une trameModele',
                 context: { item, target, error }

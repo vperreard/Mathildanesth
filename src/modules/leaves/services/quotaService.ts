@@ -41,8 +41,8 @@ export const fetchTransferRules = async (): Promise<QuotaTransferRule[]> => {
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des règles de transfert:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des règles de transfert:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -60,8 +60,8 @@ export const fetchActiveTransferRulesForUser = async (userId: string): Promise<Q
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des règles de transfert actives:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des règles de transfert actives:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -90,8 +90,8 @@ export const saveTransferRule = async (rule: Partial<QuotaTransferRule>): Promis
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de l\'enregistrement de la règle de transfert:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'enregistrement de la règle de transfert:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -111,8 +111,8 @@ export const deleteTransferRule = async (ruleId: string): Promise<{ success: boo
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de la suppression de la règle de transfert:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la suppression de la règle de transfert:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -136,8 +136,8 @@ export const transferQuota = async (request: QuotaTransferRequest): Promise<Quot
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors du transfert de quotas:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors du transfert de quotas:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -155,8 +155,8 @@ export const fetchTransferHistory = async (userId: string): Promise<QuotaTransfe
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de la récupération de l\'historique des transferts:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération de l\'historique des transferts:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -180,8 +180,8 @@ export const previewQuotaTransfer = async (request: QuotaTransferRequest): Promi
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de la simulation du transfert:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la simulation du transfert:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -199,8 +199,8 @@ export const fetchCarryOverRules = async (): Promise<QuotaCarryOverRule[]> => {
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des règles de report:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des règles de report:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -218,8 +218,8 @@ export const fetchActiveCarryOverRulesForUser = async (userId: string): Promise<
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des règles de report actives:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des règles de report actives:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -248,8 +248,8 @@ export const saveCarryOverRule = async (rule: Partial<QuotaCarryOverRule>): Prom
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de l\'enregistrement de la règle de report:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'enregistrement de la règle de report:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -273,8 +273,8 @@ export const calculateCarryOver = async (request: QuotaCarryOverCalculationReque
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors du calcul du report:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors du calcul du report:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -298,8 +298,8 @@ export const executeCarryOver = async (request: QuotaCarryOverCalculationRequest
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de l\'exécution du report:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'exécution du report:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -317,8 +317,8 @@ export const fetchCarryOverHistory = async (userId: string): Promise<QuotaCarryO
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de la récupération de l\'historique des reports:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération de l\'historique des reports:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -336,8 +336,8 @@ export const fetchSpecialPeriodRules = async (): Promise<SpecialPeriodRule[]> =>
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des périodes spéciales:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des périodes spéciales:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -366,8 +366,8 @@ export const saveSpecialPeriodRule = async (rule: Partial<SpecialPeriodRule>): P
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de l\'enregistrement de la période spéciale:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'enregistrement de la période spéciale:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -416,8 +416,8 @@ export const getActiveSpecialPeriodsForDate = async (date: Date): Promise<Specia
         return allPeriods.filter(period =>
             period.isActive && isInSpecialPeriod(date, period)
         );
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des périodes spéciales actives:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des périodes spéciales actives:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -623,8 +623,8 @@ export const calculateLeaveQuota = async (userId: string, leaveType: LeaveType):
         const balance = await fetchLeaveBalance(userId);
         const quota = getQuotaForType(balance, leaveType);
         return quota.total;
-    } catch (error) {
-        logger.error('Erreur lors du calcul du quota:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors du calcul du quota:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -645,8 +645,8 @@ export const checkQuotaAvailability = async (
         const balance = await fetchLeaveBalance(userId);
         const quota = getQuotaForType(balance, leaveType);
         return quota.remaining >= requestedDays;
-    } catch (error) {
-        logger.error('Erreur lors de la vérification de disponibilité:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la vérification de disponibilité:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -682,8 +682,8 @@ export const updateQuotaUsage = async (
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur lors de la mise à jour du quota:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la mise à jour du quota:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };

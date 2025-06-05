@@ -208,8 +208,8 @@ export const fetchUserWorkSchedules = async (userId: string): Promise<WorkSchedu
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur dans fetchUserWorkSchedules:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur dans fetchUserWorkSchedules:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -239,8 +239,8 @@ export const saveWorkSchedule = async (planningMedical: Partial<WorkSchedule>): 
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error('Erreur dans saveWorkSchedule:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur dans saveWorkSchedule:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 };
@@ -259,8 +259,8 @@ export const deleteWorkSchedule = async (scheduleId: string): Promise<void> => {
         if (!response.ok) {
             throw new Error(`Erreur lors de la suppression du planning de travail: ${response.statusText}`);
         }
-    } catch (error) {
-        logger.error('Erreur dans deleteWorkSchedule:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur dans deleteWorkSchedule:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 }; 

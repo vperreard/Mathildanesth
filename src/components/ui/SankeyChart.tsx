@@ -37,8 +37,8 @@ interface SankeyChartProps {
     nodeWidth?: number;
     colors?: string[];
     units?: string;
-    onNodeClick?: (node: any) => void;
-    onLinkClick?: (link: any) => void;
+    onNodeClick?: (node: unknown) => void;
+    onLinkClick?: (link: unknown) => void;
 }
 
 // Type personnalisé pour les nœuds et liens après traitement par d3-sankey
@@ -141,8 +141,8 @@ export function SankeyChart({
                 nodes: graph.nodes as ProcessedNode[],
                 links: graph.links as ProcessedLink[]
             });
-        } catch (error) {
-            logger.error('Erreur lors du calcul du diagramme Sankey:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du calcul du diagramme Sankey:', error instanceof Error ? error : new Error(String(error)));
             setProcessedData(null);
         }
     }, [data, width, height, nodeWidth, nodePadding, isValidData]);
@@ -185,12 +185,12 @@ export function SankeyChart({
             .attr('fill', 'none')
             .attr('stroke', (d: ProcessedLink) => d.color || '#aaa')
             .attr('stroke-opacity', 0.4)
-            .attr('stroke-width', (d: any) => Math.max(1, d.width || 0))
+            .attr('stroke-width', (d: unknown) => Math.max(1, d.width || 0))
             .style('cursor', 'pointer')
             .on('mouseover', function (event, d) {
                 d3.select(this)
                     .attr('stroke-opacity', 0.7)
-                    .attr('stroke-width', (d: any) => Math.max(1, (d.width || 0) + 2));
+                    .attr('stroke-width', (d: unknown) => Math.max(1, (d.width || 0) + 2));
 
                 setHoveredElement(d);
                 showTooltip(event, d);
@@ -199,7 +199,7 @@ export function SankeyChart({
             .on('mouseout', function () {
                 d3.select(this)
                     .attr('stroke-opacity', 0.4)
-                    .attr('stroke-width', (d: any) => Math.max(1, d.width || 0));
+                    .attr('stroke-width', (d: unknown) => Math.max(1, d.width || 0));
 
                 setHoveredElement(null);
                 setTooltipVisible(false);
@@ -255,7 +255,7 @@ export function SankeyChart({
             .attr('pointer-events', 'none');
 
         // Fonction pour afficher les infobulles
-        function showTooltip(event: any, d: any) {
+        function showTooltip(event: unknown, d: unknown) {
             if (!d) return;
 
             const isNode = 'name' in d;

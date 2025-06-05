@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -89,7 +89,7 @@ export default function CommandCenterPage() {
         default:
           router.push(`/admin/alerts/${alert.id}`);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       toast.error('Erreur lors du traitement de l\'alerte');
     } finally {
       setProcessingAlert(null);

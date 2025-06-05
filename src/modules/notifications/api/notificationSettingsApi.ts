@@ -37,8 +37,8 @@ export const getUserNotificationSettings = async (userId: string): Promise<Notif
                 mentions: true
             }
         };
-    } catch (error) {
-        logger.error('Erreur lors du chargement des préférences de notification:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors du chargement des préférences de notification:', error instanceof Error ? error : new Error(String(error)));
         throw new Error('Impossible de charger les préférences de notification');
     }
 };
@@ -58,8 +58,8 @@ export const saveUserNotificationSettings = async (userId: string, settings: Not
 
         // Exemple de requête API
         // await axios.post(`${API_BASE_URL}/utilisateurs/${userId}/preferences`, settings);
-    } catch (error) {
-        logger.error('Erreur lors de l\'enregistrement des préférences de notification:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'enregistrement des préférences de notification:', error instanceof Error ? error : new Error(String(error)));
         throw new Error('Impossible d\'enregistrer les préférences de notification');
     }
 };
@@ -78,8 +78,8 @@ export const resetUserNotificationSettings = async (userId: string): Promise<voi
 
         // Exemple de requête API
         // await axios.delete(`${API_BASE_URL}/utilisateurs/${userId}/preferences`);
-    } catch (error) {
-        logger.error('Erreur lors de la réinitialisation des préférences de notification:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la réinitialisation des préférences de notification:', error instanceof Error ? error : new Error(String(error)));
         throw new Error('Impossible de réinitialiser les préférences de notification');
     }
 }; 

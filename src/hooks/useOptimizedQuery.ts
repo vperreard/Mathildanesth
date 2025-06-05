@@ -14,16 +14,16 @@ type QueryOptions = {
     staleTime?: number; // Temps avant que les données soient considérées comme périmées
     retryCount?: number;
     retryDelay?: number;
-    dependsOn?: any[];
-    onSuccess?: (data: any) => void;
+    dependsOn?: unknown[];
+    onSuccess?: (data: unknown) => void;
     onError?: (error: Error) => void;
     enabled?: boolean;
 };
 
 type QueryClient = {
-    cache: Map<string, { data: any; timestamp: number }>;
-    addToCache: (key: string, data: any, ttl: number) => void;
-    getFromCache: (key: string) => { data: any; timestamp: number } | undefined;
+    cache: Map<string, { data: unknown; timestamp: number }>;
+    addToCache: (key: string, data: unknown, ttl: number) => void;
+    getFromCache: (key: string) => { data: unknown; timestamp: number } | undefined;
     invalidateQuery: (key: string) => void;
     invalidateQueries: (keyPattern?: RegExp) => void;
     clearCache: () => void;
@@ -189,10 +189,10 @@ export function useOptimizedQuery<T = any>(
             // Appeler le callback de succès
             if (onSuccess) onSuccess(data);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             if (!isMounted.current || error.name === 'AbortError') return;
 
-            logger.error(`Erreur lors de la requête${cacheKey ? ` (${cacheKey})` : ''}:`, error);
+            logger.error(`Erreur lors de la requête${cacheKey ? ` (${cacheKey})` : ''}:`, error instanceof Error ? error : new Error(String(error)));
 
             // Gérer les tentatives de réessai
             if (retryCountRef.current < retryCount) {

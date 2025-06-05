@@ -66,7 +66,7 @@ export async function fetchRooms(): Promise<Room[]> {
         const apiRooms = await response.json();
 
         // Transformer les données API au format attendu par l'application
-        return apiRooms.map((room: any, index: number) => ({
+        return apiRooms.map((room: unknown, index: number) => ({
             id: room.id,
             name: room.name,
             number: room.number,
@@ -75,8 +75,8 @@ export async function fetchRooms(): Promise<Room[]> {
             order: index, // Ordre par défaut basé sur l'ordre de l'API
             isActive: room.isActive !== undefined ? room.isActive : true
         }));
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des salles:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des salles:', error instanceof Error ? error : new Error(String(error)));
         // En cas d'erreur, retourner les salles mock
         return getMockRooms();
     }

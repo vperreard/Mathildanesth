@@ -10,14 +10,14 @@ import { MetricType } from './types';
  * Fonction d'enveloppement pour profiler l'évaluation de règles avec et sans cache
  */
 export function profileRuleEvaluation(
-    originalEvaluate: (...args: any[]) => any,
-    context: any,
+    originalEvaluate: (...args: unknown[]) => any,
+    context: unknown,
     enableCache: boolean
 ) {
     if (enableCache) {
         // Vérifier si la méthode getCachedEvaluation existe dans le contexte ou ses propriétés
         const getCachedResult = profilerService.wrapFunction(
-            (ctx: any) => {
+            (ctx: unknown) => {
                 // Logique pour obtenir le résultat en cache (à adapter selon l'implémentation)
                 const ruleCache = context.ruleCache || (context.services && context.services.ruleCache);
                 if (ruleCache && typeof ruleCache.getCachedEvaluation === 'function') {
@@ -54,9 +54,9 @@ export function profileRuleEvaluation(
  * Fonction pour profiler la mise en cache des résultats d'évaluation
  */
 export function profileRuleCaching(
-    originalCacheMethod: (...args: any[]) => any,
-    summary: any,
-    context: any,
+    originalCacheMethod: (...args: unknown[]) => any,
+    summary: unknown,
+    context: unknown,
     options: any = {}
 ) {
     const profiledCacheMethod = profilerService.wrapFunction(
@@ -71,12 +71,12 @@ export function profileRuleCaching(
 /**
  * Fonction pour patcher le moteur de règles avec du profilage
  */
-export function patchRuleEngine(ruleEngine: any) {
+export function patchRuleEngine(ruleEngine: unknown) {
     // Sauvegarde de la méthode originale d'évaluation
     const originalEvaluate = ruleEngine.evaluate;
 
     // Remplacer la méthode d'évaluation par une version profilée
-    ruleEngine.evaluate = function (context: any) {
+    ruleEngine.evaluate = function (context: unknown) {
         return profileRuleEvaluation(
             originalEvaluate.bind(this),
             context,
@@ -90,12 +90,12 @@ export function patchRuleEngine(ruleEngine: any) {
 /**
  * Fonction pour patcher le service de cache des règles avec du profilage
  */
-export function patchRuleCache(ruleCache: any) {
+export function patchRuleCache(ruleCache: unknown) {
     // Sauvegarde de la méthode originale de mise en cache
     const originalCacheEvaluation = ruleCache.cacheEvaluation;
 
     // Remplacer la méthode de mise en cache par une version profilée
-    ruleCache.cacheEvaluation = function (summary: any, context: any, options: any = {}) {
+    ruleCache.cacheEvaluation = function (summary: unknown, context: unknown, options: any = {}) {
         return profileRuleCaching(
             originalCacheEvaluation.bind(this),
             summary,

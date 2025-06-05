@@ -24,7 +24,7 @@ export const useDragDrop = (options: UseDragDropOptions = {}) => {
     });
 
     // Gestionnaire de début de drag
-    const handleDragStart = useCallback((result: any) => {
+    const handleDragStart = useCallback((result: unknown) => {
         const { source, draggableId } = result;
 
         const dragItem: DragItem = {
@@ -48,7 +48,7 @@ export const useDragDrop = (options: UseDragDropOptions = {}) => {
     }, [onDragStart]);
 
     // Gestionnaire de mise à jour pendant le drag
-    const handleDragUpdate = useCallback((result: any) => {
+    const handleDragUpdate = useCallback((result: unknown) => {
         const { destination } = result;
 
         if (!destination || !dragState.draggedItem) {

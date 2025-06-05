@@ -471,8 +471,8 @@ export class LeavePermissionService {
             if (this.debug) {
                 logger.debug('[LeavePermissionService] Custom permissions loaded', this.customPermissions.size);
             }
-        } catch (error) {
-            logger.error('Erreur lors du chargement des permissions personnalisées:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des permissions personnalisées:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -505,8 +505,8 @@ export class LeavePermissionService {
             };
 
             return userObject;
-        } catch (error) {
-            logger.error('Erreur lors de la récupération de l\'utilisateur actuel:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération de l\'utilisateur actuel:', error instanceof Error ? error : new Error(String(error)));
             return null;
         }
     }
@@ -587,8 +587,8 @@ export class LeavePermissionService {
             // Mettre en cache le résultat négatif
             this.cachePermissionResult(permission, currentUser.id, false, targetUserId, targetDepartmentId);
             return false;
-        } catch (error) {
-            logger.error(`Erreur lors de la vérification de la permission ${permission}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la vérification de la permission ${permission}:`, error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }
@@ -651,8 +651,8 @@ export class LeavePermissionService {
 
             const data = await response.json();
             return data.managerId === managerId;
-        } catch (error) {
-            logger.error('Erreur lors de la vérification d\'appartenance à l\'équipe:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la vérification d\'appartenance à l\'équipe:', error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }
@@ -673,8 +673,8 @@ export class LeavePermissionService {
             const user2 = await response2.json();
 
             return user1.departmentId === user2.departmentId;
-        } catch (error) {
-            logger.error('Erreur lors de la vérification d\'appartenance au département:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la vérification d\'appartenance au département:', error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }
@@ -888,8 +888,8 @@ export class LeavePermissionService {
             const data = await response.json();
             logger.info(`[DEBUG] saveCustomPermissions fetch response data for ${userId}:`, JSON.stringify(data));
             return data.success === true;
-        } catch (error) {
-            logger.error(`Erreur réseau ou autre lors de la sauvegarde des permissions pour ${userId}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur réseau ou autre lors de la sauvegarde des permissions pour ${userId}:`, error instanceof Error ? error : new Error(String(error)));
             logger.error(`Network or other error saving custom permissions for ${userId}`, { userId, error });
             return false;
         }
@@ -944,8 +944,8 @@ export class LeavePermissionService {
             }
 
             return result;
-        } catch (error) {
-            logger.error(`Erreur lors de la récupération des permissions pour l'utilisateur ${userId}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la récupération des permissions pour l'utilisateur ${userId}:`, error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }
@@ -1004,8 +1004,8 @@ export class LeavePermissionService {
             });
 
             return true;
-        } catch (error) {
-            logger.error(`Erreur lors de la réinitialisation des permissions pour l'utilisateur ${userId}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la réinitialisation des permissions pour l'utilisateur ${userId}:`, error instanceof Error ? error : new Error(String(error)));
             // S'assurer que l'erreur est également journalisée si elle n'a pas été interceptée avant
             const currentUser = await this.getCurrentUser(); // Peut être null si l'erreur est précoce
             if (currentUser && !(error instanceof Error && error.message.includes('réinitialisation des permissions'))) {

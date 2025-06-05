@@ -141,8 +141,8 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
 
                 setSectors(mockSectors);
                 showSuccess('Secteurs et salles chargés avec succès');
-            } catch (error) {
-                logger.error('Erreur lors du chargement des secteurs et salles:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors du chargement des secteurs et salles:', error instanceof Error ? error : new Error(String(error)));
                 showError('Erreur lors du chargement des secteurs et salles');
             } finally {
                 setIsLoadingSectors(false);

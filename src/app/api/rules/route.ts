@@ -18,8 +18,8 @@ export async function GET(req: NextRequest) {
         const rules = await collection.find(query).toArray();
 
         return NextResponse.json(rules);
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des règles:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des règles:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des règles' },
             { status: 500 }
@@ -60,8 +60,8 @@ export async function POST(req: NextRequest) {
         await collection.insertOne(newRule);
 
         return NextResponse.json(newRule, { status: 201 });
-    } catch (error) {
-        logger.error('Erreur lors de la création de la règle:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création de la règle:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur lors de la création de la règle' },
             { status: 500 }

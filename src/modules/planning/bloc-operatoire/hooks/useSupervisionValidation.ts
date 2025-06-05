@@ -230,7 +230,7 @@ export const useSupervisionValidation = () => {
                 violations: allViolations,
                 warnings
             };
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la validation des règles de supervision", err);
             setError("Erreur lors de la validation des règles de supervision");
 

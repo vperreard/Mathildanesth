@@ -58,7 +58,7 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
     const handlePersonnelConfigChange = (
         role: 'chirurgien' | 'mar' | 'iade',
         field: keyof PersonnelDisplayConfig['chirurgien'],
-        value: any
+        value: unknown
     ) => {
         setTempConfig(prev => ({
             ...prev,

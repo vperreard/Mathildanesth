@@ -104,8 +104,8 @@ export class RuleSimulator {
       );
 
       simulation.status = 'completed';
-    } catch (error) {
-      logger.error('Simulation error:', error);
+    } catch (error: unknown) {
+      logger.error('Simulation error:', error instanceof Error ? error : new Error(String(error)));
       simulation.status = 'failed';
     }
 
@@ -150,7 +150,7 @@ export class RuleSimulator {
 
   private calculateViolationSeverity(
     rule: Partial<RuleV2>,
-    result: any
+    result: unknown
   ): string {
     // Based on rule priority and action types
     if (rule.priority && rule.priority >= 20) return 'critical';

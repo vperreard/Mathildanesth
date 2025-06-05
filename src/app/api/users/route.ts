@@ -39,7 +39,7 @@ async function getHandler(request: NextRequest) {
         const siteId = searchParams.get('siteId');
 
         // Construire les filtres
-        const filters: Record<string, any> = {};
+        const filters: Record<string, unknown> = {};
 
         if (role) {
             filters.role = role;
@@ -96,8 +96,8 @@ async function getHandler(request: NextRequest) {
             }
         });
 
-    } catch (error) {
-        logger.error('[API Users] Erreur lors de la récupération des utilisateurs:', error);
+    } catch (error: unknown) {
+        logger.error('[API Users] Erreur lors de la récupération des utilisateurs:', error instanceof Error ? error : new Error(String(error)));
 
         return NextResponse.json({
             success: false,
@@ -123,7 +123,7 @@ async function headHandler(request: NextRequest) {
         const siteId = searchParams.get('siteId');
 
         // Construire les filtres
-        const filters: Record<string, any> = {};
+        const filters: Record<string, unknown> = {};
 
         if (role) {
             filters.role = role;
@@ -151,8 +151,8 @@ async function headHandler(request: NextRequest) {
             },
         });
 
-    } catch (error) {
-        logger.error('[API Users HEAD] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API Users HEAD] Erreur:', error instanceof Error ? error : new Error(String(error)));
         return new NextResponse(null, { status: 500 });
     }
 }
@@ -189,8 +189,8 @@ async function optionsHandler(request: NextRequest) {
             }
         });
 
-    } catch (error) {
-        logger.error('[API Users OPTIONS] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API Users OPTIONS] Erreur:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({
             suggestions: [],
             error: 'Erreur lors de la récupération des suggestions'
@@ -287,8 +287,8 @@ async function postHandler(request: NextRequest) {
             data: newUser
         }, { status: 201 });
 
-    } catch (error) {
-        logger.error('[API Users POST] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API Users POST] Erreur:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({
             success: false,
             error: 'Erreur lors de la création de l\'utilisateur'
@@ -368,8 +368,8 @@ async function putHandler(request: NextRequest) {
             updatedCount: result.count
         });
 
-    } catch (error) {
-        logger.error('[API Users PUT] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API Users PUT] Erreur:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({
             success: false,
             error: 'Erreur lors de la mise à jour'
@@ -448,8 +448,8 @@ async function deleteHandler(request: NextRequest) {
             deletedCount: result.count
         });
 
-    } catch (error) {
-        logger.error('[API Users DELETE] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API Users DELETE] Erreur:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({
             success: false,
             error: 'Erreur lors de la suppression'

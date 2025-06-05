@@ -102,7 +102,7 @@ export class UserService {
     /**
      * Vérifier le mot de passe d'un utilisateur
      */
-    static async verifyPassword(user: any, candidatePassword: string): Promise<boolean> {
+    static async verifyPassword(user: unknown, candidatePassword: string): Promise<boolean> {
         return UserServicePrisma.verifyPassword(user, candidatePassword);
     }
 
@@ -125,7 +125,7 @@ export class UserService {
     /**
      * @deprecated Utilisez findUserByLogin à la place
      */
-    static async findOne(where: any) {
+    static async findOne(where: unknown) {
         if (where.login) {
             return this.findUserByLogin(where.login);
         }
@@ -164,7 +164,7 @@ export class UserService {
     /**
      * @deprecated Utilisez createUser à la place
      */
-    static async create(userData: any) {
+    static async create(userData: unknown) {
         // Mapping des champs Sequelize vers Prisma
         const prismaData: PrismaCreateUserInput = {
             nom: userData.lastName || userData.nom,
@@ -183,7 +183,7 @@ export class UserService {
     /**
      * @deprecated Utilisez updateUser à la place
      */
-    static async update(userData: any, options: any) {
+    static async update(userData: unknown, options: unknown) {
         if (!options.where?.id) {
             throw new Error('ID utilisateur requis pour la mise à jour');
         }
@@ -206,7 +206,7 @@ export class UserService {
     /**
      * @deprecated Utilisez deleteUser à la place
      */
-    static async destroy(options: any) {
+    static async destroy(options: unknown) {
         if (!options.where?.id) {
             throw new Error('ID utilisateur requis pour la suppression');
         }

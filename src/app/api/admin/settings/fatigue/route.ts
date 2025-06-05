@@ -34,12 +34,12 @@ async function readConfigFile(): Promise<FatigueConfig> {
     try {
         const data = await fs.readFile(configFilePath, 'utf-8');
         return JSON.parse(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (error.code === 'ENOENT') {
             logger.warn('fatigue-settings.json not found, returning default seed config.');
             return defaultFatigueSeedConfig; // Utiliser le fallback codé en dur
         }
-        logger.error("Error reading fatigue config file:", error);
+        logger.error("Error reading fatigue config file:", error instanceof Error ? error : new Error(String(error)));
         throw new Error('Could not read fatigue configuration.');
     }
 }
@@ -48,8 +48,8 @@ async function readConfigFile(): Promise<FatigueConfig> {
 async function writeConfigFile(config: FatigueConfig): Promise<void> {
     try {
         await fs.writeFile(configFilePath, JSON.stringify(config, null, 2), 'utf-8');
-    } catch (error) {
-        logger.error("Error writing fatigue config file:", error);
+    } catch (error: unknown) {
+        logger.error("Error writing fatigue config file:", error instanceof Error ? error : new Error(String(error)));
         throw new Error('Could not save fatigue configuration.');
     }
 }
@@ -72,7 +72,7 @@ export async function GET(request: Request) {
     try {
         const config = await readConfigFile();
         return NextResponse.json(config);
-    } catch (error: any) {
+    } catch (error: unknown) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
@@ -96,7 +96,7 @@ export async function PUT(request: Request) {
 
         await writeConfigFile(newConfig);
         return NextResponse.json({ message: 'Configuration saved successfully' });
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (error instanceof SyntaxError) {
             return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
         }

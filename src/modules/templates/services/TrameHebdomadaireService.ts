@@ -108,8 +108,8 @@ export class TrameHebdomadaireService {
             }
 
             return data;
-        } catch (error) {
-            logger.error("[TrameHebdomadaireService] Erreur lors de la récupération des trameModeles modèles (service catch getAllTrames):", error);
+        } catch (error: unknown) {
+            logger.error("[TrameHebdomadaireService] Erreur lors de la récupération des trameModeles modèles (service catch getAllTrames):", error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }
@@ -138,8 +138,8 @@ export class TrameHebdomadaireService {
             }
             // On pourrait ajouter une validation de la structure de l'objet ici si nécessaire
             return await response.json();
-        } catch (error) {
-            logger.error(`Erreur lors de la récupération de la trameModele modèle ${id} (service):`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la récupération de la trameModele modèle ${id} (service):`, error instanceof Error ? error : new Error(String(error)));
             return null;
         }
     }
@@ -147,7 +147,7 @@ export class TrameHebdomadaireService {
     /**
      * Crée une nouvelle trameModele modèle
      */
-    static async createTrame(trameClientData: Omit<TrameHebdomadaireDTO, 'id' | 'gardes/vacations'>): Promise<any> {
+    static async createTrame(trameClientData: Omit<TrameHebdomadaireDTO, 'id' | 'gardes/vacations'>): Promise<unknown> {
         logger.info('[TrameHebdomadaireService] Entrée dans createTrame avec données:', trameClientData);
         let typeSemaineApi: TypeSemaineTrame;
         switch (trameClientData.typeSemaine) {
@@ -194,7 +194,7 @@ export class TrameHebdomadaireService {
                 let errorBody;
                 try {
                     errorBody = await response.json();
-                } catch (e) {
+                } catch (e: unknown) {
                     errorBody = {
                         message: 'Réponse non JSON de l\'API ou erreur de parsing.',
                         details: statusText
@@ -216,8 +216,8 @@ export class TrameHebdomadaireService {
             const result = await response.json();
             logger.info('[TrameHebdomadaireService] Tableau de service créée avec succès:', result);
             return result;
-        } catch (error) {
-            logger.error("Erreur lors de la création de la trameModele modèle (service catch):", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la création de la trameModele modèle (service catch):", error instanceof Error ? error : new Error(String(error)));
             // Rethrow l'erreur pour qu'elle soit traitée par le composant appelant
             // Si l'erreur est déjà une instance de Error avec un message pertinent, la relancer telle quelle.
             // Sinon, encapsuler dans une nouvelle Error.
@@ -279,7 +279,7 @@ export class TrameHebdomadaireService {
                 let errorBody;
                 try {
                     errorBody = await response.json();
-                } catch (e) {
+                } catch (e: unknown) {
                     errorBody = {
                         message: 'Réponse non JSON de l\'API ou erreur de parsing.',
                         details: statusText
@@ -293,8 +293,8 @@ export class TrameHebdomadaireService {
             const result = await response.json();
             logger.info('[TrameHebdomadaireService] Tableau de service mise à jour avec succès:', result);
             return result;
-        } catch (error) {
-            logger.error("Erreur lors de la mise à jour de la trameModele modèle (service catch):", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la mise à jour de la trameModele modèle (service catch):", error instanceof Error ? error : new Error(String(error)));
             if (error instanceof Error) {
                 throw error;
             }
@@ -323,7 +323,7 @@ export class TrameHebdomadaireService {
                 let errorBody;
                 try {
                     errorBody = await response.json();
-                } catch (e) {
+                } catch (e: unknown) {
                     errorBody = {
                         message: 'Réponse non JSON de l\'API ou erreur de parsing.',
                         details: statusText
@@ -339,13 +339,13 @@ export class TrameHebdomadaireService {
                 const result = await response.json();
                 logger.info('[TrameHebdomadaireService] Résultat de la suppression:', result);
                 return true;
-            } catch (e) {
+            } catch (e: unknown) {
                 // Si pas de JSON, c'est OK aussi (204 No Content)
                 logger.info('[TrameHebdomadaireService] Tableau de service supprimée avec succès (pas de corps de réponse)');
                 return true;
             }
-        } catch (error) {
-            logger.error("Erreur lors de la suppression de la trameModele modèle (service catch):", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la suppression de la trameModele modèle (service catch):", error instanceof Error ? error : new Error(String(error)));
             if (error instanceof Error) {
                 throw error;
             }

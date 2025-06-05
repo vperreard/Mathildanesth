@@ -201,7 +201,7 @@ export function usePlanningRules({
             setQualityScore(optimizationResult.score);
             setStatus('success');
 
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la génération du planning:', err);
             setError(err instanceof Error ? err : new Error('Erreur inconnue'));
             setStatus('error');

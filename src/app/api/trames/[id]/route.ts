@@ -46,7 +46,7 @@ interface TramePutRequestBody {
 async function parseRequestBody(request: NextRequest) {
     try {
         return await request.json();
-    } catch (error) {
+    } catch (error: unknown) {
         return null; // Retourne null si le parsing échoue
     }
 }
@@ -95,8 +95,8 @@ export async function GET(
         }
         return NextResponse.json(trameModele);
 
-    } catch (error) {
-        logger.error(`Erreur lors de la récupération de la trameModele ${id}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur lors de la récupération de la trameModele ${id}:`, error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération de la trameModele' },
             { status: 500 }
@@ -357,7 +357,7 @@ export async function PUT(
         logger.info(`[API PUT /api/trameModeles/${trameIdToUpdate}] Mise à jour effectuée.`);
         return NextResponse.json(updatedTrame);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (error.code === 'P2025') {
             return NextResponse.json({ error: `TrameModele avec ID ${trameIdToUpdate} non trouvée.` }, { status: 404 });
         }
@@ -365,7 +365,7 @@ export async function PUT(
             logger.error(`Erreur Prisma lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error.message, error.code, error.meta);
             return NextResponse.json({ error: 'Erreur base de données lors de la mise à jour.', details: error.message }, { status: 500 });
         }
-        logger.error(`Erreur générique lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error);
+        logger.error(`Erreur générique lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur lors de la mise à jour de la trameModele.', details: error.message || 'Erreur inconnue' },
             { status: 500 }
@@ -401,11 +401,11 @@ export async function DELETE(
 
         return NextResponse.json({ message: 'TrameModele supprimée avec succès' }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (error.code === 'P2025') {
             return NextResponse.json({ error: 'TrameModele non trouvée pour la suppression' }, { status: 404 });
         }
-        logger.error(`Erreur lors de la suppression de la trameModele ${id}:`, error);
+        logger.error(`Erreur lors de la suppression de la trameModele ${id}:`, error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur lors de la suppression de la trameModele' },
             { status: 500 }

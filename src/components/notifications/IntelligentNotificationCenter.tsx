@@ -40,7 +40,7 @@ interface NotificationContext {
   source: string;
   affectedUsers?: string[];
   period?: string;
-  relatedData?: any;
+  relatedData?: unknown;
 }
 
 interface NotificationAction {

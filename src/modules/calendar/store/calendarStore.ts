@@ -31,7 +31,7 @@ export interface CalendarState {
 
     // Paramètres
     settings: CalendarSettings;
-    userSettings?: any;
+    userSettings?: unknown;
 
     // Cache
     lastFetched: Record<string, number>;
@@ -179,10 +179,10 @@ export const useCalendarStore = create<CalendarState>()(
                             [cacheKey]: now
                         }
                     });
-                } catch (err) {
+                } catch (err: unknown) {
                     const error = err instanceof Error ? err : new Error('Erreur inconnue');
                     set({ error, loading: false });
-                    logger.error('Erreur lors du chargement des événements:', error);
+                    logger.error('Erreur lors du chargement des événements:', error instanceof Error ? error : new Error(String(error)));
                 }
             },
 

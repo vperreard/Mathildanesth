@@ -21,7 +21,7 @@ async function authorizeRequest(req: NextRequest) {
     }
 
     try {
-        const decoded = jwt.verify(tokenString, process.env.JWT_SECRET) as { sub?: string, userId?: string | number, [key: string]: any };
+        const decoded = jwt.verify(tokenString, process.env.JWT_SECRET) as { sub?: string, userId?: string | number, [key: string]: unknown };
         const userId = decoded.sub || decoded.userId;
         if (!userId) {
             return { error: 'Token invalide (ID utilisateur manquant).', status: 401, userId: null };
@@ -32,7 +32,7 @@ async function authorizeRequest(req: NextRequest) {
         // }
         return { userId: String(userId), error: null, status: 0 };
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         // Il peut être utile de garder un log discret ici en production pour les erreurs inattendues
         logger.error(`[API ActivityType Auth] jwt.verify failed: ${err.name} - ${err.message}`);
         if (err.name === 'JsonWebTokenError') {
@@ -59,7 +59,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     let body;
     try {
         body = await request.json();
-    } catch (e) {
+    } catch (e: unknown) {
         logger.error(`[API ActivityType PUT /api/activity-types/${id}] Invalid JSON body:`, e); // Garder ce log
         return NextResponse.json({ error: 'Corps de la requête JSON invalide.' }, { status: 400 });
     }
@@ -89,8 +89,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             },
         });
         return NextResponse.json(updatedActivityType, { status: 200 });
-    } catch (error) {
-        logger.error(`[API ActivityType PUT /api/activity-types/${id}] Error updating activity type:`, error); // Garder ce log
+    } catch (error: unknown) {
+        logger.error(`[API ActivityType PUT /api/activity-types/${id}] Error updating activity type:`, error instanceof Error ? error : new Error(String(error))); // Garder ce log
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 return NextResponse.json({ error: 'Type d\'activité non trouvé.' }, { status: 404 });
@@ -160,8 +160,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             where: { id },
         });
         return NextResponse.json({ message: 'Type d\'activité supprimé avec succès.' }, { status: 200 }); // Ou 204 No Content
-    } catch (error) {
-        logger.error(`[API ActivityType DELETE /api/activity-types/${id}] Error deleting activity type:`, error);
+    } catch (error: unknown) {
+        logger.error(`[API ActivityType DELETE /api/activity-types/${id}] Error deleting activity type:`, error instanceof Error ? error : new Error(String(error)));
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 // Record to delete does not exist.

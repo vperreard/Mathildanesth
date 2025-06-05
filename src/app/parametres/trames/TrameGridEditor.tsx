@@ -44,8 +44,8 @@ const safeToast = {
                     draggable: true,
                 });
             }, 100);
-        } catch (error) {
-            logger.error('Erreur lors de l\'affichage du toast:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'affichage du toast:', error instanceof Error ? error : new Error(String(error)));
         }
     },
     error: (message: string) => {
@@ -62,8 +62,8 @@ const safeToast = {
                     draggable: true,
                 });
             }, 100);
-        } catch (error) {
-            logger.error('Erreur lors de l\'affichage du toast d\'erreur:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'affichage du toast d\'erreur:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 };
@@ -89,7 +89,7 @@ interface OperatingSector {
 }
 
 // Fonction pour convertir les données du back-end vers le format attendu par TrameGridView
-const mapTrameFromApi = (apiTrame: any): TrameModele => {
+const mapTrameFromApi = (apiTrame: unknown): TrameModele => {
     logger.info('[MAPPING] API TrameModele before mapping:', apiTrame);
 
     // Mapping du type de semaine
@@ -101,7 +101,7 @@ const mapTrameFromApi = (apiTrame: any): TrameModele => {
     logger.info(`[MAPPING] typeSemaine "${apiTrame.typeSemaine}" mapped to weekType "${weekType}"`);
 
     // Mapping des affectations
-    const affectations: AffectationModele[] = apiTrame.affectations?.map((aff: any) => {
+    const affectations: AffectationModele[] = apiTrame.affectations?.map((aff: unknown) => {
         // Mapping du type de période
         let period: 'MORNING' | 'AFTERNOON' | 'FULL_DAY' = 'FULL_DAY';
         if (aff.periode === 'MATIN') period = 'MORNING';
@@ -109,7 +109,7 @@ const mapTrameFromApi = (apiTrame: any): TrameModele => {
         if (aff.periode === 'JOURNEE_ENTIERE') period = 'FULL_DAY';
 
         // Mapping des personnels requis
-        const requiredStaff = aff.personnelRequis?.map((pr: any) => ({
+        const requiredStaff = aff.personnelRequis?.map((pr: unknown) => ({
             id: pr.id.toString(),
             affectationId: aff.id.toString(),
             role: mapRoleFromApi(pr.roleGenerique),
@@ -225,7 +225,7 @@ const TrameGridEditor: React.FC = () => {
                     }
                 }
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du chargement des trames:', err);
 
             if (err.response && err.response.status === 401) {
@@ -244,7 +244,7 @@ const TrameGridEditor: React.FC = () => {
             if (response.status === 200) {
                 setSites(response.data);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du chargement des sites:', err);
         }
     };
@@ -281,7 +281,7 @@ const TrameGridEditor: React.FC = () => {
                     logger.info(`📍 Salles chargées: ${roomsResponse.data.length} salles`);
                 }
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du chargement des secteurs et salles:', err);
         } finally {
             setIsRefreshing(false);
@@ -351,7 +351,7 @@ const TrameGridEditor: React.FC = () => {
                     )
                 );
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la mise à jour de la trameModele:', err);
             setError("Erreur lors de la sauvegarde des modifications. Veuillez réessayer.");
 
@@ -519,8 +519,8 @@ const TrameGridEditor: React.FC = () => {
                                 const toastElements = document.querySelectorAll('[class*="Toastify"]');
                                 toastElements.forEach(el => el.remove());
                                 logger.info('Tous les toasts ont été fermés');
-                            } catch (error) {
-                                logger.error('Erreur lors de la fermeture des toasts:', error);
+                            } catch (error: unknown) {
+                                logger.error('Erreur lors de la fermeture des toasts:', error instanceof Error ? error : new Error(String(error)));
                             }
                         }}
                         className="text-red-600 hover:text-red-800 hover:bg-red-50 border-red-300"

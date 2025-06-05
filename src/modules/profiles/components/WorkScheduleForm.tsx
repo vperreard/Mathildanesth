@@ -160,7 +160,7 @@ export const WorkScheduleForm: React.FC<WorkScheduleFormProps> = ({
             if (onSave) {
                 onSave(savedSchedule);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de l\'enregistrement du planning:', err);
             // On laisse l'hook gérer l'erreur
         }

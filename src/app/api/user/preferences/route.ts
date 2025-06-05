@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
             }
         });
 
-    } catch (error) {
-        logger.error("Erreur GET /api/user/preferences:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur GET /api/user/preferences:", error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
     }
 }
@@ -100,8 +100,8 @@ export async function POST(request: NextRequest) {
             preferences 
         });
 
-    } catch (error) {
-        logger.error("Erreur POST /api/user/preferences:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur POST /api/user/preferences:", error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
     }
 }

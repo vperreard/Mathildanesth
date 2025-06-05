@@ -33,7 +33,7 @@ export const PlanningView: React.FC<PlanningViewProps> = ({ userId }) => {
                 ? await PlanningService.getPlanningForUser(userId, startDate, endDate)
                 : await PlanningService.generatePlanning(startDate, endDate);
             setPlanning(data);
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error('Erreur lors du chargement du planning');
             logger.error(error);
         } finally {

@@ -42,8 +42,8 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(affectations);
-    } catch (error) {
-        logger.error('Error fetching affectations:', error);
+    } catch (error: unknown) {
+        logger.error('Error fetching affectations:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des affectations' },
             { status: 500 }

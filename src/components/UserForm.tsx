@@ -65,7 +65,7 @@ const formatDateForInput = (date: Date | string | null | undefined): string => {
     if (!date) return '';
     try {
         return new Date(date).toISOString().split('T')[0];
-    } catch (e) {
+    } catch (e: unknown) {
         return '';
     }
 };
@@ -286,7 +286,7 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
 
         try {
             await onSubmit(dataToSend, Array.from(selectedSkillIds), selectedSites);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Form submission error:", err);
             setError(err.message || 'Une erreur est survenue lors de la soumission.');
         }

@@ -200,7 +200,7 @@ export const getFullErrorInfo = (errorCode: string, defaultMessage: string = 'Un
 /**
  * Traduit un message d'erreur technique en message compréhensible
  */
-export const translateTechnicalError = (error: any): string => {
+export const translateTechnicalError = (error: unknown): string => {
     // Analyser l'erreur pour identifier des patterns connus
     const errorMessage = error?.message || String(error);
 

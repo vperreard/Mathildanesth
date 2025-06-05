@@ -219,7 +219,7 @@ export class UnifiedRequestService {
     priority?: RequestPriority;
     initiatorId: number;
     targetUserId?: number;
-    metadata?: any;
+    metadata?: unknown;
     expiresAt?: Date;
   }): Promise<UnifiedRequest> {
     const config = this.requestTypeConfigs.get(data.type);
@@ -522,7 +522,7 @@ export class UnifiedRequestService {
   }
 
   private async sendNotifications(
-    request: any,
+    request: unknown,
     event: string,
     config: RequestTypeConfig
   ): Promise<void> {

@@ -152,8 +152,8 @@ const TransferQuotaForm: React.FC<TransferQuotaFormProps> = ({
             );
 
             setSimulationResult(result);
-        } catch (error) {
-            logger.error("Erreur lors de la simulation:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la simulation:", error instanceof Error ? error : new Error(String(error)));
         } finally {
             setIsSimulating(false);
         }
@@ -205,7 +205,7 @@ const TransferQuotaForm: React.FC<TransferQuotaFormProps> = ({
             } else {
                 setSubmitError("Échec du transfert de quota. Veuillez réessayer.");
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             setSubmitError(error?.message || "Une erreur est survenue lors du transfert");
         } finally {
             setIsSubmitting(false);

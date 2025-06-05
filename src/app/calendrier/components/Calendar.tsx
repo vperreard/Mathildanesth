@@ -28,11 +28,11 @@ export interface CalendarProps {
         snapDuration?: string;
         slotDuration?: string;
         slotLabelInterval?: string;
-        slotLabelFormat?: any;
+        slotLabelFormat?: unknown;
         slotMinTime?: string;
         slotMaxTime?: string;
     };
-    fetchEvents?: (start: Date, end: Date, filters?: any) => Promise<CalendarEventType[]>;
+    fetchEvents?: (start: Date, end: Date, filters?: unknown) => Promise<CalendarEventType[]>;
     initialDate?: Date;
     onViewChange?: (view: CalendarViewType) => void;
     onDateRangeChange?: (start: Date, end: Date) => void;
@@ -245,7 +245,7 @@ export const Calendar: React.FC<CalendarProps> = ({
     // Créer un service d'événements à partir des callbacks fournis
     const eventServices = useMemo(() => ({
         fetchEvents: fetchEvents ?
-            async (start: Date, end: Date, filters?: any) => {
+            async (start: Date, end: Date, filters?: unknown) => {
                 const result = await fetchEvents(start, end, filters);
                 return result;
             }

@@ -65,7 +65,7 @@ export default function OptimizedBlocPlanning() {
     const events = useMemo(() => {
         if (!planningData?.attributions) return [];
         
-        return planningData.attributions.map((attribution: any) => ({
+        return planningData.attributions.map((attribution: unknown) => ({
             id: attribution.id,
             title: attribution.user ? `${attribution.user.firstName} ${attribution.user.lastName}` : 'Non assigné',
             startTime: attribution.period === 'MORNING' ? '08:00' : attribution.period === 'AFTERNOON' ? '14:00' : '20:00',
@@ -88,13 +88,13 @@ export default function OptimizedBlocPlanning() {
     }, [updateFilters, prefetchAdjacentWeeks]);
 
     // Handle event click
-    const handleEventClick = useCallback((event: any) => {
+    const handleEventClick = useCallback((event: unknown) => {
         logger.info('Event clicked:', event);
         // Open edit modal or navigate to detail view
     }, []);
 
     // Handle time slot click for new attribution
-    const handleTimeSlotClick = useCallback((date: Date, period: any, roomId: number) => {
+    const handleTimeSlotClick = useCallback((date: Date, period: unknown, roomId: number) => {
         logger.info('Time slot clicked:', { date, period, roomId });
         // Open attribution creation modal
     }, []);
@@ -106,7 +106,7 @@ export default function OptimizedBlocPlanning() {
     }, []);
 
     // Handle trameModele save with optimistic update
-    const handleTrameSave = useCallback((affectations: any[]) => {
+    const handleTrameSave = useCallback((affectations: unknown[]) => {
         // Optimistic update
         optimisticUpdate((data) => ({
             ...data,

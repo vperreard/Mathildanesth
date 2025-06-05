@@ -11,7 +11,7 @@ interface PerformanceMetric {
   startTime: number;
   endTime?: number;
   duration?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface CoreWebVitals {
@@ -71,7 +71,7 @@ class PerformanceMonitoringService {
   /**
    * Démarre une mesure de performance
    */
-  startMeasure(name: string, metadata?: Record<string, any>): string {
+  startMeasure(name: string, metadata?: Record<string, unknown>): string {
     const id = `${name}_${Date.now()}_${Math.random()}`;
     const metric: PerformanceMetric = {
       name,
@@ -129,14 +129,14 @@ class PerformanceMonitoringService {
   async measureAsync<T>(
     name: string,
     fn: () => Promise<T>,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): Promise<{ result: T; duration: number }> {
     this.startMeasure(name, metadata);
     try {
       const result = await fn();
       const duration = this.endMeasure(name);
       return { result, duration };
-    } catch (error) {
+    } catch (error: unknown) {
       this.endMeasure(name);
       throw error;
     }
@@ -148,14 +148,14 @@ class PerformanceMonitoringService {
   measureSync<T>(
     name: string,
     fn: () => T,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): { result: T; duration: number } {
     this.startMeasure(name, metadata);
     try {
       const result = fn();
       const duration = this.endMeasure(name);
       return { result, duration };
-    } catch (error) {
+    } catch (error: unknown) {
       this.endMeasure(name);
       throw error;
     }
@@ -257,8 +257,8 @@ class PerformanceMonitoringService {
           timestamp: new Date().toISOString()
         })
       });
-    } catch (error) {
-      logger.error('Failed to send performance alert:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to send performance alert:', error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -314,7 +314,7 @@ class PerformanceMonitoringService {
       if (PerformanceObserver.supportedEntryTypes.includes('first-input')) {
         const fidObserver = new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          entries.forEach((entry: any) => {
+          entries.forEach((entry: unknown) => {
             const fid = entry.processingStart - entry.startTime;
             this.coreWebVitals.FID = fid;
             this.checkCoreWebVitalThreshold('FID', fid);
@@ -329,7 +329,7 @@ class PerformanceMonitoringService {
         let cumulativeLayoutShift = 0;
         const clsObserver = new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          entries.forEach((entry: any) => {
+          entries.forEach((entry: unknown) => {
             if (!entry.hadRecentInput) {
               cumulativeLayoutShift += entry.value;
             }
@@ -357,8 +357,8 @@ class PerformanceMonitoringService {
         navObserver.observe({ entryTypes: ['navigation'] });
         this.observers.set('navigation', navObserver);
       }
-    } catch (error) {
-      logger.warn('Some Core Web Vitals observers not supported:', error);
+    } catch (error: unknown) {
+      logger.warn('Some Core Web Vitals observers not supported:', error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -442,7 +442,7 @@ class PerformanceMonitoringService {
   exportMetrics(): string {
     const report = this.generateReport();
     const coreWebVitalsReport = this.generateCoreWebVitalsReport();
-    const stats: Record<string, any> = {};
+    const stats: Record<string, unknown> = {};
 
     for (const [name] of this.metrics.entries()) {
       stats[name] = this.getStats(name);

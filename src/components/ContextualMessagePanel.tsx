@@ -96,8 +96,8 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
                 // À améliorer avec un toast ou une notification visuelle
                 alert(`Erreur: ${result.error}`);
             }
-        } catch (error) {
-            logger.error('Erreur lors de l\'envoi du message:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'envoi du message:', error instanceof Error ? error : new Error(String(error)));
         } finally {
             setIsSubmitting(false);
         }
@@ -117,8 +117,8 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
                 logger.error('Erreur lors de la modification du message:', result.error);
                 alert(`Erreur: ${result.error}`);
             }
-        } catch (error) {
-            logger.error('Erreur lors de la modification du message:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la modification du message:', error instanceof Error ? error : new Error(String(error)));
         } finally {
             setIsSubmitting(false);
         }
@@ -134,8 +134,8 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
                 logger.error('Erreur lors de la suppression du message:', result.error);
                 alert(`Erreur: ${result.error}`);
             }
-        } catch (error) {
-            logger.error('Erreur lors de la suppression du message:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la suppression du message:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 
@@ -153,8 +153,8 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
                 logger.error('Erreur lors de l\'envoi de la réponse:', result.error);
                 alert(`Erreur: ${result.error}`);
             }
-        } catch (error) {
-            logger.error('Erreur lors de l\'envoi de la réponse:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'envoi de la réponse:', error instanceof Error ? error : new Error(String(error)));
         } finally {
             setIsSubmitting(false);
         }
@@ -165,7 +165,7 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
         try {
             const date = new Date(dateString);
             return formatDistanceToNow(date, { addSuffix: true, locale: fr });
-        } catch (err) {
+        } catch (err: unknown) {
             return 'Date inconnue';
         }
     };
@@ -176,7 +176,7 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
     };
 
     // Interface de rendu pour un message
-    const renderMessage = (message: any, isReply = false) => {
+    const renderMessage = (message: unknown, isReply = false) => {
         const isAuthor = isCurrentUserAuthor(message.authorId);
         const isEditing = editingMessageId === message.id;
         const isReplying = replyToId === message.id;
@@ -296,7 +296,7 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
                 {/* Afficher les réponses au message */}
                 {message.replies && message.replies.length > 0 && (
                     <div className="mt-3 space-y-3">
-                        {message.replies.map((reply: any) => renderMessage(reply, true))}
+                        {message.replies.map((reply: unknown) => renderMessage(reply, true))}
                     </div>
                 )}
             </div>

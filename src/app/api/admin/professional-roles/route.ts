@@ -19,8 +19,8 @@ export async function GET() {
             ORDER BY code ASC
         `;
         return NextResponse.json(roles);
-    } catch (error) {
-        logger.error("Erreur GET /api/admin/professional-roles:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur GET /api/admin/professional-roles:", error instanceof Error ? error : new Error(String(error)));
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 }
@@ -64,8 +64,8 @@ export async function POST(request: Request) {
         `;
 
         return new NextResponse(JSON.stringify(newRole), { status: 201 });
-    } catch (error) {
-        logger.error("Erreur POST /api/admin/professional-roles:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur POST /api/admin/professional-roles:", error instanceof Error ? error : new Error(String(error)));
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 } 

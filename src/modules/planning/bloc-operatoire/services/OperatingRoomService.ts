@@ -46,8 +46,8 @@ export class OperatingRoomService {
                 };
                 return mappedRoom;
             });
-        } catch (error) {
-            logger.error('Erreur lors de la récupération des salles via BlocPlanningService:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des salles via BlocPlanningService:', error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }
@@ -84,8 +84,8 @@ export class OperatingRoomService {
             };
 
             return mappedRoom;
-        } catch (error) {
-            logger.error(`Erreur lors de la récupération de la salle ${id} via BlocPlanningService:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la récupération de la salle ${id} via BlocPlanningService:`, error instanceof Error ? error : new Error(String(error)));
             return null;
         }
     }
@@ -110,8 +110,8 @@ export class OperatingRoomService {
                 };
                 return mappedRoom;
             });
-        } catch (error) {
-            logger.error('Erreur lors de la récupération des salles actives:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des salles actives:', error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }
@@ -149,8 +149,8 @@ export class OperatingRoomService {
         try {
             const allRooms = await this.getAll();
             return allRooms.filter(room => room.secteurId === sectorId);
-        } catch (error) {
-            logger.error(`Erreur lors de la récupération des salles pour le secteur ${sectorId}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la récupération des salles pour le secteur ${sectorId}:`, error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }

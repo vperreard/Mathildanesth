@@ -61,7 +61,7 @@ interface RenderHookResult<T> {
   result: {
     current: T;
   };
-  rerender: (newProps?: any) => void;
+  rerender: (newProps?: unknown) => void;
   unmount: () => void;
 }
 
@@ -93,7 +93,7 @@ export function renderHookNode<T>(hookFn: () => T): RenderHookResult<T> {
         return hookResult;
       }
     },
-    rerender: (newProps?: any) => {
+    rerender: (newProps?: unknown) => {
       act(() => {
         render();
       });
@@ -112,7 +112,7 @@ export function waitForNode(callback: () => void, timeout = 1000): Promise<void>
       try {
         callback();
         resolve();
-      } catch (error) {
+      } catch (error: unknown) {
         if (Date.now() - startTime < timeout) {
           setTimeout(check, 10);
         } else {

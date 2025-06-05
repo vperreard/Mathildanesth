@@ -80,8 +80,8 @@ export async function GET(request: Request) {
             });
             return NextResponse.json(plannings);
         }
-    } catch (error) {
-        logger.error('Erreur lors de la récupération du planning du bloc:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération du planning du bloc:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({ error: 'Erreur lors de la récupération du planning du bloc' }, { status: 500 });
     }
 }
@@ -154,8 +154,8 @@ export async function POST(request: NextRequest) {
             message: `${generatedPlannings.length} planning(s) généré(s) avec succès`,
             plannings: generatedPlannings
         });
-    } catch (error) {
-        logger.error('Erreur lors de la création des plannings:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création des plannings:', error instanceof Error ? error : new Error(String(error)));
         
         // Log d'audit pour l'échec
         await auditService.logAction({
@@ -189,8 +189,8 @@ export async function PUT(request: Request) {
 
         // Pour l'instant, cette route n'est pas implémentée
         return NextResponse.json({ error: 'Route non implémentée' }, { status: 501 });
-    } catch (error) {
-        logger.error('Erreur lors de la mise à jour du planning du bloc:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la mise à jour du planning du bloc:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({ error: 'Erreur lors de la mise à jour du planning du bloc' }, { status: 500 });
     }
 } 

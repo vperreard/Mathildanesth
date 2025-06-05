@@ -64,8 +64,8 @@ interface WeeklyPlanningWidgetProps {
         weekStart: string;
         weekEnd: string;
         shifts: MedicalShift[];
-        stats: any;
-        notifications: any[];
+        stats: unknown;
+        notifications: unknown[];
     };
 }
 
@@ -137,7 +137,7 @@ export default function WeeklyPlanningWidget({ userId, className, mockData }: We
             const formattedWeek = [];
             for (let i = 0; i < 7; i++) {
                 const currentDate = addDays(weekStart, i);
-                const dayShifts = data.shifts.filter((shift: any) => {
+                const dayShifts = data.shifts.filter((shift: unknown) => {
                     const shiftDate = new Date(shift.date);
                     return shiftDate.toDateString() === currentDate.toDateString();
                 });
@@ -155,13 +155,13 @@ export default function WeeklyPlanningWidget({ userId, className, mockData }: We
 
             // Identifier la prochaine affectation
             const upcoming = data.shifts
-                .filter((shift: any) => new Date(shift.date) >= new Date())
-                .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+                .filter((shift: unknown) => new Date(shift.date) >= new Date())
+                .sort((a: unknown, b: unknown) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
             
             setNextShift(upcoming);
 
-        } catch (error) {
-            logger.error('Erreur lors du chargement du planning:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement du planning:', error instanceof Error ? error : new Error(String(error)));
             const errorMessage = error instanceof Error ? error.message : "Impossible de charger votre planning";
             toast({
                 title: "Erreur",

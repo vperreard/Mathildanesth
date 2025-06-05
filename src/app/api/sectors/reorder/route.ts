@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
             success: true,
             message: `${results.length} secteurs mis à jour`
         });
-    } catch (error) {
-        logger.error('Erreur lors de la mise à jour de l\'ordre des secteurs:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la mise à jour de l\'ordre des secteurs:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour de l\'ordre des secteurs' },
             { status: 500 }

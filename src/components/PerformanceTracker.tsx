@@ -51,15 +51,15 @@ export function PerformanceTracker() {
                         toastElements.forEach(el => {
                             try {
                                 el.remove();
-                            } catch (e) {
+                            } catch (e: unknown) {
                                 // Ignorer les erreurs de suppression
                             }
                         });
                     }
 
                     event.preventDefault();
-                } catch (error) {
-                    logger.error('[Performance] Erreur lors de la fermeture des toasts:', error);
+                } catch (error: unknown) {
+                    logger.error('[Performance] Erreur lors de la fermeture des toasts:', error instanceof Error ? error : new Error(String(error)));
                 }
             }
         };
@@ -91,8 +91,8 @@ export function PerformanceTracker() {
 
                 observer.observe({ entryTypes: ['resource'] });
                 return () => observer.disconnect();
-            } catch (error) {
-                logger.error('[Performance] Erreur lors de l\'observation des performances:', error);
+            } catch (error: unknown) {
+                logger.error('[Performance] Erreur lors de l\'observation des performances:', error instanceof Error ? error : new Error(String(error)));
             }
         }
     }, []);

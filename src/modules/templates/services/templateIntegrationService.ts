@@ -15,8 +15,8 @@ export const templateIntegrationService = {
     async exportTemplateToJSON(templateId: string): Promise<Blob> {
         try {
             return await templateService.exportTemplateAsJSON(templateId);
-        } catch (error) {
-            logger.error('Erreur lors de l\'exportation de la tableau de service:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'exportation de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     },
@@ -55,8 +55,8 @@ export const templateIntegrationService = {
 
             // Libérer l'URL
             setTimeout(() => URL.revokeObjectURL(url), 100);
-        } catch (error) {
-            logger.error('Erreur lors du téléchargement de la tableau de service:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du téléchargement de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     },
@@ -69,8 +69,8 @@ export const templateIntegrationService = {
     async importTemplateFromJSON(file: File): Promise<PlanningTemplate> {
         try {
             return await templateService.importTemplateFromJSON(file);
-        } catch (error) {
-            logger.error('Erreur lors de l\'importation de la tableau de service:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'importation de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     },
@@ -92,8 +92,8 @@ export const templateIntegrationService = {
             }
 
             return duplicatedTemplate;
-        } catch (error) {
-            logger.error('Erreur lors de la duplication de la tableau de service:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la duplication de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     },
@@ -121,8 +121,8 @@ export const templateIntegrationService = {
 
             // Retourner un ID fictif de planning généré
             return `planning_${Date.now()}`;
-        } catch (error) {
-            logger.error('Erreur lors de l\'application de la trameModele au planning:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'application de la trameModele au planning:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     },
@@ -133,8 +133,8 @@ export const templateIntegrationService = {
      * @param configB Deuxième configuration
      * @returns Objet avec les différences
      */
-    compareConfigurations(configA: AffectationConfiguration, configB: AffectationConfiguration): Record<string, any> {
-        const differences: Record<string, any> = {};
+    compareConfigurations(configA: AffectationConfiguration, configB: AffectationConfiguration): Record<string, unknown> {
+        const differences: Record<string, unknown> = {};
 
         // Comparer les champs simples
         for (const key of ['nom', 'heureDebut', 'heureFin', 'priorite', 'couleur', 'notes', 'emplacementPhysique'] as const) {
@@ -156,10 +156,10 @@ export const templateIntegrationService = {
             };
         } else {
             // Comparer chaque poste individuellement
-            const posteDiffs: Record<string, any> = {};
+            const posteDiffs: Record<string, unknown> = {};
             configA.postes.forEach((posteA, index) => {
                 const posteB = configB.postes[index];
-                const posteChanges: Record<string, any> = {};
+                const posteChanges: Record<string, unknown> = {};
 
                 for (const key of ['nom', 'quantite', 'status', 'competencesRequises'] as const) {
                     if (posteA[key] !== posteB[key]) {
@@ -212,8 +212,8 @@ export const templateIntegrationService = {
                     }
                 ]
             };
-        } catch (error) {
-            logger.error('Erreur lors de la vérification de compatibilité:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la vérification de compatibilité:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     }

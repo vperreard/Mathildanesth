@@ -30,7 +30,7 @@ export const SupervisionRuleForm: React.FC<SupervisionRuleFormProps> = ({ rule, 
     }, [supervisionConfig, rule, onChange]);
 
     // Gérer les changements de champs simples
-    const handleChange = (field: keyof SupervisionRule['supervisionConfig'], value: any) => {
+    const handleChange = (field: keyof SupervisionRule['supervisionConfig'], value: unknown) => {
         setSupervisionConfig(prev => ({
             ...prev,
             [field]: value
@@ -154,7 +154,7 @@ export const SupervisionRuleForm: React.FC<SupervisionRuleFormProps> = ({ rule, 
     };
 
     // Mettre à jour une période de supervision
-    const handleUpdateSupervisionPeriod = (index: number, field: string, value: any) => {
+    const handleUpdateSupervisionPeriod = (index: number, field: string, value: unknown) => {
         const updatedPeriods = [...(supervisionConfig.supervisionPeriods || [])];
         updatedPeriods[index] = { ...updatedPeriods[index], [field]: value };
         handleChange('supervisionPeriods', updatedPeriods);

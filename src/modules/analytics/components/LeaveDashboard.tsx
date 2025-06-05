@@ -71,8 +71,8 @@ const LeaveDashboard: React.FC<LeaveDashboardProps> = ({ userId, departmentId, i
 
                 setLeaveData(leaves);
                 setBalanceData(balances);
-            } catch (error) {
-                logger.error('Erreur lors du chargement des données:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors du chargement des données:', error instanceof Error ? error : new Error(String(error)));
             } finally {
                 setLoading(false);
             }

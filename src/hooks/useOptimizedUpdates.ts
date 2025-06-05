@@ -27,7 +27,7 @@ export function useDebouncedValue<T>(value: T, delay: number): T {
 }
 
 // Hook pour throttler les callbacks
-export function useThrottledCallback<T extends (...args: any[]) => any>(
+export function useThrottledCallback<T extends (...args: unknown[]) => any>(
     callback: T,
     delay: number
 ): T {
@@ -278,7 +278,7 @@ export function useOptimizedState<T>(
                 setIsValid(false);
                 onError?.(new Error('Validation failed'), previousValidValueRef.current);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             setIsValid(false);
             onError?.(error as Error, previousValidValueRef.current);
             // Rollback vers la dernière valeur valide
@@ -361,7 +361,7 @@ export function useLazyLoad<T>(
             const result = await loader();
             cacheRef.current.set(cacheKey, result);
             setData(result);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err as Error);
         } finally {
             setLoading(false);

@@ -71,8 +71,8 @@ export async function PUT(request: Request) {
 
         return NextResponse.json({ message: 'Mot de passe mis à jour avec succès' });
 
-    } catch (error) {
-        logger.error("Erreur PUT /api/auth/change-password:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur PUT /api/auth/change-password:", error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
     }
 } 

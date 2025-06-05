@@ -90,8 +90,8 @@ export async function POST(req: NextRequest) {
       markedAsRead: updatedCount,
       remainingUnread: remainingUnreadCount,
     });
-  } catch (error) {
-    logger.error('Erreur lors du marquage des notifications comme lues:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors du marquage des notifications comme lues:', error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(

@@ -28,7 +28,7 @@ export const useRules = () => {
             // En mode MVP, on utilise les règles de démo
             const loadedRules = ruleService.createDemoRules();
             setRules(loadedRules);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors du chargement des règles'));
             logger.error('Erreur lors du chargement des règles:', err);
         } finally {
@@ -56,7 +56,7 @@ export const useRules = () => {
             const newRule = ruleService.createRule(ruleData);
             setRules(prevRules => [...prevRules, newRule]);
             return newRule;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la création de la règle'));
             logger.error('Erreur lors de la création de la règle:', err);
             throw err;
@@ -82,7 +82,7 @@ export const useRules = () => {
             );
 
             return updatedRule;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la mise à jour de la règle'));
             logger.error('Erreur lors de la mise à jour de la règle:', err);
             throw err;
@@ -101,7 +101,7 @@ export const useRules = () => {
             }
 
             return success;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la suppression de la règle'));
             logger.error('Erreur lors de la suppression de la règle:', err);
             throw err;
@@ -124,7 +124,7 @@ export const useRules = () => {
             );
 
             return updatedRule;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors du changement de statut de la règle'));
             logger.error('Erreur lors du changement de statut de la règle:', err);
             throw err;

@@ -55,17 +55,17 @@ export async function POST(req: Request) {
 
     // Préparer les données pour le nouveau scénario
     // Convertir parametersJson si c'est une chaîne
-    let parametersJson: Record<string, any>;
+    let parametersJson: Record<string, unknown>;
 
     if (typeof sourceScenario.parametersJson === 'string') {
       try {
         parametersJson = JSON.parse(sourceScenario.parametersJson);
-      } catch (e) {
+      } catch (e: unknown) {
         parametersJson = {}; // Fallback si la conversion échoue
       }
     } else {
       // Si parametersJson est déjà un objet
-      parametersJson = sourceScenario.parametersJson as Record<string, any>;
+      parametersJson = sourceScenario.parametersJson as Record<string, unknown>;
     }
 
     // Si l'utilisateur veut modifier les dates et a fourni de nouvelles dates
@@ -93,8 +93,8 @@ export async function POST(req: Request) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    logger.error('Erreur lors de la duplication du scénario de simulation:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la duplication du scénario de simulation:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         success: false,

@@ -355,7 +355,7 @@ export const SallesOperatoireManager: React.FC = () => {
                                 <SelectValue placeholder="Sélectionner un secteur" />
                             </SelectTrigger>
                             <SelectContent>
-                                {sectors.map((sector: any) => (
+                                {sectors.map((sector: unknown) => (
                                     <SelectItem key={sector.id} value={sector.id.toString()}>
                                         {sector.name}
                                     </SelectItem>
@@ -417,7 +417,7 @@ export const SallesOperatoireManager: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">Tous les secteurs</SelectItem>
-                            {sectors.map((sector: any) => (
+                            {sectors.map((sector: unknown) => (
                                 <SelectItem key={sector.id} value={sector.id.toString()}>
                                     {sector.name}
                                 </SelectItem>

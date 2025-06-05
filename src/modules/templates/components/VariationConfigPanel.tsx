@@ -72,7 +72,7 @@ const VariationConfigPanel: React.FC<VariationConfigPanelProps> = ({
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     // Gestion des changements de la variation
-    const handleChange = (field: keyof ConfigurationVariation, value: any) => {
+    const handleChange = (field: keyof ConfigurationVariation, value: unknown) => {
         setVariationData(prev => ({
             ...prev,
             [field]: value
@@ -80,7 +80,7 @@ const VariationConfigPanel: React.FC<VariationConfigPanelProps> = ({
     };
 
     // Gestion des changements dans la configuration
-    const handleConfigChange = (field: string, value: any) => {
+    const handleConfigChange = (field: string, value: unknown) => {
         setVariationData(prev => ({
             ...prev,
             configuration: {

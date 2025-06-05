@@ -38,8 +38,8 @@ export async function POST(
         await prisma.$disconnect();
 
         return NextResponse.json({ notification });
-    } catch (error) {
-        logger.error('Erreur lors du marquage de la notification:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors du marquage de la notification:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }

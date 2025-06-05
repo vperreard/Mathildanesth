@@ -67,7 +67,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
             const data = await response.json();
             setNotifications(data.notifications || []);
             setUnreadCount(data.unreadCount || 0);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur inconnue'));
             logger.error('Erreur lors du chargement des notifications:', err);
         } finally {
@@ -99,7 +99,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
             if (data.unreadCount !== undefined) {
                 setUnreadCount(data.unreadCount);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du marquage de la notification:', err);
         }
     }, [user?.id]);
@@ -122,7 +122,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
             setUnreadCount(0);
 
             await response.json(); // Consomme la réponse
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du marquage de toutes les notifications:', err);
         }
     }, [user?.id]);

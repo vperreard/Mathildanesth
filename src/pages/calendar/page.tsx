@@ -287,7 +287,7 @@ const CalendarPage: React.FC = () => {
         toast.success('Modifications sauvegardées avec succès!');
     }
 
-    const handleValidationError = (violations: any[]) => {
+    const handleValidationError = (violations: unknown[]) => {
         logger.error("Erreurs de validation détectées:", violations);
         setValidationErrors(violations);
         toast.error(`Des erreurs de validation empêchent la sauvegarde.`);

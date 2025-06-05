@@ -87,7 +87,7 @@ export default function UserRequestsPage() {
                         try {
                             const errorData = await res.json();
                             errorMsg = errorData.error || errorMsg;
-                        } catch (parseError) { /* Do nothing, use statusText based error */ }
+                        } catch (parseError: unknown) { /* Do nothing, use statusText based error */ }
                         throw new Error(errorMsg);
                     }
                     return res.json();
@@ -100,7 +100,7 @@ export default function UserRequestsPage() {
                         try {
                             const errorData = await res.json();
                             errorMsg = errorData.error || errorMsg;
-                        } catch (parseError) { /* Do nothing, use statusText based error */ }
+                        } catch (parseError: unknown) { /* Do nothing, use statusText based error */ }
                         throw new Error(errorMsg);
                     }
                     return res.json();
@@ -135,7 +135,7 @@ export default function UserRequestsPage() {
                     setError(combinedErrorMessages.trim());
                 }
 
-            } catch (err) { // Catch for unexpected errors not directly from promises
+            } catch (err: unknown) { // Catch for unexpected errors not directly from promises
                 const errorMessage = err instanceof Error ? err.message : 'Une erreur inattendue est survenue lors du chargement des données.';
                 setError(errorMessage);
                 logger.error('Erreur inattendue lors du chargement initial des données:', err);
@@ -175,7 +175,7 @@ export default function UserRequestsPage() {
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.error || `Erreur ${response.status}: ${response.statusText}`;
-                } catch (parseError) {
+                } catch (parseError: unknown) {
                     errorMessage = `Erreur ${response.status}: ${response.statusText}. La réponse du serveur n\'est pas au format JSON.`;
                 }
                 throw new Error(errorMessage);
@@ -192,7 +192,7 @@ export default function UserRequestsPage() {
             });
             setShowNewRequestForm(false);
 
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
             logger.error('Erreur lors de la soumission de la requête:', err);
         } finally {
@@ -224,7 +224,7 @@ export default function UserRequestsPage() {
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.error || `Erreur ${response.status}: ${response.statusText}`;
-                } catch (parseError) {
+                } catch (parseError: unknown) {
                     errorMessage = `Erreur ${response.status}: ${response.statusText}. La réponse du serveur n\'est pas au format JSON.`;
                 }
                 throw new Error(errorMessage);
@@ -237,7 +237,7 @@ export default function UserRequestsPage() {
                 prev.map(req => req.id === requestId ? updatedRequest : req)
             );
 
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
             logger.error('Erreur lors de l\'annulation de la requête:', err);
         }

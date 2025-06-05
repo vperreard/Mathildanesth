@@ -249,7 +249,7 @@ export const CreateAffectationDialog: React.FC<CreateAffectationDialogProps> = (
                                 <SelectValue placeholder="Sélectionner un superviseur" />
                             </SelectTrigger>
                             <SelectContent>
-                                {supervisors?.map((supervisor: any) => (
+                                {supervisors?.map((supervisor: unknown) => (
                                     <SelectItem key={supervisor.id} value={supervisor.id.toString()}>
                                         {supervisor.firstName} {supervisor.lastName}
                                     </SelectItem>
@@ -271,7 +271,7 @@ export const CreateAffectationDialog: React.FC<CreateAffectationDialogProps> = (
                                     <SelectValue placeholder="Sélectionner une salle" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {rooms?.map((room: any) => (
+                                    {rooms?.map((room: unknown) => (
                                         <SelectItem key={room.id} value={room.id.toString()}>
                                             {room.name} ({room.sector?.name})
                                         </SelectItem>
@@ -293,7 +293,7 @@ export const CreateAffectationDialog: React.FC<CreateAffectationDialogProps> = (
                                 <SelectValue placeholder="Sélectionner un type" />
                             </SelectTrigger>
                             <SelectContent>
-                                {activityTypes?.map((type: any) => (
+                                {activityTypes?.map((type: unknown) => (
                                     <SelectItem key={type.id} value={type.id.toString()}>
                                         {type.name}
                                     </SelectItem>

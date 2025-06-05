@@ -78,7 +78,7 @@ class Logger {
     /**
      * Formate un message de log
      */
-    private formatMessage(level: LogLevel, message: string, meta?: Record<string, any>): string {
+    private formatMessage(level: LogLevel, message: string, meta?: Record<string, unknown>): string {
         const parts: string[] = [];
 
         // Ajouter le timestamp si configuré
@@ -116,7 +116,7 @@ class Logger {
     /**
      * Écrit un message de log
      */
-    private log(level: LogLevel, message: string, meta?: Record<string, any>): void {
+    private log(level: LogLevel, message: string, meta?: Record<string, unknown>): void {
         if (!this.isLevelEnabled(level)) {
             return;
         }
@@ -148,28 +148,28 @@ class Logger {
     /**
      * Log de niveau debug
      */
-    debug(message: string, meta?: Record<string, any>): void {
+    debug(message: string, meta?: Record<string, unknown>): void {
         this.log('debug', message, meta);
     }
 
     /**
      * Log de niveau info
      */
-    info(message: string, meta?: Record<string, any>): void {
+    info(message: string, meta?: Record<string, unknown>): void {
         this.log('info', message, meta);
     }
 
     /**
      * Log de niveau warn
      */
-    warn(message: string, meta?: Record<string, any>): void {
+    warn(message: string, meta?: Record<string, unknown>): void {
         this.log('warn', message, meta);
     }
 
     /**
      * Log de niveau error
      */
-    error(message: string, meta?: Record<string, any>): void {
+    error(message: string, meta?: Record<string, unknown>): void {
         this.log('error', message, meta);
     }
 }

@@ -121,7 +121,7 @@ export interface LeaveNotificationEvent {
     leave: Leave;
     updatedBy?: User;
     eventType: LeaveNotificationType;
-    additionalData?: any;
+    additionalData?: unknown;
 }
 
 /**

@@ -40,15 +40,15 @@ export class PersonnelService {
             if (!response.ok) {
                 logger.error(`Erreur API getChirurgiens: ${response.status} ${response.statusText}`);
                 let errorBody = 'Réponse non JSON';
-                try { errorBody = await response.text(); } catch (e) { }
+                try { errorBody = await response.text(); } catch (e: unknown) { }
                 logger.error('Réponse API (Chirurgiens):', errorBody);
                 throw new Error(`Erreur lors de la récupération des chirurgiens: ${response.status}`);
             }
             const data = await response.json();
             logger.info('[PersonnelService] Chirurgiens chargés depuis API:', data);
             return data;
-        } catch (error) {
-            logger.error("Erreur lors de la récupération des chirurgiens (catch global):", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la récupération des chirurgiens (catch global):", error instanceof Error ? error : new Error(String(error)));
             logger.info('[PersonnelService] Utilisation des mocks pour Chirurgiens.');
             return this.getMockChirurgiens();
         }
@@ -65,15 +65,15 @@ export class PersonnelService {
             if (!response.ok) {
                 logger.error(`Erreur API getMARs: ${response.status} ${response.statusText}`);
                 let errorBody = 'Réponse non JSON';
-                try { errorBody = await response.text(); } catch (e) { }
+                try { errorBody = await response.text(); } catch (e: unknown) { }
                 logger.error('Réponse API (MARs):', errorBody);
                 throw new Error(`Erreur lors de la récupération des MARs: ${response.status}`);
             }
             const data = await response.json();
             logger.info('[PersonnelService] MARs chargés depuis API:', data);
             return data;
-        } catch (error) {
-            logger.error("Erreur lors de la récupération des MARs (catch global):", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la récupération des MARs (catch global):", error instanceof Error ? error : new Error(String(error)));
             logger.info('[PersonnelService] Utilisation des mocks pour MARs.');
             return this.getMockMARs();
         }
@@ -90,15 +90,15 @@ export class PersonnelService {
             if (!response.ok) {
                 logger.error(`Erreur API getIADEs: ${response.status} ${response.statusText}`);
                 let errorBody = 'Réponse non JSON';
-                try { errorBody = await response.text(); } catch (e) { }
+                try { errorBody = await response.text(); } catch (e: unknown) { }
                 logger.error('Réponse API (IADEs):', errorBody);
                 throw new Error(`Erreur lors de la récupération des IADEs: ${response.status}`);
             }
             const data = await response.json();
             logger.info('[PersonnelService] IADEs chargés depuis API:', data);
             return data;
-        } catch (error) {
-            logger.error("Erreur lors de la récupération des IADEs (catch global):", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la récupération des IADEs (catch global):", error instanceof Error ? error : new Error(String(error)));
             logger.info('[PersonnelService] Utilisation des mocks pour IADEs.');
             return this.getMockIADEs();
         }

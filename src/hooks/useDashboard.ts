@@ -67,7 +67,7 @@ export const useDashboard = () => {
                     const newDashboard = await dashboardService.createDashboard(defaultDashboard);
                     setDashboard(newDashboard);
                 }
-            } catch (err) {
+            } catch (err: unknown) {
                 handleApiError(err, 'useDashboard.loadDashboard');
             } finally {
                 setLoading(false);
@@ -85,7 +85,7 @@ export const useDashboard = () => {
                 widgets
             });
             setDashboard(updatedDashboard);
-        } catch (err) {
+        } catch (err: unknown) {
             handleApiError(err, 'useDashboard.updateWidgets');
         }
     };
@@ -103,7 +103,7 @@ export const useDashboard = () => {
                 widgets: [...dashboard.widgets, newWidget]
             });
             setDashboard(updatedDashboard);
-        } catch (err) {
+        } catch (err: unknown) {
             handleApiError(err, 'useDashboard.addWidget');
         }
     };
@@ -116,7 +116,7 @@ export const useDashboard = () => {
                 widgets: dashboard.widgets.filter(widget => widget.id !== id)
             });
             setDashboard(updatedDashboard);
-        } catch (err) {
+        } catch (err: unknown) {
             handleApiError(err, 'useDashboard.removeWidget');
         }
     };
@@ -132,7 +132,7 @@ export const useDashboard = () => {
                 widgets: updatedWidgets
             });
             setDashboard(updatedDashboard);
-        } catch (err) {
+        } catch (err: unknown) {
             handleApiError(err, 'useDashboard.updateWidgetPosition');
         }
     };
@@ -148,7 +148,7 @@ export const useDashboard = () => {
                 widgets: updatedWidgets
             });
             setDashboard(updatedDashboard);
-        } catch (err) {
+        } catch (err: unknown) {
             handleApiError(err, 'useDashboard.updateWidgetSize');
         }
     };
@@ -164,7 +164,7 @@ export const useDashboard = () => {
                 widgets: updatedWidgets
             });
             setDashboard(updatedDashboard);
-        } catch (err) {
+        } catch (err: unknown) {
             handleApiError(err, 'useDashboard.updateWidget');
         }
     };

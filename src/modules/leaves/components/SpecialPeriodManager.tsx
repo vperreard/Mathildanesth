@@ -71,7 +71,7 @@ export const SpecialPeriodManager: React.FC<SpecialPeriodManagerProps> = ({
                 setSelectedPeriodId(periods[0].id);
                 setFormData(periods[0]);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du chargement des périodes spéciales :', err);
             setError(`Erreur: ${(err as Error).message}`);
         } finally {
@@ -143,7 +143,7 @@ export const SpecialPeriodManager: React.FC<SpecialPeriodManagerProps> = ({
     };
 
     // Modifier une règle de priorité
-    const handlePriorityRuleChange = (ruleId: string, field: keyof PriorityRule, value: any) => {
+    const handlePriorityRuleChange = (ruleId: string, field: keyof PriorityRule, value: unknown) => {
         setFormData(prev => ({
             ...prev,
             priorityRules: prev.priorityRules?.map(rule =>
@@ -190,7 +190,7 @@ export const SpecialPeriodManager: React.FC<SpecialPeriodManagerProps> = ({
             if (onSaveComplete) {
                 onSaveComplete();
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de l\'enregistrement de la période :', err);
             setError(`Erreur: ${(err as Error).message}`);
         } finally {

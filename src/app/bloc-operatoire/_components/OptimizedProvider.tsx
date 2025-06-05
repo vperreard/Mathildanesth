@@ -19,7 +19,7 @@ const createOptimizedQueryClient = () => new QueryClient({
       gcTime: 1000 * 60 * 30, // 30 minutes en cache
       refetchOnWindowFocus: false,
       refetchOnReconnect: 'always',
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: unknown) => {
         // Retry intelligent basé sur le type d'erreur
         if (error?.response?.status === 401) return false; // Pas de retry pour les erreurs d'auth
         if (error?.response?.status >= 400 && error?.response?.status < 500) return false; // Pas de retry pour les erreurs client
@@ -29,8 +29,8 @@ const createOptimizedQueryClient = () => new QueryClient({
     },
     mutations: {
       retry: false,
-      onError: (error: any) => {
-        logger.error('Mutation error:', error);
+      onError: (error: unknown) => {
+        logger.error('Mutation error:', error instanceof Error ? error : new Error(String(error)));
         // TODO: Intégrer avec le système de notifications
       },
     },

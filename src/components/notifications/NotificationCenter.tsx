@@ -59,8 +59,8 @@ export const NotificationCenter: React.FC = () => {
             const notifications = data?.notifications || [];
             setNotifications(notifications);
             setUnreadCount(notifications.filter((n: Notification) => !n.read).length);
-        } catch (error) {
-            logger.error('Erreur lors de la récupération des notifications:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des notifications:', error instanceof Error ? error : new Error(String(error)));
             setNotifications([]);
             setUnreadCount(0);
         }
@@ -90,8 +90,8 @@ export const NotificationCenter: React.FC = () => {
                 prev.map(n => (n.id === id ? { ...n, read: true } : n))
             );
             setUnreadCount(prev => Math.max(0, prev - 1));
-        } catch (error) {
-            logger.error('Erreur lors du marquage de la notification:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du marquage de la notification:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 
@@ -117,8 +117,8 @@ export const NotificationCenter: React.FC = () => {
 
             setNotifications([]);
             setUnreadCount(0);
-        } catch (error) {
-            logger.error('Erreur lors de la suppression des notifications:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la suppression des notifications:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 

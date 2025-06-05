@@ -156,7 +156,7 @@ export interface CalendarSettings {
     snapDuration: string;
     slotDuration: string;
     slotLabelInterval: string;
-    slotLabelFormat: any;
+    slotLabelFormat: unknown;
     slotMinTime: string;
     slotMaxTime: string;
 }

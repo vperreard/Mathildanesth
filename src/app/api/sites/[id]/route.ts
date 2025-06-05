@@ -48,8 +48,8 @@ export async function GET(
         logger.info(`--- GET /api/sites/${id} END ---\\n`);
         return NextResponse.json(site);
 
-    } catch (error) {
-        logger.error(`Error during GET /api/sites/${id}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Error during GET /api/sites/${id}:`, error instanceof Error ? error : new Error(String(error)));
         logger.info(`--- GET /api/sites/${id} END (with error) ---\\n`);
         return NextResponse.json({ error: 'Erreur lors de la récupération du site' }, { status: 500 });
     }
@@ -105,8 +105,8 @@ export async function PUT(
         logger.info(`--- PUT /api/sites/${id} END ---\\n`);
         return NextResponse.json(updatedSite);
 
-    } catch (error) {
-        logger.error(`Error during PUT /api/sites/${id}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Error during PUT /api/sites/${id}:`, error instanceof Error ? error : new Error(String(error)));
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 logger.error(`Prisma Error P2025: Record to update not found (ID: ${id})`);
@@ -158,8 +158,8 @@ export async function DELETE(
         logger.info(`--- DELETE /api/sites/${id} END ---\\n`);
         return NextResponse.json({ message: 'Site supprimé avec succès' });
 
-    } catch (error) {
-        logger.error(`Error during DELETE /api/sites/${id}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Error during DELETE /api/sites/${id}:`, error instanceof Error ? error : new Error(String(error)));
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
             logger.error(`Prisma Error P2025: Record to delete not found (ID: ${id})`);
             return NextResponse.json({ error: 'Site non trouvé pour la suppression.' }, { status: 404 });

@@ -790,8 +790,8 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
             await onSave(templateToSave);
             toast.success("Tableau de service sauvegardée avec succès !");
             setIsModified(false);
-        } catch (error) {
-            logger.error('Erreur lors de la sauvegarde de la tableau de service:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
             setErrors({ save: 'Erreur lors de la sauvegarde de la trameModele' });
         } finally {
             setIsLoading(false);
@@ -902,7 +902,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
             } else {
                 setError(`Tableau de service avec id ${id} non trouvée.`);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error(`[BlocEditor loadTrames] Erreur:`, err);
             setError(err instanceof Error ? err.message : 'Erreur inconnue lors du chargement');
         } finally {

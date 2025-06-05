@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
     logger.info(`GET /api/sites: ${sites.length} sites retrieved successfully.`);
     logger.info('--- GET /api/sites END ---\\n');
     return NextResponse.json(sites);
-  } catch (error) {
-    logger.error('Error during GET /api/sites:', error);
+  } catch (error: unknown) {
+    logger.error('Error during GET /api/sites:', error instanceof Error ? error : new Error(String(error)));
     logger.info('--- GET /api/sites END (with error) ---\\n');
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des sites' },
@@ -108,8 +108,8 @@ export async function POST(request: NextRequest) {
     logger.info('POST /api/sites: Site created successfully:', newSite);
     logger.info('--- POST /api/sites END ---\\n');
     return NextResponse.json(newSite, { status: 201 }); // 201 Created status
-  } catch (error) {
-    logger.error('Error during POST /api/sites:', error);
+  } catch (error: unknown) {
+    logger.error('Error during POST /api/sites:', error instanceof Error ? error : new Error(String(error)));
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       const target = error.meta?.target as string[] | undefined;
       if (target && target.includes('name')) {

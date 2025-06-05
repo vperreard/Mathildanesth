@@ -76,7 +76,7 @@ const ConflictRulesManager: React.FC = () => {
     }, [rules]);
 
     // Handler pour modifier une règle simple (boolean, number, string)
-    const handleRuleChange = (key: keyof ConflictRules, value: any) => {
+    const handleRuleChange = (key: keyof ConflictRules, value: unknown) => {
         if (!editedRules) return;
 
         setEditedRules(prev => ({
@@ -130,7 +130,7 @@ const ConflictRulesManager: React.FC = () => {
     };
 
     // Handler pour modifier une période spéciale
-    const handleSpecialPeriodChange = (id: string, field: string, value: any) => {
+    const handleSpecialPeriodChange = (id: string, field: string, value: unknown) => {
         if (!editedRules || !editedRules.specialPeriods) return;
 
         setEditedRules(prev => ({
@@ -170,7 +170,7 @@ const ConflictRulesManager: React.FC = () => {
     };
 
     // Handler pour modifier une période de haute charge
-    const handleHighWorkloadPeriodChange = (index: number, field: string, value: any) => {
+    const handleHighWorkloadPeriodChange = (index: number, field: string, value: unknown) => {
         if (!editedRules || !editedRules.highWorkloadPeriods) return;
 
         setEditedRules(prev => ({
@@ -199,8 +199,8 @@ const ConflictRulesManager: React.FC = () => {
             setSaveSuccess(true);
             setEditMode(false);
             setValidationErrors([]);
-        } catch (error) {
-            logger.error('Erreur lors de la sauvegarde des règles:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde des règles:', error instanceof Error ? error : new Error(String(error)));
             if (error instanceof Error) {
                 setValidationErrors([error.message]);
             }
@@ -219,8 +219,8 @@ const ConflictRulesManager: React.FC = () => {
             setSaveSuccess(true);
             setEditMode(false);
             setValidationErrors([]);
-        } catch (error) {
-            logger.error('Erreur lors de la réinitialisation des règles:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la réinitialisation des règles:', error instanceof Error ? error : new Error(String(error)));
             if (error instanceof Error) {
                 setValidationErrors([error.message]);
             }

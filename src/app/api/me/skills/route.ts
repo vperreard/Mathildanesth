@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(userSkills);
-    } catch (error) {
+    } catch (error: unknown) {
         return handleApiError(error, "Erreur lors de la récupération de vos compétences.");
     }
 } 

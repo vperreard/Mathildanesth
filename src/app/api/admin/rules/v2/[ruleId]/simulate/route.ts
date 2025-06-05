@@ -113,8 +113,8 @@ export async function POST(
         report,
       });
     }
-  } catch (error) {
-    logger.error('Error running simulation:', error);
+  } catch (error: unknown) {
+    logger.error('Error running simulation:', error instanceof Error ? error : new Error(String(error)));
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Paramètres invalides', details: error.errors },

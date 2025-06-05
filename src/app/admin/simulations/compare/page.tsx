@@ -51,7 +51,7 @@ interface SimulationResult {
         [key: string]: number | undefined;
     };
     // Données pour la comparaison
-    data?: any;
+    data?: unknown;
 }
 
 interface ComparisonData {
@@ -106,7 +106,7 @@ export default function CompareSimulationsPage() {
 
                 const data = await response.json();
                 setComparisonData(data);
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error('Erreur:', err);
                 setError(err instanceof Error ? err.message : 'Erreur inconnue');
 

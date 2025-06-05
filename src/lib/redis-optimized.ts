@@ -25,7 +25,7 @@ interface RedisClientInterface {
     del(...keys: string[]): Promise<number | null>;
     hget(key: string, field: string): Promise<string | null>;
     hset(key: string, field: string, value: string): Promise<number | null>;
-    hmset(key: string, data: Record<string, any>): Promise<'OK' | null>;
+    hmset(key: string, data: Record<string, unknown>): Promise<'OK' | null>;
     hgetall(key: string): Promise<Record<string, string> | null>;
     keys(pattern: string): Promise<string[] | null>;
     ttl(key: string): Promise<number | null>;
@@ -56,7 +56,7 @@ const getRedisConfig = (): RedisConfig => ({
  */
 class OptimizedRedisClient implements RedisClientInterface {
     private client: any = null;
-    private fallbackCache = new Map<string, { value: any; expires?: number }>();
+    private fallbackCache = new Map<string, { value: unknown; expires?: number }>();
     private isConnected = false;
     private readonly enabled: boolean;
 
@@ -80,15 +80,15 @@ class OptimizedRedisClient implements RedisClientInterface {
             const RedisClass = (Redis as any).default || Redis;
             const config = getRedisConfig();
 
-            this.client = new RedisClass(config as Record<string, any>);
+            this.client = new RedisClass(config as Record<string, unknown>);
 
             this.client.on('connect', () => {
                 logger.info('✅ Redis connecté');
                 this.isConnected = true;
             });
 
-            this.client.on('error', (error: any) => {
-                logger.error('❌ Erreur Redis:', error);
+            this.client.on('error', (error: unknown) => {
+                logger.error('❌ Erreur Redis:', error instanceof Error ? error : new Error(String(error)));
                 this.isConnected = false;
             });
 
@@ -97,8 +97,8 @@ class OptimizedRedisClient implements RedisClientInterface {
                 this.isConnected = false;
             });
 
-        } catch (error) {
-            logger.warn('⚠️ Impossible d\'initialiser Redis, utilisation du fallback:', error);
+        } catch (error: unknown) {
+            logger.warn('⚠️ Impossible d\'initialiser Redis, utilisation du fallback:', error instanceof Error ? error : new Error(String(error)));
             this.client = null;
         }
     }
@@ -112,8 +112,8 @@ class OptimizedRedisClient implements RedisClientInterface {
         if (this.client && this.isConnected) {
             try {
                 return await redisOp();
-            } catch (error) {
-                logger.error(`Erreur Redis ${operation}:`, error);
+            } catch (error: unknown) {
+                logger.error(`Erreur Redis ${operation}:`, error instanceof Error ? error : new Error(String(error)));
                 // Fallback vers le cache mémoire en cas d'erreur
             }
         }
@@ -218,10 +218,10 @@ class OptimizedRedisClient implements RedisClientInterface {
         );
     }
 
-    async hmset(key: string, data: Record<string, any>): Promise<'OK' | null> {
+    async hmset(key: string, data: Record<string, unknown>): Promise<'OK' | null> {
         return this.executeOperation(
             'HMSET',
-            () => this.client.hmset(key, data as Record<string, any>),
+            () => this.client.hmset(key, data as Record<string, unknown>),
             () => {
                 this.fallbackCache.set(key, { value: data });
                 return 'OK';
@@ -305,8 +305,8 @@ class OptimizedRedisClient implements RedisClientInterface {
         if (this.client) {
             try {
                 await this.client.disconnect();
-            } catch (error) {
-                logger.warn('Erreur lors de la déconnexion Redis:', error);
+            } catch (error: unknown) {
+                logger.warn('Erreur lors de la déconnexion Redis:', error instanceof Error ? error : new Error(String(error)));
             }
         }
         this.fallbackCache.clear();

@@ -22,7 +22,7 @@ export default function TramesPage() {
                 });
             }
             toast.success('TrameModeles d\'affectation sauvegardées avec succès');
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error('Erreur lors de la sauvegarde des trameModeles d\'affectation');
             logger.error(error);
         }

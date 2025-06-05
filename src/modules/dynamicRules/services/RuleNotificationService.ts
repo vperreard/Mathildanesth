@@ -28,7 +28,7 @@ export interface RuleChangeNotification {
     ruleName: string;
     changedBy: string;
     timestamp: Date;
-    changes?: Record<string, any>;
+    changes?: Record<string, unknown>;
 }
 
 interface RuleNotificationEvents {
@@ -52,7 +52,7 @@ export class RuleNotificationService extends EventEmitter {
     // Queue pour stocker les notifications hors ligne
     private offlineQueue: Array<{
         type: 'violation' | 'rule-change';
-        data: any;
+        data: unknown;
     }> = [];
 
     constructor() {
@@ -102,8 +102,8 @@ export class RuleNotificationService extends EventEmitter {
                 });
             });
 
-        } catch (error) {
-            logger.error('Failed to connect to notification service:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to connect to notification service:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     }
@@ -139,7 +139,7 @@ export class RuleNotificationService extends EventEmitter {
 
         // Erreur de connexion
         this.socket.on('connect_error', (error) => {
-            logger.error('Connection error:', error);
+            logger.error('Connection error:', error instanceof Error ? error : new Error(String(error)));
             this.reconnectAttempts++;
             
             if (this.reconnectAttempts >= this.maxReconnectAttempts) {
@@ -220,7 +220,7 @@ export class RuleNotificationService extends EventEmitter {
     /**
      * Envoie une notification de violation au serveur
      */
-    async sendViolation(result: RuleEvaluationResult, context: any): Promise<void> {
+    async sendViolation(result: RuleEvaluationResult, context: unknown): Promise<void> {
         const notification: Omit<RuleViolationNotification, 'id' | 'timestamp' | 'acknowledged'> = {
             ruleId: result.ruleId,
             ruleName: result.ruleName,
@@ -254,7 +254,7 @@ export class RuleNotificationService extends EventEmitter {
         ruleId: string,
         ruleName: string,
         changedBy: string,
-        changes?: Record<string, any>
+        changes?: Record<string, unknown>
     ): Promise<void> {
         const notification: Omit<RuleChangeNotification, 'id' | 'timestamp'> = {
             type,

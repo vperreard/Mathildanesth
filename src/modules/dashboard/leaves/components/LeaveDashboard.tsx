@@ -99,8 +99,8 @@ const LeaveDashboard: React.FC = () => {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        } catch (error) {
-            logger.error('Erreur lors de l\'export:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'export:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 

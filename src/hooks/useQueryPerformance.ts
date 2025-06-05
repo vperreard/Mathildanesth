@@ -106,8 +106,8 @@ export function useQueryPerformance(): QueryPerformanceHookReturn {
                 } else {
                     logger.debug('[Performance] Méthode $cacheStats non disponible sur cette instance Prisma');
                 }
-            } catch (error) {
-                logger.debug('[Performance] Erreur lors de la récupération des statistiques de cache:', error);
+            } catch (error: unknown) {
+                logger.debug('[Performance] Erreur lors de la récupération des statistiques de cache:', error instanceof Error ? error : new Error(String(error)));
             }
         };
 

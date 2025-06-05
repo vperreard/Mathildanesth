@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
         // Validation de joursSemaineActifs (ISO 8601: Lundi=1, ..., Dimanche=7)
         if (!Array.isArray(data.joursSemaineActifs) ||
-            !data.joursSemaineActifs.every((d: any) => typeof d === 'number' && d >= 1 && d <= 7) ||
+            !data.joursSemaineActifs.every((d: unknown) => typeof d === 'number' && d >= 1 && d <= 7) ||
             new Set(data.joursSemaineActifs).size !== data.joursSemaineActifs.length // Vérifier les doublons
         ) {
             return NextResponse.json({ error: 'joursSemaineActifs doit être un tableau de nombres uniques entre 1 (Lundi) et 7 (Dimanche).' }, { status: 400 });
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
             }
             // Vérifier si PrismaTrameRoleType est un objet et a des valeurs avant de l'utiliser
             if (PrismaTrameRoleType && typeof PrismaTrameRoleType === 'object' && Object.keys(PrismaTrameRoleType).length > 0) {
-                if (!data.roles.every((role: any) => Object.values(PrismaTrameRoleType).includes(role))) {
+                if (!data.roles.every((role: unknown) => Object.values(PrismaTrameRoleType).includes(role))) {
                     return NextResponse.json(
                         { error: `Le champ roles contient des valeurs invalides. Roles valides: ${Object.values(PrismaTrameRoleType).join(', ')}.` },
                         { status: 400 }
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
                 }
 
                 logger.info(`[API /api/trameModele-modeles POST] detailsJson traité:`, JSON.stringify(processedDetailsJson, null, 2));
-            } catch (jsonError) {
+            } catch (jsonError: unknown) {
                 logger.error(`[API /api/trameModele-modeles POST] Erreur lors du traitement de detailsJson:`, jsonError);
                 return NextResponse.json({ error: 'Le champ detailsJson doit être un objet JSON valide.' }, { status: 400 });
             }
@@ -120,8 +120,8 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json(trameModele, { status: 201 });
-    } catch (error: any) {
-        logger.error('[API /api/trameModele-modeles POST] Erreur lors de la création du template de trameModele:', error);
+    } catch (error: unknown) {
+        logger.error('[API /api/trameModele-modeles POST] Erreur lors de la création du template de trameModele:', error instanceof Error ? error : new Error(String(error)));
 
         // Afficher la stack trace pour plus de détails
         if (error.stack) {
@@ -201,8 +201,8 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(trameModeles);
-    } catch (error: any) {
-        logger.error('Erreur lors de la récupération des templates de trameModele:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des templates de trameModele:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({ error: 'Erreur interne du serveur lors de la récupération des templates de trameModele.', details: error.message }, { status: 500 });
     }
 } 

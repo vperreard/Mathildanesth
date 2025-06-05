@@ -116,7 +116,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
     }, [validateAssignments]);
 
     // Gérer le drag and drop
-    const handleDragEnd = (result: any) => {
+    const handleDragEnd = (result: unknown) => {
         const { source, destination } = result;
 
         // Abandon si pas de destination ou si même source/destination

@@ -62,8 +62,8 @@ export async function PUT(
 
         return NextResponse.json(updatedLeaveTypeSetting);
 
-    } catch (error: any) {
-        logger.error(`Erreur API [PUT /admin/leave-types/${id}]:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur API [PUT /admin/leave-types/${id}]:`, error instanceof Error ? error : new Error(String(error)));
         // Gérer le cas où l'enregistrement n'est pas trouvé
         if (error.code === 'P2025') {
             return NextResponse.json({ error: `Type de congé avec ID ${id} non trouvé.` }, { status: 404 });
@@ -113,8 +113,8 @@ export async function DELETE(
         // return NextResponse.json(deletedLeaveTypeSetting); // Retourner l'objet supprimé
         return new NextResponse(null, { status: 204 }); // Ou juste 204 No Content
 
-    } catch (error: any) {
-        logger.error(`Erreur API [DELETE /admin/leave-types/${id}]:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur API [DELETE /admin/leave-types/${id}]:`, error instanceof Error ? error : new Error(String(error)));
         if (error.code === 'P2025') {
             return NextResponse.json({ error: `Type de congé avec ID ${id} non trouvé.` }, { status: 404 });
         }

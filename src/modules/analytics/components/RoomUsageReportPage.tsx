@@ -36,7 +36,7 @@ export default function RoomUsageReportPage() {
                 }
                 const sitesData: SiteInfo[] = await response.json();
                 setAvailableSites(sitesData);
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error("Erreur lors de la récupération des sites:", err);
                 setSitesError(err instanceof Error ? err.message : 'Impossible de charger la liste des sites.');
                 setAvailableSites([]);
@@ -81,7 +81,7 @@ export default function RoomUsageReportPage() {
                     }
                     const data: RoomUtilizationReport = await response.json();
                     setReportData(data);
-                } catch (err) {
+                } catch (err: unknown) {
                     logger.error("Erreur lors du fetch des données du rapport:", err);
                     setReportError(err instanceof Error ? err.message : 'Une erreur inconnue est survenue.');
                 } finally {

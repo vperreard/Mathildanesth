@@ -35,7 +35,7 @@ interface RuleCondition {
   id: string;
   field: string;
   operator: string;
-  value: any;
+  value: unknown;
   logic?: 'AND' | 'OR';
 }
 
@@ -49,7 +49,7 @@ interface Rule {
   active: boolean;
   conditions: RuleCondition[];
   action: string;
-  metadata?: any;
+  metadata?: unknown;
 }
 
 interface RuleTemplate {
@@ -243,7 +243,7 @@ export default function RuleBuilderInterface() {
     try {
       const response = await axios.post('/api/admin/rules/test', currentRule);
       setTestResult(response.data);
-    } catch (error) {
+    } catch (error: unknown) {
       toast.error('Erreur lors du test de la règle');
     } finally {
       setIsTestMode(false);
@@ -305,7 +305,7 @@ export default function RuleBuilderInterface() {
                 <Label htmlFor="category">Catégorie</Label>
                 <Select
                   value={currentRule.category}
-                  onValueChange={(value: any) => setCurrentRule(prev => ({ ...prev, category: value }))}
+                  onValueChange={(value: unknown) => setCurrentRule(prev => ({ ...prev, category: value }))}
                 >
                   <SelectTrigger id="category">
                     <SelectValue />
@@ -336,7 +336,7 @@ export default function RuleBuilderInterface() {
                 <Label htmlFor="type">Type</Label>
                 <Select
                   value={currentRule.type}
-                  onValueChange={(value: any) => setCurrentRule(prev => ({ ...prev, type: value }))}
+                  onValueChange={(value: unknown) => setCurrentRule(prev => ({ ...prev, type: value }))}
                 >
                   <SelectTrigger id="type">
                     <SelectValue />
@@ -352,7 +352,7 @@ export default function RuleBuilderInterface() {
                 <Label htmlFor="severity">Sévérité</Label>
                 <Select
                   value={currentRule.severity}
-                  onValueChange={(value: any) => setCurrentRule(prev => ({ ...prev, severity: value }))}
+                  onValueChange={(value: unknown) => setCurrentRule(prev => ({ ...prev, severity: value }))}
                 >
                   <SelectTrigger id="severity">
                     <SelectValue />
@@ -408,7 +408,7 @@ export default function RuleBuilderInterface() {
                         {index > 0 && (
                           <Select
                             value={condition.logic}
-                            onValueChange={(value: any) => 
+                            onValueChange={(value: unknown) => 
                               updateCondition(condition.id, { logic: value })
                             }
                           >

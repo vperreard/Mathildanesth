@@ -104,11 +104,11 @@ interface CalendarEventsProps {
     fetchEvents?: (
         start: Date,
         end: Date,
-        filters?: any
+        filters?: unknown
     ) => Promise<CalendarEvent[]>;
     dateRange: { start: Date; end: Date };
     cacheTime?: number; // Temps de mise en cache en millisecondes
-    filters?: any;
+    filters?: unknown;
 }
 
 interface CalendarEventsReturn {
@@ -152,9 +152,9 @@ export const useCalendarEvents = ({
             dispatch({ type: 'FETCH_START' });
             const events = await fetchEvents(dateRange.start, dateRange.end, filters);
             dispatch({ type: 'FETCH_SUCCESS', payload: events });
-        } catch (error) {
+        } catch (error: unknown) {
             dispatch({ type: 'FETCH_ERROR', error: error as Error });
-            logger.error('Erreur lors du chargement des événements:', error);
+            logger.error('Erreur lors du chargement des événements:', error instanceof Error ? error : new Error(String(error)));
         }
     }, [fetchEvents, dateRange, filters]);
 

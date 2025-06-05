@@ -110,8 +110,8 @@ export class LeavePlanningIntegration {
                     await this.handleRecurringLeave(leave);
                     break;
             }
-        } catch (error) {
-            logger.error('LeavePlanningIntegration: Error handling leave event', error);
+        } catch (error: unknown) {
+            logger.error('LeavePlanningIntegration: Error handling leave event', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -125,7 +125,7 @@ export class LeavePlanningIntegration {
             switch (event.type) {
                 case EventType.PLANNING_CONFLICT_DETECTED:
                     // Si le conflit concerne un congé, notifier le module de congés
-                    if (event.details?.conflictingEvents?.some((e: any) => e.type === PlanningEventType.LEAVE)) {
+                    if (event.details?.conflictingEvents?.some((e: unknown) => e.type === PlanningEventType.LEAVE)) {
                         await this.handleLeaveConflict(event);
                     }
                     break;
@@ -137,8 +137,8 @@ export class LeavePlanningIntegration {
                     }
                     break;
             }
-        } catch (error) {
-            logger.error('LeavePlanningIntegration: Error handling planning event', error);
+        } catch (error: unknown) {
+            logger.error('LeavePlanningIntegration: Error handling planning event', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -202,8 +202,8 @@ export class LeavePlanningIntegration {
 
             // Publier l'événement via l'adaptateur d'événements
             planningEventAdapter.emitPlanningEventAdded(planning, planningEvent);
-        } catch (error) {
-            logger.error(`LeavePlanningIntegration: Error creating planning event`, error);
+        } catch (error: unknown) {
+            logger.error(`LeavePlanningIntegration: Error creating planning event`, error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -245,8 +245,8 @@ export class LeavePlanningIntegration {
 
             // Publier l'événement via l'adaptateur d'événements
             planningEventAdapter.emitPlanningEventUpdated(planning, planningEvent);
-        } catch (error) {
-            logger.error(`LeavePlanningIntegration: Error updating planning event`, error);
+        } catch (error: unknown) {
+            logger.error(`LeavePlanningIntegration: Error updating planning event`, error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -288,8 +288,8 @@ export class LeavePlanningIntegration {
 
             // Publier l'événement via l'adaptateur d'événements
             planningEventAdapter.emitPlanningEventRemoved(planning, planningEvent);
-        } catch (error) {
-            logger.error(`LeavePlanningIntegration: Error removing planning event`, error);
+        } catch (error: unknown) {
+            logger.error(`LeavePlanningIntegration: Error removing planning event`, error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -318,8 +318,8 @@ export class LeavePlanningIntegration {
                     await this.createPlanningEventFromLeave(leave);
                 }
             }
-        } catch (error) {
-            logger.error(`LeavePlanningIntegration: Error handling recurring leave`, error);
+        } catch (error: unknown) {
+            logger.error(`LeavePlanningIntegration: Error handling recurring leave`, error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -332,8 +332,8 @@ export class LeavePlanningIntegration {
 
             // Extraire les IDs des congés concernés
             const leaveIds = event.details?.conflictingEvents
-                ?.filter((e: any) => e.type === PlanningEventType.LEAVE)
-                ?.map((e: any) => e.linkedLeaveId);
+                ?.filter((e: unknown) => e.type === PlanningEventType.LEAVE)
+                ?.map((e: unknown) => e.linkedLeaveId);
 
             if (!leaveIds || leaveIds.length === 0) return;
 
@@ -342,8 +342,8 @@ export class LeavePlanningIntegration {
                 // TODO: Notifier le module de congés du conflit
                 logger.info(`LeavePlanningIntegration: Notifying leave module about conflict for leave ${leaveId}`);
             }
-        } catch (error) {
-            logger.error(`LeavePlanningIntegration: Error handling leave conflict`, error);
+        } catch (error: unknown) {
+            logger.error(`LeavePlanningIntegration: Error handling leave conflict`, error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -362,8 +362,8 @@ export class LeavePlanningIntegration {
                 logger.info(`LeavePlanningIntegration: Leave ${leaveId} is still approved, re-syncing`);
                 // Optionnel : recréer l'événement ou notifier un administrateur
             }
-        } catch (error) {
-            logger.error(`LeavePlanningIntegration: Error handling leave removed from planning`, error);
+        } catch (error: unknown) {
+            logger.error(`LeavePlanningIntegration: Error handling leave removed from planning`, error instanceof Error ? error : new Error(String(error)));
         }
     }
 }

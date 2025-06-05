@@ -7,7 +7,7 @@ import { fr } from 'date-fns/locale';
 // Ajout pour résoudre les problèmes de typage avec jsPDF
 declare module 'jspdf' {
     interface jsPDF {
-        autoTable: (options: any) => jsPDF;
+        autoTable: (options: unknown) => jsPDF;
         previousAutoTable?: {
             finalY: number;
         };
@@ -27,7 +27,7 @@ interface SimulationExportData {
     scenarioDescription?: string;
     createdAt: Date | string;
     status: string;
-    statistics: any;
+    statistics: unknown;
     conflicts: Array<any>;
     userAssignments: Array<any>;
     periodCoverage?: number;
@@ -147,7 +147,7 @@ function exportToPDF(data: SimulationExportData, fileName: string): Blob {
  * Export en CSV
  */
 function exportToCSV(data: SimulationExportData, fileName: string): Blob {
-    const csvData: any[] = [];
+    const csvData: unknown[] = [];
 
     // En-tête général
     csvData.push(['Résultats de Simulation']);
@@ -217,7 +217,7 @@ function formatStatKey(key: string): string {
     return translations[key] || key;
 }
 
-function formatStatValue(value: any): string {
+function formatStatValue(value: unknown): string {
     if (typeof value === 'number') {
         if (value % 1 !== 0) {
             return value.toFixed(2);
@@ -234,7 +234,7 @@ function formatStatValue(value: any): string {
  * Export des données de congés
  */
 export async function exportLeaveData(
-    leaves: any[],
+    leaves: unknown[],
     format: 'csv' | 'pdf',
     fileName?: string
 ): Promise<Blob> {
@@ -251,7 +251,7 @@ export async function exportLeaveData(
 /**
  * Export des congés en CSV
  */
-function exportLeavesToCSV(leaves: any[], fileName: string): Blob {
+function exportLeavesToCSV(leaves: unknown[], fileName: string): Blob {
     const csvData = leaves.map(leave => ({
         'ID': leave.id,
         'Utilisateur': leave.userName || leave.user?.name || 'Inconnu',
@@ -270,7 +270,7 @@ function exportLeavesToCSV(leaves: any[], fileName: string): Blob {
 /**
  * Export des congés en PDF
  */
-function exportLeavesToPDF(leaves: any[], fileName: string): Blob {
+function exportLeavesToPDF(leaves: unknown[], fileName: string): Blob {
     const pdf = new jsPDF();
     
     pdf.setFontSize(20);
@@ -304,7 +304,7 @@ function exportLeavesToPDF(leaves: any[], fileName: string): Blob {
  * Export des données de planning
  */
 export async function exportPlanningData(
-    planning: any[],
+    planning: unknown[],
     format: 'csv' | 'pdf',
     fileName?: string
 ): Promise<Blob> {
@@ -321,7 +321,7 @@ export async function exportPlanningData(
 /**
  * Export du planning en CSV
  */
-function exportPlanningToCSV(planning: any[], fileName: string): Blob {
+function exportPlanningToCSV(planning: unknown[], fileName: string): Blob {
     const csvData = planning.map(entry => ({
         'Date': dateFormat(new Date(entry.date), 'dd/MM/yyyy'),
         'Utilisateur': entry.userName || 'Non assigné',
@@ -338,7 +338,7 @@ function exportPlanningToCSV(planning: any[], fileName: string): Blob {
 /**
  * Export du planning en PDF
  */
-function exportPlanningToPDF(planning: any[], fileName: string): Blob {
+function exportPlanningToPDF(planning: unknown[], fileName: string): Blob {
     const pdf = new jsPDF('landscape');
     
     pdf.setFontSize(20);

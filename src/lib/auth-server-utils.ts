@@ -11,7 +11,7 @@ const JWT_SECRET =
 const TOKEN_EXPIRATION = 24 * 60 * 60; // 24 heures en secondes
 const AUTH_TOKEN_KEY = 'auth_token';
 
-export async function generateAuthTokenServer(payload: any) {
+export async function generateAuthTokenServer(payload: unknown) {
   const iat = Math.floor(Date.now() / 1000);
   const exp = iat + TOKEN_EXPIRATION;
 
@@ -79,8 +79,8 @@ export async function verifyAuthToken(token: string): Promise<AuthResult> {
       userId: payload.userId as number,
       role: payload.role as string,
     };
-  } catch (error) {
-    logger.error('Erreur de vérification du token (serveur):', error);
+  } catch (error: unknown) {
+    logger.error('Erreur de vérification du token (serveur):', error instanceof Error ? error : new Error(String(error)));
     return {
       authenticated: false,
       error: 'Token invalide ou expiré',
@@ -111,8 +111,8 @@ export async function getAuthTokenServer() {
 
     logger.info('[Auth Server] Aucun token trouvé (ni header, ni cookie).');
     return null;
-  } catch (error) {
-    logger.error('Erreur lors de la récupération du token (serveur):', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération du token (serveur):', error instanceof Error ? error : new Error(String(error)));
     return null;
   }
 }
@@ -127,8 +127,8 @@ export async function setAuthTokenServer(token: string) {
       maxAge: TOKEN_EXPIRATION,
       path: '/',
     });
-  } catch (error) {
-    logger.error('Erreur lors de la définition du token (serveur):', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la définition du token (serveur):', error instanceof Error ? error : new Error(String(error)));
   }
 }
 
@@ -136,8 +136,8 @@ export async function removeAuthTokenServer() {
   try {
     const cookieStore = await cookies();
     cookieStore.delete(AUTH_TOKEN_KEY);
-  } catch (error) {
-    logger.error('Erreur lors de la suppression du token (serveur):', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la suppression du token (serveur):', error instanceof Error ? error : new Error(String(error)));
   }
 }
 

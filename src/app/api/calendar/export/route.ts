@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
         // Filtrer par types d'événements
         if (!options.includeAllEvents && options.eventTypes?.length > 0) {
-            filteredEvents = filteredEvents.filter((event: any) => options.eventTypes.includes(event.type));
+            filteredEvents = filteredEvents.filter((event: unknown) => options.eventTypes.includes(event.type));
         }
 
         // Filtrer par plage de dates
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
             const startDate = new Date(options.dateRange.start);
             const endDate = new Date(options.dateRange.end);
 
-            filteredEvents = filteredEvents.filter((event: any) => {
+            filteredEvents = filteredEvents.filter((event: unknown) => {
                 const eventStart = new Date(event.start);
                 const eventEnd = new Date(event.end);
 
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
         // Supprimer le fichier temporaire
         try {
             await fs.unlink(filePath);
-        } catch (unlinkError) {
+        } catch (unlinkError: unknown) {
             logger.warn('Impossible de supprimer le fichier temporaire:', unlinkError);
         }
 
@@ -162,8 +162,8 @@ export async function POST(request: NextRequest) {
                 'Content-Disposition': `attachment; filename="${fileName}"`
             }
         });
-    } catch (error) {
-        logger.error('Erreur lors de l\'export du calendrier:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'export du calendrier:', error instanceof Error ? error : new Error(String(error)));
         
         // Log d'audit pour l'échec
         await auditService.logAction({
@@ -190,11 +190,11 @@ export async function POST(request: NextRequest) {
 }
 
 // Fonction pour exporter au format Excel
-async function exportToExcel(events: any[], options: any): Promise<string> {
+async function exportToExcel(events: unknown[], options: unknown): Promise<string> {
     const filePath = getTempFilePath('xlsx');
 
     // Transformer les événements en lignes pour Excel
-    const rows = events.map((event: any) => ({
+    const rows = events.map((event: unknown) => ({
         'Type': getEventTypeLabel(event.type),
         'Titre': event.title,
         'Début': format(new Date(event.start), 'dd/MM/yyyy HH:mm', { locale: fr }),
@@ -225,7 +225,7 @@ async function exportToExcel(events: any[], options: any): Promise<string> {
 }
 
 // Fonction pour exporter au format PDF
-async function exportToPDF(events: any[], options: any): Promise<string> {
+async function exportToPDF(events: unknown[], options: unknown): Promise<string> {
     const filePath = getTempFilePath('pdf');
 
     // Créer un document PDF
@@ -244,7 +244,7 @@ async function exportToPDF(events: any[], options: any): Promise<string> {
     }
 
     // Transformer les événements en lignes pour le tableau
-    const tableRows = events.map((event: any) => [
+    const tableRows = events.map((event: unknown) => [
         getEventTypeLabel(event.type),
         event.title,
         format(new Date(event.start), 'dd/MM/yyyy HH:mm', { locale: fr }),
@@ -269,14 +269,14 @@ async function exportToPDF(events: any[], options: any): Promise<string> {
 }
 
 // Fonction pour exporter au format CSV
-async function exportToCSV(events: any[], options: any): Promise<string> {
+async function exportToCSV(events: unknown[], options: unknown): Promise<string> {
     const filePath = getTempFilePath('csv');
 
     // Entêtes CSV
     const headers = ['Type', 'Titre', 'Début', 'Fin', 'Utilisateur', 'Description'];
 
     // Transformer les événements en lignes CSV
-    const rows = events.map((event: any) => [
+    const rows = events.map((event: unknown) => [
         getEventTypeLabel(event.type),
         `"${event.title.replace(/"/g, '""')}"`,
         format(new Date(event.start), 'dd/MM/yyyy HH:mm', { locale: fr }),
@@ -298,7 +298,7 @@ async function exportToCSV(events: any[], options: any): Promise<string> {
 }
 
 // Fonction pour exporter au format ICS
-async function exportToICS(events: any[], options: any): Promise<string> {
+async function exportToICS(events: unknown[], options: unknown): Promise<string> {
     const filePath = getTempFilePath('ics');
 
     // Créer le calendrier ICS
@@ -308,7 +308,7 @@ async function exportToICS(events: any[], options: any): Promise<string> {
     });
 
     // Ajouter chaque événement
-    events.forEach((event: any) => {
+    events.forEach((event: unknown) => {
         calendar.createEvent({
             start: new Date(event.start),
             end: new Date(event.end),
@@ -337,7 +337,7 @@ function getEventTypeLabel(type: string): string {
     return labels[type] || type;
 }
 
-function getEventLocation(event: any): string {
+function getEventLocation(event: unknown): string {
     if (event.operatingRoom) {
         return event.operatingRoom.name;
     }

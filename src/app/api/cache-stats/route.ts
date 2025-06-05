@@ -23,7 +23,7 @@ async function authorizeAdminRequest(req: NextRequest) {
             sub?: string,
             userId?: string | number,
             role?: string,
-            [key: string]: any
+            [key: string]: unknown
         };
 
         const userId = decoded.sub || decoded.userId;
@@ -38,7 +38,7 @@ async function authorizeAdminRequest(req: NextRequest) {
         }
 
         return { userId: String(userId), error: null, status: 0, isAdmin: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
         logger.error(`[API CacheStats Auth] jwt.verify failed: ${err.name} - ${err.message}`);
         if (err.name === 'JsonWebTokenError') {
             return { error: 'Token invalide (signature incorrecte ou malformé).', status: 401, userId: null, isAdmin: false };
@@ -72,8 +72,8 @@ export async function GET(request: NextRequest) {
                 timestamp: new Date().toISOString()
             }
         });
-    } catch (error) {
-        logger.error('[API CacheStats] Error retrieving cache stats:', error);
+    } catch (error: unknown) {
+        logger.error('[API CacheStats] Error retrieving cache stats:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des statistiques du cache.' },
             { status: 500 }
@@ -142,8 +142,8 @@ export async function POST(request: NextRequest) {
                     { status: 400 }
                 );
         }
-    } catch (error) {
-        logger.error('[API CacheStats] Error invalidating cache:', error);
+    } catch (error: unknown) {
+        logger.error('[API CacheStats] Error invalidating cache:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de l\'invalidation du cache.' },
             { status: 500 }

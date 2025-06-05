@@ -42,7 +42,7 @@ const CACHE_KEYS = {
 
 class RedisCacheService {
     private client: Redis | null = null;
-    private fallbackCache = new Map<string, { data: any; expires: number }>();
+    private fallbackCache = new Map<string, { data: unknown; expires: number }>();
     private isConnected = false;
     private connectionPromise: Promise<void> | null = null;
 
@@ -88,8 +88,8 @@ class RedisCacheService {
             await this.client.ping();
             this.isConnected = true;
 
-        } catch (error) {
-            logger.warn('⚠️ Redis initialization failed, using fallback cache:', error);
+        } catch (error: unknown) {
+            logger.warn('⚠️ Redis initialization failed, using fallback cache:', error instanceof Error ? error : new Error(String(error)));
             this.client = null;
             this.isConnected = false;
         }
@@ -105,13 +105,13 @@ class RedisCacheService {
             
             // Fallback vers cache mémoire
             return this.getFallback<T>(key);
-        } catch (error) {
-            logger.warn(`Cache get error for key ${key}:`, error);
+        } catch (error: unknown) {
+            logger.warn(`Cache get error for key ${key}:`, error instanceof Error ? error : new Error(String(error)));
             return this.getFallback<T>(key);
         }
     }
 
-    async set(key: string, value: any, ttl: number = CACHE_TTL.STATIC_DATA): Promise<boolean> {
+    async set(key: string, value: unknown, ttl: number = CACHE_TTL.STATIC_DATA): Promise<boolean> {
         try {
             if (this.isConnected && this.client) {
                 await this.client.setex(key, ttl, JSON.stringify(value));
@@ -121,8 +121,8 @@ class RedisCacheService {
             // Fallback vers cache mémoire
             this.setFallback(key, value, ttl);
             return true;
-        } catch (error) {
-            logger.warn(`Cache set error for key ${key}:`, error);
+        } catch (error: unknown) {
+            logger.warn(`Cache set error for key ${key}:`, error instanceof Error ? error : new Error(String(error)));
             this.setFallback(key, value, ttl);
             return false;
         }
@@ -136,8 +136,8 @@ class RedisCacheService {
             
             this.fallbackCache.delete(key);
             return true;
-        } catch (error) {
-            logger.warn(`Cache delete error for key ${key}:`, error);
+        } catch (error: unknown) {
+            logger.warn(`Cache delete error for key ${key}:`, error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }
@@ -151,8 +151,8 @@ class RedisCacheService {
             
             return this.fallbackCache.has(key) && 
                    this.fallbackCache.get(key)!.expires > Date.now();
-        } catch (error) {
-            logger.warn(`Cache exists error for key ${key}:`, error);
+        } catch (error: unknown) {
+            logger.warn(`Cache exists error for key ${key}:`, error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }
@@ -164,8 +164,8 @@ class RedisCacheService {
             }
             
             this.fallbackCache.clear();
-        } catch (error) {
-            logger.warn('Cache flush error:', error);
+        } catch (error: unknown) {
+            logger.warn('Cache flush error:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -187,7 +187,7 @@ class RedisCacheService {
     }
 
     // Cache helpers pour users
-    async cacheUserProfile(userId: string, profile: any): Promise<void> {
+    async cacheUserProfile(userId: string, profile: unknown): Promise<void> {
         const key = this.buildKey(CACHE_KEYS.USER, `profile:${userId}`);
         await this.set(key, { ...profile, cachedAt: Date.now() }, CACHE_TTL.USER_PROFILE);
     }
@@ -215,7 +215,7 @@ class RedisCacheService {
     }
 
     // Cache helpers pour planning
-    async cachePlanningData(planningId: string, data: any): Promise<void> {
+    async cachePlanningData(planningId: string, data: unknown): Promise<void> {
         const key = this.buildKey(CACHE_KEYS.PLANNING, `data:${planningId}`);
         await this.set(key, { ...data, cachedAt: Date.now() }, CACHE_TTL.PLANNING_DATA);
     }
@@ -231,14 +231,14 @@ class RedisCacheService {
     }
 
     // Cache helpers pour API responses
-    async cacheApiResponse(endpoint: string, params: any, response: any, ttl: number = 300): Promise<void> {
+    async cacheApiResponse(endpoint: string, params: unknown, response: unknown, ttl: number = 300): Promise<void> {
         const cacheKey = this.buildApiKey(endpoint, params);
         await this.set(cacheKey, { response, cachedAt: Date.now() }, ttl);
     }
 
-    async getApiResponse(endpoint: string, params: any): Promise<any | null> {
+    async getApiResponse(endpoint: string, params: unknown): Promise<any | null> {
         const cacheKey = this.buildApiKey(endpoint, params);
-        const cached = await this.get<{ response: any; cachedAt: number }>(cacheKey);
+        const cached = await this.get<{ response: unknown; cachedAt: number }>(cacheKey);
         return cached?.response || null;
     }
 
@@ -254,13 +254,13 @@ class RedisCacheService {
             // - Planning récent
             // - Préférences
             
-        } catch (error) {
-            logger.warn('Cache warming failed:', error);
+        } catch (error: unknown) {
+            logger.warn('Cache warming failed:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
     // Cache statistics
-    async getStats(): Promise<any> {
+    async getStats(): Promise<unknown> {
         try {
             if (this.isConnected && this.client) {
                 const info = await this.client.info('memory');
@@ -279,7 +279,7 @@ class RedisCacheService {
                 fallbackCacheSize: this.fallbackCache.size,
                 mode: 'fallback'
             };
-        } catch (error) {
+        } catch (error: unknown) {
             return {
                 connected: false,
                 error: error.message,
@@ -293,7 +293,7 @@ class RedisCacheService {
         return `mathilda:${prefix}:${suffix}`;
     }
 
-    private buildApiKey(endpoint: string, params: any): string {
+    private buildApiKey(endpoint: string, params: unknown): string {
         const paramStr = JSON.stringify(params);
         const hash = this.simpleHash(paramStr);
         return this.buildKey(CACHE_KEYS.API, `${endpoint}:${hash}`);
@@ -322,7 +322,7 @@ class RedisCacheService {
         return null;
     }
 
-    private setFallback(key: string, value: any, ttl: number): void {
+    private setFallback(key: string, value: unknown, ttl: number): void {
         const expires = Date.now() + (ttl * 1000);
         this.fallbackCache.set(key, { data: value, expires });
         
@@ -360,7 +360,7 @@ export function useCache() {
 }
 
 // Wrapper pour middleware API
-export function withCache<T extends (...args: any[]) => Promise<any>>(
+export function withCache<T extends (...args: unknown[]) => Promise<unknown>>(
     fn: T,
     generateKey: (...args: Parameters<T>) => string,
     ttl: number = 300

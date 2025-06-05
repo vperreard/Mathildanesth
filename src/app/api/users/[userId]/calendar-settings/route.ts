@@ -44,8 +44,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
     }
 
     return NextResponse.json(settings);
-  } catch (error) {
-    logger.error('Erreur lors de la récupération des paramètres:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération des paramètres:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des paramètres' },
       { status: 500 }
@@ -98,8 +98,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ user
     });
 
     return NextResponse.json(settings);
-  } catch (error) {
-    logger.error('Erreur lors de la mise à jour des paramètres:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la mise à jour des paramètres:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur lors de la mise à jour des paramètres' },
       { status: 500 }

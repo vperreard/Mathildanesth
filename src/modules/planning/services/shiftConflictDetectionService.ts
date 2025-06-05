@@ -86,8 +86,8 @@ export class ShiftConflictDetectionService implements ConflictDetectionService {
                 canAutoApprove: !conflicts.some(c => c.severity === ConflictSeverity.BLOQUANT),
                 requiresManagerReview: conflicts.length > 0
             };
-        } catch (error) {
-            logger.error('Erreur dans ShiftConflictDetectionService:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans ShiftConflictDetectionService:', error instanceof Error ? error : new Error(String(error)));
             return this.createEmptyResult();
         }
     }

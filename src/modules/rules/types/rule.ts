@@ -66,9 +66,9 @@ export interface Rule {
     scope: RuleScope;          // Portée de la règle
     scopeValue?: string | string[];  // Valeur de la portée (ex: ID de département, service, etc.)
     enabled: boolean;          // Si la règle est active
-    parameters: any;           // Paramètres spécifiques à la règle
+    parameters: unknown;           // Paramètres spécifiques à la règle
     priority: number;          // Priorité de la règle (plus le nombre est élevé, plus la priorité est haute)
-    configuration: any;         // Configuration spécifique à la règle
+    configuration: unknown;         // Configuration spécifique à la règle
     isDefault?: boolean;       // Si la règle est la valeur par défaut
     createdAt: Date;           // Date de création (Date)
     updatedAt: Date;           // Date de dernière mise à jour (Date)
@@ -128,7 +128,7 @@ export interface RuleEvaluationContext {
     currentDate?: string;      // Date courante (ISO string)
 
     // Données supplémentaires si nécessaire
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 /**

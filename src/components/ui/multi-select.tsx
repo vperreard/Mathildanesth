@@ -14,7 +14,7 @@ export type MultiSelectOption = {
     label: string;
     disabled?: boolean;
     group?: string;
-    [key: string]: any; // Pour les métadonnées supplémentaires
+    [key: string]: unknown; // Pour les métadonnées supplémentaires
 };
 
 export interface MultiSelectProps {

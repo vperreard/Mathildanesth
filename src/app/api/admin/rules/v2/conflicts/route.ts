@@ -90,8 +90,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-  } catch (error) {
-    logger.error('Error in conflict handling:', error);
+  } catch (error: unknown) {
+    logger.error('Error in conflict handling:', error instanceof Error ? error : new Error(String(error)));
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
     });
 
     const conflictDetector = ConflictDetector.getInstance();
-    const allConflicts: any[] = [];
+    const allConflicts: unknown[] = [];
 
     // Check conflicts between all pairs of rules
     for (let i = 0; i < activeRules.length; i++) {
@@ -153,8 +153,8 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error) {
-    logger.error('Error fetching conflicts:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching conflicts:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des conflits' },
       { status: 500 }

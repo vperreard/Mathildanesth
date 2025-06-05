@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { CalendarIcon, HomeIcon, UserGroupIcon, CogIcon } from '@heroicons/react/24/outline';
 
 const navigation = [

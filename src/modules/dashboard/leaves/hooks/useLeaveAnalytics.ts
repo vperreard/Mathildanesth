@@ -134,8 +134,8 @@ export function useLeaveAnalytics(options: LeaveAnalyticsOptions = {}) {
                     cached: endTime - startTime < 50 // Considérer comme mise en cache si temps < 50ms
                 }
             }));
-        } catch (error) {
-            logger.error("Erreur lors du chargement des stats par département:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des stats par département:", error instanceof Error ? error : new Error(String(error)));
             setErrorState('department', error as Error);
         } finally {
             setLoadingState('department', false);
@@ -167,8 +167,8 @@ export function useLeaveAnalytics(options: LeaveAnalyticsOptions = {}) {
                     cached: endTime - startTime < 50
                 }
             }));
-        } catch (error) {
-            logger.error("Erreur lors du chargement des stats par période:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des stats par période:", error instanceof Error ? error : new Error(String(error)));
             setErrorState('period', error as Error);
         } finally {
             setLoadingState('period', false);
@@ -194,8 +194,8 @@ export function useLeaveAnalytics(options: LeaveAnalyticsOptions = {}) {
                     cached: endTime - startTime < 50
                 }
             }));
-        } catch (error) {
-            logger.error("Erreur lors du chargement des taux d'absence par équipe:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des taux d'absence par équipe:", error instanceof Error ? error : new Error(String(error)));
             setErrorState('team', error as Error);
         } finally {
             setLoadingState('team', false);
@@ -225,8 +225,8 @@ export function useLeaveAnalytics(options: LeaveAnalyticsOptions = {}) {
                     cached: endTime - startTime < 50
                 }
             }));
-        } catch (error) {
-            logger.error("Erreur lors du chargement des stats par utilisateur:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des stats par utilisateur:", error instanceof Error ? error : new Error(String(error)));
             setErrorState('user', error as Error);
         } finally {
             setLoadingState('user', false);
@@ -257,8 +257,8 @@ export function useLeaveAnalytics(options: LeaveAnalyticsOptions = {}) {
                     cached: endTime - startTime < 50
                 }
             }));
-        } catch (error) {
-            logger.error("Erreur lors du chargement des tendances:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des tendances:", error instanceof Error ? error : new Error(String(error)));
             setErrorState('trend', error as Error);
         } finally {
             setLoadingState('trend', false);
@@ -284,8 +284,8 @@ export function useLeaveAnalytics(options: LeaveAnalyticsOptions = {}) {
                     cached: endTime - startTime < 50
                 }
             }));
-        } catch (error) {
-            logger.error("Erreur lors de la prédiction des périodes de pic:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la prédiction des périodes de pic:", error instanceof Error ? error : new Error(String(error)));
             setErrorState('prediction', error as Error);
         } finally {
             setLoadingState('prediction', false);
@@ -301,8 +301,8 @@ export function useLeaveAnalytics(options: LeaveAnalyticsOptions = {}) {
 
         try {
             return await leaveAnalyticsService.exportAnalyticsToCSV(dataType, customFilter || debouncedFilter);
-        } catch (error) {
-            logger.error(`Erreur lors de l'export des données ${dataType}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de l'export des données ${dataType}:`, error instanceof Error ? error : new Error(String(error)));
             setErrorState(dataType, error as Error);
             throw error;
         } finally {

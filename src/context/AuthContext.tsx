@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       userCache.set(token, { user: userData, timestamp: Date.now() });
       setUser(userData);
       return userData;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.info("AuthContext: Erreur lors de la récupération de l'utilisateur");
       setUser(null);
       userCache.clear();
@@ -150,8 +150,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const redirectUrl = response.data.redirectUrl || '/dashboard';
       router.push(redirectUrl);
       return response.data.user;
-    } catch (error) {
-      logger.error('Erreur de connexion:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur de connexion:', error instanceof Error ? error : new Error(String(error)));
       throw new Error('Identifiants incorrects');
     }
   };
@@ -159,8 +159,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       await axios.post('http://localhost:3000/api/auth/deconnexion');
-    } catch (error) {
-      logger.error('Erreur lors de la déconnexion:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la déconnexion:', error instanceof Error ? error : new Error(String(error)));
     } finally {
       removeClientAuthToken();
       userCache.clear();

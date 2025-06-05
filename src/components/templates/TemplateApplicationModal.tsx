@@ -38,7 +38,7 @@ export interface ApplicationConfig {
 interface TemplateOverride {
   ruleId: string;
   action: 'disable' | 'modify';
-  value?: any;
+  value?: unknown;
   reason: string;
 }
 

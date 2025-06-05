@@ -47,7 +47,7 @@ class RuleCacheService {
      */
     private generateEvaluationCacheKey(context: RuleEvaluationContext): string {
         // Simplifier et normaliser le contexte pour créer une clé stable
-        const keyObject: Record<string, any> = {};
+        const keyObject: Record<string, unknown> = {};
 
         // Ajouter les informations de garde proposée
         if (context.proposedShift) {

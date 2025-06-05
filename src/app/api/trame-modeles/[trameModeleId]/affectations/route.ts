@@ -123,7 +123,7 @@ export async function POST(
           Array.isArray(personnelRequis) &&
           personnelRequis.length > 0 && {
             personnelRequis: {
-              create: personnelRequis.map((pr: any) => ({
+              create: personnelRequis.map((pr: unknown) => ({
                 roleGenerique: pr.roleGenerique,
                 nombreRequis: pr.nombreRequis || 1,
                 notes: pr.notes,
@@ -154,12 +154,12 @@ export async function POST(
       );
       logger.info('--- POST /api/trameModele-modeles/[trameModeleId]/affectations END ---\n');
       return NextResponse.json(newAffectationModele, { status: 201 });
-    } catch (prismaError) {
+    } catch (prismaError: unknown) {
       logger.error('Erreur Prisma détaillée:', prismaError);
       throw prismaError; // Relancer pour la gestion globale des erreurs
     }
-  } catch (error) {
-    logger.error('Error during POST /api/trameModele-modeles/[trameModeleId]/affectations:', error);
+  } catch (error: unknown) {
+    logger.error('Error during POST /api/trameModele-modeles/[trameModeleId]/affectations:', error instanceof Error ? error : new Error(String(error)));
 
     // Afficher plus d'informations sur l'erreur
     if (error instanceof Error) {
@@ -285,7 +285,7 @@ export async function GET(
     );
     logger.info('--- GET /api/trameModele-modeles/[trameModeleId]/affectations END ---\n');
     return NextResponse.json(affectations);
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(
       `Erreur lors de la récupération des affectations pour la trameModele ${trameModeleId}:`,
       error

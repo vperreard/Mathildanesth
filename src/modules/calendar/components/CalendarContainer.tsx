@@ -45,13 +45,13 @@ const OptimizedGrid = memo(function OptimizedGrid() {
         }));
     }, [events]);
 
-    const handleEventClick = useCallback((info: any) => {
+    const handleEventClick = useCallback((info: unknown) => {
         if (info.event?.extendedProps) {
             selectEvent(info.event.extendedProps as AnyCalendarEvent);
         }
     }, [selectEvent]);
 
-    const handleEventDrop = useCallback((info: any) => {
+    const handleEventDrop = useCallback((info: unknown) => {
         const eventId = info.event.id;
         const newStart = info.event.start;
         const newEnd = info.event.end || info.event.start;

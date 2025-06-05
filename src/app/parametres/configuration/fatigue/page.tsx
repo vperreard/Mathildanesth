@@ -28,8 +28,8 @@ const fetchFatigueConfig = async (): Promise<FatigueConfig> => {
         const config = await response.json();
         logger.info("Fetched fatigue config from API", config);
         return config;
-    } catch (error) {
-        logger.error("Error fetching fatigue config from API:", error);
+    } catch (error: unknown) {
+        logger.error("Error fetching fatigue config from API:", error instanceof Error ? error : new Error(String(error)));
         toast.error("Impossible de charger la configuration de fatigue depuis le serveur.");
         // Retourner le fallback en cas d'erreur API majeure
         return fallbackDefaultConfig;
@@ -53,8 +53,8 @@ const saveFatigueConfig = async (config: FatigueConfig): Promise<void> => {
         const result = await response.json();
         logger.info("Save response:", result);
         // Pas besoin de sauvegarder en localStorage maintenant
-    } catch (error) {
-        logger.error("Error saving fatigue config via API:", error);
+    } catch (error: unknown) {
+        logger.error("Error saving fatigue config via API:", error instanceof Error ? error : new Error(String(error)));
         // L'erreur sera catchée dans handleSave et affichée par le toast du formulaire
         throw error; // Renvoyer l'erreur pour que handleSave la traite
     }
@@ -82,9 +82,9 @@ export default function FatigueSettingsPage() {
             await saveFatigueConfig(newConfig);
             setConfig(newConfig); // Met à jour l'état local après succès API
             // Le toast de succès est déjà dans le composant Form
-        } catch (error) {
+        } catch (error: unknown) {
             // Le toast d'erreur est déjà géré dans le composant Form
-            logger.error("Handle save error (page level):", error);
+            logger.error("Handle save error (page level):", error instanceof Error ? error : new Error(String(error)));
             // Optionnel : recharger la config depuis le serveur pour annuler les changements locaux ?
             // loadConfig();
         } finally {

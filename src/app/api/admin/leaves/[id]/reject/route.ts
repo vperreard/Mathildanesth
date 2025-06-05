@@ -24,7 +24,7 @@ export async function POST(
         try {
             const body = await request.json();
             comment = body.comment || null;
-        } catch (e) {
+        } catch (e: unknown) {
             // Ignorer l'erreur si le corps n'est pas un JSON valide
         }
 
@@ -125,8 +125,8 @@ export async function POST(
             }
         });
 
-    } catch (error) {
-        logger.error('[API /api/admin/conges/reject] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API /api/admin/conges/reject] Erreur:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur lors du rejet de la demande de congé' },
             { status: 500 }

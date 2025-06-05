@@ -190,7 +190,7 @@ export const useLeave = ({
             setLoading(false);
             return conflictResult;
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             setConflictCheckResult(null);
             setError('conflicts', { message: error.message, severity: 'error' });
             // Convertir l'erreur au format ErrorDetails pour les tests
@@ -223,7 +223,7 @@ export const useLeave = ({
             setAllowanceCheckResult(result);
             setLoading(false);
             return result;
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur dans checkAllowance:', err);
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
@@ -266,7 +266,7 @@ export const useLeave = ({
             setLeave(savedLeave);
             setLoading(false);
             return savedLeave;
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur dans saveLeaveAsDraft:', err);
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
@@ -315,7 +315,7 @@ export const useLeave = ({
             setLeave(submittedLeave);
             setLoading(false);
             return submittedLeave;
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur dans submitLeave:', err);
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
@@ -344,7 +344,7 @@ export const useLeave = ({
             setLeave(approvedLeave);
             setLoading(false);
             return approvedLeave;
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur dans approveLeaveRequest:', err);
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
@@ -373,7 +373,7 @@ export const useLeave = ({
             setLeave(rejectedLeave);
             setLoading(false);
             return rejectedLeave;
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur dans rejectLeaveRequest:', err);
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
@@ -402,7 +402,7 @@ export const useLeave = ({
             setLeave(cancelledLeave);
             setLoading(false);
             return cancelledLeave;
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur dans cancelLeaveRequest:', err);
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
@@ -437,7 +437,7 @@ export const useLeave = ({
             const fetchedLeaves = await fetchLeaves(combinedFilters);
             setLeaves(fetchedLeaves);
             setLoading(false);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur dans fetchUserLeaves:', err);
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
@@ -459,7 +459,7 @@ export const useLeave = ({
             const fetchedLeave = await fetchLeaveById(leaveId);
             setLeave(fetchedLeave);
             setLoading(false);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur dans fetchLeaveDetails:', err);
             // Convertir l'erreur au format ErrorDetails
             setLocalError({

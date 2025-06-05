@@ -94,7 +94,7 @@ const QuotaTransferHistory: React.FC<QuotaTransferHistoryProps> = ({
     const formatDate = (dateString: string) => {
         try {
             return format(new Date(dateString), 'dd MMM yyyy', { locale: fr });
-        } catch (error) {
+        } catch (error: unknown) {
             return dateString;
         }
     };

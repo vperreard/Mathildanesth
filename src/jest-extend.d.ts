@@ -21,17 +21,17 @@ declare global {
             toHaveDescription(text: string | RegExp): R;
             toHaveDisplayValue(value: string | RegExp | (string | RegExp)[]): R;
             toHaveFocus(): R;
-            toHaveFormValues(values: { [name: string]: any }): R;
+            toHaveFormValues(values: { [name: string]: unknown }): R;
             toHaveTextContent(text: string | RegExp, options?: { normalizeWhitespace: boolean }): R;
             toHaveValue(value: string | string[] | number): R;
             toBeRequired(): R;
             toBePartiallyChecked(): R;
-            toHaveStyle(css: string | Record<string, any>): R;
+            toHaveStyle(css: string | Record<string, unknown>): R;
             // Ajouter toHaveBeenCalledTimes, etc. pour les mocks
             toHaveBeenCalledTimes(number: number): R;
-            toHaveBeenCalledWith(...args: any[]): R;
-            toHaveBeenLastCalledWith(...args: any[]): R;
-            toHaveBeenNthCalledWith(nth: number, ...args: any[]): R;
+            toHaveBeenCalledWith(...args: unknown[]): R;
+            toHaveBeenLastCalledWith(...args: unknown[]): R;
+            toHaveBeenNthCalledWith(nth: number, ...args: unknown[]): R;
             // Ajouter d'autres matchers si nécessaire
             toBeGreaterThan(number: number): R;
             toBeGreaterThanOrEqual(number: number): R;

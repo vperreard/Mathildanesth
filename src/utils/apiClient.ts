@@ -48,7 +48,7 @@ apiClient.interceptors.response.use(
 
         // Gestion des erreurs serveur (500)
         if (error.response && error.response.status >= 500) {
-            logger.error('Erreur serveur:', error);
+            logger.error('Erreur serveur:', error instanceof Error ? error : new Error(String(error)));
             return Promise.reject(new Error('Une erreur serveur est survenue. Veuillez réessayer ultérieurement.'));
         }
 

@@ -1313,9 +1313,9 @@ export class BlocPlanningService {
             if (incompatibility) {
                 return incompatibility.type; // Retourne directement la valeur de l'enum Prisma (BLOQUANT ou PREFERENTIEL)
             }
-        } catch (error) {
+        } catch (error: unknown) {
             // En cas d'erreur inattendue lors de la requête, logguer et retourner null
-            logger.error("Erreur lors de la vérification des incompatibilités (R5) :", error);
+            logger.error("Erreur lors de la vérification des incompatibilités (R5) :", error instanceof Error ? error : new Error(String(error)));
             return null;
         }
 
@@ -1410,7 +1410,7 @@ export class BlocPlanningService {
             return [];
         }
 
-        const validatedRoomsInternal = roomsData.map((room: any, index: number) => {
+        const validatedRoomsInternal = roomsData.map((room: unknown, index: number) => {
             if (index < 2) { // Loguer seulement pour les deux premières pour éviter la verbosité
                 logger.info(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} brute reçue par map:`, JSON.stringify(room));
             }
@@ -1500,8 +1500,8 @@ export class BlocPlanningService {
             const transformedRooms = this.transformAndValidateRooms(roomsData as any, includeRelations);
             logger.info(`[BlocPlanningService.getAllOperatingRooms] Nombre de salles après transformation/validation: ${transformedRooms.length}`);
             return transformedRooms;
-        } catch (error) {
-            logger.error("[BlocPlanningService.getAllOperatingRooms] Erreur lors de la récupération des salles d'opération: ", error);
+        } catch (error: unknown) {
+            logger.error("[BlocPlanningService.getAllOperatingRooms] Erreur lors de la récupération des salles d'opération: ", error instanceof Error ? error : new Error(String(error)));
             // Ne pas simplement jeter l'erreur ici pour voir si le catch plus haut (dans la route API) le fait
             // throw new Error("Impossible de récupérer les salles d'opération"); 
             return []; // Retourner un tableau vide en cas d'erreur ici pour éviter de planter et voir si l'API renvoie quand même 200
@@ -1531,8 +1531,8 @@ export class BlocPlanningService {
                 ]
             });
             return this.transformAndValidateRooms(roomsData as any, includeRelations);
-        } catch (error) {
-            logger.error("Erreur lors de la récupération des salles d'opération actives: ", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la récupération des salles d'opération actives: ", error instanceof Error ? error : new Error(String(error)));
             throw new Error("Impossible de récupérer les salles d'opération actives");
         }
     }
@@ -1544,14 +1544,14 @@ export class BlocPlanningService {
         sectorsData: (Prisma.OperatingSectorGetPayload<{ include: { site: true, rooms: true } }> | Prisma.OperatingSectorGetPayload<EmptyObject>)[],
         includeRelations: boolean
     ): LegacyOperatingSector[] { // LegacyOperatingSector est OperatingSector de BlocModels.ts
-        const validatedSectors = sectorsData.map((sector: any) => {
-            const sectorForValidation: Partial<LegacyOperatingSector> & { siteId?: string, rooms?: any[] } = {
+        const validatedSectors = sectorsData.map((sector: unknown) => {
+            const sectorForValidation: Partial<LegacyOperatingSector> & { siteId?: string, rooms?: unknown[] } = {
                 id: sector.id,
                 name: sector.name,
                 colorCode: sector.colorCode,
                 isActive: sector.isActive,
                 description: sector.description,
-                rules: (sector.rules && typeof sector.rules === 'object' && !Array.isArray(sector.rules)) ? sector.rules as Record<string, any> : {},
+                rules: (sector.rules && typeof sector.rules === 'object' && !Array.isArray(sector.rules)) ? sector.rules as Record<string, unknown> : {},
                 createdAt: sector.createdAt,
                 updatedAt: sector.updatedAt,
                 displayOrder: sector.displayOrder === null ? undefined : sector.displayOrder,
@@ -1572,7 +1572,7 @@ export class BlocPlanningService {
 
             const validatedSector = parseResult.data as LegacyOperatingSector;
             if (includeRelations && sector.rooms) {
-                (validatedSector as any).rooms = sector.rooms.map((r: any) => ({ id: r.id, name: r.name, number: r.number, displayOrder: r.displayOrder }));
+                (validatedSector as any).rooms = sector.rooms.map((r: unknown) => ({ id: r.id, name: r.name, number: r.number, displayOrder: r.displayOrder }));
             }
 
             return validatedSector;
@@ -1595,8 +1595,8 @@ export class BlocPlanningService {
             });
             // Correction de l'appel de fonction
             return this.transformAndValidateSectors(sectorsData as any, includeRelations);
-        } catch (error) {
-            logger.error("Erreur lors de la récupération des secteurs opératoires: ", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la récupération des secteurs opératoires: ", error instanceof Error ? error : new Error(String(error)));
             throw new Error("Impossible de récupérer les secteurs opératoires");
         }
     }

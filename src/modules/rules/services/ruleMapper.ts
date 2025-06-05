@@ -16,7 +16,7 @@ interface PrismaRule {
     isActive: boolean;
     validFrom: Date;
     validTo: Date | null;
-    configuration: any;
+    configuration: unknown;
     createdAt: Date;
     updatedAt: Date;
     createdBy: number;
@@ -94,7 +94,7 @@ export function mapRuleSeverity(prismaSeverity: PrismaRuleSeverity): RuleSeverit
 /**
  * Convertit une règle Prisma en règle de notre application
  */
-export function mapPrismaRuleToRule(prismaRule: PrismaRule & { createdByUser?: any, updatedByUser?: any }): AnyRule {
+export function mapPrismaRuleToRule(prismaRule: PrismaRule & { createdByUser?: unknown, updatedByUser?: unknown }): AnyRule {
     const type = mapRuleType(prismaRule.type);
     const baseFields: Rule = {
         id: prismaRule.id,

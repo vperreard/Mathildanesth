@@ -29,7 +29,7 @@ export default function PredictiveInsightsWidget() {
 
                 const result = await response.json();
                 setInsights(result.data);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 logger.error('Erreur lors du chargement des insights:', err);
                 setError(err.message || 'Erreur inconnue');
             } finally {

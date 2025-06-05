@@ -61,8 +61,8 @@ export async function GET(
         timestamp: new Date().toISOString(),
       },
     });
-  } catch (error) {
-    logger.error('[SURGEON_SITES_GET_ERROR]:', error);
+  } catch (error: unknown) {
+    logger.error('[SURGEON_SITES_GET_ERROR]:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur serveur lors de la récupération des sites' },
       { status: 500 }
@@ -150,8 +150,8 @@ export async function PUT(
         timestamp: new Date().toISOString(),
       },
     });
-  } catch (error) {
-    logger.error('[SURGEON_SITES_PUT_ERROR]:', error);
+  } catch (error: unknown) {
+    logger.error('[SURGEON_SITES_PUT_ERROR]:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur serveur lors de la mise à jour des sites' },
       { status: 500 }
@@ -206,8 +206,8 @@ export async function POST(
         specialties: updatedSurgeon.specialties,
       },
     });
-  } catch (error) {
-    logger.error('[SURGEON_SITES_POST_ERROR]:', error);
+  } catch (error: unknown) {
+    logger.error('[SURGEON_SITES_POST_ERROR]:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: "Erreur serveur lors de l'ajout des sites" },
       { status: 500 }
@@ -258,8 +258,8 @@ export async function DELETE(
         sites: updatedSurgeon.sites,
       },
     });
-  } catch (error) {
-    logger.error('[SURGEON_SITES_DELETE_ERROR]:', error);
+  } catch (error: unknown) {
+    logger.error('[SURGEON_SITES_DELETE_ERROR]:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur serveur lors de la suppression des sites' },
       { status: 500 }

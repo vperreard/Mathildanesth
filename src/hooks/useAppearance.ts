@@ -99,8 +99,8 @@ export function useAppearance({ initialPreferences }: UseAppearanceProps = {}) {
                 if (userPreferences?.appearance) {
                     setPreferences(userPreferences.appearance);
                 }
-            } catch (error) {
-                logger.error('Erreur lors du chargement des préférences:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors du chargement des préférences:', error instanceof Error ? error : new Error(String(error)));
                 // En cas d'erreur, utiliser les préférences par défaut
             } finally {
                 setLoading(false);
@@ -132,8 +132,8 @@ export function useAppearance({ initialPreferences }: UseAppearanceProps = {}) {
             });
 
             return true;
-        } catch (error) {
-            logger.error('Erreur lors de la mise à jour des préférences:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la mise à jour des préférences:', error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     };

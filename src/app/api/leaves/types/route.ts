@@ -33,8 +33,8 @@ export async function GET(request: Request) {
 
         return NextResponse.json(leaveTypeSettings);
 
-    } catch (error) {
-        logger.error('Erreur API [GET /conges/types]:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur API [GET /conges/types]:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({ error: 'Erreur serveur lors de la récupération des types de congés.' }, { status: 500 });
     } finally {
         // Envisager la déconnexion si prisma est instancié localement

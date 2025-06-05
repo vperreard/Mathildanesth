@@ -45,7 +45,7 @@ const Cell = memo(({
     columnIndex: number;
     rowIndex: number;
     style: CSSProperties;
-    data: any;
+    data: unknown;
 }) => {
     const { 
         days, 

@@ -78,8 +78,8 @@ async function optimizedHandler(req: NextRequest) {
 
     perfLogger.end(`auth-me-${requestId}`);
     return successResponse(user);
-  } catch (error) {
-    logger.error('API /auth/me optimized error:', error);
+  } catch (error: unknown) {
+    logger.error('API /auth/me optimized error:', error instanceof Error ? error : new Error(String(error)));
     perfLogger.end(`auth-me-${requestId}`);
     return errorResponse('Erreur serveur');
   }
@@ -127,7 +127,7 @@ async function fetchUserOptimized(userId: number) {
 }
 
 // Response helpers
-function successResponse(user: any) {
+function successResponse(user: unknown) {
   return NextResponse.json(
     { user, authenticated: true },
     {

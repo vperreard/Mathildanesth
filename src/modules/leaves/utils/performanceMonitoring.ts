@@ -316,14 +316,14 @@ export class PerformanceTracker {
  */
 export function measurePerformance(options?: { name?: string }) {
     return function (
-        target: any,
+        target: unknown,
         propertyKey: string,
         descriptor: PropertyDescriptor
     ) {
         const originalMethod = descriptor.value;
         const metricName = options?.name || `${target.constructor.name}.${propertyKey}`;
 
-        descriptor.value = function (...args: any[]) {
+        descriptor.value = function (...args: unknown[]) {
             const tracker = PerformanceTracker.getInstance();
             tracker.startMeasure(metricName);
 
@@ -339,7 +339,7 @@ export function measurePerformance(options?: { name?: string }) {
 
                 tracker.endMeasure(metricName);
                 return result;
-            } catch (error) {
+            } catch (error: unknown) {
                 tracker.endMeasure(metricName);
                 throw error;
             }

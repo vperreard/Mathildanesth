@@ -101,8 +101,8 @@ export const useServiceWorker = () => {
                     }
                 });
 
-            } catch (error) {
-                logger.error('Erreur lors de l\'enregistrement du Service Worker:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors de l\'enregistrement du Service Worker:', error instanceof Error ? error : new Error(String(error)));
                 setState(prev => ({
                     ...prev,
                     error: error instanceof Error ? error.message : 'Erreur inconnue'

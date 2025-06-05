@@ -48,7 +48,7 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
             }
 
             setAssignments(Array.isArray(newAssignments) ? newAssignments : []);
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error('Erreur lors de la génération du planning');
             logger.error(error);
         } finally {

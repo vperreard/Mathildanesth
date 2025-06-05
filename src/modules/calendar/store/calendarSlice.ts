@@ -77,7 +77,7 @@ export const fetchEvents = createAsyncThunk(
     async (filters: CalendarFilters, { rejectWithValue }) => {
         try {
             return await fetchCalendarEvents(filters);
-        } catch (error) {
+        } catch (error: unknown) {
             return rejectWithValue((error as Error).message);
         }
     }

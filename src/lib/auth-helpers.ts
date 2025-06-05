@@ -6,7 +6,7 @@ import { logger } from "./logger";
  * @param session La session utilisateur (peut venir de useSession ou getServerSession)
  * @returns Le token JWT ou null si aucun n'est trouvé
  */
-export const getAuthToken = (session: any): string | null => {
+export const getAuthToken = (session: unknown): string | null => {
     // Essayer de récupérer le token depuis les cookies
     const jwtToken = Cookies.get('next-auth.session-token') || Cookies.get('__Secure-next-auth.session-token') || Cookies.get('jwt_token');
 
@@ -39,8 +39,8 @@ export const getAuthToken = (session: any): string | null => {
         if (storedToken) {
             return storedToken;
         }
-    } catch (error) {
-        logger.warn('Impossible d\'accéder au localStorage:', error);
+    } catch (error: unknown) {
+        logger.warn('Impossible d\'accéder au localStorage:', error instanceof Error ? error : new Error(String(error)));
     }
 
     return null;
@@ -51,7 +51,7 @@ export const getAuthToken = (session: any): string | null => {
  * @param session La session utilisateur
  * @returns Les en-têtes HTTP à utiliser avec fetch
  */
-export const createAuthHeaders = (session: any): HeadersInit => {
+export const createAuthHeaders = (session: unknown): HeadersInit => {
     const headers: HeadersInit = {
         'Content-Type': 'application/json',
     };
@@ -71,7 +71,7 @@ export const createAuthHeaders = (session: any): HeadersInit => {
 export const fetchWithAuth = async (
     url: string,
     options: RequestInit = {},
-    session: any
+    session: unknown
 ): Promise<Response> => {
     const authHeaders = createAuthHeaders(session);
 

@@ -38,8 +38,8 @@ export class AuthCacheService {
                 await redis.setex(key, ttl, JSON.stringify(decodedToken));
                 logger.debug(`Token cached for ${ttl}s`);
             }
-        } catch (error) {
-            logger.error('Failed to cache auth token:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to cache auth token:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -62,8 +62,8 @@ export class AuthCacheService {
             }
             
             return data;
-        } catch (error) {
-            logger.error('Failed to get cached auth token:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to get cached auth token:', error instanceof Error ? error : new Error(String(error)));
             return null;
         }
     }
@@ -76,8 +76,8 @@ export class AuthCacheService {
             const key = `${CachePrefixes.USER_DATA}${userId}`;
             await redis.setex(key, CacheTTL.USER_DATA, JSON.stringify(userData));
             logger.debug(`User data cached for user ${userId}`);
-        } catch (error) {
-            logger.error('Failed to cache user data:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to cache user data:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -92,8 +92,8 @@ export class AuthCacheService {
             if (!cached) return null;
             
             return JSON.parse(cached) as CachedUserData;
-        } catch (error) {
-            logger.error('Failed to get cached user data:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to get cached user data:', error instanceof Error ? error : new Error(String(error)));
             return null;
         }
     }
@@ -106,8 +106,8 @@ export class AuthCacheService {
             const key = `${CachePrefixes.USER_PERMISSIONS}${userId}`;
             await redis.setex(key, CacheTTL.USER_PERMISSIONS, JSON.stringify(permissions));
             logger.debug(`Permissions cached for user ${userId}`);
-        } catch (error) {
-            logger.error('Failed to cache user permissions:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to cache user permissions:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -122,8 +122,8 @@ export class AuthCacheService {
             if (!cached) return null;
             
             return JSON.parse(cached) as string[];
-        } catch (error) {
-            logger.error('Failed to get cached user permissions:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to get cached user permissions:', error instanceof Error ? error : new Error(String(error)));
             return null;
         }
     }
@@ -149,7 +149,7 @@ export class AuthCacheService {
                             if (decoded.userId === userId) {
                                 keys.push(tokenKey);
                             }
-                        } catch (e) {
+                        } catch (e: unknown) {
                             // Ignorer les erreurs de parsing
                         }
                     }
@@ -160,8 +160,8 @@ export class AuthCacheService {
                 await redis.del(...keys);
                 logger.debug(`Cache invalidated for user ${userId}`);
             }
-        } catch (error) {
-            logger.error('Failed to invalidate user cache:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to invalidate user cache:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -185,8 +185,8 @@ export class AuthCacheService {
                 users: userKeys?.length || 0,
                 permissions: permKeys?.length || 0,
             };
-        } catch (error) {
-            logger.error('Failed to get cache stats:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to get cache stats:', error instanceof Error ? error : new Error(String(error)));
             return { tokens: 0, users: 0, permissions: 0 };
         }
     }

@@ -163,8 +163,8 @@ export async function POST(request: NextRequest) {
                 ? `Le report de ${days} jours est possible, ils expireront le ${new Date(expirationDate).toLocaleDateString()}`
                 : `Le report de ${days} jours est possible`
         });
-    } catch (error) {
-        logger.error("Erreur lors de la simulation du report de quota:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la simulation du report de quota:", error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: "Erreur serveur lors de la simulation du report" },
             { status: 500 }

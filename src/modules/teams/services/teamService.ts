@@ -1,36 +1,36 @@
 // Placeholder pour le service teams
-// Ce fichier devrait contenir la logique de gestion des équipes
+// Ce fichier devrait contenir la logique de gestion des ï¿½quipes
 export const teamService = {
   getTeamById: async (id: string) => {
-    // Implémentation à faire
+    // Implï¿½mentation ï¿½ faire
     return null;
   },
   getTeamMembers: async (teamId: string) => {
-    // Implémentation à faire
+    // Implï¿½mentation ï¿½ faire
     return [];
   },
-  createTeam: async (data: any) => {
-    // Implémentation à faire
+  createTeam: async (data: unknown) => {
+    // Implï¿½mentation ï¿½ faire
     return { id: '1', name: 'New Team' };
   },
-  updateTeam: async (id: string, data: any) => {
-    // Implémentation à faire
+  updateTeam: async (id: string, data: unknown) => {
+    // Implï¿½mentation ï¿½ faire
     return { id, ...data };
   },
   deleteTeam: async (id: string) => {
-    // Implémentation à faire
+    // Implï¿½mentation ï¿½ faire
     return true;
   },
   assignUserToTeam: async (userId: string, teamId: string) => {
-    // Implémentation à faire
+    // Implï¿½mentation ï¿½ faire
     return true;
   },
   removeUserFromTeam: async (userId: string, teamId: string) => {
-    // Implémentation à faire
+    // Implï¿½mentation ï¿½ faire
     return true;
   },
   getTeamsByUser: async (userId: string) => {
-    // Implémentation à faire
+    // Implï¿½mentation ï¿½ faire
     return [];
   },
 };

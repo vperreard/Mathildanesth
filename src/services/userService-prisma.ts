@@ -58,8 +58,8 @@ export interface UserSearchFilters {
 
 // Gestionnaire d'erreurs spécifique
 const buildUserServiceErrorDetails = (
-    error: any,
-    context?: Record<string, any>
+    error: unknown,
+    context?: Record<string, unknown>
 ): Omit<ErrorDetails, 'timestamp' | 'retry'> => {
     const isPrismaError = error.code?.startsWith('P');
     let message = 'Erreur inconnue dans le service utilisateur.';
@@ -138,7 +138,7 @@ export class UserServicePrisma {
             });
 
             return user;
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildUserServiceErrorDetails(error, { userData: { ...userData, password: '[HIDDEN]' } });
             logError(errorDetails as ErrorDetails);
             throw error;
@@ -161,7 +161,7 @@ export class UserServicePrisma {
                     }
                 }
             });
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildUserServiceErrorDetails(error, { userId });
             logError(errorDetails as ErrorDetails);
             throw error;
@@ -176,7 +176,7 @@ export class UserServicePrisma {
             return await prisma.user.findUnique({
                 where: { login }
             });
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildUserServiceErrorDetails(error, { login });
             logError(errorDetails as ErrorDetails);
             throw error;
@@ -191,7 +191,7 @@ export class UserServicePrisma {
             return await prisma.user.findUnique({
                 where: { email }
             });
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildUserServiceErrorDetails(error, { email });
             logError(errorDetails as ErrorDetails);
             throw error;
@@ -232,7 +232,7 @@ export class UserServicePrisma {
             });
 
             return user;
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildUserServiceErrorDetails(error, { userId, userData: { ...userData, password: userData.password ? '[HIDDEN]' : undefined } });
             logError(errorDetails as ErrorDetails);
             throw error;
@@ -249,7 +249,7 @@ export class UserServicePrisma {
                 data: { isActive: false }
             });
             return true;
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildUserServiceErrorDetails(error, { userId });
             logError(errorDetails as ErrorDetails);
             throw error;
@@ -265,7 +265,7 @@ export class UserServicePrisma {
                 where: { id: userId }
             });
             return true;
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildUserServiceErrorDetails(error, { userId });
             logError(errorDetails as ErrorDetails);
             throw error;
@@ -353,7 +353,7 @@ export class UserServicePrisma {
                 limit,
                 totalPages: Math.ceil(total / limit)
             };
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildUserServiceErrorDetails(error, { filters });
             logError(errorDetails as ErrorDetails);
             throw error;
@@ -380,7 +380,7 @@ export class UserServicePrisma {
                     { prenom: 'asc' }
                 ]
             });
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildUserServiceErrorDetails(error);
             logError(errorDetails as ErrorDetails);
             throw error;
@@ -393,7 +393,7 @@ export class UserServicePrisma {
     static async verifyPassword(user: User, candidatePassword: string): Promise<boolean> {
         try {
             return await bcrypt.compare(candidatePassword, user.password);
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildUserServiceErrorDetails(error, { userId: user.id });
             logError(errorDetails as ErrorDetails);
             throw error;
@@ -414,7 +414,7 @@ export class UserServicePrisma {
             });
 
             return true;
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildUserServiceErrorDetails(error, { userId });
             logError(errorDetails as ErrorDetails);
             throw error;
@@ -451,7 +451,7 @@ export class UserServicePrisma {
                 inactive: total - active,
                 byRole: roleStats
             };
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildUserServiceErrorDetails(error);
             logError(errorDetails as ErrorDetails);
             throw error;

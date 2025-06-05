@@ -81,7 +81,7 @@ export default function SimulationsPage() {
 
                 const templatesData = await templatesResponse.json();
                 setTemplates(templatesData.data);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 logger.error('Erreur lors du chargement des données:', err);
                 setError(err.message || 'Erreur inconnue');
             } finally {
@@ -109,7 +109,7 @@ export default function SimulationsPage() {
             // Mettre à jour la liste des scénarios
             setScenarios(scenarios.filter(scenario => scenario.id !== selectedScenarioId));
             toast.success('Scénario supprimé avec succès');
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la suppression:', err);
             toast.error(err.message || 'Erreur lors de la suppression');
         } finally {
@@ -156,7 +156,7 @@ export default function SimulationsPage() {
             ));
 
             toast.success('Simulation démarrée avec succès');
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du démarrage de la simulation:', err);
             toast.error(err.message || 'Erreur lors du démarrage de la simulation');
         }
@@ -194,7 +194,7 @@ export default function SimulationsPage() {
             // Fermer la boîte de dialogue et réinitialiser les états
             setIsDuplicateDialogOpen(false);
             setNewScenarioName('');
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la duplication du scénario:', err);
             toast.error(err.message || 'Erreur lors de la duplication du scénario');
         } finally {

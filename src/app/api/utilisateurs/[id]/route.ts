@@ -54,8 +54,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
         }
         return NextResponse.json(user);
-    } catch (error) {
-        logger.error(`Erreur GET /api/utilisateurs/${id}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur GET /api/utilisateurs/${id}:`, error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
     }
 }
@@ -170,8 +170,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
         return NextResponse.json(updatedUser);
 
-    } catch (error: any) {
-        logger.error(`Erreur PUT /api/utilisateurs/${userId}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur PUT /api/utilisateurs/${userId}:`, error instanceof Error ? error : new Error(String(error)));
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2002') {
                 let field = 'inconnu';
@@ -209,8 +209,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
             data: { actif: false, dateSortie: new Date() },
         });
         return NextResponse.json({ message: 'Utilisateur désactivé avec succès' }, { status: 200 });
-    } catch (error: any) {
-        logger.error(`Erreur DELETE /api/utilisateurs/${id}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur DELETE /api/utilisateurs/${id}:`, error instanceof Error ? error : new Error(String(error)));
         if (error.code === 'P2025') { // Record to delete does not exist
             return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
         }
@@ -251,8 +251,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
         return new NextResponse(JSON.stringify({ message: `Mot de passe réinitialisé à '${newPassword}'` }), { status: 200 });
 
-    } catch (error: any) {
-        logger.error(`Erreur POST reset-password /api/utilisateurs/${targetUserId}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur POST reset-password /api/utilisateurs/${targetUserId}:`, error instanceof Error ? error : new Error(String(error)));
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur lors de la réinitialisation' }), { status: 500 });
     }
 }

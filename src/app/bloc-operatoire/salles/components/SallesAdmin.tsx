@@ -99,8 +99,8 @@ export default function SallesAdmin() {
 
             setSalles(sallesData);
             setSecteurs(secteursData);
-        } catch (error) {
-            logger.error('Erreur lors du chargement des données:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des données:', error instanceof Error ? error : new Error(String(error)));
             toast({
                 variant: 'destructive',
                 title: 'Erreur de chargement',
@@ -155,8 +155,8 @@ export default function SallesAdmin() {
                 description: `La salle ${salleToDelete.name} a été supprimée avec succès`,
             });
             await loadData();
-        } catch (error) {
-            logger.error('Erreur lors de la suppression:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la suppression:', error instanceof Error ? error : new Error(String(error)));
             toast({
                 variant: 'destructive',
                 title: 'Erreur de suppression',
@@ -169,7 +169,7 @@ export default function SallesAdmin() {
         }
     };
 
-    const onSubmit = async (values: any) => {
+    const onSubmit = async (values: unknown) => {
         setIsLoading(true);
         try {
             if (values.id) {
@@ -214,8 +214,8 @@ export default function SallesAdmin() {
 
             await loadData();
             setIsDialogOpen(false);
-        } catch (error) {
-            logger.error('Erreur lors de l\'enregistrement:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'enregistrement:', error instanceof Error ? error : new Error(String(error)));
             toast({
                 variant: 'destructive',
                 title: 'Erreur d\'enregistrement',

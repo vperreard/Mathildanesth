@@ -46,7 +46,7 @@ export const useRule = ({
             const fetchedRules = await RuleService.getAllRules();
             // Appliquer les filtres ici si besoin
             setRules(fetchedRules);
-        } catch (err) {
+        } catch (err: unknown) {
             setError('Erreur lors du chargement des règles');
             toast({ title: 'Erreur', description: 'Impossible de charger les règles.', variant: 'destructive' });
         } finally {
@@ -61,7 +61,7 @@ export const useRule = ({
         try {
             const fetchedRule = await RuleService.getRuleById(ruleId);
             setSelectedRule(fetchedRule);
-        } catch (err) {
+        } catch (err: unknown) {
             setError('Erreur lors du chargement de la règle');
             toast({ title: 'Erreur', description: 'Impossible de charger la règle spécifiée.', variant: 'destructive' });
         } finally {
@@ -97,7 +97,7 @@ export const useRule = ({
             await loadRules();
             setSelectedRule(savedRule || null);
             return savedRule;
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError("Erreur lors de l\'enregistrement de la règle");
             toast({
                 title: 'Erreur', description: err.message || "Impossible d'enregistrer la règle.", variant: 'destructive'
@@ -116,7 +116,7 @@ export const useRule = ({
             await RuleService.deleteRule(ruleId);
             await loadRules();
             if (selectedRule?.id === ruleId) setSelectedRule(null);
-        } catch (err) {
+        } catch (err: unknown) {
             setError('Erreur lors de la suppression de la règle');
             toast({ title: 'Erreur', description: 'Impossible de supprimer la règle.', variant: 'destructive' });
             throw err;
@@ -136,7 +136,7 @@ export const useRule = ({
             await loadRules();
             if (selectedRule?.id === ruleId) setSelectedRule(updatedRule || null);
             return updatedRule;
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError("Erreur lors du changement de statut de la règle");
             toast({ title: 'Erreur', description: "Impossible de modifier le statut de la règle.", variant: 'destructive' });
             throw err;

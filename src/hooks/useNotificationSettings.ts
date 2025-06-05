@@ -38,7 +38,7 @@ export const useNotificationSettings = ({ userId }: UseNotificationSettingsProps
         try {
             const userSettings = await getUserNotificationSettings(userId);
             setSettings(userSettings);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du chargement des préférences:', err);
             setError('Une erreur est survenue lors du chargement de vos préférences.');
         } finally {
@@ -55,7 +55,7 @@ export const useNotificationSettings = ({ userId }: UseNotificationSettingsProps
         try {
             await saveUserNotificationSettings(userId, updatedSettings);
             setSettings(updatedSettings);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de l\'enregistrement des préférences:', err);
             setError('Une erreur est survenue lors de l\'enregistrement de vos préférences.');
             throw err;
@@ -74,7 +74,7 @@ export const useNotificationSettings = ({ userId }: UseNotificationSettingsProps
             await resetUserNotificationSettings(userId);
             // Recharger les paramètres par défaut
             await loadSettings();
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la réinitialisation des préférences:', err);
             setError('Une erreur est survenue lors de la réinitialisation de vos préférences.');
             throw err;

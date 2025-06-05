@@ -78,7 +78,7 @@ export function useQuotaTransferReport(options: UseQuotaTransferReportOptions = 
             const result = await quotaAdvancedService.generateTransferReport(filters);
             setReport(result);
             return result;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err?.message || 'Erreur lors de la génération du rapport';
             setError(new Error(errorMessage));
             logger.error('Erreur dans useQuotaTransferReport.generateReport:', err);
@@ -114,7 +114,7 @@ export function useQuotaTransferReport(options: UseQuotaTransferReportOptions = 
             window.URL.revokeObjectURL(url);
 
             return true;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err?.message || `Erreur lors de l'exportation au format ${format}`;
             setError(new Error(errorMessage));
             logger.error('Erreur dans useQuotaTransferReport.exportReport:', err);

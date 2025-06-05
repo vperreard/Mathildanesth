@@ -75,7 +75,7 @@ export const WidgetConfigModal: React.FC<WidgetConfigModalProps> = ({
                                 onChange={(e) => {
                                     try {
                                         setConfig({ ...config, data: JSON.parse(e.target.value) });
-                                    } catch (error) {
+                                    } catch (error: unknown) {
                                         // Ignorer les erreurs de parsing JSON
                                     }
                                 }}
@@ -114,7 +114,7 @@ export const WidgetConfigModal: React.FC<WidgetConfigModalProps> = ({
                                 onChange={(e) => {
                                     try {
                                         setConfig({ ...config, items: JSON.parse(e.target.value) });
-                                    } catch (error) {
+                                    } catch (error: unknown) {
                                         // Ignorer les erreurs de parsing JSON
                                     }
                                 }}
@@ -147,7 +147,7 @@ export const WidgetConfigModal: React.FC<WidgetConfigModalProps> = ({
                                 onChange={(e) => {
                                     try {
                                         setConfig({ ...config, events: JSON.parse(e.target.value) });
-                                    } catch (error) {
+                                    } catch (error: unknown) {
                                         // Ignorer les erreurs de parsing JSON
                                     }
                                 }}

@@ -109,7 +109,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                 logger.info("Auth en cours de chargement, attente avant de fetcher les types d'activité.");
                 return;
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors du chargement des types d'activité:", err);
             setError(`Impossible de charger les types d'activité: ${err.message}. Utilisation des données mockées.`);
             setActivityTypes(MOCK_ACTIVITY_TYPES);
@@ -122,7 +122,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
         fetchActivityTypes();
     }, [fetchActivityTypes]);
 
-    const handleFormChange = (field: keyof Partial<ActivityType>, value: any) => {
+    const handleFormChange = (field: keyof Partial<ActivityType>, value: unknown) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
@@ -225,7 +225,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
             }
             resetFormAndCloseModal();
             await fetchActivityTypes();
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("[AssignmentsConfigPanel] Error during submission (handleSubmit):", err);
             if (err.response) {
                 logger.error('[AssignmentsConfigPanel] Error response data (handleSubmit):', err.response.data);
@@ -261,8 +261,8 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
             // Mettre à jour la liste après la suppression
             fetchActivityTypes();
             toast.success("Type d'activité supprimé avec succès");
-        } catch (error: any) {
-            logger.error('[AssignmentsConfigPanel] Error during deletion:', error);
+        } catch (error: unknown) {
+            logger.error('[AssignmentsConfigPanel] Error during deletion:', error instanceof Error ? error : new Error(String(error)));
 
             if (error.response) {
                 logger.info('[AssignmentsConfigPanel] Error response data:', error.response.data);

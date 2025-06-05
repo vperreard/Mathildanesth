@@ -105,7 +105,7 @@ export const OperatingRoomForm: React.FC<OperatingRoomFormProps> = ({
       const allSectors = roomService.getAllSectors();
       setSectors(allSectors);
       setError(null);
-    } catch (err) {
+    } catch (err: unknown) {
       setError('Erreur lors du chargement des secteurs');
       logger.error(err);
     } finally {
@@ -129,7 +129,7 @@ export const OperatingRoomForm: React.FC<OperatingRoomFormProps> = ({
       }
 
       setError(null);
-    } catch (err) {
+    } catch (err: unknown) {
       setError("Erreur lors de l'enregistrement de la salle");
       logger.error(err);
     } finally {
@@ -138,7 +138,7 @@ export const OperatingRoomForm: React.FC<OperatingRoomFormProps> = ({
   };
 
   // Custom component pour MultiSelect qui utilise les options et pas le fonctionnement standard
-  const CustomMultiSelect = ({ field }: { field: any }) => {
+  const CustomMultiSelect = ({ field }: { field: unknown }) => {
     const options = commonEquipments.map(item => ({
       label: item.label,
       value: item.value,

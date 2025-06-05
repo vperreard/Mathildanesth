@@ -7,7 +7,7 @@ export interface Notification {
     type: 'info' | 'success' | 'warning' | 'error';
     title: string;
     message: string;
-    data?: any;
+    data?: unknown;
     createdAt: Date;
 }
 

@@ -100,7 +100,7 @@ export const LeaveNotificationCenter: React.FC<LeaveNotificationCenterProps> = (
                 addSuffix: true,
                 locale: fr
             });
-        } catch (e) {
+        } catch (e: unknown) {
             return 'Date inconnue';
         }
     };

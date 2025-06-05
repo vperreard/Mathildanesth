@@ -78,8 +78,8 @@ export const LeaveCalendarView: React.FC<LeaveCalendarViewProps> = ({
 
                 // Récupérer les congés selon les paramètres
                 await fetchLeaves(leaveParams);
-            } catch (error) {
-                logger.error('Erreur lors du chargement des congés pour le calendrier:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors du chargement des congés pour le calendrier:', error instanceof Error ? error : new Error(String(error)));
             }
         };
 

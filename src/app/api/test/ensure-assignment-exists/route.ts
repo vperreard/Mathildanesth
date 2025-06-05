@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
             attribution: newAssignment
         }, { status: 201 });
 
-    } catch (error: any) {
-        logger.error("Erreur lors de la création de l'affectation de test:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la création de l'affectation de test:", error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({
             error: 'Erreur lors de la création de l\'affectation de test',
             details: error.message

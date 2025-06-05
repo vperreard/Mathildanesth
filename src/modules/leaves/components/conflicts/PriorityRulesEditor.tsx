@@ -66,8 +66,8 @@ export const PriorityRulesEditor: React.FC<PriorityRulesEditorProps> = ({
             if (onSave) {
                 onSave(rules, options);
             }
-        } catch (error) {
-            logger.error('Erreur lors de la sauvegarde des règles:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde des règles:', error instanceof Error ? error : new Error(String(error)));
             toast({
                 title: t('conflit.regles.sauvegarde_erreur'),
                 description: String(error),
@@ -144,7 +144,7 @@ export const PriorityRulesEditor: React.FC<PriorityRulesEditorProps> = ({
     // Mettre à jour les seuils de résolution automatique
     const handleUpdateAutoResolutionThresholds = (
         field: keyof typeof rules.autoResolutionThresholds,
-        value: any
+        value: unknown
     ) => {
         setRules(prevRules => {
             const updatedRules = { ...prevRules };
@@ -168,7 +168,7 @@ export const PriorityRulesEditor: React.FC<PriorityRulesEditorProps> = ({
     };
 
     // Mettre à jour une option générale
-    const handleUpdateOption = (field: keyof RecommendationOptions, value: any) => {
+    const handleUpdateOption = (field: keyof RecommendationOptions, value: unknown) => {
         setOptions(prevOptions => ({
             ...prevOptions,
             [field]: value

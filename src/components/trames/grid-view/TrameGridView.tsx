@@ -97,8 +97,8 @@ const TrameGridView: React.FC<{
     trameModele?: TrameModele;
     readOnly?: boolean;
     onTrameChange?: (trameModele: TrameModele) => void;
-    rooms?: any[];
-    sectors?: any[];
+    rooms?: unknown[];
+    sectors?: unknown[];
     sites?: Array<{ id: string; name: string; }>;
     selectedSiteId?: string | null;
 }> = ({ trameModele: initialTrame, readOnly = false, onTrameChange, rooms = [], sectors = [], sites = [], selectedSiteId }) => {
@@ -139,8 +139,8 @@ const TrameGridView: React.FC<{
                 if (parsed.showPersonnel !== undefined) setShowPersonnel(parsed.showPersonnel);
                 if (parsed.compactView !== undefined) setCompactView(parsed.compactView);
                 logger.info(`Préférences de filtrage chargées pour la trameModele ${trameModele.id}:`, parsed);
-            } catch (error) {
-                logger.error('Erreur lors du chargement des préférences de filtrage:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors du chargement des préférences de filtrage:', error instanceof Error ? error : new Error(String(error)));
             }
         }
     }, [trameModele.id, filterStorageKey]);
@@ -167,7 +167,7 @@ const TrameGridView: React.FC<{
     // Créer un objet de secteurs facile à utiliser avec les salles
     const sectorsMap = useMemo(() => {
         if (sectors && sectors.length > 0) {
-            return sectors.reduce((acc: any, sector: any) => {
+            return sectors.reduce((acc: unknown, sector: unknown) => {
                 acc[sector.id] = {
                     ...sector,
                     color: sector.colorCode ? `bg-[${sector.colorCode}]` : 'bg-gray-100',
@@ -179,7 +179,7 @@ const TrameGridView: React.FC<{
     }, [sectors]);
 
     // Fonction pour détecter intelligemment le secteur d'une salle
-    const detectRoomSector = useCallback((room: any) => {
+    const detectRoomSector = useCallback((room: unknown) => {
         // Si la salle a déjà un operatingSectorId valide, l'utiliser
         if (room.operatingSectorId && sectorsMap[room.operatingSectorId]) {
             return room.operatingSectorId;
@@ -701,7 +701,7 @@ const TrameGridView: React.FC<{
 
     // Gestion du drag and drop
     const handleDragEnd = useCallback(
-        (result: any) => {
+        (result: unknown) => {
             const { source, destination, draggableId } = result;
 
             // Abandon si pas de destination

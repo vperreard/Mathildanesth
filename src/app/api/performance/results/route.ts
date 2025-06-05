@@ -29,8 +29,8 @@ export async function GET() {
                 'Access-Control-Allow-Headers': 'Content-Type'
             }
         });
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des résultats de performance:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des résultats de performance:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
     }
 } 

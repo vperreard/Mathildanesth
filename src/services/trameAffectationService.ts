@@ -57,7 +57,7 @@ export interface ValidationError {
     message: string;
     periodId?: string;
     assignmentId?: string;
-    details?: any;
+    details?: unknown;
 }
 
 // Helpers
@@ -88,8 +88,8 @@ export const TrameAffectationService = {
             const trameModele = await TrameAffectation.create(data as any);
             // Dans les tests, le mock retourne directement les attributs, pas d'instance avec toJSON
             return trameModele && typeof trameModele.toJSON === 'function' ? trameModele.toJSON() : trameModele as TrameAffectationAttributes;
-        } catch (error) {
-            logger.error('Erreur lors de la création de la trameModele d\'affectation:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la création de la trameModele d\'affectation:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de créer la trameModele d\'garde/vacation');
         }
     },
@@ -107,8 +107,8 @@ export const TrameAffectationService = {
             return Array.isArray(trameModeles)
                 ? trameModeles.map(trameModele => typeof trameModele.toJSON === 'function' ? trameModele.toJSON() : trameModele as TrameAffectationAttributes)
                 : trameModeles as TrameAffectationAttributes[];
-        } catch (error) {
-            logger.error('Erreur lors de la récupération des trameModeles d\'affectation:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des trameModeles d\'affectation:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de récupérer les trameModeles d\'garde/vacation');
         }
     },
@@ -126,11 +126,11 @@ export const TrameAffectationService = {
             }
             // Dans les tests, le mock retourne directement les attributs
             return typeof trameModele.toJSON === 'function' ? trameModele.toJSON() : trameModele as TrameAffectationAttributes;
-        } catch (error) {
+        } catch (error: unknown) {
             if ((error as Error).message === 'TrameModele d\'garde/vacation non trouvée') {
                 throw error;
             }
-            logger.error(`Erreur lors de la récupération de la trameModele d'garde/vacation ${id}:`, error);
+            logger.error(`Erreur lors de la récupération de la trameModele d'garde/vacation ${id}:`, error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de récupérer la trameModele d\'garde/vacation');
         }
     },
@@ -152,11 +152,11 @@ export const TrameAffectationService = {
             }
 
             return this.findById(id);
-        } catch (error) {
+        } catch (error: unknown) {
             if ((error as Error).message === 'TrameModele d\'garde/vacation non trouvée') {
                 throw error;
             }
-            logger.error(`Erreur lors de la mise à jour de la trameModele d'garde/vacation ${id}:`, error);
+            logger.error(`Erreur lors de la mise à jour de la trameModele d'garde/vacation ${id}:`, error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de mettre à jour la trameModele d\'garde/vacation');
         }
     },
@@ -177,11 +177,11 @@ export const TrameAffectationService = {
             }
 
             return true;
-        } catch (error) {
+        } catch (error: unknown) {
             if ((error as Error).message === 'TrameModele d\'garde/vacation non trouvée') {
                 throw error;
             }
-            logger.error(`Erreur lors de la suppression de la trameModele d'garde/vacation ${id}:`, error);
+            logger.error(`Erreur lors de la suppression de la trameModele d'garde/vacation ${id}:`, error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de supprimer la trameModele d\'garde/vacation');
         }
     },
@@ -201,8 +201,8 @@ export const TrameAffectationService = {
             return Array.isArray(trameModeles)
                 ? trameModeles.map(trameModele => typeof trameModele.toJSON === 'function' ? trameModele.toJSON() : trameModele as TrameAffectationAttributes)
                 : trameModeles as TrameAffectationAttributes[];
-        } catch (error) {
-            logger.error(`Erreur lors de la récupération des trameModeles d'garde/vacation de l'utilisateur ${userId}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la récupération des trameModeles d'garde/vacation de l'utilisateur ${userId}:`, error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de récupérer les trameModeles d\'garde/vacation de l\'utilisateur');
         }
     },
@@ -215,8 +215,8 @@ export const TrameAffectationService = {
                 throw new Error('Erreur lors du chargement des trameModeles');
             }
             return await response.json();
-        } catch (error) {
-            logger.error('Erreur lors du chargement des trames:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des trames:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Impossible de charger les trameModeles');
             return [];
         }
@@ -229,8 +229,8 @@ export const TrameAffectationService = {
                 throw new Error('Erreur lors du chargement de la trameModele');
             }
             return await response.json();
-        } catch (error) {
-            logger.error(`Erreur lors du chargement de la trameModele ${id}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors du chargement de la trameModele ${id}:`, error instanceof Error ? error : new Error(String(error)));
             toast.error('Impossible de charger la trameModele demandée');
             return null;
         }
@@ -256,8 +256,8 @@ export const TrameAffectationService = {
             }
 
             return await response.json();
-        } catch (error) {
-            logger.error('Erreur lors de la sauvegarde de la tableau de service:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Impossible de sauvegarder la trameModele');
             return null;
         }
@@ -274,8 +274,8 @@ export const TrameAffectationService = {
             }
 
             return true;
-        } catch (error) {
-            logger.error(`Erreur lors de la suppression de la trameModele ${id}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la suppression de la trameModele ${id}:`, error instanceof Error ? error : new Error(String(error)));
             toast.error('Impossible de supprimer la trameModele');
             return false;
         }
@@ -299,8 +299,8 @@ export const TrameAffectationService = {
             };
 
             return await this.saveTrame(newTrame);
-        } catch (error) {
-            logger.error(`Erreur lors de la copie de la trameModele ${id}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la copie de la trameModele ${id}:`, error instanceof Error ? error : new Error(String(error)));
             toast.error('Impossible de copier la trameModele');
             return null;
         }
@@ -322,8 +322,8 @@ export const TrameAffectationService = {
             }
 
             return await response.json();
-        } catch (error) {
-            logger.error('Erreur lors de la validation de la tableau de service:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la validation de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Impossible de valider la trameModele');
             return [];
         }
@@ -459,7 +459,7 @@ export const TrameAffectationService = {
     },
 
     // Génération de suggestions de trameModeles
-    async getSuggestions(serviceNeeds: any): Promise<TrameModele[]> {
+    async getSuggestions(serviceNeeds: unknown): Promise<TrameModele[]> {
         try {
             const response = await fetch(API_ENDPOINTS.SUGGESTIONS, {
                 method: 'POST',
@@ -474,15 +474,15 @@ export const TrameAffectationService = {
             }
 
             return await response.json();
-        } catch (error) {
-            logger.error('Erreur lors de la génération des suggestions:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la génération des suggestions:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Impossible de générer des suggestions');
             return [];
         }
     },
 
     // Export/Import de trameModeles
-    async exportTrame(id: string): Promise<any> {
+    async exportTrame(id: string): Promise<unknown> {
         try {
             const response = await fetch(`${API_ENDPOINTS.EXPORT}/${id}`);
             if (!response.ok) {
@@ -497,8 +497,8 @@ export const TrameAffectationService = {
             link.click();
 
             return true;
-        } catch (error) {
-            logger.error(`Erreur lors de l'export de la trameModele ${id}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de l'export de la trameModele ${id}:`, error instanceof Error ? error : new Error(String(error)));
             toast.error('Impossible d\'exporter la trameModele');
             return false;
         }
@@ -519,8 +519,8 @@ export const TrameAffectationService = {
             }
 
             return await response.json();
-        } catch (error) {
-            logger.error('Erreur lors de l\'import de la tableau de service:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'import de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Impossible d\'importer la trameModele');
             return null;
         }

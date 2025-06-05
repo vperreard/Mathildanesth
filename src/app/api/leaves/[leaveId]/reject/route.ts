@@ -125,8 +125,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ lea
       success: true,
       leave: updatedLeave,
     });
-  } catch (error) {
-    logger.error('Error rejecting leave', error);
+  } catch (error: unknown) {
+    logger.error('Error rejecting leave', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Erreur lors du rejet du congé' }, { status: 500 });
   }
 }

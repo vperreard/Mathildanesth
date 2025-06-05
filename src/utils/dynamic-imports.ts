@@ -41,7 +41,7 @@ export function createDynamicImport<T extends ComponentType<any>>(
         }
 
         return loadedModule;
-      } catch (error) {
+      } catch (error: unknown) {
         lastError = error as Error;
         logger.warn(
           `Dynamic import attempt ${attempt}/${maxRetries} failed:`,
@@ -174,7 +174,7 @@ export class IntelligentPreloader {
     await Promise.allSettled(preloadPromises);
   }
 
-  private async preloadComponent(name: string, Component: any): Promise<void> {
+  private async preloadComponent(name: string, Component: unknown): Promise<void> {
     if (this.preloadedChunks.has(name)) {
       return;
     }
@@ -194,7 +194,7 @@ export class IntelligentPreloader {
     }
   }
 
-  private async doPreload(name: string, Component: any): Promise<void> {
+  private async doPreload(name: string, Component: unknown): Promise<void> {
     try {
       // Précharger lors de l'idle time
       if ('requestIdleCallback' in window) {
@@ -204,8 +204,8 @@ export class IntelligentPreloader {
               await Component._payload._result();
               logger.debug(`Preloaded component: ${name}`);
               resolve();
-            } catch (error) {
-              logger.warn(`Failed to preload component ${name}:`, error);
+            } catch (error: unknown) {
+              logger.warn(`Failed to preload component ${name}:`, error instanceof Error ? error : new Error(String(error)));
               resolve(); // Ne pas bloquer sur les échecs de préchargement
             }
           });
@@ -216,8 +216,8 @@ export class IntelligentPreloader {
         await Component._payload._result();
         logger.debug(`Preloaded component: ${name}`);
       }
-    } catch (error) {
-      logger.warn(`Failed to preload component ${name}:`, error);
+    } catch (error: unknown) {
+      logger.warn(`Failed to preload component ${name}:`, error instanceof Error ? error : new Error(String(error)));
     }
   }
 

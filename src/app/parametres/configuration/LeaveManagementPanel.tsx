@@ -170,8 +170,8 @@ const LeaveManagementPanel: React.FC = () => {
                 setLeaveRules(mockRules);
                 setIsLoadingRules(false);
             }, 500);
-        } catch (error: any) {
-            logger.error("Erreur lors du chargement des règles de congés:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des règles de congés:", error instanceof Error ? error : new Error(String(error)));
             setRulesError(error.message || "Impossible de charger les règles de congés");
             setIsLoadingRules(false);
         }
@@ -234,8 +234,8 @@ const LeaveManagementPanel: React.FC = () => {
                 setFilteredUsers(mockUserLeaves);
                 setIsLoadingUserLeaves(false);
             }, 500);
-        } catch (error: any) {
-            logger.error("Erreur lors du chargement des congés utilisateurs:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des congés utilisateurs:", error instanceof Error ? error : new Error(String(error)));
             setUserLeavesError(error.message || "Impossible de charger les données de congés des utilisateurs");
             setIsLoadingUserLeaves(false);
         }
@@ -354,8 +354,8 @@ const LeaveManagementPanel: React.FC = () => {
             // Fermer le formulaire
             setIsRulesModalOpen(false);
             setIsEditingRule(null);
-        } catch (error: any) {
-            logger.error("Erreur lors de l'enregistrement de la règle:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de l'enregistrement de la règle:", error instanceof Error ? error : new Error(String(error)));
             toast.error(error.message || "Erreur lors de l'enregistrement");
         }
     };
@@ -374,8 +374,8 @@ const LeaveManagementPanel: React.FC = () => {
             // Mise à jour locale pour démo
             setLeaveRules(prev => prev.filter(rule => rule.id !== id));
             toast.success('Règle de congés supprimée avec succès');
-        } catch (error: any) {
-            logger.error("Erreur lors de la suppression de la règle:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la suppression de la règle:", error instanceof Error ? error : new Error(String(error)));
             toast.error(error.message || "Erreur lors de la suppression");
         }
     };
@@ -448,8 +448,8 @@ const LeaveManagementPanel: React.FC = () => {
             // Fermer le formulaire
             setIsAdjustmentModalOpen(false);
             setSelectedUser(null);
-        } catch (error: any) {
-            logger.error("Erreur lors de l'ajustement des congés:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de l'ajustement des congés:", error instanceof Error ? error : new Error(String(error)));
             toast.error(error.message || "Erreur lors de l'ajustement");
         }
     };

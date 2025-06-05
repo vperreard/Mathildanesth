@@ -233,7 +233,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             });
             setTrames(tramesDataLocal);
             setIsLoadingTrames(false);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Erreur lors du chargement des trames:", err);
             setError("Impossible de charger les trameModeles. Veuillez réessayer plus tard.");
             setIsLoadingTrames(false);
@@ -258,7 +258,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             setMars(marsData);
             setIades(iadesData);
             setIsLoadingPersonnel(false);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Erreur lors du chargement du personnel:", err);
             setError("Impossible de charger les données du personnel. Veuillez réessayer plus tard.");
             setIsLoadingPersonnel(false);
@@ -279,7 +279,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             logger.info('[DEBUG] Salles Data Local:', sallesDataLocal);
             setSalles(sallesDataLocal);
             setIsLoadingSalles(false);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Erreur lors du chargement des salles:", err);
             setError("Impossible de charger les salles. Veuillez réessayer plus tard.");
             setIsLoadingSalles(false);
@@ -329,7 +329,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             setNewTrameDescription('');
             setIsCreating(false);
             setIsSaving(false);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la création de la trameModele:", err);
             setError("Impossible de créer la trameModele. Veuillez réessayer plus tard.");
             setIsSaving(false);
@@ -354,7 +354,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             } else {
                 throw new Error("La suppression a échoué");
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error(`Erreur lors de la suppression de la trameModele ${trameId}:`, err);
             setError("Impossible de supprimer la trameModele. Veuillez réessayer plus tard.");
             setIsSaving(false);
@@ -451,7 +451,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             // mais que la sauvegarde individuelle des affectations est un TODO ou se fait autrement.
             // toast.success('Détails de la trameModele sauvegardés. Sauvegarde des affectations à implémenter via API dédiée.');
 
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la sauvegarde de l'affectation:", err);
             setError("Impossible de sauvegarder l'affectation. Veuillez réessayer plus tard.");
         } finally {
@@ -493,7 +493,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             setEditingCellInfo(null);
             // toast.info('Affectation retirée localement. Sauvegarde via API dédiée à implémenter.');
 
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la suppression de l'affectation:", err);
             setError("Impossible de supprimer l'affectation. Veuillez réessayer plus tard.");
         } finally {

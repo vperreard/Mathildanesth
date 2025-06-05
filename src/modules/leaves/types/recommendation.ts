@@ -46,7 +46,7 @@ export interface ConflictRecommendation {
         }[];
         affectedUsers?: string[];             // Utilisateurs affectés par la résolution
         additionalActions?: string[];         // Actions supplémentaires à effectuer
-        metadata?: Record<string, any>;       // Métadonnées spécifiques à la stratégie
+        metadata?: Record<string, unknown>;       // Métadonnées spécifiques à la stratégie
     }[];
     automaticResolution: boolean;            // Si la résolution peut être appliquée automatiquement
     explanation: string;                     // Explication de la recommandation

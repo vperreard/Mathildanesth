@@ -78,8 +78,8 @@ export async function createNotification(args: NotificationCreationArgs) {
         // Pas besoin de 'else' pour notification null, car une erreur serait levée par prisma.notification.create
 
         return notification;
-    } catch (error) {
-        logger.error("Erreur détaillée lors de la création de la notification:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur détaillée lors de la création de la notification:", error instanceof Error ? error : new Error(String(error)));
         // Gérer l'erreur (ex: la logger sans bloquer le flux principal, ou la relancer)
         // Pour l'instant, on retourne null, mais une gestion plus robuste est conseillée.
         return null;

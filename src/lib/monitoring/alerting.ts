@@ -9,13 +9,13 @@ interface Alert {
     message: string;
     timestamp: number;
     resolved: boolean;
-    details?: any;
+    details?: unknown;
 }
 
 interface AlertRule {
     id: string;
     name: string;
-    condition: (metrics: any) => boolean;
+    condition: (metrics: unknown) => boolean;
     severity: 'critical' | 'warning' | 'info';
     description: string;
     cooldownMs: number;
@@ -110,7 +110,7 @@ export class AlertingService {
         return AlertingService.instance;
     }
 
-    processHealthMetrics(metrics: any): Alert[] {
+    processHealthMetrics(metrics: unknown): Alert[] {
         const triggeredAlerts: Alert[] = [];
         const currentTime = Date.now();
 
@@ -155,7 +155,7 @@ export class AlertingService {
         return triggeredAlerts;
     }
 
-    private extractRelevantDetails(metrics: any, rule: AlertRule): any {
+    private extractRelevantDetails(metrics: unknown, rule: AlertRule): any {
         switch (rule.id) {
             case 'database_slow':
             case 'database_down':
@@ -200,8 +200,8 @@ export class AlertingService {
             // Sauvegarder en base pour historique
             await this.saveAlertToDatabase(alert);
 
-        } catch (error) {
-            logger.error('Failed to send alert notification:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to send alert notification:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -251,8 +251,8 @@ export class AlertingService {
                     resolved: alert.resolved,
                 }
             });
-        } catch (error) {
-            logger.error('Failed to save alert to database:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to save alert to database:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 

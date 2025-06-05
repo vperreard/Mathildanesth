@@ -66,8 +66,8 @@ export default function PlanningValidationPage() {
             setAssignments(data.attributions || []);
             setValidationResult(data.validation || null);
             setUsers(data.users || []);
-        } catch (error) {
-            logger.error('Erreur lors du chargement du planning:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement du planning:', error instanceof Error ? error : new Error(String(error)));
             toast({
                 title: "Erreur",
                 description: "Impossible de charger le planning",
@@ -79,7 +79,7 @@ export default function PlanningValidationPage() {
     };
 
     // Gérer le drag & drop
-    const handleDragEnd = (result: any) => {
+    const handleDragEnd = (result: unknown) => {
         if (!result.destination) return;
 
         const { draggableId, source, destination } = result;
@@ -115,8 +115,8 @@ export default function PlanningValidationPage() {
             
             const result = await response.json();
             setValidationResult(result);
-        } catch (error) {
-            logger.error('Erreur de validation:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur de validation:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 
@@ -149,7 +149,7 @@ export default function PlanningValidationPage() {
                 });
                 router.push('/planning');
             }
-        } catch (error) {
+        } catch (error: unknown) {
             toast({
                 title: "Erreur",
                 description: "Impossible d'approuver le planning",
@@ -180,7 +180,7 @@ export default function PlanningValidationPage() {
             a.href = url;
             a.download = `planning-${format(selectedMonth, 'yyyy-MM')}.pdf`;
             a.click();
-        } catch (error) {
+        } catch (error: unknown) {
             toast({
                 title: "Erreur",
                 description: "Impossible d'exporter le planning",

@@ -28,7 +28,7 @@ export const secureSimulationRoute = withAuth({
 /**
  * Valider les paramètres de simulation pour éviter les injections
  */
-export function validateSimulationParams(params: any): {
+export function validateSimulationParams(params: unknown): {
     valid: boolean;
     error?: string;
 } {

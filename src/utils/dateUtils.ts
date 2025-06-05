@@ -86,7 +86,7 @@ export const parseDate = (value: string | number | Date | null | undefined): Dat
         }
 
         return isValid(parsedDate) ? parsedDate : null;
-    } catch (e) {
+    } catch (e: unknown) {
         return null;
     }
 };
@@ -128,7 +128,7 @@ export const formatDate = (date: string | number | Date | null | undefined, form
 
     try {
         return format(validDate, formatString, { locale: fr });
-    } catch (e) {
+    } catch (e: unknown) {
         logger.error("Erreur de formatage de date:", e);
         return '';
     }

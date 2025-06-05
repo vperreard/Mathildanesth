@@ -14,7 +14,7 @@ export const ResizableWidget: React.FC<ResizableWidgetProps> = ({
     onResize,
     children
 }) => {
-    const handleResize = (e: any, { size }: { size: { width: number; height: number } }) => {
+    const handleResize = (e: unknown, { size }: { size: { width: number; height: number } }) => {
         // Convertir les pixels en unités de grille
         const gridWidth = Math.ceil(size.width / 200); // 200px par unité de grille
         const gridHeight = Math.ceil(size.height / 200);

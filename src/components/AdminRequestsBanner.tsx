@@ -50,7 +50,7 @@ const AdminRequestsBanner: React.FC = () => {
                     }
                 });
                 setPendingLeaves(response.data);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 if (err.response?.status === 401) {
                     // Non autorisé, ne pas afficher d'erreur
                     setPendingLeaves([]);
@@ -82,7 +82,7 @@ const AdminRequestsBanner: React.FC = () => {
                 const response = await axios.get('http://localhost:3000/api/admin/conges/pending');
                 setPendingLeaves(response.data);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de l'approbation:", err);
             setError(err.response?.data?.error || "Erreur lors de l'approbation");
         } finally {
@@ -102,7 +102,7 @@ const AdminRequestsBanner: React.FC = () => {
                 const response = await axios.get('http://localhost:3000/api/admin/conges/pending');
                 setPendingLeaves(response.data);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors du rejet:", err);
             setError(err.response?.data?.error || "Erreur lors du rejet");
         } finally {

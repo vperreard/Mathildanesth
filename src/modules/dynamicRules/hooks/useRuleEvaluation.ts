@@ -22,7 +22,7 @@ interface UseRuleEvaluationOptions {
     /**
      * Contexte d'évaluation
      */
-    context: Record<string, any>;
+    context: Record<string, unknown>;
 
     /**
      * Types de règles à évaluer (optionnel)
@@ -136,7 +136,7 @@ export function useRuleEvaluation(options: UseRuleEvaluationOptions): UseRuleEva
     /**
      * Génère une clé de cache pour un contexte et des règles
      */
-    const generateCacheKey = useCallback((ruleId: string, contextValue: Record<string, any>): string => {
+    const generateCacheKey = useCallback((ruleId: string, contextValue: Record<string, unknown>): string => {
         const contextHash = JSON.stringify(contextValue);
         return `${ruleId}-${contextHash}`;
     }, []);
@@ -144,7 +144,7 @@ export function useRuleEvaluation(options: UseRuleEvaluationOptions): UseRuleEva
     /**
      * Génère une clé de cache pour l'ensemble de l'évaluation
      */
-    const generateEvaluationCacheKey = useCallback((rules: Rule[], contextValue: Record<string, any>): string => {
+    const generateEvaluationCacheKey = useCallback((rules: Rule[], contextValue: Record<string, unknown>): string => {
         const rulesHash = rules.map(r => r.id).sort().join('-');
         const contextHash = JSON.stringify(contextValue);
         return `evaluation-${rulesHash}-${contextHash}`;
@@ -263,7 +263,7 @@ export function useRuleEvaluation(options: UseRuleEvaluationOptions): UseRuleEva
                     result.evaluationTimeMs = performance.now() - ruleStart;
                     evaluationResults.push(result);
 
-                } catch (err: any) {
+                } catch (err: unknown) {
                     logger.error(`Erreur lors de l'évaluation de la règle ${rule.id}:`, err);
                     result.error = err.message;
                     result.applicable = false;
@@ -304,7 +304,7 @@ export function useRuleEvaluation(options: UseRuleEvaluationOptions): UseRuleEva
                 onEvaluationComplete(evaluationResults);
             }
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de l\'évaluation des règles:', err);
             setError(err instanceof Error ? err : new Error(err.toString()));
         } finally {
@@ -360,9 +360,9 @@ export function useRuleEvaluation(options: UseRuleEvaluationOptions): UseRuleEva
  */
 async function evaluateConditions(
     conditions: RuleCondition[],
-    context: Record<string, any>,
+    context: Record<string, unknown>,
     operator: LogicalOperator,
-    generateCacheKey: (ruleId: string, context: Record<string, any>) => string,
+    generateCacheKey: (ruleId: string, context: Record<string, unknown>) => string,
     enableCaching: boolean,
     result: RuleEvaluationResult
 ): Promise<boolean> {
@@ -407,8 +407,8 @@ async function evaluateConditions(
 async function evaluateConditionGroups(
     groups: ConditionGroup[],
     conditions: RuleCondition[],
-    context: Record<string, any>,
-    generateCacheKey: (ruleId: string, context: Record<string, any>) => string,
+    context: Record<string, unknown>,
+    generateCacheKey: (ruleId: string, context: Record<string, unknown>) => string,
     enableCaching: boolean,
     result: RuleEvaluationResult
 ): Promise<boolean> {
@@ -459,8 +459,8 @@ async function evaluateConditionGroups(
  */
 async function evaluateCondition(
     condition: RuleCondition,
-    context: Record<string, any>,
-    generateCacheKey: (ruleId: string, context: Record<string, any>) => string,
+    context: Record<string, unknown>,
+    generateCacheKey: (ruleId: string, context: Record<string, unknown>) => string,
     enableCaching: boolean
 ): Promise<boolean> {
     // Vérifier le cache
@@ -551,7 +551,7 @@ async function evaluateCondition(
                 try {
                     const regex = new RegExp(condition.value);
                     result = regex.test(fieldValue);
-                } catch (e) {
+                } catch (e: unknown) {
                     logger.error('Erreur lors de la création de l\'expression régulière:', e);
                     result = false;
                 }
@@ -580,8 +580,8 @@ async function evaluateCondition(
  */
 async function executeAction(
     action: RuleAction,
-    context: Record<string, any>
-): Promise<{ success: boolean; result: any }> {
+    context: Record<string, unknown>
+): Promise<{ success: boolean; result: unknown }> {
     try {
         let result: any = null;
 
@@ -665,8 +665,8 @@ async function executeAction(
         }
 
         return { success: true, result };
-    } catch (error: any) {
-        logger.error(`Erreur lors de l'exécution de l'action ${action.id}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur lors de l'exécution de l'action ${action.id}:`, error instanceof Error ? error : new Error(String(error)));
         return {
             success: false,
             result: {

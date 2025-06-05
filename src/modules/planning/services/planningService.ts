@@ -19,7 +19,7 @@ export class PlanningService {
         startDate: string,
         endDate: string,
         reason: string,
-        metadata?: Record<string, any>
+        metadata?: Record<string, unknown>
     ): Promise<void> {
         // Implémentation à venir
         logger.debug(`Planning: Ajout d'un marqueur d'indisponibilité pour l'utilisateur ${userId}`);
@@ -65,13 +65,13 @@ export class PlanningService {
      * @param userId Identifiant de l'utilisateur
      * @param startDate Date de début
      * @param endDate Date de fin
-     * @returns Promise<Array<{ startDate: string, endDate: string, reason: string, metadata?: any }>>
+     * @returns Promise<Array<{ startDate: string, endDate: string, reason: string, metadata?: unknown }>>
      */
     public async getUserUnavailabilityPeriods(
         userId: string,
         startDate: string,
         endDate: string
-    ): Promise<Array<{ startDate: string; endDate: string; reason: string; metadata?: any }>> {
+    ): Promise<Array<{ startDate: string; endDate: string; reason: string; metadata?: unknown }>> {
         // Implémentation à venir
         return [];
     }

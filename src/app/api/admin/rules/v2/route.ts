@@ -114,8 +114,8 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error) {
-    logger.error('Error fetching rules:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching rules:', error instanceof Error ? error : new Error(String(error)));
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Paramètres invalides', details: error.errors },
@@ -193,8 +193,8 @@ export async function POST(request: NextRequest) {
         : 'Règle créée avec succès'
     }, { status: 201 });
 
-  } catch (error) {
-    logger.error('Error creating rule:', error);
+  } catch (error: unknown) {
+    logger.error('Error creating rule:', error instanceof Error ? error : new Error(String(error)));
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },
@@ -256,8 +256,8 @@ export async function PUT(request: NextRequest) {
       count: result.count
     });
 
-  } catch (error) {
-    logger.error('Error bulk updating rules:', error);
+  } catch (error: unknown) {
+    logger.error('Error bulk updating rules:', error instanceof Error ? error : new Error(String(error)));
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },
@@ -315,8 +315,8 @@ export async function DELETE(request: NextRequest) {
       count: result.count
     });
 
-  } catch (error) {
-    logger.error('Error archiving rules:', error);
+  } catch (error: unknown) {
+    logger.error('Error archiving rules:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur lors de l\'archivage des règles' },
       { status: 500 }

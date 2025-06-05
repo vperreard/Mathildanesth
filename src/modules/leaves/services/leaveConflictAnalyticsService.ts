@@ -686,8 +686,8 @@ export class LeaveConflictAnalyticsService {
                     { type: ConflictType.ON_CALL_CONFLICT, count: 9 },
                 ],
             };
-        } catch (error) {
-            logger.error('Erreur lors de la récupération des statistiques de conflits:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des statistiques de conflits:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de récupérer les statistiques de conflits');
         }
     }
@@ -710,8 +710,8 @@ export class LeaveConflictAnalyticsService {
                 { period: '2023-11', count: 28, byType: { [ConflictType.TEAM_ABSENCE]: 10, [ConflictType.SPECIALTY_CAPACITY]: 7 } },
                 { period: '2023-12', count: 13, byType: { [ConflictType.TEAM_ABSENCE]: 5, [ConflictType.SPECIALTY_CAPACITY]: 3 } },
             ];
-        } catch (error) {
-            logger.error('Erreur lors de la récupération des tendances de conflits:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des tendances de conflits:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de récupérer les tendances de conflits');
         }
     }
@@ -739,8 +739,8 @@ export class LeaveConflictAnalyticsService {
                     { period: '2023-12', count: 7 },
                 ],
             };
-        } catch (error) {
-            logger.error(`Erreur lors de la récupération des statistiques pour l'équipe ${teamId}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la récupération des statistiques pour l'équipe ${teamId}:`, error instanceof Error ? error : new Error(String(error)));
             throw new Error(`Impossible de récupérer les statistiques pour l'équipe ${teamId}`);
         }
     }
@@ -788,8 +788,8 @@ export class LeaveConflictAnalyticsService {
                     ]
                 }
             ];
-        } catch (error) {
-            logger.error('Erreur lors de la génération des recommandations:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la génération des recommandations:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de générer des recommandations');
         }
     }
@@ -829,8 +829,8 @@ export class LeaveConflictAnalyticsService {
                     [ConflictType.OTHER]: 20.1,
                 },
             };
-        } catch (error) {
-            logger.error('Erreur lors de l\'analyse de l\'impact des conflits:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'analyse de l\'impact des conflits:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible d\'analyser l\'impact des conflits');
         }
     }
@@ -872,8 +872,8 @@ export class LeaveConflictAnalyticsService {
                     dominantTypes: [ConflictType.DEADLINE_PROXIMITY, ConflictType.TEAM_ABSENCE]
                 }
             ];
-        } catch (error) {
-            logger.error('Erreur lors de l\'identification des périodes à risque:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'identification des périodes à risque:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible d\'identifier les périodes à risque');
         }
     }
@@ -891,8 +891,8 @@ export class LeaveConflictAnalyticsService {
                 '2023-06,32,12,8\n' +
                 '2023-07,45,18,11\n' +
                 '...';
-        } catch (error) {
-            logger.error('Erreur lors de l\'export des données:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'export des données:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible d\'exporter les données d\'analyse');
         }
     }

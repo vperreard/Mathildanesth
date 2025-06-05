@@ -29,8 +29,8 @@ export async function GET() {
       data: insights,
       metadata,
     });
-  } catch (error) {
-    logger.error('Erreur lors de la génération des insights prédictifs:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la génération des insights prédictifs:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         success: false,

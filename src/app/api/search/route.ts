@@ -11,7 +11,7 @@ interface SearchResult {
   subtitle?: string;
   description?: string;
   score: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Simple fuzzy search implementation
@@ -221,8 +221,8 @@ export async function GET(req: NextRequest) {
       query,
       timestamp: new Date().toISOString(),
     });
-  } catch (error) {
-    logger.error('Search error:', error);
+  } catch (error: unknown) {
+    logger.error('Search error:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to perform search' },
       { status: 500 }

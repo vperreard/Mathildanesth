@@ -84,7 +84,7 @@ export class UserPrisma {
     /**
      * Trouve un utilisateur par critères
      */
-    static async findOne(where: any): Promise<UserPrisma | null> {
+    static async findOne(where: unknown): Promise<UserPrisma | null> {
         let user = null;
         
         if (where.login) {
@@ -124,7 +124,7 @@ export class UserPrisma {
     /**
      * Crée un nouvel utilisateur
      */
-    static async create(userData: any): Promise<UserPrisma> {
+    static async create(userData: unknown): Promise<UserPrisma> {
         const prismaData = {
             nom: userData.lastName || userData.nom,
             prenom: userData.firstName || userData.prenom,
@@ -143,7 +143,7 @@ export class UserPrisma {
     /**
      * Met à jour des utilisateurs
      */
-    static async update(userData: any, options: any): Promise<[number, UserPrisma[]]> {
+    static async update(userData: unknown, options: unknown): Promise<[number, UserPrisma[]]> {
         if (!options.where?.id) {
             throw new Error('ID utilisateur requis pour la mise à jour');
         }
@@ -167,7 +167,7 @@ export class UserPrisma {
     /**
      * Supprime des utilisateurs
      */
-    static async destroy(options: any): Promise<number> {
+    static async destroy(options: unknown): Promise<number> {
         if (!options.where?.id) {
             throw new Error('ID utilisateur requis pour la suppression');
         }

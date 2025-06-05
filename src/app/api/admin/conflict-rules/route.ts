@@ -86,8 +86,8 @@ export async function GET(request: Request) {
 
         // Parser les règles stockées en JSON
         return NextResponse.json(JSON.parse(configRecord.value as string));
-    } catch (error) {
-        logger.error('Erreur GET /api/admin/conflict-rules:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur GET /api/admin/conflict-rules:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des règles de conflit' },
             { status: 500 }
@@ -140,8 +140,8 @@ export async function PUT(request: Request) {
         });
 
         return NextResponse.json(rules);
-    } catch (error) {
-        logger.error('Erreur PUT /api/admin/conflict-rules:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur PUT /api/admin/conflict-rules:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour des règles de conflit' },
             { status: 500 }
@@ -193,8 +193,8 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json(DEFAULT_CONFLICT_RULES);
-    } catch (error) {
-        logger.error('Erreur POST /api/admin/conflict-rules/reset:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur POST /api/admin/conflict-rules/reset:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la réinitialisation des règles de conflit' },
             { status: 500 }

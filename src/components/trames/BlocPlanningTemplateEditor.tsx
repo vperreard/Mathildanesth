@@ -19,7 +19,8 @@ import {
     TrameHebdomadaireDTO,
     AffectationTrameDTO,
 } from '@/modules/templates/services/TrameHebdomadaireService';
-import { TypeSemaine as ImportedTypeSemaine, JourSemaine as ImportedJourSemaine, PeriodeJour as ImportedPeriodeJour } from '@/app/parametres/trameModeles/EditeurTramesHebdomadaires';
+// TODO: Fix import path or create missing file
+// import { TypeSemaine as ImportedTypeSemaine, JourSemaine as ImportedJourSemaine, PeriodeJour as ImportedPeriodeJour } from '@/app/parametres/trameModeles/EditeurTramesHebdomadaires';
 import EditActivityModal from './EditActivityModal';
 import { PersonnelService, Personnel, RolePersonnel } from '@/modules/templates/services/PersonnelService';
 import { SalleService, OperatingRoomFromAPI } from '@/modules/templates/services/SalleService';
@@ -235,8 +236,8 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                 setSelectedTrameId(null);
             }
             setHasUnsavedChanges(false);
-        } catch (error) {
-            logger.error('Erreur lors du chargement des trames:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des trames:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Impossible de charger les trameModeles');
         } finally {
             setIsLoading(false);
@@ -265,9 +266,9 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             setIades(iadesData); // Déjà Personnel[]
 
             logger.info("[BlocEditor] Données de support chargées (salles):", sallesData.slice(0, 2));
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error("Erreur lors du chargement des données de support.");
-            logger.error("[BlocEditor] Erreur loadSupportData:", error);
+            logger.error("[BlocEditor] Erreur loadSupportData:", error instanceof Error ? error : new Error(String(error)));
         }
     };
 
@@ -358,8 +359,8 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                 setSelectedTrameId(savedTrameDB.id);
                 setHasUnsavedChanges(false);
             }
-        } catch (error) {
-            logger.error('Erreur lors de la sauvegarde de la trameModele:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde de la trameModele:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Impossible de sauvegarder la trameModele. Vérifiez la console.');
         } finally {
             setIsLoading(false);
@@ -407,8 +408,8 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                     await loadTrames();
                     setSelectedTrameId(savedTrame.id);
                 }
-            } catch (error) {
-                logger.error('Erreur lors de l\'import de la trameModele:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors de l\'import de la trameModele:', error instanceof Error ? error : new Error(String(error)));
                 toast.error('Impossible d\'importer la trameModele: format invalide ou erreur.');
             } finally {
                 setIsLoading(false);
@@ -431,8 +432,8 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             toast.success('TrameModele supprimée avec succès');
             setSelectedTrameId(null);
             await loadTrames();
-        } catch (error) {
-            logger.error('Erreur lors de la suppression de la trameModele:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la suppression de la trameModele:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Impossible de supprimer la trameModele.');
         } finally {
             setIsLoading(false);
@@ -467,7 +468,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
     };
 
 
-    const handleSelectedTrameFieldChange = (fieldName: keyof Omit<TrameModele, 'affectations' | 'id'>, value: any) => {
+    const handleSelectedTrameFieldChange = (fieldName: keyof Omit<TrameModele, 'affectations' | 'id'>, value: unknown) => {
         if (selectedTrame) {
             const updatedTrame = { ...selectedTrame, [fieldName]: value };
             setTrames(prevTrames => prevTrames.map(t => t.id === selectedTrameId ? updatedTrame : t));

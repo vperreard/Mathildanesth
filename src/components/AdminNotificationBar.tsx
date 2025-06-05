@@ -24,7 +24,7 @@ const AdminNotificationBar: React.FC = () => {
             const pending = data.filter((req: LeaveRequest) => req.status === 'pending');
             setPendingRequests(pending);
             setCurrentIndex(0);
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error(error);
         }
     };
@@ -44,7 +44,7 @@ const AdminNotificationBar: React.FC = () => {
             });
             if (!res.ok) throw new Error('Erreur lors de la validation');
             await fetchPendingRequests();
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error(error);
         }
     };

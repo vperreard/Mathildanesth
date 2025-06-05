@@ -50,7 +50,7 @@ type OperatingRoomFormData = {
     sector?: string;
     colorCode: string;
     isActive: boolean;
-    supervisionRules: Record<string, any>;
+    supervisionRules: Record<string, unknown>;
 };
 
 interface AddRoomModalProps {
@@ -85,8 +85,8 @@ export function AddRoomModal({ isOpen, onClose, onSave, sectors, initialData }: 
             await onSave(data);
             form.reset();
             onClose();
-        } catch (error) {
-            logger.error("Erreur lors de la sauvegarde:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la sauvegarde:", error instanceof Error ? error : new Error(String(error)));
         } finally {
             setIsLoading(false);
         }

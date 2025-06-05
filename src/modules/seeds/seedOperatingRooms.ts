@@ -195,7 +195,7 @@ export async function seedOperatingRooms() {
 //     seedOperatingRooms()
 //         .then(() => process.exit(0))
 //         .catch(error => {
-//             logger.error('Erreur lors du seed de l\'architecture du bloc opératoire:', error);
+//             logger.error('Erreur lors du seed de l\'architecture du bloc opératoire:', error instanceof Error ? error : new Error(String(error)));
 //             process.exit(1);
 //         });
 // }

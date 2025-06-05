@@ -67,7 +67,7 @@ const RulesList: React.FC<RulesListProps> = ({
             setError(null);
             const allRules = ruleEngineService.getAllRules();
             setRules(allRules);
-        } catch (err) {
+        } catch (err: unknown) {
             setError('Erreur lors du chargement des règles: ' + (err instanceof Error ? err.message : String(err)));
         } finally {
             setLoading(false);
@@ -140,7 +140,7 @@ const RulesList: React.FC<RulesListProps> = ({
                 } else {
                     setError("Impossible de supprimer la règle. Elle n'existe pas ou a déjà été supprimée.");
                 }
-            } catch (err) {
+            } catch (err: unknown) {
                 setError('Erreur lors de la suppression: ' + (err instanceof Error ? err.message : String(err)));
             } finally {
                 setLoading(false);

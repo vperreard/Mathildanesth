@@ -104,7 +104,7 @@ export interface QuotaTransferRule {
     applicableUserRoles?: string[];     // Rôles utilisateurs applicables
     minimumRemainingDays?: number;      // Jours minimum à conserver
     isActive: boolean;                  // Si la règle est active
-    metadata?: Record<string, any>;     // Métadonnées additionnelles
+    metadata?: Record<string, unknown>;     // Métadonnées additionnelles
 }
 
 /**
@@ -122,7 +122,7 @@ export interface QuotaCarryOverRule {
     departmentId?: string;                  // Département spécifique
     applicableUserRoles?: string[];         // Rôles utilisateurs applicables
     isActive: boolean;                      // Si la règle est active
-    metadata?: Record<string, any>;         // Métadonnées additionnelles
+    metadata?: Record<string, unknown>;         // Métadonnées additionnelles
 }
 
 /**
@@ -166,7 +166,7 @@ export interface QuotaTransaction {
     relatedTransactionId?: string;         // Transaction liée
     relatedLeaveId?: string;               // Congé lié
     comment?: string;                      // Commentaire
-    metadata?: Record<string, any>;        // Métadonnées
+    metadata?: Record<string, unknown>;        // Métadonnées
 }
 
 /**

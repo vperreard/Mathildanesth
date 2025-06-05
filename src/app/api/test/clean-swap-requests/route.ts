@@ -92,8 +92,8 @@ export async function DELETE(request: NextRequest) {
             deletedNotifications: deletedNotifications.count
         });
 
-    } catch (error: any) {
-        logger.error("Erreur lors du nettoyage des demandes d'échange de test:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors du nettoyage des demandes d'échange de test:", error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({
             error: 'Erreur lors du nettoyage des demandes d\'échange',
             details: error.message

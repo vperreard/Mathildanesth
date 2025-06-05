@@ -36,7 +36,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, idPrefix =
             if (onLoginSuccess) {
                 onLoginSuccess();
             }
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur de connexion');
         }
     };

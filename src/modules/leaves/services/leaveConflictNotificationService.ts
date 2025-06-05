@@ -37,7 +37,7 @@ export class LeaveConflictNotificationService {
         locale: string = 'fr'
     ): NotificationTemplate {
         // Utiliser le service de traduction pour les messages
-        const t = (key: string, params?: Record<string, any>) =>
+        const t = (key: string, params?: Record<string, unknown>) =>
             this.translationService.translate(key, locale, params);
 
         // Informations de base pour tous les types de notifications
@@ -165,8 +165,8 @@ export class LeaveConflictNotificationService {
             }
 
             return true;
-        } catch (error) {
-            logger.error('Erreur lors de l\'envoi de l\'email de notification de conflit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'envoi de l\'email de notification de conflit:', error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }
@@ -207,8 +207,8 @@ export class LeaveConflictNotificationService {
             }
 
             return true;
-        } catch (error) {
-            logger.error('Erreur lors de l\'envoi de la notification UI pour un conflit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'envoi de la notification UI pour un conflit:', error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }
@@ -236,7 +236,7 @@ export class LeaveConflictNotificationService {
      * @param conflict Le conflit concerné
      * @returns Actions disponibles pour la notification
      */
-    private getNotificationActions(conflict: LeaveConflict): any[] {
+    private getNotificationActions(conflict: LeaveConflict): unknown[] {
         const actions = [
             {
                 label: 'Voir les détails',
@@ -286,8 +286,8 @@ export class LeaveConflictNotificationService {
             ]);
 
             return true;
-        } catch (error) {
-            logger.error('Erreur lors de la notification du conflit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la notification du conflit:', error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }
@@ -312,8 +312,8 @@ export class LeaveConflictNotificationService {
             );
 
             return results.every(result => result);
-        } catch (error) {
-            logger.error('Erreur lors de la notification des conflits:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la notification des conflits:', error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }

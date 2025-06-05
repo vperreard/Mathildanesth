@@ -11,7 +11,7 @@ export type ExportFormat = 'csv' | 'pdf';
 
 // Fonction de migration pour les anciens appels
 export async function migrateExcelExport(
-    data: any,
+    data: unknown,
     format: string,
     fileName?: string
 ): Promise<Blob> {

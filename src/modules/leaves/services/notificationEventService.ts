@@ -113,8 +113,8 @@ export class NotificationEventService {
             const response = await fetch(`http://localhost:3000/api/utilisateurs/${userId}/approvers`);
             const data = await response.json();
             return data.map((user: User) => user.id);
-        } catch (error) {
-            logger.error('Erreur lors de la récupération des approbateurs:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des approbateurs:', error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }

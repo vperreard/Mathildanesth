@@ -24,7 +24,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         });
 
         return NextResponse.json({ message: "Compétence retirée de l'utilisateur avec succès." }, { status: 200 });
-    } catch (error) {
+    } catch (error: unknown) {
         // Gérer spécifiquement l'erreur P2025 (Record to delete not found) de Prisma
         if ((error as any).code === 'P2025') {
             return NextResponse.json({ message: "L'association compétence-utilisateur non trouvée." }, { status: 404 });

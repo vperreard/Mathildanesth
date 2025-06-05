@@ -146,7 +146,7 @@ DroppableNonAssigneesZone.displayName = 'DroppableNonAssigneesZone';
 
 // Composant pour un secteur draggable (dans la hiérarchie des sites)
 const SortableSecteurItem = memo(
-  ({ secteur, isDragMode, onEdit, onDelete, countRooms, getSiteName }: any) => {
+  ({ secteur, isDragMode, onEdit, onDelete, countRooms, getSiteName }: unknown) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
       id: `secteur-${secteur.id}`,
     });
@@ -212,7 +212,7 @@ const SortableSecteurItem = memo(
 SortableSecteurItem.displayName = 'SortableSecteurItem';
 
 // Composant pour une salle draggable et droppable (pour réorganisation interne)
-const DraggableSalleItem = memo(({ salle, isDragMode }: any) => {
+const DraggableSalleItem = memo(({ salle, isDragMode }: unknown) => {
   const {
     attributes,
     listeners,
@@ -334,7 +334,7 @@ export default function SecteursAdmin() {
   );
 
   // Collision detection personnalisée pour gérer les trois cas : secteurs, salles ET sites
-  const customCollisionDetection = useCallback((args: any) => {
+  const customCollisionDetection = useCallback((args: unknown) => {
     const { active, droppableContainers } = args;
     
     // Throttling pour éviter les détections excessives
@@ -356,11 +356,11 @@ export default function SecteursAdmin() {
       }
 
       // Séparer les collisions par type
-      const secteurCollisions = allCollisions.filter((collision: any) =>
+      const secteurCollisions = allCollisions.filter((collision: unknown) =>
         collision.id.toString().startsWith('secteur-')
       );
       const salleCollisions = allCollisions.filter(
-        (collision: any) =>
+        (collision: unknown) =>
           collision.id.toString().startsWith('salle-') && collision.id !== active.id
       );
 
@@ -412,11 +412,11 @@ export default function SecteursAdmin() {
       const activeSecteur = secteurs.find(s => s.id === activeSecteurId);
 
       // Séparer les collisions par type
-      const siteCollisions = allCollisions.filter((collision: any) =>
+      const siteCollisions = allCollisions.filter((collision: unknown) =>
         collision.id.toString().startsWith('site-')
       );
       const secteurCollisions = allCollisions.filter(
-        (collision: any) =>
+        (collision: unknown) =>
           collision.id.toString().startsWith('secteur-') && collision.id !== active.id
       );
 
@@ -466,7 +466,7 @@ export default function SecteursAdmin() {
   // Fonction helper pour faire des appels API authentifiés (utilise apiClient)
   const makeAuthenticatedRequest = async (
     url: string,
-    options: { method?: string; body?: any } = {}
+    options: { method?: string; body?: unknown } = {}
   ) => {
     const response = await apiClient({
       url,
@@ -498,13 +498,13 @@ export default function SecteursAdmin() {
       const [secteursData, sallesData] = [secteursResponse, sallesResponse];
 
       // Mapper les secteurs
-      const mappedSecteurs = secteursData.map((sector: any) => ({
+      const mappedSecteurs = secteursData.map((sector: unknown) => ({
         id: sector.id,
         nom: sector.name,
         description: sector.description,
         couleur: sector.colorCode,
         specialites: sector.specialites || [],
-        salles: sector.rooms?.map((room: any) => room.id) || [],
+        salles: sector.rooms?.map((room: unknown) => room.id) || [],
         estActif: sector.isActive,
         requiresSpecificSkills: sector.requiresSpecificSkills || false,
         supervisionSpeciale: sector.supervisionSpeciale || false,
@@ -513,7 +513,7 @@ export default function SecteursAdmin() {
         displayOrder: sector.displayOrder || 0,
       }));
 
-      const mappedSalles = sallesData.map((room: any) => ({
+      const mappedSalles = sallesData.map((room: unknown) => ({
         id: room.id,
         numero: room.numero || room.number,
         nom: room.nom || room.name,
@@ -531,7 +531,7 @@ export default function SecteursAdmin() {
       setSites(sitesResponse);
 
       logger.info('✅ Données chargées avec succès !');
-    } catch (err) {
+    } catch (err: unknown) {
       logger.error('❌ Erreur de chargement:', err);
       setError(
         `Erreur lors du chargement des données: ${err instanceof Error ? err.message : 'Erreur inconnue'}`
@@ -603,7 +603,7 @@ export default function SecteursAdmin() {
         title: 'Secteur supprimé',
         description: `Le secteur ${currentSecteur.nom} a été supprimé avec succès.`,
       });
-    } catch (err) {
+    } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue';
       toast({
         title: 'Erreur',
@@ -705,7 +705,7 @@ export default function SecteursAdmin() {
       }
 
       setShowDialog(false);
-    } catch (err) {
+    } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue';
       toast({
         title: 'Erreur',
@@ -842,8 +842,8 @@ export default function SecteursAdmin() {
         title: 'Secteur déplacé',
         description: `Le secteur a été déplacé vers ${newSiteId ? getSiteName(newSiteId) : 'les non-assignés'}.`,
       });
-    } catch (error) {
-      logger.error('Erreur lors du déplacement du secteur:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors du déplacement du secteur:', error instanceof Error ? error : new Error(String(error)));
       toast({
         title: 'Erreur',
         description: 'Impossible de déplacer le secteur.',
@@ -911,8 +911,8 @@ export default function SecteursAdmin() {
       logger.info(
         `Réorganisation interne: secteur ${activeSecteurId} déplacé à la position du secteur ${targetSecteurId}`
       );
-    } catch (error) {
-      logger.error('Erreur lors de la réorganisation des secteurs:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la réorganisation des secteurs:', error instanceof Error ? error : new Error(String(error)));
       // Recharger les données en cas d'erreur
       loadData();
       toast({
@@ -979,8 +979,8 @@ export default function SecteursAdmin() {
         title: 'Salle déplacée',
         description: `La salle a été déplacée vers ${newSecteurId ? 'le secteur sélectionné' : 'les non-assignées'}.`,
       });
-    } catch (error) {
-      logger.error('Erreur lors du déplacement de la salle:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors du déplacement de la salle:', error instanceof Error ? error : new Error(String(error)));
 
       // Afficher l'erreur détaillée dans le toast
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
@@ -1046,8 +1046,8 @@ export default function SecteursAdmin() {
       });
 
       logger.info('Réorganisation interne réussie');
-    } catch (error) {
-      logger.error('Erreur lors de la réorganisation:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la réorganisation:', error instanceof Error ? error : new Error(String(error)));
       // Recharger les données en cas d'erreur
       loadData();
     }
@@ -1119,8 +1119,8 @@ export default function SecteursAdmin() {
       logger.info(
         `Cross-secteur avec position: salle ${activeSalleId} → secteur ${newSecteurId} à la position ${targetIndex}`
       );
-    } catch (error) {
-      logger.error('Erreur lors du déplacement cross-secteur:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors du déplacement cross-secteur:', error instanceof Error ? error : new Error(String(error)));
       toast({
         title: 'Erreur',
         description: 'Impossible de déplacer la salle à cette position.',

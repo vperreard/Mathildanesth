@@ -29,7 +29,7 @@ export const DutyRuleForm: React.FC<DutyRuleFormProps> = ({ rule, onChange }) =>
     }, [dutyConfig, rule, onChange]);
 
     // Gérer les changements de champs simples
-    const handleChange = (field: keyof DutyRule['dutyConfig'], value: any) => {
+    const handleChange = (field: keyof DutyRule['dutyConfig'], value: unknown) => {
         setDutyConfig(prev => ({
             ...prev,
             [field]: value
@@ -94,7 +94,7 @@ export const DutyRuleForm: React.FC<DutyRuleFormProps> = ({ rule, onChange }) =>
     };
 
     // Mettre à jour une période de garde
-    const handleUpdateDutyPeriod = (index: number, field: string, value: any) => {
+    const handleUpdateDutyPeriod = (index: number, field: string, value: unknown) => {
         const updatedPeriods = [...(dutyConfig.dutyPeriods || [])];
         updatedPeriods[index] = { ...updatedPeriods[index], [field]: value };
         handleChange('dutyPeriods', updatedPeriods);

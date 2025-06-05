@@ -178,7 +178,7 @@ class AnalyticsCache<T> {
     /**
      * Génère une clé de cache à partir d'un objet
      */
-    generateKey(obj: any): string {
+    generateKey(obj: unknown): string {
         return JSON.stringify(obj);
     }
 
@@ -311,8 +311,8 @@ export class LeaveAnalyticsService {
 
             logger.info(`[Performance] getDepartmentStats from API: ${performance.now() - startTime}ms`);
             return data;
-        } catch (error) {
-            logger.error('Erreur dans getDepartmentStats:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getDepartmentStats:', error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }
@@ -343,8 +343,8 @@ export class LeaveAnalyticsService {
             }
 
             return await response.json();
-        } catch (error) {
-            logger.error('Erreur dans predictTeamAvailability:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans predictTeamAvailability:', error instanceof Error ? error : new Error(String(error)));
             return {};
         }
     }
@@ -383,8 +383,8 @@ export class LeaveAnalyticsService {
 
             logger.info(`[Performance] getPeriodStats from API: ${performance.now() - startTime}ms`);
             return data;
-        } catch (error) {
-            logger.error('Erreur dans getPeriodStats:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getPeriodStats:', error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }
@@ -420,8 +420,8 @@ export class LeaveAnalyticsService {
 
             logger.info(`[Performance] getTeamAbsenceRates from API: ${performance.now() - startTime}ms`);
             return data;
-        } catch (error) {
-            logger.error('Erreur dans getTeamAbsenceRates:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getTeamAbsenceRates:', error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }
@@ -464,8 +464,8 @@ export class LeaveAnalyticsService {
 
             logger.info(`[Performance] getUserStats from API: ${performance.now() - startTime}ms`);
             return data;
-        } catch (error) {
-            logger.error('Erreur dans getUserStats:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getUserStats:', error instanceof Error ? error : new Error(String(error)));
             return {
                 data: [],
                 total: 0,
@@ -510,8 +510,8 @@ export class LeaveAnalyticsService {
 
             logger.info(`[Performance] getLeaveTypeTrends from API: ${performance.now() - startTime}ms`);
             return data;
-        } catch (error) {
-            logger.error('Erreur dans getLeaveTypeTrends:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getLeaveTypeTrends:', error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }
@@ -547,8 +547,8 @@ export class LeaveAnalyticsService {
 
             logger.info(`[Performance] predictPeakPeriods from API: ${performance.now() - startTime}ms`);
             return data;
-        } catch (error) {
-            logger.error('Erreur dans predictPeakPeriods:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans predictPeakPeriods:', error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }
@@ -575,8 +575,8 @@ export class LeaveAnalyticsService {
 
             const blob = await response.blob();
             return URL.createObjectURL(blob);
-        } catch (error) {
-            logger.error('Erreur dans exportAnalyticsToCSV:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans exportAnalyticsToCSV:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     }
@@ -596,7 +596,7 @@ export class LeaveAnalyticsService {
     /**
      * Obtient des statistiques sur l'utilisation du cache
      */
-    public getCacheStats(): Record<string, any> {
+    public getCacheStats(): Record<string, unknown> {
         return {
             department: this.departmentCache.getStats(),
             period: this.periodCache.getStats(),

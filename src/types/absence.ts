@@ -16,7 +16,7 @@ export interface PlannedAbsence {
     validatedById?: number;
     notify: boolean;
     importSource?: string;
-    documents?: any[];
+    documents?: unknown[];
     createdAt: Date;
     updatedAt: Date;
 }

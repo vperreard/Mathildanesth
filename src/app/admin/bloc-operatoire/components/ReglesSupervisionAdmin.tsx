@@ -133,7 +133,7 @@ export default function ReglesSupervisionAdmin() {
           }) as BlocSector
       );
       setSecteurs(adaptedSectors);
-    } catch (err) {
+    } catch (err: unknown) {
       setError('Erreur lors du chargement des données');
       logger.error('Erreur de chargement:', err instanceof Error ? err : new Error(String(err)));
     } finally {
@@ -215,7 +215,7 @@ export default function ReglesSupervisionAdmin() {
         title: 'Règle supprimée',
         description: `La règle ${currentRegle.nom} a été supprimée avec succès.`,
       });
-    } catch (err) {
+    } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue';
       toast({
         title: 'Erreur',
@@ -229,7 +229,7 @@ export default function ReglesSupervisionAdmin() {
   };
 
   // Gérer les changements du formulaire
-  const handleInputChange = (field: keyof RegleFormData, value: any) => {
+  const handleInputChange = (field: keyof RegleFormData, value: unknown) => {
     if (!currentRegle) return;
 
     // Si on change le type, réinitialiser certains champs
@@ -418,7 +418,7 @@ export default function ReglesSupervisionAdmin() {
       }
 
       setShowDialog(false);
-    } catch (err) {
+    } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue';
       toast({
         title: 'Erreur',

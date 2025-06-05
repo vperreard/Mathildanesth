@@ -109,13 +109,13 @@ export const authService = {
         },
         token,
       };
-    } catch (error) {
-      logger.error('Login failed', error);
+    } catch (error: unknown) {
+      logger.error('Login failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   },
 
-  async validateToken(token: string): Promise<any> {
+  async validateToken(token: string): Promise<unknown> {
     try {
       // Check cache first
       const cachedAuth = await AuthCacheService.getCachedAuthToken(token);
@@ -140,8 +140,8 @@ export const authService = {
       await AuthCacheService.cacheAuthToken(token, payload);
 
       return payload;
-    } catch (error) {
-      logger.error('Token validation failed', error);
+    } catch (error: unknown) {
+      logger.error('Token validation failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   },
@@ -167,8 +167,8 @@ export const authService = {
       });
 
       return newToken;
-    } catch (error) {
-      logger.error('Token refresh failed', error);
+    } catch (error: unknown) {
+      logger.error('Token refresh failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   },
@@ -183,7 +183,7 @@ export const authService = {
       await AuthCacheService.invalidateUserData(payload.userId.toString());
 
       logger.info('User logged out successfully', { userId: payload.userId });
-    } catch (error) {
+    } catch (error: unknown) {
       // Even if token is invalid, still try to invalidate it
       await AuthCacheService.invalidateAuthToken(token);
       logger.warn('Logout attempted with invalid token');
@@ -216,8 +216,8 @@ export const authService = {
       });
 
       logger.info('Password changed successfully', { userId });
-    } catch (error) {
-      logger.error('Password change failed', error);
+    } catch (error: unknown) {
+      logger.error('Password change failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   },

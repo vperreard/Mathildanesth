@@ -51,8 +51,8 @@ export default function PerformanceDashboardClient() {
                 const data = await response.json();
                 setCacheStats(data);
             }
-        } catch (error) {
-            logger.error('Failed to fetch cache stats:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to fetch cache stats:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 
@@ -63,8 +63,8 @@ export default function PerformanceDashboardClient() {
                 const data = await response.json();
                 setPerformanceMetrics(data.metrics || []);
             }
-        } catch (error) {
-            logger.error('Failed to fetch performance metrics:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to fetch performance metrics:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 
@@ -91,8 +91,8 @@ export default function PerformanceDashboardClient() {
             if (response.ok) {
                 await refreshData();
             }
-        } catch (error) {
-            logger.error('Failed to clear cache:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to clear cache:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 

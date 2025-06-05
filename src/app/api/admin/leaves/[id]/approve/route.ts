@@ -111,8 +111,8 @@ export async function POST(
             }
         });
 
-    } catch (error) {
-        logger.error('[API /api/admin/conges/approve] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API /api/admin/conges/approve] Erreur:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur lors de l\'approbation de la demande de congé' },
             { status: 500 }

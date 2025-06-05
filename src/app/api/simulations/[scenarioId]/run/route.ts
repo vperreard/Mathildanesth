@@ -202,7 +202,7 @@ export async function POST(
             errorMessage: null,
           },
         });
-      } catch (simError: any) {
+      } catch (simError: unknown) {
         logger.error(
           `Erreur pendant l'exécution de la simulation ${simulationResult.id} pour le scénario ${scenarioId}:`,
           simError
@@ -222,7 +222,7 @@ export async function POST(
     })();
 
     return NextResponse.json(simulationResult, { status: 202 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(
       `Erreur lors du lancement de la simulation pour le scénario ${scenarioId}:`,
       error

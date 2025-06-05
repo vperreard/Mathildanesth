@@ -19,7 +19,7 @@ interface OfflineAction {
   id: string;
   type: 'leave_request' | 'schedule_change' | 'notification_read' | 'profile_update';
   action: string;
-  data: any;
+  data: unknown;
   timestamp: Date;
   retryCount: number;
   status: 'pending' | 'syncing' | 'synced' | 'failed';
@@ -63,14 +63,14 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
     try {
       const stored = localStorage.getItem('mathildanesth_offline_actions');
       if (stored) {
-        const actions = JSON.parse(stored).map((action: any) => ({
+        const actions = JSON.parse(stored).map((action: unknown) => ({
           ...action,
           timestamp: new Date(action.timestamp)
         }));
         setOfflineActions(actions);
       }
-    } catch (error) {
-      logger.error('Erreur chargement actions offline:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur chargement actions offline:', error instanceof Error ? error : new Error(String(error)));
     }
   };
 
@@ -78,8 +78,8 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
     try {
       localStorage.setItem('mathildanesth_offline_actions', JSON.stringify(actions));
       setOfflineActions(actions);
-    } catch (error) {
-      logger.error('Erreur sauvegarde actions offline:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur sauvegarde actions offline:', error instanceof Error ? error : new Error(String(error)));
     }
   };
 
@@ -117,8 +117,8 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
           // Marquer comme synchronisé
           updateActionStatus(action.id, 'synced');
           
-        } catch (error) {
-          logger.error(`Erreur sync action ${action.id}:`, error);
+        } catch (error: unknown) {
+          logger.error(`Erreur sync action ${action.id}:`, error instanceof Error ? error : new Error(String(error)));
           
           // Incrémenter compteur retry
           const updatedActions = offlineActions.map(a => 
@@ -133,8 +133,8 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
       setLastSync(new Date());
       showNotification('Synchronisation terminée', 'success');
       
-    } catch (error) {
-      logger.error('Erreur synchronisation globale:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur synchronisation globale:', error instanceof Error ? error : new Error(String(error)));
       showNotification('Erreur de synchronisation', 'error');
     } finally {
       setSyncInProgress(false);
@@ -385,7 +385,7 @@ export function useOfflineSync() {
     };
   }, []);
   
-  const queueOfflineAction = (action: any) => {
+  const queueOfflineAction = (action: unknown) => {
     // Ajouter à la queue d'actions hors ligne
     const offlineActions = JSON.parse(
       localStorage.getItem('mathildanesth_offline_actions') || '[]'

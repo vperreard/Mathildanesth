@@ -37,7 +37,7 @@ export class SalleService {
                 let errorBody = 'Réponse non JSON ou vide';
                 try {
                     errorBody = await response.text();
-                } catch (e) {
+                } catch (e: unknown) {
                     // Ignorer l'erreur de lecture du corps si elle échoue
                 }
                 logger.error(`Erreur API getSalles: ${response.status} ${response.statusText}. Body: ${errorBody}`);
@@ -47,8 +47,8 @@ export class SalleService {
             const data = await response.json();
             logger.info('[SalleService] Salles chargées depuis API:', data);
             return data as OperatingRoomFromAPI[]; // S'assurer que les données correspondent à la nouvelle interface
-        } catch (error) {
-            logger.error("Erreur lors de la récupération des salles (catch global):", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la récupération des salles (catch global):", error instanceof Error ? error : new Error(String(error)));
             // Optionnel: Mettre à jour les mocks pour correspondre à OperatingRoomFromAPI ou les supprimer si non utilisés
             // Pour l'instant, on retourne un tableau vide en cas d'erreur pour éviter d'utiliser des mocks avec une ancienne structure.
             return [];

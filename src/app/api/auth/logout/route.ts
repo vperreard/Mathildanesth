@@ -5,7 +5,7 @@ import { withAuthRateLimit } from '@/lib/rateLimit';
 import { auditService } from '@/services/OptimizedAuditService';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 
-async function handler(req: any) {
+async function handler(req: unknown) {
     try {
         logger.info("API LOGOUT: Tentative de déconnexion");
 
@@ -32,8 +32,8 @@ async function handler(req: any) {
         logger.info("API LOGOUT: Cookie d'authentification supprimé avec succès");
         return NextResponse.json({ message: 'Déconnexion réussie' });
 
-    } catch (error) {
-        logger.error("API LOGOUT ERROR:", error);
+    } catch (error: unknown) {
+        logger.error("API LOGOUT ERROR:", error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { message: 'Erreur interne du serveur lors de la déconnexion' },
             { status: 500 }

@@ -69,7 +69,7 @@ export default function ExchangeRequestPage() {
             });
             
             router.push('/');
-        } catch (error) {
+        } catch (error: unknown) {
             toast({
                 title: "Erreur",
                 description: "Impossible d'envoyer la demande. Veuillez réessayer.",

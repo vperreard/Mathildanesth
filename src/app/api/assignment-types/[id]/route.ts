@@ -39,8 +39,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         }
 
         return NextResponse.json(assignmentType);
-    } catch (error) {
-        logger.error('Erreur lors de la récupération du type d\'affectation:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération du type d\'affectation:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la récupération du type d\'affectation' },
             { status: 500 }
@@ -123,8 +123,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         });
 
         return NextResponse.json(updatedType);
-    } catch (error) {
-        logger.error('Erreur lors de la mise à jour du type d\'affectation:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la mise à jour du type d\'affectation:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour du type d\'affectation' },
             { status: 500 }
@@ -190,8 +190,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         });
 
         return NextResponse.json({ success: true });
-    } catch (error) {
-        logger.error('Erreur lors de la suppression du type d\'affectation:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la suppression du type d\'affectation:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la suppression du type d\'affectation' },
             { status: 500 }

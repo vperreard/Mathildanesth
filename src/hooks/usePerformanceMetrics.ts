@@ -78,8 +78,8 @@ export const usePerformanceMetrics = (pageName?: string): PerformanceHookReturn 
                     // sendAnalytics(pageName, performanceMetrics);
                 }
 
-            } catch (error) {
-                logger.error('Erreur lors de la mesure des performances:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors de la mesure des performances:', error instanceof Error ? error : new Error(String(error)));
                 setIsLoading(false);
             }
         };
@@ -141,11 +141,11 @@ export const measureExecutionTime = async <T>(
         }
 
         return { result, executionTime };
-    } catch (error) {
+    } catch (error: unknown) {
         const endTime = performance.now();
         const executionTime = endTime - startTime;
 
-        logger.error(`❌ ${metricName} failed after ${executionTime.toFixed(2)}ms:`, error);
+        logger.error(`❌ ${metricName} failed after ${executionTime.toFixed(2)}ms:`, error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 }; 

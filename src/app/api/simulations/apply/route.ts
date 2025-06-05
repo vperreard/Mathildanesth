@@ -83,8 +83,8 @@ export async function POST(request: NextRequest) {
         conflicts: result.conflicts.length,
       },
     });
-  } catch (error) {
-    logger.error("Erreur lors de l'application de la simulation:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de l'application de la simulation:", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         success: false,
@@ -115,13 +115,13 @@ async function checkUserRightsForSimulationApply(userId: number): Promise<boolea
 
     // Si l'utilisateur a des rôles définis, vérifier s'il a un rôle autorisé
     if (user.roles && Array.isArray(user.roles)) {
-      return user.roles.some((role: any) => allowedRoles.includes(role.name || role.role || ''));
+      return user.roles.some((role: unknown) => allowedRoles.includes(role.name || role.role || ''));
     }
 
     // Si pas de système de rôles clair, vérifiez le champ isAdmin ou équivalent
     return user.isAdmin === true;
-  } catch (error) {
-    logger.error('Erreur lors de la vérification des droits:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la vérification des droits:', error instanceof Error ? error : new Error(String(error)));
     return false;
   }
 }

@@ -144,7 +144,7 @@ export const QuotaTransferForm: React.FC<QuotaTransferFormProps> = ({
             } else {
                 setLocalError(previewResult.message);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             setLocalError((err as Error).message);
         }
     };
@@ -181,7 +181,7 @@ export const QuotaTransferForm: React.FC<QuotaTransferFormProps> = ({
             } else {
                 setLocalError(result.message);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             setLocalError((err as Error).message);
         }
     };

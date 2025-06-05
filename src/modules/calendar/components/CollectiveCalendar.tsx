@@ -133,8 +133,8 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
             toast.success('Congé approuvé avec succès');
             updateFilters({}); // Rafraîchir le calendrier
             handleCloseModal();
-        } catch (error) {
-            logger.error('Erreur lors de l\'approbation du congé:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'approbation du congé:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Erreur lors de l\'approbation du congé');
         }
     }, [isAdmin, updateFilters, handleCloseModal]);
@@ -148,8 +148,8 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
             toast.success('Congé refusé avec succès');
             updateFilters({}); // Rafraîchir le calendrier
             handleCloseModal();
-        } catch (error) {
-            logger.error('Erreur lors du refus du congé:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du refus du congé:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Erreur lors du refus du congé');
         }
     }, [isAdmin, updateFilters, handleCloseModal]);

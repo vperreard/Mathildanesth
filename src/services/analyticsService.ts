@@ -72,8 +72,8 @@ export async function getGuardDutyDistributionStats(): Promise<GuardDutyDistribu
 
         // Pour la démonstration, nous utilisons des données simulées
         return getMockGuardDistributionStats();
-    } catch (error) {
-        logger.error("Erreur lors de la récupération des statistiques de garde:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la récupération des statistiques de garde:", error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 }
@@ -170,8 +170,8 @@ export async function getLeavePeakAnalysis(): Promise<LeavePeakAnalysis[]> {
 
         // Pour la démonstration, utilisons des données simulées
         return getMockLeavePeakAnalysis();
-    } catch (error) {
-        logger.error("Erreur lors de l'analyse des pics de congés:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de l'analyse des pics de congés:", error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 }
@@ -186,8 +186,8 @@ export async function getPredictiveInsights(): Promise<PredictiveInsight[]> {
 
         // Pour la démonstration, utilisons des données simulées
         return getMockPredictiveInsights();
-    } catch (error) {
-        logger.error("Erreur lors de la génération des insights prédictifs:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la génération des insights prédictifs:", error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 }

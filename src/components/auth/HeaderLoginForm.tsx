@@ -24,7 +24,7 @@ export const HeaderLoginForm: React.FC<HeaderLoginFormProps> = ({ idPrefix = '' 
         e.preventDefault();
         try {
             await authLogin({ login, password });
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur de connexion:', err);
         }
     };

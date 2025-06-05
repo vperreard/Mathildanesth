@@ -6,7 +6,7 @@ import { fr } from 'date-fns/locale';
 export interface ReportConfig {
     type: 'pdf' | 'excel' | 'csv';
     title: string;
-    data: any[];
+    data: unknown[];
     columns: {
         key: string;
         label: string;
@@ -14,7 +14,7 @@ export interface ReportConfig {
     }[];
     filters?: {
         key: string;
-        value: any;
+        value: unknown;
     }[];
     sort?: {
         key: string;
@@ -41,8 +41,8 @@ class ReportService {
             });
 
             return response.data;
-        } catch (error) {
-            logger.error('Erreur lors de la génération du rapport:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la génération du rapport:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     }
@@ -58,8 +58,8 @@ class ReportService {
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
-        } catch (error) {
-            logger.error('Erreur lors du téléchargement du rapport:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du téléchargement du rapport:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     }
@@ -68,17 +68,17 @@ class ReportService {
         try {
             const response = await axios.get('http://localhost:3000/api/reports/modèles');
             return response.data;
-        } catch (error) {
-            logger.error('Erreur lors de la récupération des modèles de rapport:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des modèles de rapport:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     }
 
-    public async saveReportTemplate(modèle: any): Promise<void> {
+    public async saveReportTemplate(modèle: unknown): Promise<void> {
         try {
             await axios.post('http://localhost:3000/api/reports/modèles', modèle);
-        } catch (error) {
-            logger.error('Erreur lors de la sauvegarde du modèle de rapport:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde du modèle de rapport:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     }

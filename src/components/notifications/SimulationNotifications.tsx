@@ -49,8 +49,8 @@ export function SimulationNotifications() {
                     if (data.id) {
                         setUserId(data.id.toString());
                     }
-                } catch (error) {
-                    logger.error('Erreur lors de la récupération de l\'ID utilisateur:', error);
+                } catch (error: unknown) {
+                    logger.error('Erreur lors de la récupération de l\'ID utilisateur:', error instanceof Error ? error : new Error(String(error)));
                 }
             }
         };
@@ -67,10 +67,10 @@ export function SimulationNotifications() {
 
         // Définir les gestionnaires d'événements
         const events = {
-            [SimulationEvent.STARTED]: (data: any) => handleNotification('started', data),
-            [SimulationEvent.PROGRESS]: (data: any) => handleNotification('progress', data),
-            [SimulationEvent.COMPLETED]: (data: any) => handleNotification('completed', data),
-            [SimulationEvent.FAILED]: (data: any) => handleNotification('failed', data),
+            [SimulationEvent.STARTED]: (data: unknown) => handleNotification('started', data),
+            [SimulationEvent.PROGRESS]: (data: unknown) => handleNotification('progress', data),
+            [SimulationEvent.COMPLETED]: (data: unknown) => handleNotification('completed', data),
+            [SimulationEvent.FAILED]: (data: unknown) => handleNotification('failed', data),
         };
 
         // S'abonner au canal
@@ -83,7 +83,7 @@ export function SimulationNotifications() {
     }, [userId]);
 
     // Gestionnaire de notification pour mettre à jour l'état
-    const handleNotification = (type: 'started' | 'progress' | 'completed' | 'failed', data: any) => {
+    const handleNotification = (type: 'started' | 'progress' | 'completed' | 'failed', data: unknown) => {
         const scenarioId = data.scenarioId;
 
         if (!scenarioId) return;

@@ -33,8 +33,8 @@ async function seedAll() {
         await seedOperatingRooms();
 
         logger.info('\n=== SEED COMPLET TERMINÉ AVEC SUCCÈS ===');
-    } catch (error) {
-        logger.error('\n!!! ERREUR LORS DU PROCESSUS DE SEED !!!', error);
+    } catch (error: unknown) {
+        logger.error('\n!!! ERREUR LORS DU PROCESSUS DE SEED !!!', error instanceof Error ? error : new Error(String(error)));
         process.exit(1);
     } finally {
         // Fermer la connexion à la base de données
@@ -49,6 +49,6 @@ seedAll()
         process.exit(0);
     })
     .catch(error => {
-        logger.error('Erreur non gérée:', error);
+        logger.error('Erreur non gérée:', error instanceof Error ? error : new Error(String(error)));
         process.exit(1);
     }); 

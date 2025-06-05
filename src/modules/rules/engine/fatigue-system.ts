@@ -64,7 +64,7 @@ export interface Attribution {
     service?: string;
     supervisionCount?: number;
     specialite?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 /**
@@ -76,7 +76,7 @@ export interface OffPeriod {
     medecinId: string;
     startDate: Date;
     endDate: Date;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 /**
@@ -100,7 +100,7 @@ export interface Medecin {
     nom: string;
     prenom: string;
     fatigue: FatigueState;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 /**

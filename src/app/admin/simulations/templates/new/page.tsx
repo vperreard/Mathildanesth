@@ -52,7 +52,7 @@ export default function NewTemplatePage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleParametersChange = (key: string, value: any) => {
+    const handleParametersChange = (key: string, value: unknown) => {
         setFormData(prev => ({
             ...prev,
             parametersJson: {
@@ -100,7 +100,7 @@ export default function NewTemplatePage() {
 
             toast.success('Modèle créé avec succès');
             router.push('/admin/simulations/templates');
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast.error(`Erreur lors de la création du template: ${error.message}`);
         } finally {
             setIsSubmitting(false);

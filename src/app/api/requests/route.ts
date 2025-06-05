@@ -55,8 +55,8 @@ async function handler(req: NextRequest) {
       { error: 'Méthode non autorisée' },
       { status: 405 }
     );
-  } catch (error) {
-    logger.error('Erreur API requests:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur API requests:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }

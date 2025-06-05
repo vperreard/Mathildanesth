@@ -156,7 +156,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
 
                 if (start <= end) {
                     checkConflicts(start, end, leave?.id).catch((error) => {
-                        logger.error('Erreur lors de la vérification des conflits:', error);
+                        logger.error('Erreur lors de la vérification des conflits:', error instanceof Error ? error : new Error(String(error)));
                     });
                 }
             }
@@ -193,7 +193,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                 // Retirer l'erreur liée au quota si elle existait
                 setFormErrors(prev => prev.filter(err => !err.includes('Quota insuffisant')));
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la vérification des quotas:', err);
         }
     };
@@ -301,7 +301,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                 onSubmit(leave as Leave);
             }
 
-        } catch (error) {
+        } catch (error: unknown) {
             setFormErrors(prev => [...prev, `Erreur lors de la soumission: ${error instanceof Error ? error.message : String(error)}`]);
         }
     };
@@ -313,8 +313,8 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
             if (onSaveDraft) {
                 onSaveDraft(savedLeave);
             }
-        } catch (error) {
-            logger.error('Erreur lors de l\'enregistrement du brouillon:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'enregistrement du brouillon:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 
@@ -643,8 +643,8 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                                         if (onSubmit) {
                                             onSubmit(submittedLeave);
                                         }
-                                    } catch (error) {
-                                        logger.error('Erreur lors de la soumission de la demande:', error);
+                                    } catch (error: unknown) {
+                                        logger.error('Erreur lors de la soumission de la demande:', error instanceof Error ? error : new Error(String(error)));
                                     }
                                 }}
                                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

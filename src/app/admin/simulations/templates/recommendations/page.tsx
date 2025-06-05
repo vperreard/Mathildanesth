@@ -76,15 +76,15 @@ export default function TemplatesRecommendationsPage() {
             setFeaturedTemplates(['2', '5', '7']);
             setHiddenTemplates(['3', '9']);
 
-        } catch (error) {
-            logger.error('Erreur lors du chargement des données:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des données:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Erreur lors du chargement des données');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleSettingsChange = (key: string, value: any) => {
+    const handleSettingsChange = (key: string, value: unknown) => {
         setSettings(prev => {
             // Gérer les chemins imbriqués avec la notation point
             if (key.includes('.')) {
@@ -130,7 +130,7 @@ export default function TemplatesRecommendationsPage() {
             // Simuler un appel API pour sauvegarder les paramètres
             await new Promise(resolve => setTimeout(resolve, 1000));
             toast.success('Paramètres de recommandation enregistrés');
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error('Erreur lors de l\'enregistrement des paramètres');
         } finally {
             setIsSaving(false);

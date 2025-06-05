@@ -68,7 +68,7 @@ export async function GET(
     }
 
     return NextResponse.json(scenario);
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AuthenticationError) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -76,7 +76,7 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    logger.error(`Erreur lors de la récupération du scénario ${params.scenarioId}:`, error);
+    logger.error(`Erreur lors de la récupération du scénario ${params.scenarioId}:`, error instanceof Error ? error : new Error(String(error)));
     const errorMessage = error instanceof Error ? error.message : 'Erreur interne du serveur';
     return NextResponse.json(
       { error: 'Impossible de récupérer le scénario.', details: errorMessage },
@@ -140,7 +140,7 @@ export async function PUT(
     });
 
     return NextResponse.json(updatedScenario);
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AuthenticationError) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -148,7 +148,7 @@ export async function PUT(
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    logger.error(`Erreur lors de la mise à jour du scénario ${params.scenarioId}:`, error);
+    logger.error(`Erreur lors de la mise à jour du scénario ${params.scenarioId}:`, error instanceof Error ? error : new Error(String(error)));
     const errorMessage = error instanceof Error ? error.message : 'Erreur interne du serveur';
     return NextResponse.json(
       { error: 'Impossible de mettre à jour le scénario.', details: errorMessage },
@@ -202,7 +202,7 @@ export async function DELETE(
     });
 
     return NextResponse.json({ message: 'Scénario supprimé avec succès.' }, { status: 200 }); // ou 204 No Content
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AuthenticationError) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -220,7 +220,7 @@ export async function DELETE(
         { status: 409 }
       );
     }
-    logger.error(`Erreur lors de la suppression du scénario ${params.scenarioId}:`, error);
+    logger.error(`Erreur lors de la suppression du scénario ${params.scenarioId}:`, error instanceof Error ? error : new Error(String(error)));
     const errorMessage = error instanceof Error ? error.message : 'Erreur interne du serveur';
     return NextResponse.json(
       { error: 'Impossible de supprimer le scénario.', details: errorMessage },

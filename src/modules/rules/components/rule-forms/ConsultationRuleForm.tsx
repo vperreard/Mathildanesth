@@ -8,7 +8,7 @@ interface ConsultationRuleFormProps {
 
 export const ConsultationRuleForm: React.FC<ConsultationRuleFormProps> = ({ rule, onChange }) => {
     // Gérer les changements des champs spécifiques
-    const handleFieldChange = (field: string, value: any) => {
+    const handleFieldChange = (field: string, value: unknown) => {
         const updatedRule = { ...rule };
 
         // Mettre à jour le champ spécifique dans le bon sous-objet

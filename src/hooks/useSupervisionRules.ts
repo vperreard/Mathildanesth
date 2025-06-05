@@ -40,7 +40,7 @@ export const useSupervisionRules = (options: UseSupervisionRulesProps = {}): Use
             setError(null);
             const fetchedRules = blocPlanningService.getAllSupervisionRules();
             setRules(fetchedRules);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du chargement des règles de supervision:', err);
             setError('Impossible de charger les règles de supervision.');
         } finally {
@@ -61,7 +61,7 @@ export const useSupervisionRules = (options: UseSupervisionRulesProps = {}): Use
             const newRule = blocPlanningService.createSupervisionRule(rule);
             setRules(prevRules => [...prevRules, newRule]);
             return newRule;
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la création de la règle:', err);
             throw new Error('Impossible de créer la règle.');
         }
@@ -75,7 +75,7 @@ export const useSupervisionRules = (options: UseSupervisionRulesProps = {}): Use
                 setRules(prevRules => prevRules.map(r => r.id === id ? updatedRule : r));
             }
             return updatedRule;
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la mise à jour de la règle:', err);
             throw new Error('Impossible de mettre à jour la règle.');
         }
@@ -89,7 +89,7 @@ export const useSupervisionRules = (options: UseSupervisionRulesProps = {}): Use
                 setRules(prevRules => prevRules.filter(r => r.id !== id));
             }
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la suppression de la règle:', err);
             throw new Error('Impossible de supprimer la règle.');
         }
@@ -99,7 +99,7 @@ export const useSupervisionRules = (options: UseSupervisionRulesProps = {}): Use
     const validatePlanning = useCallback(async (planning: BlocDayPlanning): Promise<ValidationResult> => {
         try {
             return blocPlanningService.validateDayPlanning(planning);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la validation du planning:', err);
             throw new Error('Impossible de valider le planning.');
         }

@@ -92,8 +92,8 @@ export default function AdminLeavesPage() {
             const response = await axios.get('/api/conges', { params });
             setRequests(response.data);
             setLoading(false);
-        } catch (error) {
-            logger.error('Erreur lors du chargement des demandes de congés:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des demandes de congés:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Erreur lors du chargement des demandes de congés');
             setLoading(false);
         }
@@ -103,8 +103,8 @@ export default function AdminLeavesPage() {
         try {
             const response = await axios.get('/api/conges/types');
             setTypes(response.data);
-        } catch (error) {
-            logger.error('Erreur lors du chargement des types de congés:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des types de congés:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 
@@ -135,8 +135,8 @@ export default function AdminLeavesPage() {
             if (selectedRequest?.id === id) {
                 setSelectedRequest(prev => prev ? { ...prev, status: 'APPROVED' } : null);
             }
-        } catch (error) {
-            logger.error('Erreur lors de l\'approbation de la demande:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'approbation de la demande:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Erreur lors de l\'approbation de la demande');
         } finally {
             setProcessingId(null);
@@ -159,8 +159,8 @@ export default function AdminLeavesPage() {
             if (selectedRequest?.id === id) {
                 setSelectedRequest(prev => prev ? { ...prev, status: 'REJECTED' } : null);
             }
-        } catch (error) {
-            logger.error('Erreur lors du refus de la demande:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du refus de la demande:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Erreur lors du refus de la demande');
         } finally {
             setProcessingId(null);
@@ -205,7 +205,7 @@ export default function AdminLeavesPage() {
     const formatDate = (dateString: string) => {
         try {
             return format(new Date(dateString), 'dd MMM yyyy', { locale: fr });
-        } catch (error) {
+        } catch (error: unknown) {
             return dateString;
         }
     };

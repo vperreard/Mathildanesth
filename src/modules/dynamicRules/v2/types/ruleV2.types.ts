@@ -56,7 +56,7 @@ export interface TemplateParameter {
   label: string;
   description?: string;
   required: boolean;
-  default?: any;
+  default?: unknown;
   options?: Array<{ value: string; label: string }>;
   validation?: ParameterValidation;
 }
@@ -65,13 +65,13 @@ export interface ParameterValidation {
   min?: number;
   max?: number;
   pattern?: string;
-  custom?: (value: any) => boolean | string;
+  custom?: (value: unknown) => boolean | string;
 }
 
 export interface RuleExample {
   title: string;
   description: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   expectedBehavior: string;
 }
 
@@ -114,8 +114,8 @@ export interface RuleVersion {
 
 export interface RuleChange {
   field: string;
-  oldValue: any;
-  newValue: any;
+  oldValue: unknown;
+  newValue: unknown;
   type: 'add' | 'modify' | 'delete';
 }
 
@@ -164,10 +164,10 @@ export interface RuleBuilderState {
 export interface RuleEvaluationContext {
   userId: string;
   date: Date;
-  planning?: any;
-  leaves?: any;
-  attributions?: any;
-  metadata?: Record<string, any>;
+  planning?: unknown;
+  leaves?: unknown;
+  attributions?: unknown;
+  metadata?: Record<string, unknown>;
 }
 
 export interface RuleEvaluationResult {

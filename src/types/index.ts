@@ -6,7 +6,7 @@ export interface User {
     lastName: string;
     email?: string;
     role?: string;
-    [key: string]: any; // Pour les propriétés additionnelles
+    [key: string]: unknown; // Pour les propriétés additionnelles
 }
 
 export interface PaginatedResponse<T> {
@@ -24,7 +24,7 @@ export interface SortOptions {
 }
 
 export interface FilterOptions {
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface ApiResponse<T> {

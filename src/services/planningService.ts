@@ -34,8 +34,8 @@ export class PlanningService {
 
             logger.info('Attributions sauvegardés via API:', attributions);
             return true;
-        } catch (error) {
-            logger.error('Erreur lors de la sauvegarde des gardes/vacations via API:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde des gardes/vacations via API:', error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }
@@ -59,8 +59,8 @@ export class PlanningService {
             }
             const data = await response.json();
             return data.violations || []; // Assurer que violations est un tableau
-        } catch (error) {
-            logger.error('Erreur lors de la validation des gardes/vacations via API:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la validation des gardes/vacations via API:', error instanceof Error ? error : new Error(String(error)));
             // Renvoyer une structure d'erreur cohérente si nécessaire, ou lancer l'erreur
             throw error; // ou return [{ ruleId: 'API_ERROR', message: error.message, assignmentId: '' }];
         }
@@ -81,12 +81,12 @@ export class PlanningService {
             }
             const data = await response.json();
             // Assurer que les dates sont des objets Date
-            return (data.attributions || []).map((a: any) => ({
+            return (data.attributions || []).map((a: unknown) => ({
                 ...a,
                 date: new Date(a.date)
             }));
-        } catch (error) {
-            logger.error('Erreur lors de la récupération des gardes/vacations via API:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des gardes/vacations via API:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     }
@@ -99,7 +99,7 @@ export class PlanningService {
         // ... Logique serveur ...
     }
 
-    private static generateAffectationsFromTrame(trameModele: any,
+    private static generateAffectationsFromTrame(trameModele: unknown,
         startDate: Date,
         endDate: Date
     ): PlanningSlot[] {

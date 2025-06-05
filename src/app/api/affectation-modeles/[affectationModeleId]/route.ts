@@ -68,7 +68,7 @@ export async function PUT(
     // Logique de mise à jour pour personnelRequis (deleteMany + createMany or upsert)
     // C'est plus simple de supprimer les anciens et de recréer les nouveaux pour les besoins de personnel.
     const personnelRequisCreateData =
-      personnelRequis?.map((pr: any) => ({
+      personnelRequis?.map((pr: unknown) => ({
         roleGenerique: pr.roleGenerique,
         nombreRequis: pr.nombreRequis !== undefined ? parseInt(pr.nombreRequis) : 1,
         notes: pr.notes || undefined,
@@ -154,8 +154,8 @@ export async function PUT(
     );
     logger.info('--- PUT /api/affectation-modeles/[affectationModeleId] END ---\n');
     return NextResponse.json(updatedAffectationModele);
-  } catch (error) {
-    logger.error(`Error during PUT /api/affectation-modeles:`, error);
+  } catch (error: unknown) {
+    logger.error(`Error during PUT /api/affectation-modeles:`, error instanceof Error ? error : new Error(String(error)));
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2025') {
         logger.error(
@@ -254,7 +254,7 @@ export async function DELETE(
       { message: 'Affectation template supprimée avec succès' },
       { status: 200 }
     ); // ou 204 No Content
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(
       `DELETE /api/affectation-modeles/${affectationModeleId}: Error - ${error.message}`,
       { stack: error.stack }

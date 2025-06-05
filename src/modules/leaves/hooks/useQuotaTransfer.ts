@@ -67,7 +67,7 @@ export interface QuotaValidationResult {
     success?: boolean; // Pour compatibilité avec l'API quotaService
     message: string;
     validationCode?: string;
-    details?: Record<string, any>;
+    details?: Record<string, unknown>;
     sourceAmount?: number;
     targetAmount?: number;
     sourceRemaining?: number;
@@ -78,7 +78,7 @@ export interface QuotaValidationResult {
  * Résultat de la simulation d'un transfert
  */
 export interface TransferPreviewResult extends QuotaValidationResult {
-    applicableRules?: any[];
+    applicableRules?: unknown[];
     transferRatio?: number;
     sourceLabel?: string;
     targetLabel?: string;
@@ -105,7 +105,7 @@ export interface UseQuotaTransferReturn {
     loading: boolean;
     error: Error | null;
     simulationResult: SimulationResult | null;
-    transferHistory: any[];
+    transferHistory: unknown[];
     simulateTransfer: (fromType: LeaveType, toType: LeaveType, days: number) => Promise<void>;
     transferQuota: (fromType: LeaveType, toType: LeaveType, days: number, reason: string) => Promise<boolean>;
     fetchTransferHistory: () => Promise<void>;
@@ -127,7 +127,7 @@ Contenu original du fichier useQuotaTransfer.ts était ici...
 */
 
 // Retourner un hook vide pour éviter les erreurs d'importation
-export const useQuotaTransfer = (options?: any): any => {
+export const useQuotaTransfer = (options?: unknown): any => {
     logger.warn("Hook useQuotaTransfer est commenté et doit être refactorisé.");
     return {
         rules: [],

@@ -47,7 +47,7 @@ const POSTE_TYPE = 'poste';
 interface DraggablePosteProps {
     poste: PosteConfiguration;
     index: number;
-    onUpdate: (posteId: string, field: keyof PosteConfiguration, value: any) => void;
+    onUpdate: (posteId: string, field: keyof PosteConfiguration, value: unknown) => void;
     onDelete: (posteId: string) => void;
     movePoste: (dragIndex: number, hoverIndex: number) => void;
 }
@@ -259,7 +259,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectati
     }, [config.heureDebut, config.heureFin]);
 
     // Gestion des changements de la configuration globale
-    const handleConfigChange = (field: keyof AffectationConfiguration, value: any) => {
+    const handleConfigChange = (field: keyof AffectationConfiguration, value: unknown) => {
         logger.info('[AssignmentConfigPanel DEBUG] handleConfigChange - Field:', field, 'Value:', value);
         logger.info('[AssignmentConfigPanel DEBUG] État actuel de config avant mise à jour:', JSON.stringify(config, null, 2));
 
@@ -285,7 +285,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectati
     };
 
     // Gestion des changements pour le nouveau poste
-    const handleNewPosteChange = (field: keyof PosteConfiguration, value: any) => {
+    const handleNewPosteChange = (field: keyof PosteConfiguration, value: unknown) => {
         setNewPoste(prev => {
             const updatedNewPoste = { ...prev, [field]: value };
             logger.info('[AssignmentConfigPanel DEBUG] handleNewPosteChange - Field:', field, 'Value:', value, 'New newPoste state:', updatedNewPoste);
@@ -355,7 +355,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectati
     };
 
     // Mettre à jour un poste existant
-    const handleUpdatePoste = (posteId: string, field: keyof PosteConfiguration, value: any) => {
+    const handleUpdatePoste = (posteId: string, field: keyof PosteConfiguration, value: unknown) => {
         logger.info('[AssignmentConfigPanel DEBUG] handleUpdatePoste - Poste ID:', posteId, 'Field:', field, 'Value:', value);
         setConfig(prev => {
             if (!prev) return prev;

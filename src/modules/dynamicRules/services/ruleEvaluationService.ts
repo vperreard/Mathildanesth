@@ -20,7 +20,7 @@ export class RuleEvaluationService {
     async evaluateRules(context: ScheduleContext): Promise<RuleEvaluationResult[]> {
         try {
             return await this.ruleService.evaluateRules(context);
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error('Erreur lors de l\'évaluation des règles', { error, context });
             return [];
         }
@@ -83,7 +83,7 @@ export class RuleEvaluationService {
      * @param generationContext Contexte de génération
      * @returns Contexte de génération modifié
      */
-    async applyRulesToGeneration(generationContext: any): Promise<any> {
+    async applyRulesToGeneration(generationContext: unknown): Promise<unknown> {
         const attributions = generationContext.attributions || [];
         const modifiedAssignments = [...attributions];
 
@@ -164,7 +164,7 @@ export class RuleEvaluationService {
      * @param attributions Affectations à optimiser
      * @returns Affectations optimisées
      */
-    private applyAdvancedOptimizations(attributions: any[]): any[] {
+    private applyAdvancedOptimizations(attributions: unknown[]): unknown[] {
         // Copie pour éviter la mutation directe
         const optimizedAssignments = [...attributions];
 
@@ -180,7 +180,7 @@ export class RuleEvaluationService {
      * Optimise la répartition de la charge de travail
      * @param attributions Affectations à optimiser
      */
-    private balanceWorkload(attributions: any[]): void {
+    private balanceWorkload(attributions: unknown[]): void {
         // Compter les affectations par utilisateur
         const userAssignmentCounts = new Map<number, number>();
 

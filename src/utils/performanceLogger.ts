@@ -82,7 +82,7 @@ export class PerformanceLogger {
             const result = await fn();
             this.endTimer(name);
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             this.endTimer(name, 'erreur');
             throw error;
         }

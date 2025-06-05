@@ -22,7 +22,7 @@ export const CalendarSettings = memo(({
     const [timeFormat, setTimeFormat] = useState(userSettings?.timeFormat || '24h');
 
     // Handler optimisé avec debounce intégré pour les changements de paramètres
-    const handleUserSettingChange = useCallback((key: keyof UserCalendarSettings, value: any) => {
+    const handleUserSettingChange = useCallback((key: keyof UserCalendarSettings, value: unknown) => {
         // Mise à jour de l'état local immédiatement
         switch (key) {
             case 'showWeekends':

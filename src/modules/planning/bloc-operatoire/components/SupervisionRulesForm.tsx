@@ -148,7 +148,7 @@ export const SupervisionRulesForm: React.FC<SupervisionRulesFormProps> = ({
             setSectors(allSectors);
 
             setError(null);
-        } catch (err) {
+        } catch (err: unknown) {
             setError("Erreur lors du chargement des secteurs");
             logger.error(err);
         } finally {
@@ -177,7 +177,7 @@ export const SupervisionRulesForm: React.FC<SupervisionRulesFormProps> = ({
             }
 
             setError(null);
-        } catch (err) {
+        } catch (err: unknown) {
             setError("Erreur lors de l'enregistrement de la règle de supervision");
             logger.error(err);
         } finally {

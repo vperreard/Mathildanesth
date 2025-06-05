@@ -62,8 +62,8 @@ export const useNotifications = (type?: string) => {
             }
 
             return await response.json();
-        } catch (error) {
-            logger.error('Erreur lors du marquage de la notification comme lue:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du marquage de la notification comme lue:', error instanceof Error ? error : new Error(String(error)));
             return null;
         }
     }, [user]);
@@ -106,8 +106,8 @@ export const useNotifications = (type?: string) => {
             }
 
             return await response.json();
-        } catch (error) {
-            logger.error('Erreur lors de la récupération des notifications:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des notifications:', error instanceof Error ? error : new Error(String(error)));
             return { notifications: [], unreadCount: 0 };
         }
     }, [user]);

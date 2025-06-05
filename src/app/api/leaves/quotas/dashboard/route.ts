@@ -317,8 +317,8 @@ export async function GET(req: NextRequest) {
             carryOverStats,
             topUsers
         });
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des données du dashboard:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des données du dashboard:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des données' },
             { status: 500 }

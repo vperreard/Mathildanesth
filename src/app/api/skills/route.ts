@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         response.headers.set('X-Total-Count', skills.length.toString());
         
         return response;
-    } catch (error) {
+    } catch (error: unknown) {
         return handleApiError(error, "Erreur lors de la récupération des compétences.");
     }
 }
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(newSkill, { status: 201 });
-    } catch (error) {
+    } catch (error: unknown) {
         return handleApiError(error, "Erreur lors de la création de la compétence.");
     }
 } 

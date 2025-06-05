@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
     logger.info('--- GET /api/notifications/preferences END ---\n');
 
     return NextResponse.json(preferences);
-  } catch (error: any) {
-    logger.error('GET /api/notifications/preferences: Erreur serveur', error);
+  } catch (error: unknown) {
+    logger.error('GET /api/notifications/preferences: Erreur serveur', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         error: 'Erreur lors de la récupération des préférences de notifications',
@@ -92,7 +92,7 @@ export async function PUT(request: NextRequest) {
       'quietHoursDays',
     ];
 
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, unknown> = {};
     Object.keys(body).forEach(key => {
       if (validFields.includes(key)) {
         updateData[key] = body[key];
@@ -126,8 +126,8 @@ export async function PUT(request: NextRequest) {
     logger.info('--- PUT /api/notifications/preferences END ---\n');
 
     return NextResponse.json(preferences);
-  } catch (error: any) {
-    logger.error('PUT /api/notifications/preferences: Erreur serveur', error);
+  } catch (error: unknown) {
+    logger.error('PUT /api/notifications/preferences: Erreur serveur', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         error: 'Erreur lors de la mise à jour des préférences de notifications',

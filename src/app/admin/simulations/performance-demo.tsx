@@ -43,8 +43,8 @@ export default function PerformanceDemoPage() {
                 const response = await fetch('http://localhost:3000/api/simulations/scenarios');
                 const data = await response.json();
                 setScenarios(data.data || []);
-            } catch (error) {
-                logger.error('Erreur lors du chargement des scénarios:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors du chargement des scénarios:', error instanceof Error ? error : new Error(String(error)));
                 toast.error('Erreur lors du chargement des scénarios');
             } finally {
                 setIsLoadingScenarios(false);
@@ -104,8 +104,8 @@ export default function PerformanceDemoPage() {
             ]);
 
             toast.success(`Simulation terminée en ${executionTime / 1000} secondes`);
-        } catch (error: any) {
-            logger.error('Erreur lors de la simulation:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la simulation:', error instanceof Error ? error : new Error(String(error)));
             toast.error(error.message || 'Erreur lors de la simulation');
         } finally {
             setIsRunning(false);

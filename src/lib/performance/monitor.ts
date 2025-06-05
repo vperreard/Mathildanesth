@@ -10,7 +10,7 @@ interface PerformanceMeasure {
     startTime: number;
     endTime?: number;
     duration?: number;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 class PerformanceMonitor {
@@ -20,7 +20,7 @@ class PerformanceMonitor {
     /**
      * Démarre une mesure de performance
      */
-    startMeasure(id: string, metadata?: Record<string, any>): string {
+    startMeasure(id: string, metadata?: Record<string, unknown>): string {
         if (!this.enabled) return id;
 
         const measure: PerformanceMeasure = {
@@ -65,14 +65,14 @@ class PerformanceMonitor {
     async measureAsync<T>(
         id: string,
         fn: () => Promise<T>,
-        metadata?: Record<string, any>
+        metadata?: Record<string, unknown>
     ): Promise<T> {
         const measureId = this.startMeasure(id, metadata);
         try {
             const result = await fn();
             this.endMeasure(measureId);
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             this.endMeasure(measureId);
             throw error;
         }

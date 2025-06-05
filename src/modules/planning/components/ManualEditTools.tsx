@@ -79,8 +79,8 @@ export default function ManualEditTools({
             }
             setValidationResult(null);
             setActiveTab('attribution');
-        } catch (error) {
-            logger.error('Erreur lors de la modification de l\'affectation:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la modification de l\'affectation:', error instanceof Error ? error : new Error(String(error)));
         } finally {
             setIsLoading(false);
         }

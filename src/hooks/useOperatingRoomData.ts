@@ -42,7 +42,7 @@ export function useOperatingRoomData(): [OperatingRoomDataState, OperatingRoomDa
                 rooms,
                 isLoading: false
             }));
-        } catch (error) {
+        } catch (error: unknown) {
             setState(prev => ({
                 ...prev,
                 isLoading: false,
@@ -59,7 +59,7 @@ export function useOperatingRoomData(): [OperatingRoomDataState, OperatingRoomDa
             const room = await blocPlanningService.getOperatingRoomById(id);
             setState(prev => ({ ...prev, isLoading: false }));
             return room;
-        } catch (error) {
+        } catch (error: unknown) {
             setState(prev => ({
                 ...prev,
                 isLoading: false,
@@ -81,7 +81,7 @@ export function useOperatingRoomData(): [OperatingRoomDataState, OperatingRoomDa
                 isLoading: false
             }));
             return newRoom;
-        } catch (error) {
+        } catch (error: unknown) {
             const errorObj = error instanceof Error ? error : new Error('Erreur lors de la création de la salle');
             setState(prev => ({
                 ...prev,
@@ -108,7 +108,7 @@ export function useOperatingRoomData(): [OperatingRoomDataState, OperatingRoomDa
             }
 
             return updatedRoom;
-        } catch (error) {
+        } catch (error: unknown) {
             setState(prev => ({
                 ...prev,
                 isLoading: false,
@@ -134,7 +134,7 @@ export function useOperatingRoomData(): [OperatingRoomDataState, OperatingRoomDa
             }
 
             return success;
-        } catch (error) {
+        } catch (error: unknown) {
             setState(prev => ({
                 ...prev,
                 isLoading: false,
@@ -155,7 +155,7 @@ export function useOperatingRoomData(): [OperatingRoomDataState, OperatingRoomDa
                 sectors,
                 isLoading: false
             }));
-        } catch (error) {
+        } catch (error: unknown) {
             setState(prev => ({
                 ...prev,
                 isLoading: false,

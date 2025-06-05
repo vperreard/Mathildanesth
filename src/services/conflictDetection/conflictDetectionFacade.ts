@@ -17,7 +17,7 @@ export interface ConflictCheckOptions {
     userId?: string;
     teamId?: string;
     severityThreshold?: ConflictSeverity;
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
 }
 
 // Résultat global de détection de conflits
@@ -118,8 +118,8 @@ export class ConflictDetectionFacade {
                     const result = await service.checkConflicts(startDate, endDate, options);
                     sources.push(service.getServiceName());
                     return result;
-                } catch (error) {
-                    logger.error(`Erreur dans le service ${service.getServiceName()}:`, error);
+                } catch (error: unknown) {
+                    logger.error(`Erreur dans le service ${service.getServiceName()}:`, error instanceof Error ? error : new Error(String(error)));
                     return null;
                 }
             })

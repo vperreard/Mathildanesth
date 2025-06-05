@@ -104,7 +104,7 @@ export function useOperatingRoomPlanning(
             }
 
             return [dayPlanning, cancel];
-        } catch (error) {
+        } catch (error: unknown) {
             if (!signal.aborted) {
                 const errorObj = error instanceof Error ? error : new Error('Erreur lors du chargement du planning');
                 setState(prev => ({
@@ -153,7 +153,7 @@ export function useOperatingRoomPlanning(
             }
 
             return [validationResult, cancel];
-        } catch (error) {
+        } catch (error: unknown) {
             if (!signal.aborted) {
                 const errorObj = error instanceof Error ? error : new Error('Erreur lors de la validation du planning');
                 setState(prev => ({
@@ -227,7 +227,7 @@ export function useOperatingRoomPlanning(
             }
 
             return [null, cancel];
-        } catch (error) {
+        } catch (error: unknown) {
             if (!signal.aborted) {
                 const errorObj = error instanceof Error ? error : new Error('Erreur lors de la sauvegarde du planning');
                 setState(prev => ({

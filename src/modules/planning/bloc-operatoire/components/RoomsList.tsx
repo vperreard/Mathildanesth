@@ -19,9 +19,9 @@ interface RoomsListProps {
     sectors: OperatingSector[];
     isLoading: boolean;
     error: string | null;
-    onEdit: (id: number, data: any) => Promise<void>;
+    onEdit: (id: number, data: unknown) => Promise<void>;
     onDelete: (id: number) => Promise<void>;
-    onAdd: (data: any) => Promise<void>;
+    onAdd: (data: unknown) => Promise<void>;
 }
 
 export function RoomsList({ rooms, sectors, isLoading, error, onEdit, onDelete, onAdd }: RoomsListProps) {
@@ -66,7 +66,7 @@ export function RoomsList({ rooms, sectors, isLoading, error, onEdit, onDelete, 
         setRoomToEdit(undefined);
     };
 
-    const handleSaveRoom = async (data: any) => {
+    const handleSaveRoom = async (data: unknown) => {
         try {
             if (roomToEdit?.id) {
                 await onEdit(roomToEdit.id, data);
@@ -76,7 +76,7 @@ export function RoomsList({ rooms, sectors, isLoading, error, onEdit, onDelete, 
                 toast({ title: "Salle ajoutée", description: `La salle ${data.name} a été ajoutée.` });
             }
             handleCloseModal();
-        } catch (err) {
+        } catch (err: unknown) {
             toast({ title: "Erreur", description: "Impossible de sauvegarder la salle.", variant: "destructive" });
             logger.error(err);
         }
@@ -88,7 +88,7 @@ export function RoomsList({ rooms, sectors, isLoading, error, onEdit, onDelete, 
                 await onDelete(roomToDelete.id);
                 toast({ title: "Salle supprimée", description: `La salle ${roomToDelete.name} a été supprimée.` });
                 setRoomToDelete(undefined);
-            } catch (err) {
+            } catch (err: unknown) {
                 toast({ title: "Erreur", description: "Impossible de supprimer la salle.", variant: "destructive" });
                 logger.error(err);
             }

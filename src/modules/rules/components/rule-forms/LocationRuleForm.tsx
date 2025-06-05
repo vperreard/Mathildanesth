@@ -20,7 +20,7 @@ export const LocationRuleForm: React.FC<LocationRuleFormProps> = ({ rule, onChan
         }
     }, [rule.configuration]);
 
-    const handleConfigChange = (field: string, value: any) => {
+    const handleConfigChange = (field: string, value: unknown) => {
         const updatedConfig = { ...locationConfig, [field]: value };
         setLocationConfig(updatedConfig);
 

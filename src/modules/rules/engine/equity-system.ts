@@ -50,7 +50,7 @@ export interface PlanningContext {
     heuresParMedecin: Map<string, number>;
     weekendsParMedecin: Map<string, number>;
     fetesParMedecin: Map<string, number>;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 /**

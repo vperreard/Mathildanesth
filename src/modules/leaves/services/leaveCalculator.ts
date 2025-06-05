@@ -345,7 +345,7 @@ export const calculateLeaveCountedDays = async (
 
         logger.info('Leave counted days calculation successful', { countedDays: result.countedDays, workDays: result.workDays, scheduleId: planningMedical.id });
         return result;
-    } catch (error) {
+    } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error(`Erreur lors du calcul des jours de congés: ${errorMessage}`, {
             startDate: startDateInput,
@@ -433,7 +433,7 @@ export const calculateWorkingDays = async (
 
         logger.info(`Working days calculated: ${workingDays}`);
         return workingDays;
-    } catch (error) {
+    } catch (error: unknown) {
         const errorObj = error instanceof Error ? error : new Error(String(error));
         logger.error('Error calculating working days', { error: errorObj.message, stack: errorObj.stack });
         return null;
@@ -471,7 +471,7 @@ export const isBusinessDay = async (
         const isHoliday = await publicHolidayService.isPublicHoliday(dateObj);
         logger.info(`Result for ${formatDate(dateObj)}: isWeekend=${isDateWeekend(dateObj)}, isHoliday=${isHoliday}`);
         return !isDateWeekend(dateObj) && !isHoliday;
-    } catch (error) {
+    } catch (error: unknown) {
         const errorObj = error instanceof Error ? error : new Error(String(error));
         logger.error(`Erreur lors de la vérification de jour ouvrable: ${errorObj.message}`, {
             date,

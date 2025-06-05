@@ -22,7 +22,7 @@ export function useDepartments() {
                 const response = await apiClient.get('/api/departments');
                 setDepartments(response.data);
                 setError(null);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 logger.error('Erreur lors du chargement des départements:', err);
                 setError(err instanceof Error ? err : new Error('Erreur lors du chargement des départements'));
                 // En cas d'erreur, utiliser des données de fallback pour pouvoir continuer à utiliser l'UI

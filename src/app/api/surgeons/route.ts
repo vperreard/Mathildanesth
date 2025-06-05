@@ -10,7 +10,7 @@ export async function GET() {
             }
         });
         return NextResponse.json(surgeons);
-    } catch (error: any) {
+    } catch (error: unknown) {
         return NextResponse.json({ error: error.message || 'Erreur lors de la récupération des chirurgiens' }, { status: 500 });
     }
 } 

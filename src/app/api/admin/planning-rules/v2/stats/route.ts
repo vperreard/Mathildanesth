@@ -204,8 +204,8 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(stats);
 
-    } catch (error) {
-        logger.error('Error fetching rule stats:', error);
+    } catch (error: unknown) {
+        logger.error('Error fetching rule stats:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

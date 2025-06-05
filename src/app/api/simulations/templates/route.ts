@@ -50,8 +50,8 @@ export async function GET(req: Request) {
         });
 
         return NextResponse.json(templates);
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des templates de simulation:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des templates de simulation:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }
@@ -97,8 +97,8 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(template, { status: 201 });
-    } catch (error) {
-        logger.error('Erreur lors de la création du template de simulation:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création du template de simulation:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }

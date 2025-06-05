@@ -14,7 +14,7 @@ export interface SimulationTemplate {
         id: number;
         name: string;
     };
-    parametersJson: any;
+    parametersJson: unknown;
 }
 
 // Type pour la personnalisation du modèle
@@ -43,8 +43,8 @@ export async function fetchTemplates(): Promise<SimulationTemplate[]> {
     try {
         const response = await axios.get('http://localhost:3000/api/simulations/modèles');
         return response.data.data || [];
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des modèles:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des modèles:', error instanceof Error ? error : new Error(String(error)));
         throw new Error('Impossible de récupérer les modèles');
     }
 }
@@ -56,8 +56,8 @@ export async function fetchTemplate(id: string): Promise<SimulationTemplate> {
     try {
         const response = await axios.get(`http://localhost:3000/api/simulations/modèles/${id}`);
         return response.data.data;
-    } catch (error) {
-        logger.error(`Erreur lors de la récupération du modèle ${id}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur lors de la récupération du modèle ${id}:`, error instanceof Error ? error : new Error(String(error)));
         throw new Error('Modèle non trouvé');
     }
 }
@@ -69,8 +69,8 @@ export async function createTemplate(templateData: Partial<SimulationTemplate>):
     try {
         const response = await axios.post('http://localhost:3000/api/simulations/modèles', templateData);
         return response.data.data;
-    } catch (error) {
-        logger.error('Erreur lors de la création du modèle:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création du modèle:', error instanceof Error ? error : new Error(String(error)));
         throw new Error('Impossible de créer le modèle');
     }
 }
@@ -82,8 +82,8 @@ export async function updateTemplate(id: string, updates: Partial<SimulationTemp
     try {
         const response = await axios.put(`http://localhost:3000/api/simulations/modèles/${id}`, updates);
         return response.data.data;
-    } catch (error) {
-        logger.error(`Erreur lors de la mise à jour du modèle ${id}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur lors de la mise à jour du modèle ${id}:`, error instanceof Error ? error : new Error(String(error)));
         throw new Error('Impossible de mettre à jour le modèle');
     }
 }
@@ -94,8 +94,8 @@ export async function updateTemplate(id: string, updates: Partial<SimulationTemp
 export async function deleteTemplate(id: string): Promise<void> {
     try {
         await axios.delete(`http://localhost:3000/api/simulations/modèles/${id}`);
-    } catch (error) {
-        logger.error(`Erreur lors de la suppression du modèle ${id}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur lors de la suppression du modèle ${id}:`, error instanceof Error ? error : new Error(String(error)));
         throw new Error('Impossible de supprimer le modèle');
     }
 }
@@ -110,8 +110,8 @@ export async function duplicateTemplate(id: string, newName: string): Promise<Si
             name: newName
         });
         return response.data.data;
-    } catch (error) {
-        logger.error(`Erreur lors de la duplication du modèle ${id}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur lors de la duplication du modèle ${id}:`, error instanceof Error ? error : new Error(String(error)));
         throw new Error('Impossible de dupliquer le modèle');
     }
 }
@@ -149,8 +149,8 @@ export async function prepareTemplateForScenario(templateId: string) {
             modèle,
             baseScenarioData
         };
-    } catch (error) {
-        logger.error(`Erreur lors de la préparation du scénario à partir du modèle ${templateId}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur lors de la préparation du scénario à partir du modèle ${templateId}:`, error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 }
@@ -158,7 +158,7 @@ export async function prepareTemplateForScenario(templateId: string) {
 /**
  * Crée un scénario personnalisé à partir d'un modèle
  */
-export async function createScenarioFromTemplate(templateId: string, customization?: TemplateCustomization | any): Promise<any> {
+export async function createScenarioFromTemplate(templateId: string, customization?: TemplateCustomization | any): Promise<unknown> {
     try {
         const modèle = await fetchTemplate(templateId);
 
@@ -212,8 +212,8 @@ export async function createScenarioFromTemplate(templateId: string, customizati
         }
 
         return await response.json();
-    } catch (error) {
-        logger.error(`Erreur lors de la création du scénario à partir du modèle ${templateId}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur lors de la création du scénario à partir du modèle ${templateId}:`, error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 } 

@@ -42,7 +42,7 @@ interface TemplateApplicatorProps {
     templates?: TrameTemplate[];
     selectedWeek?: Date;
     onApply?: (templateId: number, options: ApplicationOptions) => Promise<void>;
-    onPreview?: (templateId: number, options: ApplicationOptions) => Promise<any>;
+    onPreview?: (templateId: number, options: ApplicationOptions) => Promise<unknown>;
     isLoading?: boolean;
     className?: string;
 }
@@ -140,8 +140,8 @@ export const TemplateApplicator: React.FC<TemplateApplicatorProps> = ({
             const results = await onPreview(selectedTemplateId, options);
             setPreviewResults(results);
             setShowPreview(true);
-        } catch (error) {
-            logger.error('Erreur lors de la prévisualisation:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la prévisualisation:', error instanceof Error ? error : new Error(String(error)));
         }
     }, [selectedTemplateId, options, onPreview]);
 
@@ -151,14 +151,14 @@ export const TemplateApplicator: React.FC<TemplateApplicatorProps> = ({
         setIsApplying(true);
         try {
             await onApply(selectedTemplateId, { ...options, dryRun: false });
-        } catch (error) {
-            logger.error('Erreur lors de l\'application:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'application:', error instanceof Error ? error : new Error(String(error)));
         } finally {
             setIsApplying(false);
         }
     }, [selectedTemplateId, options, onApply]);
 
-    const updateOptions = useCallback((key: keyof ApplicationOptions, value: any) => {
+    const updateOptions = useCallback((key: keyof ApplicationOptions, value: unknown) => {
         setOptions(prev => ({ ...prev, [key]: value }));
         setPreviewResults(null);
         setShowPreview(false);

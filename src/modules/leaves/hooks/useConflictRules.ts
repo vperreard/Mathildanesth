@@ -44,7 +44,7 @@ export const useConflictRules = (): UseConflictRulesReturn => {
             const data: ConflictRules = await response.json();
             setRules(data);
             return data;
-        } catch (err) {
+        } catch (err: unknown) {
             const errorObject = err instanceof Error ? err : new Error('Erreur lors de la récupération des règles');
             setError(errorObject);
             throw errorObject;
@@ -81,7 +81,7 @@ export const useConflictRules = (): UseConflictRulesReturn => {
             const data: ConflictRules = await response.json();
             setRules(data);
             return data;
-        } catch (err) {
+        } catch (err: unknown) {
             const errorObject = err instanceof Error ? err : new Error('Erreur lors de la mise à jour des règles');
             setError(errorObject);
             throw errorObject;
@@ -153,7 +153,7 @@ export const useConflictRules = (): UseConflictRulesReturn => {
             const data: ConflictRules = await response.json();
             setRules(data);
             return data;
-        } catch (err) {
+        } catch (err: unknown) {
             const errorObject = err instanceof Error ? err : new Error('Erreur lors de la réinitialisation des règles');
             setError(errorObject);
             throw errorObject;
@@ -229,7 +229,7 @@ export const useConflictRules = (): UseConflictRulesReturn => {
     // Charger les règles au montage du composant
     useEffect(() => {
         fetchRules().catch(error => {
-            logger.error('Erreur lors du chargement initial des règles:', error);
+            logger.error('Erreur lors du chargement initial des règles:', error instanceof Error ? error : new Error(String(error)));
         });
     }, [fetchRules]);
 

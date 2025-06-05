@@ -117,7 +117,7 @@ export class RuleEngineService {
      * @param ruleTypes Types de règles spécifiques à évaluer
      * @returns Résultats de l'évaluation des règles
      */
-    public evaluateRules(context: Record<string, any>, ruleTypes?: string[]): RuleEvaluationResult[] {
+    public evaluateRules(context: Record<string, unknown>, ruleTypes?: string[]): RuleEvaluationResult[] {
         const applicableRules = this.getApplicableRules(context, ruleTypes);
         const results: RuleEvaluationResult[] = [];
 
@@ -138,7 +138,7 @@ export class RuleEngineService {
     /**
      * Obtient les règles applicables dans un contexte donné
      */
-    private getApplicableRules(context: Record<string, any>, ruleTypes?: string[]): Rule[] {
+    private getApplicableRules(context: Record<string, unknown>, ruleTypes?: string[]): Rule[] {
         return this.rules.filter(rule => {
             // Ne considérer que les règles activées
             if (!rule.enabled) return false;
@@ -162,7 +162,7 @@ export class RuleEngineService {
     /**
      * Évalue une règle dans un contexte donné
      */
-    private evaluateRule(rule: Rule, context: Record<string, any>): RuleEvaluationResult {
+    private evaluateRule(rule: Rule, context: Record<string, unknown>): RuleEvaluationResult {
         const result: RuleEvaluationResult = {
             ruleId: rule.id,
             ruleName: rule.name,
@@ -224,9 +224,9 @@ export class RuleEngineService {
                     this.cachedEvaluations.delete(oldestKey);
                 }
             }
-        } catch (error) {
+        } catch (error: unknown) {
             result.error = error as Error;
-            logger.error(`Erreur lors de l'évaluation de la règle ${rule.id}:`, error);
+            logger.error(`Erreur lors de l'évaluation de la règle ${rule.id}:`, error instanceof Error ? error : new Error(String(error)));
         }
 
         return result;
@@ -237,7 +237,7 @@ export class RuleEngineService {
      */
     private evaluateConditions(
         conditions: RuleCondition[],
-        context: Record<string, any>,
+        context: Record<string, unknown>,
         operator: LogicalOperator,
         result: RuleEvaluationResult
     ): boolean {
@@ -279,7 +279,7 @@ export class RuleEngineService {
     /**
      * Évalue les groupes de conditions d'une règle
      */
-    private evaluateConditionGroups(rule: Rule, context: Record<string, any>, result: RuleEvaluationResult): boolean {
+    private evaluateConditionGroups(rule: Rule, context: Record<string, unknown>, result: RuleEvaluationResult): boolean {
         if (!rule.conditionGroups || rule.conditionGroups.length === 0) {
             return this.evaluateConditions(rule.conditions, context, LogicalOperator.AND, result);
         }
@@ -307,7 +307,7 @@ export class RuleEngineService {
     private evaluateConditionGroup(
         group: { id: string; conditions: RuleCondition[]; operator: LogicalOperator },
         allGroups: { id: string; conditions: RuleCondition[]; operator: LogicalOperator; parent?: string }[],
-        context: Record<string, any>,
+        context: Record<string, unknown>,
         result: RuleEvaluationResult
     ): boolean {
         // Évaluer d'abord ce groupe
@@ -334,9 +334,9 @@ export class RuleEngineService {
     /**
      * Évalue une condition individuelle
      */
-    private evaluateCondition(condition: RuleCondition, context: Record<string, any>): boolean {
+    private evaluateCondition(condition: RuleCondition, context: Record<string, unknown>): boolean {
         let result = false;
-        let fieldValue: any;
+        let fieldValue: unknown;
 
         // Récupérer la valeur du champ dans le contexte
         try {
@@ -345,8 +345,8 @@ export class RuleEngineService {
                 (obj && obj[key] !== undefined) ? obj[key] : undefined,
                 context
             );
-        } catch (error) {
-            logger.error(`Erreur lors de l'accès au champ ${condition.field}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de l'accès au champ ${condition.field}:`, error instanceof Error ? error : new Error(String(error)));
             fieldValue = undefined;
         }
 
@@ -430,7 +430,7 @@ export class RuleEngineService {
     /**
      * Exécute une action de règle
      */
-    private executeAction(action: RuleAction, context: Record<string, any>): boolean {
+    private executeAction(action: RuleAction, context: Record<string, unknown>): boolean {
         try {
             // Tracer l'exécution si activé
             if (this.options.traceExecution) {
@@ -517,8 +517,8 @@ export class RuleEngineService {
             }
 
             return true;
-        } catch (error) {
-            logger.error(`Erreur lors de l'exécution de l'action ${action.id}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de l'exécution de l'action ${action.id}:`, error instanceof Error ? error : new Error(String(error)));
 
             // Exécuter l'action de fallback si spécifiée
             if (action.fallbackAction) {
@@ -547,7 +547,7 @@ export class RuleEngineService {
     /**
      * Définit une valeur dans le contexte (supporte la notation pointée)
      */
-    private setValueInContext(context: Record<string, any>, path: string, value: any): void {
+    private setValueInContext(context: Record<string, unknown>, path: string, value: unknown): void {
         const parts = path.split('.');
         let current = context;
 
@@ -567,7 +567,7 @@ export class RuleEngineService {
      * Note: Dans un environnement de production, il faudrait utiliser une bibliothèque
      * d'évaluation sécurisée pour éviter les injections de code
      */
-    private evaluateFormula(formula: string, context: Record<string, any>): any {
+    private evaluateFormula(formula: string, context: Record<string, unknown>): any {
         // Cette implémentation est simplifiée et non sécurisée
         // Remplacer les références aux champs par leurs valeurs
         const evaluableFormula = formula.replace(/\$\{([^}]+)\}/g, (match, path) => {
@@ -577,7 +577,7 @@ export class RuleEngineService {
                     context
                 );
                 return JSON.stringify(value);
-            } catch (e) {
+            } catch (e: unknown) {
                 return 'undefined';
             }
         });
@@ -585,8 +585,8 @@ export class RuleEngineService {
         try {
             // eslint-disable-next-line no-eval
             return eval(evaluableFormula);
-        } catch (error) {
-            logger.error(`Erreur lors de l'évaluation de la formule ${formula}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de l'évaluation de la formule ${formula}:`, error instanceof Error ? error : new Error(String(error)));
             return null;
         }
     }
@@ -594,7 +594,7 @@ export class RuleEngineService {
     /**
      * Génère une clé de cache unique pour une règle et un contexte
      */
-    private generateCacheKey(ruleId: string, context: Record<string, any>): string {
+    private generateCacheKey(ruleId: string, context: Record<string, unknown>): string {
         // Simplification: utilisation d'un hachage simple du contexte
         const contextHash = JSON.stringify(context);
         return `${ruleId}:${contextHash}`;

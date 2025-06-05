@@ -92,8 +92,8 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
             }
 
             return violations;
-        } catch (error) {
-            logger.error('Error validating attribution:', error);
+        } catch (error: unknown) {
+            logger.error('Error validating attribution:', error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }, [isInitializing, createRuleContext, ruleEngine]);
@@ -139,7 +139,7 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
                     warnings: violations.filter(v => v.severity === RuleSeverity.WARNING).length
                 }
             };
-        } catch (error) {
+        } catch (error: unknown) {
             const err = error as Error;
             setValidationState(prev => ({ 
                 ...prev, 
@@ -216,7 +216,7 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
 }
 
 // Fonction utilitaire de debounce
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (...args: unknown[]) => any>(
     func: T,
     wait: number
 ): (...args: Parameters<T>) => void {

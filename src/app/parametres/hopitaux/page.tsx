@@ -81,8 +81,8 @@ export default function HopitauxPage() {
                 if (!response.ok) throw new Error('Erreur lors du chargement des hôpitaux');
                 const data = await response.json();
                 setHospitals(data);
-            } catch (error) {
-                logger.error('Erreur:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
                 toast.error('Impossible de charger les hôpitaux');
             } finally {
                 setLoading(false);
@@ -150,8 +150,8 @@ export default function HopitauxPage() {
             
             closeForm();
             */
-        } catch (error) {
-            logger.error('Erreur:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Erreur lors de la sauvegarde de l\'hôpital');
         } finally {
             setSaving(false);
@@ -184,8 +184,8 @@ export default function HopitauxPage() {
             setDeleteConfirmOpen(false);
             setHospitalToDelete(null);
             */
-        } catch (error) {
-            logger.error('Erreur:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Erreur lors de la suppression de l\'hôpital');
         }
     };

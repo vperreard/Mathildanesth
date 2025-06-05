@@ -45,12 +45,12 @@ export default function RequestTypeManager() {
                     try {
                         const errorData = await response.json();
                         errorMsg = errorData.error || errorMsg;
-                    } catch (e) { /*ignore parsing error, use statusText based one*/ }
+                    } catch (e: unknown) { /*ignore parsing error, use statusText based one*/ }
                     throw new Error(errorMsg);
                 }
                 const data = await response.json();
                 setRequestTypes(data);
-            } catch (err) {
+            } catch (err: unknown) {
                 setError(err instanceof Error ? err.message : 'Erreur inconnue');
                 logger.error('Erreur lors du chargement des types de requêtes:', err);
             } finally {
@@ -116,7 +116,7 @@ export default function RequestTypeManager() {
                     try {
                         const errorData = await response.json();
                         errorMessage = errorData.error || `Erreur ${response.status}: ${response.statusText}`;
-                    } catch (parseError) {
+                    } catch (parseError: unknown) {
                         errorMessage = `Erreur ${response.status}: ${response.statusText}. La réponse du serveur n\'est pas au format JSON.`;
                     }
                     throw new Error(errorMessage);
@@ -142,7 +142,7 @@ export default function RequestTypeManager() {
                     try {
                         const errorData = await response.json();
                         errorMessage = errorData.error || `Erreur ${response.status}: ${response.statusText}`;
-                    } catch (parseError) {
+                    } catch (parseError: unknown) {
                         errorMessage = `Erreur ${response.status}: ${response.statusText}. La réponse du serveur n\'est pas au format JSON.`;
                     }
                     throw new Error(errorMessage);
@@ -156,7 +156,7 @@ export default function RequestTypeManager() {
 
             resetForm();
 
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
             logger.error('Erreur lors de la soumission du formulaire:', err);
         } finally {
@@ -183,7 +183,7 @@ export default function RequestTypeManager() {
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.error || `Erreur ${response.status}: ${response.statusText}`;
-                } catch (parseError) {
+                } catch (parseError: unknown) {
                     errorMessage = `Erreur ${response.status}: ${response.statusText}. La réponse du serveur n\'est pas au format JSON.`;
                 }
                 throw new Error(errorMessage);
@@ -202,7 +202,7 @@ export default function RequestTypeManager() {
                 setRequestTypes(prev => prev.filter(type => type.id !== id));
             }
 
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
             logger.error('Erreur lors de la suppression du type de requête:', err);
         } finally {
@@ -230,7 +230,7 @@ export default function RequestTypeManager() {
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.error || `Erreur ${response.status}: ${response.statusText}`;
-                } catch (parseError) {
+                } catch (parseError: unknown) {
                     errorMessage = `Erreur ${response.status}: ${response.statusText}. La réponse du serveur n\'est pas au format JSON.`;
                 }
                 throw new Error(errorMessage);
@@ -243,7 +243,7 @@ export default function RequestTypeManager() {
                 prev.map(type => type.id === updatedType.id ? updatedType : type)
             );
 
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
             logger.error('Erreur lors de la mise à jour du statut:', err);
         } finally {

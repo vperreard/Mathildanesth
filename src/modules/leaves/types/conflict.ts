@@ -73,7 +73,7 @@ export interface LeaveConflict {
     resolvedAt?: string;               // Date de résolution
 
     // Métadonnées
-    metadata?: Record<string, any>;    // Données supplémentaires spécifiques au type de conflit
+    metadata?: Record<string, unknown>;    // Données supplémentaires spécifiques au type de conflit
     createdAt?: string;                // Date de création
     updatedAt?: string;                // Date de mise à jour
 }

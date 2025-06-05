@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
     try {
         const rawPayload = await request.json();
         payload = reorderPayloadSchema.parse(rawPayload);
-    } catch (error) {
-        logger.error("Erreur de validation du payload de réorganisation:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur de validation du payload de réorganisation:", error instanceof Error ? error : new Error(String(error)));
         if (error instanceof z.ZodError) {
             return NextResponse.json({ error: 'Données invalides', details: error.errors }, { status: 400 });
         }
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
         // Utiliser une transaction Prisma pour assurer l'atomicité
         await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-            const updatePromises: Promise<any>[] = [];
+            const updatePromises: Promise<unknown>[] = [];
 
             for (const siteOrder of payload.sitesOrder) {
                 const targetSiteId = siteOrder.siteId === 'null' ? null : siteOrder.siteId;
@@ -100,8 +100,8 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ message: 'Ordre des secteurs mis à jour avec succès' }, { status: 200 });
 
-    } catch (error: any) {
-        logger.error("Erreur lors de la mise à jour de l'ordre des secteurs:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la mise à jour de l'ordre des secteurs:", error instanceof Error ? error : new Error(String(error)));
         if (error.message.includes("n'existe pas")) {
             return NextResponse.json({ error: error.message }, { status: 404 }); // Not Found si un site ID est invalide
         }

@@ -42,7 +42,7 @@ export default function AdminSkillsPage() {
             if (!response.ok) throw new Error('Failed to fetch skills');
             const data = await response.json();
             setSkills(data);
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error(error);
             toast({
                 title: "Erreur",
@@ -78,7 +78,7 @@ export default function AdminSkillsPage() {
             setShowCreateDialog(false);
             setNewSkillName('');
             setNewSkillDescription('');
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast({ title: "Erreur", description: error.message || "Impossible de créer la compétence.", variant: "destructive" });
         }
         setIsSaving(false);
@@ -103,7 +103,7 @@ export default function AdminSkillsPage() {
             await fetchSkills();
             toast({ title: "Succès", description: "Compétence mise à jour avec succès." });
             setShowEditDialog(false);
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast({ title: "Erreur", description: error.message || "Impossible de mettre à jour la compétence.", variant: "destructive" });
         }
         setIsSaving(false);
@@ -123,7 +123,7 @@ export default function AdminSkillsPage() {
             await fetchSkills();
             toast({ title: "Succès", description: "Compétence supprimée avec succès." });
             setShowDeleteDialog(false);
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast({ title: "Erreur", description: error.message || "Impossible de supprimer la compétence.", variant: "destructive" });
         }
         setIsSaving(false);

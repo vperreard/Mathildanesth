@@ -78,7 +78,7 @@ export const usePerformanceTracking = (
                     }
 
                     return result;
-                } catch (error) {
+                } catch (error: unknown) {
                     const duration = performance.now() - startTime;
                     logger.error(
                         `Interaction failed: ${componentName}.${interactionName} after ${duration.toFixed(
@@ -163,8 +163,8 @@ export const usePerformanceTracking = (
                 );
 
                 return result;
-            } catch (error) {
-                logger.error(`Data loading failed: ${loadingName}`, error);
+            } catch (error: unknown) {
+                logger.error(`Data loading failed: ${loadingName}`, error instanceof Error ? error : new Error(String(error)));
                 throw error;
             }
         },

@@ -46,15 +46,15 @@ export class EventBusService {
      * Émet un événement aux abonnés
      * @param event Objet événement contenant au minimum un type
      */
-    public emit(event: { type: string; data?: any }): void {
+    public emit(event: { type: string; data?: unknown }): void {
         const eventType = event.type;
         if (this.listeners[eventType]) {
             const eventListeners = this.listeners[eventType];
             eventListeners.forEach(listener => {
                 try {
                     listener(event);
-                } catch (error) {
-                    logger.error(`Erreur lors de l'exécution d'un listener pour l'événement ${eventType}:`, error);
+                } catch (error: unknown) {
+                    logger.error(`Erreur lors de l'exécution d'un listener pour l'événement ${eventType}:`, error instanceof Error ? error : new Error(String(error)));
                 }
             });
         }
@@ -64,7 +64,7 @@ export class EventBusService {
      * Alias pour compatibilité : publier un événement
      * @param event Objet événement contenant au minimum un type
      */
-    public publish(event: { type: string; data?: any }): void {
+    public publish(event: { type: string; data?: unknown }): void {
         this.emit(event);
     }
 

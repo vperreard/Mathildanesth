@@ -33,8 +33,8 @@ export async function prefetchData<T>(url: string): Promise<T | null> {
         }
 
         return response.json();
-    } catch (error) {
-        logger.error(`Erreur de préchargement pour ${url}:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur de préchargement pour ${url}:`, error instanceof Error ? error : new Error(String(error)));
         // Ne pas propager l'erreur pour éviter de casser le préchargement
         return null;
     }
@@ -84,7 +84,7 @@ export function prefetchRoutes(routes: string[]) {
                 headers,
                 priority: 'low'
             }).catch(() => { });
-        } catch (error) {
+        } catch (error: unknown) {
             // Ignorer les erreurs de préchargement
         }
     });

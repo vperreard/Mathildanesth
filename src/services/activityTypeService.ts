@@ -329,7 +329,7 @@ export class ActivityTypeService {
         } else {
           errors.push(`Type non mappé: ${assignment.type} (Assignment ID: ${assignment.id})`);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         errors.push(`Erreur migration Assignment ${assignment.id}: ${error}`);
       }
     }

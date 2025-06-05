@@ -21,8 +21,8 @@ async function getHandler(request: NextRequest) {
             }
         });
 
-    } catch (error) {
-        logger.error('Health check failed:', error);
+    } catch (error: unknown) {
+        logger.error('Health check failed:', error instanceof Error ? error : new Error(String(error)));
         
         return NextResponse.json({
             status: 'unhealthy',
@@ -48,7 +48,7 @@ async function headHandler(request: NextRequest) {
         }
         
         return new NextResponse(null, { status: 200 });
-    } catch (error) {
+    } catch (error: unknown) {
         return new NextResponse(null, { status: 503 });
     }
 }

@@ -34,7 +34,7 @@ export async function importTestResults(
             try {
                 const fileContent = await fs.readFile(filePath, 'utf8');
                 results = JSON.parse(fileContent);
-            } catch (fileError) {
+            } catch (fileError: unknown) {
                 // Fichier n'existe pas ou erreur de lecture, on continue avec un tableau vide
                 logger.debug('Fichier de résultats de performance non trouvé:', filePath);
             }
@@ -52,8 +52,8 @@ export async function importTestResults(
         }
 
         return results;
-    } catch (error) {
-        logger.error('Erreur lors de l\'importation des résultats de test:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'importation des résultats de test:', error instanceof Error ? error : new Error(String(error)));
         return [];
     }
 }
@@ -108,8 +108,8 @@ function storeTestResultsInMetrics(results: TestResult[]): void {
 
         // Sauvegarder les métriques mises à jour
         localStorage.setItem('performanceMetrics', JSON.stringify(metrics));
-    } catch (error) {
-        logger.error('Erreur lors du stockage des résultats de test dans les métriques:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors du stockage des résultats de test dans les métriques:', error instanceof Error ? error : new Error(String(error)));
     }
 }
 

@@ -50,7 +50,7 @@ const OptimizedLoginPage: React.FC = () => {
 
             // Redirect on success
             router.replace(data.redirectUrl || '/');
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Une erreur est survenue');
         } finally {
             setIsLoading(false);

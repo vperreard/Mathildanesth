@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { usePlanningRules } from '@/modules/rules/hooks/usePlanningRules';
 import RuleFeedback from '@/modules/rules/components/RuleFeedback';
-import { PieChart, LineChart, BarChart } from '@/components/ui/charts';
+// TODO: Create or import chart components
+// // TODO: Create or import chart components
+// import { PieChart, LineChart, BarChart } from '@/components/ui/charts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendrier';

@@ -159,8 +159,8 @@ const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
             );
 
             setSimulationResult(result);
-        } catch (error) {
-            logger.error("Erreur lors de la simulation de report:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la simulation de report:", error instanceof Error ? error : new Error(String(error)));
         } finally {
             setIsSimulating(false);
         }
@@ -214,7 +214,7 @@ const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
             } else {
                 setSubmitError("Échec de la demande de report. Veuillez réessayer.");
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             setSubmitError(error?.message || "Une erreur est survenue lors de la demande");
         } finally {
             setIsSubmitting(false);
@@ -225,7 +225,7 @@ const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
     const formatDate = (dateString: string) => {
         try {
             return format(new Date(dateString), 'dd MMMM yyyy', { locale: fr });
-        } catch (error) {
+        } catch (error: unknown) {
             return dateString;
         }
     };

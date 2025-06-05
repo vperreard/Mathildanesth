@@ -310,7 +310,7 @@ export default function AdvancedVisualizationsPage() {
                 // Traiter les données pour les visualisations
                 const processedData = processResultData(data);
                 setResultData(processedData);
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error('Erreur:', err);
                 setError(err instanceof Error ? err.message : 'Erreur inconnue');
                 toast.error('Erreur lors du chargement des données');

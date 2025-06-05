@@ -210,8 +210,8 @@ export class OptimizedAuditService {
                 const batchSize = Math.min(this.lowPriorityQueue.length, this.config.batchSize);
                 await this.processBatch(this.lowPriorityQueue.splice(0, batchSize));
             }
-        } catch (error) {
-            logger.error('[OptimizedAuditService] Erreur lors du traitement de la file d\'attente:', error);
+        } catch (error: unknown) {
+            logger.error('[OptimizedAuditService] Erreur lors du traitement de la file d\'attente:', error instanceof Error ? error : new Error(String(error)));
         } finally {
             // Calculer le temps de traitement
             const processingTime = performance.now() - startTime;
@@ -266,7 +266,7 @@ export class OptimizedAuditService {
                     if (this.isDebugMode) {
                         logger.debug(`[OptimizedAuditService] Compression: ${originalSize} -> ${compressedSize} octets (${Math.round((1 - compressionRatio) * 100)}% d'économie)`);
                     }
-                } catch (compressionError) {
+                } catch (compressionError: unknown) {
                     logger.error('[OptimizedAuditService] Erreur de compression:', compressionError);
                     isCompressed = false;
                 }
@@ -305,8 +305,8 @@ export class OptimizedAuditService {
             if (this.isDebugMode) {
                 logger.debug(`[OptimizedAuditService] Lot de ${batch.length} entrées envoyé avec succès`);
             }
-        } catch (error) {
-            logger.error('[OptimizedAuditService] Erreur lors de l\'envoi du lot:', error);
+        } catch (error: unknown) {
+            logger.error('[OptimizedAuditService] Erreur lors de l\'envoi du lot:', error instanceof Error ? error : new Error(String(error)));
 
             // Gérer les réessais pour les entrées échouées
             for (const entry of batch) {
@@ -412,7 +412,7 @@ export class OptimizedAuditService {
             localStorage.setItem('failedAuditEntries', JSON.stringify(trimmedEntries));
 
             logger.error(`[OptimizedAuditService] Échec permanent pour l'entrée ${entry.id} après ${entry._metadata?.retryCount} tentatives`);
-        } catch (storageError) {
+        } catch (storageError: unknown) {
             logger.error('[OptimizedAuditService] Erreur lors du stockage des entrées échouées:', storageError);
         }
     }
@@ -453,8 +453,8 @@ export class OptimizedAuditService {
             await this.processQueue();
 
             return failedEntries.length;
-        } catch (error) {
-            logger.error('[OptimizedAuditService] Erreur lors de la récupération des entrées échouées:', error);
+        } catch (error: unknown) {
+            logger.error('[OptimizedAuditService] Erreur lors de la récupération des entrées échouées:', error instanceof Error ? error : new Error(String(error)));
             return 0;
         }
     }

@@ -67,8 +67,8 @@ export class ApiCacheMiddleware {
 
       logger.info(`🔍 Cache MISS: ${pathname}`);
       return null; // Continue to API handler
-    } catch (error) {
-      logger.warn('Cache middleware error:', error);
+    } catch (error: unknown) {
+      logger.warn('Cache middleware error:', error instanceof Error ? error : new Error(String(error)));
       return null; // Continue without cache
     }
   }
@@ -89,8 +89,8 @@ export class ApiCacheMiddleware {
       }
 
       return response;
-    } catch (error) {
-      logger.warn('Cache response handling error:', error);
+    } catch (error: unknown) {
+      logger.warn('Cache response handling error:', error instanceof Error ? error : new Error(String(error)));
       return response;
     }
   }
@@ -109,8 +109,8 @@ export class ApiCacheMiddleware {
       await redisCache.set(cacheKey, data, cacheConfig.ttl);
 
       logger.info(`💾 Cached: ${pathname} for ${cacheConfig.ttl}s`);
-    } catch (error) {
-      logger.warn('Failed to cache response:', error);
+    } catch (error: unknown) {
+      logger.warn('Failed to cache response:', error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -127,8 +127,8 @@ export class ApiCacheMiddleware {
       }
 
       logger.info(`🗑️ Cache invalidated for: ${pathname}`);
-    } catch (error) {
-      logger.warn('Cache invalidation error:', error);
+    } catch (error: unknown) {
+      logger.warn('Cache invalidation error:', error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -213,8 +213,8 @@ export function withApiCache<T extends (...args: HandlerParams) => Promise<Respo
         const data = await responseClone.json();
         const cacheKey = `api:${request.nextUrl.pathname}:${Date.now()}`;
         await redisCache.set(cacheKey, data, cacheConfig.ttl || 300);
-      } catch (error) {
-        logger.warn('Failed to cache API response:', error);
+      } catch (error: unknown) {
+        logger.warn('Failed to cache API response:', error instanceof Error ? error : new Error(String(error)));
       }
     }
 
@@ -238,14 +238,14 @@ export async function warmCriticalCache(): Promise<void> {
           await redisCache.set(`mathilda:api:${endpoint}`, data, CACHE_TTL.STATIC_DATA);
           logger.info(`✅ Warmed cache: ${endpoint}`);
         }
-      } catch (error) {
-        logger.warn(`⚠️ Failed to warm cache for ${endpoint}:`, error);
+      } catch (error: unknown) {
+        logger.warn(`⚠️ Failed to warm cache for ${endpoint}:`, error instanceof Error ? error : new Error(String(error)));
       }
     }
 
     logger.info('🔥 Cache warming completed');
-  } catch (error) {
-    logger.warn('Cache warming failed:', error);
+  } catch (error: unknown) {
+    logger.warn('Cache warming failed:', error instanceof Error ? error : new Error(String(error)));
   }
 }
 

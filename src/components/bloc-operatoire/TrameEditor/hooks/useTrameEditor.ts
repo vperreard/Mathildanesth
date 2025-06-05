@@ -298,11 +298,11 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
             }
         }, [autoSave, deleteAffectationMutation]),
 
-        moveAffectation: useCallback((id: number, target: any) => {
+        moveAffectation: useCallback((id: number, target: unknown) => {
             dispatch({ type: 'MOVE_AFFECTATION', payload: { id, target } });
         }, []),
 
-        duplicateAffectation: useCallback((id: number, target: any) => {
+        duplicateAffectation: useCallback((id: number, target: unknown) => {
             dispatch({ type: 'DUPLICATE_AFFECTATION', payload: { id, target } });
         }, []),
 
@@ -316,7 +316,7 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
                     }
                 }
                 toast.success('Modifications sauvegardées');
-            } catch (error) {
+            } catch (error: unknown) {
                 toast.error('Erreur lors de la sauvegarde');
             }
         }, [state.affectations, state.unsavedChanges, saveAffectationMutation])
@@ -326,7 +326,7 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
     useEffect(() => {
         if (trameModele?.affectations) {
             // Remplacer les affectations par celles de la trameModele
-            const affectations = trameModele.affectations.map((aff: any) => ({
+            const affectations = trameModele.affectations.map((aff: unknown) => ({
                 ...aff,
                 isSelected: false,
                 isDragging: false,

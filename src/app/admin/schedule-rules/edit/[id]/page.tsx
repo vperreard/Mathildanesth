@@ -48,7 +48,7 @@ export default function EditRulePage({ params }: EditRulePageProps) {
                     return;
                 }
                 setRule(fetchedRule);
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error('Erreur lors du chargement de la règle:', err);
                 setError('Erreur lors du chargement de la règle');
             } finally {
@@ -62,7 +62,7 @@ export default function EditRulePage({ params }: EditRulePageProps) {
     }, [id, getRuleById]);
 
     // Gérer la soumission du formulaire
-    const handleSubmit = async (data: any) => {
+    const handleSubmit = async (data: unknown) => {
         if (!user?.id) {
             toast({
                 variant: 'destructive',
@@ -85,8 +85,8 @@ export default function EditRulePage({ params }: EditRulePageProps) {
             });
 
             router.push('/admin/planningMedical-rules');
-        } catch (error) {
-            logger.error('Erreur lors de la mise à jour de la règle:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la mise à jour de la règle:', error instanceof Error ? error : new Error(String(error)));
             toast({
                 variant: 'destructive',
                 title: 'Erreur',

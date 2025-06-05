@@ -123,8 +123,8 @@ export const useConflictDetection = ({
             );
 
             return startValid && endValid && rangeValid;
-        } catch (error) {
-            logger.error('useConflictDetection: validateDates - erreur lors de la validation', error);
+        } catch (error: unknown) {
+            logger.error('useConflictDetection: validateDates - erreur lors de la validation', error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     };
@@ -201,7 +201,7 @@ export const useConflictDetection = ({
                 updatePerformanceStats(result);
 
                 return result;
-            } catch (err) {
+            } catch (err: unknown) {
                 const errorObj = err instanceof Error ? err : new Error('Erreur lors de la vérification des conflits');
                 logger.error('Erreur dans checkConflicts:', err);
 
@@ -233,7 +233,7 @@ export const useConflictDetection = ({
                 try {
                     const result = await performCheck();
                     resolve(result);
-                } catch (err) {
+                } catch (err: unknown) {
                     reject(err);
                 }
             }, 300); // 300ms de délai de debounce

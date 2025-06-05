@@ -38,10 +38,10 @@ export function usePublicHolidays() {
                 holidays: publicHolidays,
                 events
             };
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error('Erreur inconnue');
             setError(error);
-            logger.error('Erreur lors du chargement des jours fériés:', error);
+            logger.error('Erreur lors du chargement des jours fériés:', error instanceof Error ? error : new Error(String(error)));
             return {
                 holidays: [],
                 events: []
@@ -57,7 +57,7 @@ export function usePublicHolidays() {
     const isHoliday = useCallback(async (date: Date): Promise<boolean> => {
         try {
             return await holidayCalendarService.isHoliday(date);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de la vérification du jour férié:', err);
             return false;
         }
@@ -83,7 +83,7 @@ export function usePublicHolidays() {
 
             const result = await loadHolidays(startDate, endDate);
             return result.holidays;
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error(`Erreur lors du chargement des jours fériés pour l'année ${year}:`, err);
             return [];
         } finally {

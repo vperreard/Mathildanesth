@@ -75,8 +75,8 @@ export async function POST(request: NextRequest) {
             }
         }, { status: 201 });
 
-    } catch (error: any) {
-        logger.error("Erreur lors de la création de l'utilisateur de test:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la création de l'utilisateur de test:", error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json({
             error: 'Erreur lors de la création de l\'utilisateur de test',
             details: error.message

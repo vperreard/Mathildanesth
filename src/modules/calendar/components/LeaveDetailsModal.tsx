@@ -6,7 +6,7 @@ import { AnyCalendarEvent, CalendarEventType } from '../types/event';
 export interface LeaveDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
-    leave: any; // Nous utilisons any temporairement, à remplacer par LeaveEvent quand défini
+    leave: unknown; // Nous utilisons any temporairement, à remplacer par LeaveEvent quand défini
     showApprovalButtons?: boolean;
     onApprove?: (leaveId: string) => void;
     onReject?: (leaveId: string) => void;

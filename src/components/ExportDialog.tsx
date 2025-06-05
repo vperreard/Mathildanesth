@@ -39,7 +39,7 @@ import { useToast } from '@/components/ui/use-toast';
 interface ExportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: any[];
+  data: unknown[];
   title?: string;
   defaultColumns?: string[];
   entityType?: 'users' | 'leaves' | 'planning' | 'custom';
@@ -65,7 +65,7 @@ export function ExportDialog({
 
   // Filtres
   const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({});
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, any>>({});
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, unknown>>({});
 
   // Colonnes
   const [availableColumns] = useState(() => {
@@ -134,8 +134,8 @@ export function ExportDialog({
       });
 
       onOpenChange(false);
-    } catch (error) {
-      logger.error('Export error:', error);
+    } catch (error: unknown) {
+      logger.error('Export error:', error instanceof Error ? error : new Error(String(error)));
       toast({
         title: 'Erreur d\'export',
         description: 'Une erreur est survenue lors de l\'export des données.',

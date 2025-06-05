@@ -193,7 +193,7 @@ const QuotaTransferForm: React.FC<QuotaTransferFormProps> = ({
                 });
 
                 setSimulationResult(result);
-            } catch (err) {
+            } catch (err: unknown) {
                 setError(`Erreur lors de la simulation : ${err instanceof Error ? err.message : String(err)}`);
                 setSimulationResult(null);
             } finally {
@@ -228,7 +228,7 @@ const QuotaTransferForm: React.FC<QuotaTransferFormProps> = ({
                     setTransferSuccess(false);
                 }, 3000);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Erreur lors du transfert:", err);
         }
     };
@@ -274,7 +274,7 @@ const QuotaTransferForm: React.FC<QuotaTransferFormProps> = ({
                 // Notifier le parent du succès du transfert
                 onTransferComplete();
             }, 2000);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(`Erreur lors du transfert : ${err instanceof Error ? err.message : String(err)}`);
         } finally {
             setIsSubmitting(false);

@@ -35,8 +35,8 @@ export class SimulationNotificationService {
           },
         },
       });
-    } catch (error) {
-      logger.error('Erreur lors de la mise à jour du statut de simulation:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la mise à jour du statut de simulation:', error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -77,8 +77,8 @@ export class SimulationNotificationService {
         estimatedDuration,
         timestamp: new Date().toISOString(),
       });
-    } catch (error) {
-      logger.error('Erreur lors de la notification de démarrage de simulation:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la notification de démarrage de simulation:', error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -123,8 +123,8 @@ export class SimulationNotificationService {
           });
         }
       }
-    } catch (error) {
-      logger.error('Erreur lors de la notification de progression de simulation:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la notification de progression de simulation:', error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -216,8 +216,8 @@ export class SimulationNotificationService {
           });
         }
       }
-    } catch (error) {
-      logger.error('Erreur lors de la notification de complétion de simulation:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la notification de complétion de simulation:', error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -258,7 +258,7 @@ export class SimulationNotificationService {
         error,
         timestamp: new Date().toISOString(),
       });
-    } catch (err) {
+    } catch (err: unknown) {
       logger.error("Erreur lors de la notification d'échec de simulation:", err);
     }
   }

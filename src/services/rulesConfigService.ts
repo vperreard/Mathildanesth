@@ -32,8 +32,8 @@ class RulesConfigService {
                 this.setCache(CONFIG_KEY, rules);
                 return rules;
             }
-        } catch (error) {
-            logger.error('Erreur lors du chargement des règles:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des règles:', error instanceof Error ? error : new Error(String(error)));
         }
 
         // Retourner la configuration par défaut si rien n'est trouvé
@@ -57,8 +57,8 @@ class RulesConfigService {
                 this.setCache(FATIGUE_CONFIG_KEY, fatigueConfig);
                 return fatigueConfig;
             }
-        } catch (error) {
-            logger.error('Erreur lors du chargement de la config fatigue:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement de la config fatigue:', error instanceof Error ? error : new Error(String(error)));
         }
 
         return defaultFatigueConfig;
@@ -127,8 +127,8 @@ class RulesConfigService {
                 this.setCache(key, value);
                 return value;
             }
-        } catch (error) {
-            logger.error(`Erreur lors du chargement de la config ${key}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors du chargement de la config ${key}:`, error instanceof Error ? error : new Error(String(error)));
         }
 
         return defaultValue;

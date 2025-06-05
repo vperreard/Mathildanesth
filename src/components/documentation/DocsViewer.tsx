@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { logger } from "../../lib/logger";
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -97,8 +97,8 @@ const DocsViewer: React.FC<DocsViewerProps> = ({ defaultDoc = 'performance.md' }
                 logger.error('Erreur lors du chargement du document:', response.statusText);
                 setError('Le document demandé est introuvable.');
             }
-        } catch (error) {
-            logger.error('Erreur lors du chargement du document:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement du document:', error instanceof Error ? error : new Error(String(error)));
             setError('Une erreur est survenue lors du chargement du document.');
         } finally {
             setLoading(false);
@@ -135,8 +135,8 @@ const DocsViewer: React.FC<DocsViewerProps> = ({ defaultDoc = 'performance.md' }
                             });
                         }
                     }
-                } catch (error) {
-                    logger.error(`Erreur lors de la recherche dans ${doc.path}:`, error);
+                } catch (error: unknown) {
+                    logger.error(`Erreur lors de la recherche dans ${doc.path}:`, error instanceof Error ? error : new Error(String(error)));
                 }
             }
 

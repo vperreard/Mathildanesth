@@ -111,8 +111,8 @@ export function QuickReplacementModal({
                 const data = await response.json();
                 setCandidates(data.candidates || []);
             }
-        } catch (error) {
-            logger.error('Erreur lors de la recherche de remplaçants:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la recherche de remplaçants:', error instanceof Error ? error : new Error(String(error)));
         } finally {
             setIsLoading(false);
         }

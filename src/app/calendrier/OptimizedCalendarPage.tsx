@@ -88,7 +88,7 @@ export default function OptimizedCalendarPage() {
     };
 
     // Gérer le clic sur un événement
-    const handleEventClick = (event: any) => {
+    const handleEventClick = (event: unknown) => {
         if (!event?.extendedProps) return;
         
         const { type, id, start, end, leaveType, status, comment, userId } = event.extendedProps;
@@ -130,7 +130,7 @@ export default function OptimizedCalendarPage() {
             }
 
             const data = await response.json();
-            const fetchedAssignments = (data.attributions || []).map((a: any) => ({
+            const fetchedAssignments = (data.attributions || []).map((a: unknown) => ({
                 ...a,
                 startDate: new Date(a.startDate),
                 endDate: new Date(a.endDate),
@@ -138,8 +138,8 @@ export default function OptimizedCalendarPage() {
                 updatedAt: new Date(a.updatedAt)
             }));
             setAssignments(fetchedAssignments);
-        } catch (error) {
-            logger.error("Erreur lors du chargement des affectations:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des affectations:", error instanceof Error ? error : new Error(String(error)));
             toast.error("Impossible de charger les affectations.");
             setAssignments([]);
         } finally {
@@ -161,8 +161,8 @@ export default function OptimizedCalendarPage() {
 
             toast.success('Affectations sauvegardées avec succès.');
             setAssignments(updatedAssignments);
-        } catch (error) {
-            logger.error("Erreur lors de la sauvegarde:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la sauvegarde:", error instanceof Error ? error : new Error(String(error)));
             toast.error('Échec de la sauvegarde des affectations.');
         }
     };

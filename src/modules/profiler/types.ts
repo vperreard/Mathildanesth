@@ -20,7 +20,7 @@ export interface PerformanceMetric {
     startTime: number;
     endTime?: number;
     duration?: number;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 // Structure d'une mesure de mémoire

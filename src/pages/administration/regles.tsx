@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { logger } from "../../lib/logger";
 import { GetServerSideProps } from 'next';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useRule } from '../../modules/rules/hooks/useRule';
 import { RulesList } from '../../modules/rules/components/RulesList';
 import { RuleForm } from '../../modules/rules/components/RuleForm';
@@ -61,8 +61,8 @@ export default function RulesAdminPage() {
             await saveRule();
             setShowForm(false);
             await fetchRules(); // Rafraîchir la liste
-        } catch (error) {
-            logger.error('Erreur lors de la sauvegarde de la règle:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde de la règle:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 
@@ -77,8 +77,8 @@ export default function RulesAdminPage() {
         try {
             await deleteRule(ruleId);
             await fetchRules(); // Rafraîchir la liste
-        } catch (error) {
-            logger.error('Erreur lors de la suppression de la règle:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la suppression de la règle:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 
@@ -87,8 +87,8 @@ export default function RulesAdminPage() {
         try {
             await toggleStatus(ruleId, isActive);
             await fetchRules(); // Rafraîchir la liste
-        } catch (error) {
-            logger.error('Erreur lors du changement de statut de la règle:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du changement de statut de la règle:', error instanceof Error ? error : new Error(String(error)));
         }
     };
 

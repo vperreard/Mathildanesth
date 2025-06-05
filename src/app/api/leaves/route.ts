@@ -140,7 +140,7 @@ async function getHandler(request: NextRequest) {
     });
 
     // Fonction adaptateur pour uniformiser les champs nom/prenom
-    const adaptUserFields = (user: any) => {
+    const adaptUserFields = (user: unknown) => {
       if (!user) return null;
 
       return {
@@ -194,8 +194,8 @@ async function getHandler(request: NextRequest) {
       .filter((leave): leave is LeaveWithUserFrontend => leave !== null); // Filtrer les nulls
 
     return NextResponse.json(formattedLeaves);
-  } catch (error) {
-    logger.error(`[API /api/conges] Erreur lors de la récupération des congés:`, error);
+  } catch (error: unknown) {
+    logger.error(`[API /api/conges] Erreur lors de la récupération des congés:`, error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur serveur lors de la récupération des congés.' },
       { status: 500 }
@@ -380,7 +380,7 @@ async function postHandler(request: NextRequest) {
       );
 
       // Adapter les données utilisateur pour s'assurer de la cohérence firstName/lastName
-      const adaptUserFields = (user: any) => {
+      const adaptUserFields = (user: unknown) => {
         if (!user) return null;
 
         return {
@@ -450,8 +450,8 @@ async function postHandler(request: NextRequest) {
         JSON.stringify(formattedLeave, null, 2)
       );
       return NextResponse.json(formattedLeave, { status: 201 }); // 201 Created
-    } catch (error) {
-      logger.error('[API /conges POST] Erreur lors de la création du congé:', error);
+    } catch (error: unknown) {
+      logger.error('[API /conges POST] Erreur lors de la création du congé:', error instanceof Error ? error : new Error(String(error)));
 
       // Log d'audit pour l'échec
       await auditService.logAction({
@@ -472,8 +472,8 @@ async function postHandler(request: NextRequest) {
         { status: 500 }
       );
     }
-  } catch (error) {
-    logger.error('[API /conges POST] Erreur générale:', error);
+  } catch (error: unknown) {
+    logger.error('[API /conges POST] Erreur générale:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur serveur lors de la création de la demande de congé.' },
       { status: 500 }

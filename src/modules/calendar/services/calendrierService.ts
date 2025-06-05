@@ -18,8 +18,8 @@ class CalendarService {
             const queryParams = this.buildQueryParams(filters);
             const response = await axios.get(`${this.baseUrl}/events${queryParams}`);
             return this.normalizeEvents(response.data);
-        } catch (error) {
-            logger.error('Erreur lors de la récupération des événements:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des événements:', error instanceof Error ? error : new Error(String(error)));
             // Renvoyer une erreur plus spécifique ou logger différemment
             throw new Error('Impossible de récupérer les événements du calendrier');
         }
@@ -34,8 +34,8 @@ class CalendarService {
             const response = await axios.get(`${this.baseUrl}/events/${eventId}${typeParam}`);
             const [normalizedEvent] = this.normalizeEvents([response.data]);
             return normalizedEvent;
-        } catch (error) {
-            logger.error('Erreur lors de la récupération de l\'événement:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération de l\'événement:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de récupérer l\'événement demandé');
         }
     }
@@ -49,8 +49,8 @@ class CalendarService {
             const response = await axios.put(`${this.baseUrl}/events/${event.id}?type=${event.type}`, formattedEvent);
             const [normalizedEvent] = this.normalizeEvents([response.data]);
             return normalizedEvent;
-        } catch (error) {
-            logger.error('Erreur lors de la mise à jour de l\'événement:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la mise à jour de l\'événement:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de mettre à jour l\'événement');
         }
     }
@@ -64,8 +64,8 @@ class CalendarService {
             const response = await axios.post(`${this.baseUrl}/events`, formattedEvent);
             const [normalizedEvent] = this.normalizeEvents([response.data]);
             return normalizedEvent;
-        } catch (error) {
-            logger.error('Erreur lors de la création de l\'événement:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la création de l\'événement:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de créer l\'événement');
         }
     }
@@ -76,8 +76,8 @@ class CalendarService {
     async deleteEvent(eventId: string, eventType: CalendarEventType): Promise<void> {
         try {
             await axios.delete(`${this.baseUrl}/events/${eventId}?type=${eventType}`);
-        } catch (error) {
-            logger.error('Erreur lors de la suppression de l\'événement:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la suppression de l\'événement:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de supprimer l\'événement');
         }
     }
@@ -135,7 +135,7 @@ class CalendarService {
     /**
      * Normalise les événements reçus de l'API pour assurer un format cohérent
      */
-    private normalizeEvents(events: any[]): AnyCalendarEvent[] {
+    private normalizeEvents(events: unknown[]): AnyCalendarEvent[] {
         return events.map(event => ({
             ...event,
             // Convertir les dates en objets Date pour traitement interne
@@ -152,7 +152,7 @@ class CalendarService {
      */
     private formatEventForApi(event: Partial<AnyCalendarEvent>): any {
         // Format de base
-        const formattedEvent: Record<string, any> = { ...event };
+        const formattedEvent: Record<string, unknown> = { ...event };
 
         // Suppression des champs calculés qui ne doivent pas être envoyés à l'API
         const fieldsToOmit = ['formattedTitle', 'formattedDescription', 'color', 'createdAt', 'updatedAt']; // Ajouter createdAt/updatedAt
@@ -176,8 +176,8 @@ class CalendarService {
             const response = await axios.patch(`${this.baseUrl}/events/${eventId}/status?type=${eventType}`, { status });
             const [normalizedEvent] = this.normalizeEvents([response.data]);
             return normalizedEvent;
-        } catch (error) {
-            logger.error('Erreur lors de la mise à jour du statut de l\'événement:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la mise à jour du statut de l\'événement:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Impossible de mettre à jour le statut de l\'événement');
         }
     }

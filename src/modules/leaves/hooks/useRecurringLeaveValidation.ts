@@ -33,8 +33,8 @@ function normalizeDate(date: Date | string | null | undefined): Date | null {
         // Remove time part
         normalizedDate.setHours(0, 0, 0, 0);
         return normalizedDate;
-    } catch (error) {
-        logger.error('Error normalizing date:', error);
+    } catch (error: unknown) {
+        logger.error('Error normalizing date:', error instanceof Error ? error : new Error(String(error)));
         return null;
     }
 }
@@ -86,7 +86,7 @@ export type RecurringValidationResult = {
     isValid: boolean;
     errors: RecurringValidationError[];
     occurrencesResult?: {
-        occurrences: Array<{ startDate: Date; endDate: Date; conflicts?: any[] }>;
+        occurrences: Array<{ startDate: Date; endDate: Date; conflicts?: unknown[] }>;
         totalDays: number;
     } | null;
 };
@@ -96,12 +96,12 @@ interface LocalLeaveValidationError {
     field: string;
     type: DateValidationErrorType;
     message: string;
-    details?: any;
+    details?: unknown;
 }
 
 export function useRecurringLeaveValidation() {
     const [errors, setErrors] = useState<RecurringValidationError[]>([]);
-    const [generationResult, setGenerationResult] = useState<{ occurrences: Array<{ startDate: Date; endDate: Date; conflicts?: any[] }>; totalDays: number; } | null>(null);
+    const [generationResult, setGenerationResult] = useState<{ occurrences: Array<{ startDate: Date; endDate: Date; conflicts?: unknown[] }>; totalDays: number; } | null>(null);
 
     // Explicitly type the return of the hooks
     const dateValidation: ReturnType<typeof useDateValidation> = useDateValidation({});
@@ -270,9 +270,9 @@ export function useRecurringLeaveValidation() {
         occurrences: Array<{ startDate: Date; endDate: Date }>,
         currentUserId: string,
         options?: RecurringValidationOptions
-    ): Promise<{ isValid: boolean; errors: RecurringValidationError[]; occurrences: Array<{ startDate: Date; endDate: Date; conflicts?: any[] }> }> => {
+    ): Promise<{ isValid: boolean; errors: RecurringValidationError[]; occurrences: Array<{ startDate: Date; endDate: Date; conflicts?: unknown[] }> }> => {
         const newValidationErrors: RecurringValidationError[] = [];
-        const occurrencesWithConflicts: Array<{ startDate: Date; endDate: Date; conflicts?: any[] }> = [];
+        const occurrencesWithConflicts: Array<{ startDate: Date; endDate: Date; conflicts?: unknown[] }> = [];
 
         logger.info(`[validateOccurrencesConflicts] Checking ${occurrences.length} occurrences for conflicts`);
 
@@ -406,7 +406,7 @@ export function useRecurringLeaveValidation() {
                 });
             });
 
-            if (allErrors.length === 0 && (!leaveRequestErrors || (leaveRequestErrors as any[]).length === 0)) {
+            if (allErrors.length === 0 && (!leaveRequestErrors || (leaveRequestErrors as unknown[]).length === 0)) {
                 allErrors.push({
                     field: 'leaveRequest',
                     type: DateValidationErrorType.INVALID_RANGE,
@@ -554,8 +554,8 @@ export function useRecurringLeaveValidation() {
 
             return result;
 
-        } catch (error: any) {
-            logger.error('[validateRecurringLeaveRequest] Error generating occurrences:', error);
+        } catch (error: unknown) {
+            logger.error('[validateRecurringLeaveRequest] Error generating occurrences:', error instanceof Error ? error : new Error(String(error)));
 
             allErrors.push({
                 field: 'recurrencePattern',

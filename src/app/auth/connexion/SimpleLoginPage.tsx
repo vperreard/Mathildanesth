@@ -28,7 +28,7 @@ const SimpleLoginPage: React.FC = () => {
             // Utiliser le même hook que le header pour partager l'état
             await authLogin(loginData);
             logger.info('[SimpleLoginPage] Login successful via auth hook');
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Une erreur est survenue');
         } finally {
             setIsLoading(false);

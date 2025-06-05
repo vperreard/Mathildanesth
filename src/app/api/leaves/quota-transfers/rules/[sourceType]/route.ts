@@ -38,7 +38,7 @@ export async function GET(
     }));
 
     return NextResponse.json(formattedRules);
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error(
       'Erreur lors de la récupération des règles de transfert pour le type source:',
       error

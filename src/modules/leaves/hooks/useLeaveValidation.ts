@@ -124,7 +124,7 @@ interface ValidationError {
     field: string;
     type: DateValidationErrorType;
     message: string;
-    details?: any;
+    details?: unknown;
 }
 
 /**
@@ -156,7 +156,7 @@ const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
 /**
  * Génère une clé de hachage pour un objet
  */
-function hashObject(obj: any): string {
+function hashObject(obj: unknown): string {
     return JSON.stringify(obj);
 }
 

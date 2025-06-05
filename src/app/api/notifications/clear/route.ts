@@ -31,8 +31,8 @@ export async function POST(req: NextRequest) {
         await prisma.$disconnect();
 
         return NextResponse.json({ success: true });
-    } catch (error) {
-        logger.error('Erreur lors de la suppression des notifications:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la suppression des notifications:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }

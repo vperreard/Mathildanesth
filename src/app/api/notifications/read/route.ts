@@ -129,8 +129,8 @@ export async function POST(request: NextRequest) {
       updatedCount: result.count,
       unreadCount,
     });
-  } catch (error: any) {
-    logger.error('POST /api/notifications/read: Erreur serveur', error);
+  } catch (error: unknown) {
+    logger.error('POST /api/notifications/read: Erreur serveur', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         error: 'Erreur lors du marquage des notifications comme lues',

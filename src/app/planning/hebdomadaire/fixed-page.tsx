@@ -77,8 +77,8 @@ const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
                 }
                 setImportPreview(newAssignments);
             }
-        } catch (error) {
-            logger.error("Erreur lors du parsing du fichier importé:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du parsing du fichier importé:", error instanceof Error ? error : new Error(String(error)));
         }
     };
     reader.readAsText(file);

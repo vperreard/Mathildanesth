@@ -37,7 +37,7 @@ export const LeaveQuotaOverview: React.FC<LeaveQuotaOverviewProps> = ({
             try {
                 const data = await fetchLeaveBalance(userId);
                 setBalance(data);
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error('Erreur lors de la récupération des soldes de congés', err);
                 setError('Impossible de charger les soldes de congés');
             } finally {

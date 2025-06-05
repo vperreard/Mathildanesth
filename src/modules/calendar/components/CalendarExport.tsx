@@ -7,7 +7,7 @@ import { fr } from 'date-fns/locale';
 // import { useDateValidation } from '../../../hooks/useDateValidation'; // COMMENTÉ
 
 interface CalendarExportProps {
-    events: any[]; // Les événements à exporter
+    events: unknown[]; // Les événements à exporter
     currentRange: {
         start: Date;
         end: Date;
@@ -183,8 +183,8 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
 
             // Fermer le modal
             handleCloseModal();
-        } catch (error) {
-            logger.error('Erreur lors de l\'export:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'export:', error instanceof Error ? error : new Error(String(error)));
             // TODO: Afficher un message d'erreur
         } finally {
             setIsLoading(false);

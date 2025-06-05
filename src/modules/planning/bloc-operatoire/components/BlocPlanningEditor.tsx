@@ -75,9 +75,9 @@ const BlocPlanningEditor: React.FC<BlocPlanningEditorProps> = ({
     const [loading, setLoading] = useState(false);
     const [validation, setValidation] = useState<{
         isValid: boolean;
-        errors: any[];
-        warnings: any[];
-        infos: any[];
+        errors: unknown[];
+        warnings: unknown[];
+        infos: unknown[];
     }>({ isValid: true, errors: [], warnings: [], infos: [] });
     const [workingPlanning, setWorkingPlanning] = useState<BlocDayPlanning | null>(null);
     const [activeSalleId, setActiveSalleId] = useState<string | null>(null);
@@ -105,8 +105,8 @@ const BlocPlanningEditor: React.FC<BlocPlanningEditorProps> = ({
             try {
                 const supervisors = await blocPlanningService.getAvailableSupervisors(format(date, 'yyyy-MM-dd'));
                 setAvailableSupervisors(supervisors);
-            } catch (error) {
-                logger.error("Erreur lors du chargement des superviseurs:", error);
+            } catch (error: unknown) {
+                logger.error("Erreur lors du chargement des superviseurs:", error instanceof Error ? error : new Error(String(error)));
             } finally {
                 setLoading(false);
             }

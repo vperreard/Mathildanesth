@@ -54,7 +54,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         // Mettre à jour les règles modifiées
         await Promise.all(
-          data.modifiedRules.map(async (rule: any) => {
+          data.modifiedRules.map(async (rule: unknown) => {
             if (!rule.id) return;
 
             await prisma.rule.update({
@@ -140,8 +140,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     };
 
     return NextResponse.json(serializedConflict);
-  } catch (error) {
-    logger.error(`Erreur lors de la résolution du conflit ${params.id}:`, error);
+  } catch (error: unknown) {
+    logger.error(`Erreur lors de la résolution du conflit ${params.id}:`, error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur serveur lors de la résolution du conflit' },
       { status: 500 }

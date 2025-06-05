@@ -386,5 +386,5 @@ export interface UserActivityLog {
     resource: string;
     resourceId?: string;
     timestamp: Date;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }

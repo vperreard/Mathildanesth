@@ -109,7 +109,7 @@ export class ConflictRecommendationService {
                 priorityDistribution,
                 highestPriorityConflicts
             };
-        } catch (error) {
+        } catch (error: unknown) {
             // Construire un objet ErrorDetails avant d'appeler logError
             const errorDetails: ErrorDetails = {
                 message: error instanceof Error ? error.message : 'Erreur inconnue lors de l\'analyse des conflits',
@@ -393,7 +393,7 @@ export class ConflictRecommendationService {
      */
     private canResolveAutomatically(
         conflict: LeaveConflict,
-        strategies: any[],
+        strategies: unknown[],
         rules?: ConflictResolutionRules
     ): boolean {
         const effectiveRules = rules || this.options.rules;
@@ -431,7 +431,7 @@ export class ConflictRecommendationService {
      */
     private generateExplanation(
         conflict: LeaveConflict,
-        strategies: any[],
+        strategies: unknown[],
         automaticResolution: boolean,
         priority: ConflictPriority,
         rules?: ConflictResolutionRules
@@ -574,7 +574,7 @@ export class ConflictRecommendationService {
     /**
      * Apprendre des résolutions passées
      */
-    private learnFromResolution(event: any): void {
+    private learnFromResolution(event: unknown): void {
         try {
             const { conflictId, recommendation, automatic } = event.data;
 
@@ -591,7 +591,7 @@ export class ConflictRecommendationService {
                 const oldestKey = Array.from(this.resolutionHistory.keys())[0];
                 this.resolutionHistory.delete(oldestKey);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             logError('Erreur lors de l\'apprentissage des résolutions passées', error);
         }
     }

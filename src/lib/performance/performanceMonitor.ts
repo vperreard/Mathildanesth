@@ -77,7 +77,7 @@ export class PerformanceMonitor {
             });
             lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
             this.observers.set('lcp', lcpObserver);
-        } catch (e) {
+        } catch (e: unknown) {
             logger.warn('LCP observer not supported');
         }
 
@@ -85,7 +85,7 @@ export class PerformanceMonitor {
         try {
             const fidObserver = new PerformanceObserver((list) => {
                 const entries = list.getEntries();
-                entries.forEach((entry: any) => {
+                entries.forEach((entry: unknown) => {
                     if (entry.name === 'first-input') {
                         this.updateMetric('fid', entry.processingStart - entry.startTime);
                     }
@@ -93,7 +93,7 @@ export class PerformanceMonitor {
             });
             fidObserver.observe({ entryTypes: ['first-input'] });
             this.observers.set('fid', fidObserver);
-        } catch (e) {
+        } catch (e: unknown) {
             logger.warn('FID observer not supported');
         }
 
@@ -101,7 +101,7 @@ export class PerformanceMonitor {
         try {
             let clsValue = 0;
             const clsObserver = new PerformanceObserver((list) => {
-                list.getEntries().forEach((entry: any) => {
+                list.getEntries().forEach((entry: unknown) => {
                     if (!entry.hadRecentInput) {
                         clsValue += entry.value;
                         this.updateMetric('cls', clsValue);
@@ -110,7 +110,7 @@ export class PerformanceMonitor {
             });
             clsObserver.observe({ entryTypes: ['layout-shift'] });
             this.observers.set('cls', clsObserver);
-        } catch (e) {
+        } catch (e: unknown) {
             logger.warn('CLS observer not supported');
         }
 
@@ -126,7 +126,7 @@ export class PerformanceMonitor {
             });
             fcpObserver.observe({ entryTypes: ['paint'] });
             this.observers.set('fcp', fcpObserver);
-        } catch (e) {
+        } catch (e: unknown) {
             logger.warn('FCP observer not supported');
         }
 
@@ -134,7 +134,7 @@ export class PerformanceMonitor {
         try {
             const inpObserver = new PerformanceObserver((list) => {
                 const entries = list.getEntries();
-                entries.forEach((entry: any) => {
+                entries.forEach((entry: unknown) => {
                     if (entry.interactionId) {
                         const inputDelay = entry.processingStart - entry.startTime;
                         const processingTime = entry.processingEnd - entry.processingStart;
@@ -146,7 +146,7 @@ export class PerformanceMonitor {
             });
             inpObserver.observe({ entryTypes: ['event'] });
             this.observers.set('inp', inpObserver);
-        } catch (e) {
+        } catch (e: unknown) {
             logger.warn('INP observer not supported');
         }
     }
@@ -245,9 +245,9 @@ export class PerformanceMonitor {
             this.sendCustomMetric(name, duration);
             
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             const duration = performance.now() - startTime;
-            logger.error(`Operation '${name}' failed after ${duration.toFixed(2)}ms`, error);
+            logger.error(`Operation '${name}' failed after ${duration.toFixed(2)}ms`, error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     }
@@ -273,8 +273,8 @@ export class PerformanceMonitor {
                     const duration = measures[measures.length - 1].duration;
                     this.sendCustomMetric(name, duration);
                 }
-            } catch (error) {
-                logger.error('Failed to measure performance', error);
+            } catch (error: unknown) {
+                logger.error('Failed to measure performance', error instanceof Error ? error : new Error(String(error)));
             }
         }
     }

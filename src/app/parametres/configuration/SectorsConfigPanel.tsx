@@ -54,7 +54,7 @@ type SectorFormData = {
     isActive: boolean;
     description: string;
     category?: string; // Ajout du champ category
-    rules: any;
+    rules: unknown;
     siteId: string | null; // ID du site est une string (cuid) ou null
 };
 
@@ -256,7 +256,7 @@ const SectorsConfigPanel: React.FC = () => {
             if (fetchedSites.length === 0) {
                 setFormData(prev => ({ ...prev, siteId: null }));
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors du chargement des sites:", err);
             setSitesError(err.response?.data?.error || err.message || 'Impossible de charger les sites.');
             toast.error('Erreur lors du chargement des sites');
@@ -277,8 +277,8 @@ const SectorsConfigPanel: React.FC = () => {
             // Pas besoin de mapper ici si l'API est correcte
 
             setSectors(fetchedSectors);
-        } catch (error: any) {
-            logger.error("Erreur lors du chargement des secteurs:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des secteurs:", error instanceof Error ? error : new Error(String(error)));
             setSectorsError(error.response?.data?.error || error.message || 'Impossible de charger les secteurs.');
             toast.error('Erreur lors du chargement des secteurs');
             // Ne plus utiliser de données mock ici
@@ -313,7 +313,7 @@ const SectorsConfigPanel: React.FC = () => {
                 }
                 setSectorOrder({ orderedSectorIdsBySite: validatedOrder });
                 logger.info("Ordre des secteurs chargé (et validé/nettoyé) depuis localStorage:", validatedOrder);
-            } catch (e) {
+            } catch (e: unknown) {
                 logger.error("Erreur lors du parsing de l'ordre des secteurs depuis localStorage (ou données corrompues):", e);
                 localStorage.removeItem('sectorOrderConfig'); // Nettoyer si invalide
                 setSectorOrder({ orderedSectorIdsBySite: {} }); // Réinitialiser à un état vide
@@ -336,7 +336,7 @@ const SectorsConfigPanel: React.FC = () => {
             });
             localStorage.setItem('sectorOrderConfig', JSON.stringify({ orderedSectorIdsBySite: orderToSave }));
             logger.info("Ordre des secteurs sauvegardé dans localStorage:", orderToSave);
-        } catch (e) {
+        } catch (e: unknown) {
             logger.error("Erreur lors de la sauvegarde de l'ordre des secteurs dans localStorage:", e);
         }
     }, []);
@@ -735,8 +735,8 @@ const SectorsConfigPanel: React.FC = () => {
             } else {
                 throw new Error(response.data.error || "Erreur inconnue lors de la sauvegarde de l'ordre");
             }
-        } catch (error: any) {
-            logger.error("Erreur lors de l'enregistrement de l'ordre des secteurs en BDD:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de l'enregistrement de l'ordre des secteurs en BDD:", error instanceof Error ? error : new Error(String(error)));
             const errorMsg = error.response?.data?.error || error.message || "Erreur lors de l'enregistrement de l'ordre des secteurs";
             toast.error(errorMsg);
             setError(errorMsg);
@@ -839,7 +839,7 @@ const SectorsConfigPanel: React.FC = () => {
             fetchSectors(); // Recharger les secteurs
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la soumission du formulaire secteur:", err);
             const errorMsg = err.response?.data?.error || err.message || 'Une erreur est survenue.';
             setFormError(errorMsg);
@@ -893,7 +893,7 @@ const SectorsConfigPanel: React.FC = () => {
 
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la suppression du secteur:", err);
             const errorMsg = err.response?.data?.error || err.message || 'Impossible de supprimer le secteur.';
             toast.error(`Erreur: ${errorMsg}`);
@@ -952,7 +952,7 @@ const SectorsConfigPanel: React.FC = () => {
             fetchSites(); // Recharger les sites après ajout/modification
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la soumission du formulaire site:", err);
             const errorMsg = err.response?.data?.error || err.message || 'Une erreur est survenue.';
             setSiteFormError(errorMsg);
@@ -992,7 +992,7 @@ const SectorsConfigPanel: React.FC = () => {
 
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la suppression du site:", err);
             const errorMsg = err.response?.data?.error || err.message || 'Impossible de supprimer le site.';
             toast.error(`Erreur: ${errorMsg}`);
@@ -1012,7 +1012,7 @@ const SectorsConfigPanel: React.FC = () => {
             const payload = {
                 sitesOrder: sites.map(site => ({
                     siteId: site.id,
-                    sectorsOrder: (site.operatingSectors || []).map((sector: any) => ({
+                    sectorsOrder: (site.operatingSectors || []).map((sector: unknown) => ({
                         sectorId: sector.id,
                         // Réinitialiser à null pour revenir à l'ordre par défaut
                         displayOrder: null
@@ -1037,8 +1037,8 @@ const SectorsConfigPanel: React.FC = () => {
             await fetchSites();
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
-        } catch (error) {
-            logger.error('Erreur lors de la réinitialisation de l\'ordre:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la réinitialisation de l\'ordre:', error instanceof Error ? error : new Error(String(error)));
             setSaveError(true);
             setTimeout(() => setSaveError(false), 3000);
         } finally {

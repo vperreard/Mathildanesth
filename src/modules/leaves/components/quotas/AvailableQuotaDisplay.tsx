@@ -135,7 +135,7 @@ const AvailableQuotaDisplay: React.FC<AvailableQuotaDisplayProps> = ({
     const formatDate = (dateString: string) => {
         try {
             return format(new Date(dateString), 'dd MMMM yyyy', { locale: fr });
-        } catch (error) {
+        } catch (error: unknown) {
             return dateString;
         }
     };

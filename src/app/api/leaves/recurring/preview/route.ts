@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json(occurrences);
-    } catch (error) {
-        logger.error('Erreur lors de la prévisualisation des occurrences récurrentes:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la prévisualisation des occurrences récurrentes:', error instanceof Error ? error : new Error(String(error)));
 
         return NextResponse.json(
             { message: 'Erreur lors de la génération des occurrences.' },

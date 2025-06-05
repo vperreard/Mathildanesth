@@ -118,7 +118,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
             form.reset();
             onSuccess(response.data.id.toString());
             onClose();
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error(`Erreur lors de ${isEditMode ? 'la modification' : 'la création'} de la trameModele:`, err);
             setError(err.response?.data?.error || `Erreur lors de ${isEditMode ? 'la modification' : 'la création'} de la trameModele`);
         } finally {

@@ -41,8 +41,8 @@ export async function seedRules() {
 
     logger.info('Initialisation des règles terminée avec succès!');
     return true;
-  } catch (error) {
-    logger.error("Erreur lors de l'initialisation des règles:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de l'initialisation des règles:", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 }
@@ -52,7 +52,7 @@ export async function seedRules() {
 //     seedRules()
 //         .then(() => process.exit(0))
 //         .catch(error => {
-//             logger.error('Erreur lors du seed des règles:', error);
+//             logger.error('Erreur lors du seed des règles:', error instanceof Error ? error : new Error(String(error)));
 //             process.exit(1);
 //         });
 // }

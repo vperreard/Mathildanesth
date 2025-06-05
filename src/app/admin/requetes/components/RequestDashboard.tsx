@@ -86,7 +86,7 @@ export default function RequestDashboard() {
                 const requestsPromise = fetch('http://localhost:3000/api/demandes').then(async res => {
                     if (!res.ok) {
                         let errorMsg = `Erreur ${res.status} lors du chargement des requêtes.`;
-                        try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e) { /*ignore*/ }
+                        try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e: unknown) { /*ignore*/ }
                         throw new Error(errorMsg);
                     }
                     return res.json();
@@ -95,7 +95,7 @@ export default function RequestDashboard() {
                 const typesPromise = fetch('http://localhost:3000/api/request-types?includeInactive=true').then(async res => {
                     if (!res.ok) {
                         let errorMsg = `Erreur ${res.status} lors du chargement des types de requêtes.`;
-                        try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e) { /*ignore*/ }
+                        try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e: unknown) { /*ignore*/ }
                         throw new Error(errorMsg);
                     }
                     return res.json();
@@ -104,7 +104,7 @@ export default function RequestDashboard() {
                 const usersPromise = fetch('http://localhost:3000/api/utilisateurs').then(async res => {
                     if (!res.ok) {
                         let errorMsg = `Erreur ${res.status} lors du chargement des utilisateurs.`;
-                        try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e) { /*ignore*/ }
+                        try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e: unknown) { /*ignore*/ }
                         throw new Error(errorMsg);
                     }
                     return res.json();
@@ -146,7 +146,7 @@ export default function RequestDashboard() {
                     setError(combinedErrorMessages.trim());
                 }
 
-            } catch (err) { // Should not be reached if all promises handle their errors
+            } catch (err: unknown) { // Should not be reached if all promises handle their errors
                 const errorMessage = err instanceof Error ? err.message : 'Une erreur inattendue est survenue.';
                 setError(errorMessage);
                 logger.error('Erreur inattendue fetchData:', err);
@@ -249,7 +249,7 @@ export default function RequestDashboard() {
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.error || `Erreur ${response.status}: ${response.statusText}`;
-                } catch (parseError) {
+                } catch (parseError: unknown) {
                     errorMessage = `Erreur ${response.status}: ${response.statusText}. La réponse du serveur n\'est pas au format JSON.`;
                 }
                 throw new Error(errorMessage);
@@ -264,7 +264,7 @@ export default function RequestDashboard() {
 
             closeModal();
 
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
             logger.error('Erreur lors de la mise à jour de la requête:', err);
         }
@@ -281,14 +281,14 @@ export default function RequestDashboard() {
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.error || `Erreur ${response.status}: ${response.statusText}`;
-                } catch (parseError) {
+                } catch (parseError: unknown) {
                     errorMessage = `Erreur ${response.status}: ${response.statusText}. La réponse du serveur n\'est pas au format JSON.`;
                 }
                 throw new Error(errorMessage);
             }
             const data = await response.json();
             setRequests(data);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
             logger.error('Erreur lors du rafraîchissement des données:', err);
         } finally {

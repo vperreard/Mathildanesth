@@ -89,8 +89,8 @@ export class ConflictDetectionService {
                 };
                 logger.info('Règles de conflit chargées depuis la configuration');
             }
-        } catch (error) {
-            logger.error('Erreur lors du chargement des règles de conflit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des règles de conflit:', error instanceof Error ? error : new Error(String(error)));
             // Continuer avec les règles par défaut
         }
     }
@@ -111,7 +111,7 @@ export class ConflictDetectionService {
         // Sauvegarder les nouvelles règles dans la configuration
         this.configService.setConfigValue('leaveConflictRules', this.rules)
             .catch(error => {
-                logger.error('Erreur lors de la sauvegarde des règles de conflit:', error);
+                logger.error('Erreur lors de la sauvegarde des règles de conflit:', error instanceof Error ? error : new Error(String(error)));
             });
     }
 
@@ -846,8 +846,8 @@ export const validateConflictRules = (rules: ConflictRules): boolean => {
         }
 
         return true;
-    } catch (error) {
-        logger.error('Erreur lors de la validation des règles:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la validation des règles:', error instanceof Error ? error : new Error(String(error)));
         return false;
     }
 };
@@ -868,7 +868,7 @@ export const resolveConflict = async (
         description: string;
         newStartDate?: string;
         newEndDate?: string;
-        metadata?: Record<string, any>;
+        metadata?: Record<string, unknown>;
     }>;
 }> => {
     const solutions: Array<{
@@ -876,7 +876,7 @@ export const resolveConflict = async (
         description: string;
         newStartDate?: string;
         newEndDate?: string;
-        metadata?: Record<string, any>;
+        metadata?: Record<string, unknown>;
     }> = [];
 
     switch (conflict.type) {

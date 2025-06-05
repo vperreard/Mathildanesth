@@ -104,8 +104,8 @@ export async function GET(request: NextRequest) {
         }
 
         return handleAuthorizedRequest(userIdForRequest);
-    } catch (error) {
-        logger.error('[API /api/admin/conges/pending] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API /api/admin/conges/pending] Erreur:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             {
                 error: 'Erreur serveur lors de la récupération des demandes en attente',
@@ -192,8 +192,8 @@ async function handleAuthorizedRequest(userId: number) {
         };
 
         return NextResponse.json(formattedLeaves);
-    } catch (error) {
-        logger.error('[API /api/admin/conges/pending] Erreur lors du traitement:', error);
+    } catch (error: unknown) {
+        logger.error('[API /api/admin/conges/pending] Erreur lors du traitement:', error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 } 

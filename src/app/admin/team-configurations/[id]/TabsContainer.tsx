@@ -9,7 +9,7 @@ import CongesForm from './forms/CongesForm';
 
 interface TabsContainerProps {
     config: TeamConfiguration;
-    updateConfig: (path: string, value: any) => void;
+    updateConfig: (path: string, value: unknown) => void;
     activeTab: string;
     setActiveTab: (tab: string) => void;
 }

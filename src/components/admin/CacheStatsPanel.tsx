@@ -86,8 +86,8 @@ export default function CacheStatsPanel() {
             const data = await response.json();
             setStats(data.stats);
             setMessage(null);
-        } catch (error) {
-            logger.error('Erreur lors de la récupération des statistiques:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des statistiques:', error instanceof Error ? error : new Error(String(error)));
             setMessage({
                 type: 'error',
                 text: error instanceof Error ? error.message : 'Erreur inconnue'
@@ -139,8 +139,8 @@ export default function CacheStatsPanel() {
 
             // Rafraîchir les statistiques après invalidation
             fetchStats();
-        } catch (error) {
-            logger.error('Erreur lors de l\'invalidation du cache:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'invalidation du cache:', error instanceof Error ? error : new Error(String(error)));
             toast({
                 title: 'Erreur',
                 description: error instanceof Error ? error.message : 'Erreur inconnue',

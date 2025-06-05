@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
                 });
                 logger.info(`[API] Salle ID ${updatedRoom.id} mise à jour avec sectorId: ${updatedRoom.sectorId}`);
                 return { id: updatedRoom.id, status: 'success' };
-            } catch (error) {
-                logger.error(`[API] Erreur lors de la mise à jour de la salle ID ${roomUpdate.id}:`, error);
+            } catch (error: unknown) {
+                logger.error(`[API] Erreur lors de la mise à jour de la salle ID ${roomUpdate.id}:`, error instanceof Error ? error : new Error(String(error)));
                 // Retourner une promesse résolue avec un statut d'erreur pour cette salle spécifique
                 return { id: roomUpdate.id, status: 'error', error: (error as Error).message };
             }
@@ -87,8 +87,8 @@ export async function POST(request: NextRequest) {
             details: results
         }, { status: 200 });
 
-    } catch (error) {
-        logger.error('[API] Erreur majeure lors de la mise à jour groupée des secteurs des salles:', error);
+    } catch (error: unknown) {
+        logger.error('[API] Erreur majeure lors de la mise à jour groupée des secteurs des salles:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur majeure lors de la mise à jour groupée des secteurs des salles', details: (error as Error).message },
             { status: 500 }
@@ -119,7 +119,7 @@ export async function PUT(request: NextRequest) {
         });
 
         return NextResponse.json(updatedRooms);
-    } catch (error) {
+    } catch (error: unknown) {
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour des salles' },
             { status: 500 }

@@ -18,7 +18,7 @@ type PlanningRule = {
     type: string;
     isActive: boolean;
     priority: number;
-    configuration: any;
+    configuration: unknown;
     createdBy: string;
     createdByUser?: {
         name: string;
@@ -148,7 +148,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
         try {
             const response = await axios.get<{ rules: PlanningRule[] }>('/api/planning-rules');
             setRules(response.data.rules);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur détaillée rules:", err);
             setError(`Impossible de charger les règles: ${err.message}. Utilisation des données mockées.`);
             setRules(MOCK_PLANNING_RULES);
@@ -162,7 +162,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
         try {
             const response = await axios.get<{ assignmentTypes: AssignmentType[] }>('/api/attribution-types');
             setAssignmentTypes(response.data.assignmentTypes);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur détaillée attribution-types:", err);
             setError(prevError => prevError ? `${prevError}\nImpossible de charger les types d'affectation: ${err.message}.` : `Impossible de charger les types d'affectation: ${err.message}.`);
             setAssignmentTypes(MOCK_ASSIGNMENT_TYPES);
@@ -201,7 +201,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
     };
 
     // Gérer les changements de formulaire
-    const handleFormChange = (field: string, value: any) => {
+    const handleFormChange = (field: string, value: unknown) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
@@ -312,8 +312,8 @@ const PlanningRulesConfigPanel: React.FC = () => {
             // Fermer le formulaire
             setEditingRule(null);
             */
-        } catch (error) {
-            logger.error('Erreur:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
             toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement');
             setIsSaving(false);
         }
@@ -351,8 +351,8 @@ const PlanningRulesConfigPanel: React.FC = () => {
             setRules(prev => prev.filter(rule => rule.id !== id));
             toast.success('Règle supprimée');
             */
-        } catch (error) {
-            logger.error('Erreur:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
             toast.error(error instanceof Error ? error.message : 'Erreur lors de la suppression');
         }
     };
@@ -557,7 +557,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
                                                 try {
                                                     const config = JSON.parse(e.target.value);
                                                     handleFormChange('configuration', config);
-                                                } catch (error) {
+                                                } catch (error: unknown) {
                                                     // Ne rien faire si le JSON est invalide
                                                 }
                                             }}

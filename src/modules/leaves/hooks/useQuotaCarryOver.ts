@@ -28,7 +28,7 @@ export const useQuotaCarryOver = (
                 [leaveType]: rules
             }));
             return rules;
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(err?.message || 'Erreur lors de la récupération des règles de report');
             return [];
         } finally {
@@ -58,7 +58,7 @@ export const useQuotaCarryOver = (
             );
 
             return result;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err?.message || 'Erreur lors de la simulation du report';
             setError(errorMessage);
             return {
@@ -99,7 +99,7 @@ export const useQuotaCarryOver = (
             }
 
             return result;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err?.message || 'Erreur lors de la demande de report';
             setError(errorMessage);
             return null;

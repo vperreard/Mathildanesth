@@ -275,14 +275,14 @@ export default function WeeklyPlanningPage() {
                             currentRoomOrder = parsedOrder.orderedRoomIds.map(String);
                             setRoomOrderConfig({ orderedRoomIds: currentRoomOrder });
                         }
-                    } catch (e) {
+                    } catch (e: unknown) {
                         logger.error('[WeeklyPlanningPage] Erreur lecture roomOrderConfig localStorage:', e);
                     }
                 }
             }
 
             // Normaliser les données des salles
-            const orderedRooms = fetchedRooms.map((apiRoomData: any) => {
+            const orderedRooms = fetchedRooms.map((apiRoomData: unknown) => {
                 let sectorName = 'Sans secteur'; // Valeur par défaut
                 const roomColor = apiRoomData.colorCode || '#E5E7EB'; // Couleur de la salle elle-même
                 let sectorColor = '#F3F4F6'; // Couleur de fond par défaut pour l'en-tête de secteur (gris très clair)
@@ -359,8 +359,8 @@ export default function WeeklyPlanningPage() {
                 toast("Aucune donnée de planning à afficher pour cette semaine.", { duration: 4000, icon: 'ℹ️' });
             }
 
-        } catch (error) {
-            logger.error("Erreur lors du chargement des données :", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des données :", error instanceof Error ? error : new Error(String(error)));
             toast.error("Erreur lors du chargement des données");
             setUsers([]);
             setRooms([]);
@@ -468,8 +468,8 @@ export default function WeeklyPlanningPage() {
             setDisplayConfig(newConfig);
             try {
                 logger.info("Préférences d'ordre des salles sauvegardées.");
-            } catch (error) {
-                logger.error("Erreur sauvegarde préférences ordre salles:", error);
+            } catch (error: unknown) {
+                logger.error("Erreur sauvegarde préférences ordre salles:", error instanceof Error ? error : new Error(String(error)));
             }
         }
     };
@@ -1177,8 +1177,8 @@ export default function WeeklyPlanningPage() {
                 }
             };
 
-        } catch (error) {
-            logger.error("Erreur validation règles (Client):", error);
+        } catch (error: unknown) {
+            logger.error("Erreur validation règles (Client):", error instanceof Error ? error : new Error(String(error)));
             clientValidationResult = {
                 valid: false,
                 violations: [{
@@ -1209,8 +1209,8 @@ export default function WeeklyPlanningPage() {
             // Pour l'instant, on utilise le résultat client, mais on pourrait merger
             // les violations ou afficher les erreurs serveur si la validation client passe.
 
-        } catch (error) {
-            logger.error("Erreur validation règles (Serveur):", error);
+        } catch (error: unknown) {
+            logger.error("Erreur validation règles (Serveur):", error instanceof Error ? error : new Error(String(error)));
             if (clientValidationResult) {
                 clientValidationResult.valid = false;
                 clientValidationResult.violations.push({
@@ -1276,8 +1276,8 @@ export default function WeeklyPlanningPage() {
             setIsConfirmationDialogOpen(false);
             toast.success(result.message || "Changements sauvegardés avec succès !");
 
-        } catch (error: any) { // Le catch d'axios error est plus détaillé
-            logger.error("Erreur lors de la sauvegarde des changements (apiClient):", error);
+        } catch (error: unknown) { // Le catch d'axios error est plus détaillé
+            logger.error("Erreur lors de la sauvegarde des changements (apiClient):", error instanceof Error ? error : new Error(String(error)));
             let errorMessage = "Erreur lors de la sauvegarde des changements. Veuillez réessayer.";
             if (error.response && error.response.data && error.response.data.error) {
                 errorMessage = error.response.data.error;

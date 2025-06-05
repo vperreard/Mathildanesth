@@ -88,8 +88,8 @@ const PerformanceTestComponent = () => {
 
             // Enregistrer les résultats
             setResults(testResults);
-        } catch (error) {
-            logger.error('Erreur lors des tests de performance:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors des tests de performance:', error instanceof Error ? error : new Error(String(error)));
         } finally {
             setIsRunning(false);
         }

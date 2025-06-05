@@ -80,8 +80,8 @@ const getHandler = withAuth({
             }
         });
         
-    } catch (error) {
-        logger.error('Error fetching audit logs', error);
+    } catch (error: unknown) {
+        logger.error('Error fetching audit logs', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -150,8 +150,8 @@ const postHandler = withAuth({
             data: logs
         });
         
-    } catch (error) {
-        logger.error('Error exporting audit logs', error);
+    } catch (error: unknown) {
+        logger.error('Error exporting audit logs', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -159,7 +159,7 @@ const postHandler = withAuth({
     }
 });
 
-function convertToCSV(logs: any[]): string {
+function convertToCSV(logs: unknown[]): string {
     const headers = [
         'ID',
         'Date/Time',

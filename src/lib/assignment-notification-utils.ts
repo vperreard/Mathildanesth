@@ -93,8 +93,8 @@ export async function sendAssignmentSwapNotification(
             relatedRequestId: swapRequestId
         });
 
-    } catch (error) {
-        logger.error('Erreur lors de l\'envoi de la notification d\'échange d\'affectation:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'envoi de la notification d\'échange d\'affectation:', error instanceof Error ? error : new Error(String(error)));
         return null;
     }
 }

@@ -7,7 +7,7 @@ import { performanceMonitor as serviceMonitor } from '@/services/PerformanceMoni
 
 
 // Stockage en mémoire des métriques (à remplacer par Redis en production)
-const metricsStore: any[] = [];
+const metricsStore: unknown[] = [];
 const MAX_METRICS = 10000;
 
 export async function POST(req: NextRequest) {
@@ -56,8 +56,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    logger.error('Error storing metric:', error);
+  } catch (error: unknown) {
+    logger.error('Error storing metric:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to store metric' },
       { status: 500 }
@@ -111,7 +111,7 @@ export async function GET(req: NextRequest) {
       byType: {} as Record<string, number>,
       byOperation: {} as Record<string, number>,
       averageDuration: 0,
-      slowestOperations: [] as any[]
+      slowestOperations: [] as unknown[]
     };
 
     // Grouper par type
@@ -140,8 +140,8 @@ export async function GET(req: NextRequest) {
       metrics: results,
       stats
     });
-  } catch (error) {
-    logger.error('Error fetching metrics:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching metrics:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to fetch metrics' },
       { status: 500 }
@@ -257,8 +257,8 @@ function getDashboardMetrics() {
       recentMetrics: performanceMonitor.getRecentMetrics(undefined, 20),
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
-    logger.error('Error fetching dashboard metrics:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching dashboard metrics:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to fetch metrics' },
       { status: 500 }

@@ -55,7 +55,7 @@ export interface ValidationError {
     field: string;
     message: string;
     severity: ValidationSeverity;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 /**
@@ -89,7 +89,7 @@ export interface AffectationConfiguration {
     heureDebut?: string; // Format HH:mm
     heureFin?: string; // Format HH:mm
     postes: PosteConfiguration[]; // Configuration détaillée de chaque poste
-    parametres?: Record<string, any>; // Paramètres additionnels spécifiques au type d'affectation
+    parametres?: Record<string, unknown>; // Paramètres additionnels spécifiques au type d'affectation
     priorite?: number; // Priorité de l'affectation (pour résolution de conflits)
     couleur?: string; // Couleur d'affichage dans le planning
     contraintes?: ContrainteAffectation[]; // Contraintes spécifiques à cette configuration
@@ -107,7 +107,7 @@ export interface ContrainteAffectation {
     id: string;
     type: ContrainteType;
     description: string;
-    valeur?: any;
+    valeur?: unknown;
     obligatoire: boolean;
     priorite?: number;
 }
@@ -122,7 +122,7 @@ export interface PosteConfiguration {
     status: PosteStatus; // Statut du poste (requis, optionnel, indisponible)
     competencesRequises?: SkillLevel; // Niveau de compétence requis
     rolesAutorises?: string[]; // Liste des rôles autorisés à occuper ce poste
-    parametres?: Record<string, any>; // Paramètres additionnels spécifiques au poste
+    parametres?: Record<string, unknown>; // Paramètres additionnels spécifiques au poste
     disponibiliteRequise?: string; // Disponibilité requise (ex: "Journée complète", "Mi-temps")
     remplacable?: boolean; // Indique si ce poste peut être remplacé pendant la période
     tempsTravailMinimum?: number; // Temps de travail minimum en heures

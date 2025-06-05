@@ -155,8 +155,8 @@ export const absenceService = {
                 suspiciousPattern,
                 bridgeDays,
             };
-        } catch (error) {
-            logger.error('Error getting absence patterns:', error);
+        } catch (error: unknown) {
+            logger.error('Error getting absence patterns:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Failed to get absence patterns');
         }
     },
@@ -230,8 +230,8 @@ export const absenceService = {
                 averagePerUser,
                 topAbsentUsers: topAbsentUsers?.map(item => ({ userId: item.userId, count: item._count._all })),
             };
-        } catch (error) {
-            logger.error('Error getting absence statistics:', error);
+        } catch (error: unknown) {
+            logger.error('Error getting absence statistics:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Failed to get absence statistics');
         }
     },
@@ -301,8 +301,8 @@ export const absenceService = {
                     },
                 });
             });
-        } catch (error) {
-            logger.error('Error handling late notification:', error);
+        } catch (error: unknown) {
+            logger.error('Error handling late notification:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Failed to handle late notification');
         }
     },
@@ -398,15 +398,15 @@ export const absenceService = {
             available.sort((a, b) => b.score - a.score);
 
             return { available, unavailable };
-        } catch (error) {
-            logger.error('Error finding replacement:', error);
+        } catch (error: unknown) {
+            logger.error('Error finding replacement:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Failed to find replacement');
         }
     },
 
     async convertToLeave(absenceId: number, leaveTypeCode: string): Promise<{
-        absence: any;
-        leave: any;
+        absence: unknown;
+        leave: unknown;
     }> {
         try {
             const absence = await prisma.absence.findUnique({
@@ -451,8 +451,8 @@ export const absenceService = {
                 absence: updatedAbsence,
                 leave,
             };
-        } catch (error) {
-            logger.error('Error converting to leave:', error);
+        } catch (error: unknown) {
+            logger.error('Error converting to leave:', error instanceof Error ? error : new Error(String(error)));
             throw new Error('Failed to convert absence to leave');
         }
     },

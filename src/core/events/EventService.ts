@@ -74,8 +74,8 @@ class EventService {
         handlers.forEach(handler => {
             try {
                 handler(event);
-            } catch (error) {
-                logger.error(`Erreur lors du traitement de l'événement ${event.type}:`, error);
+            } catch (error: unknown) {
+                logger.error(`Erreur lors du traitement de l'événement ${event.type}:`, error instanceof Error ? error : new Error(String(error)));
             }
         });
     }
@@ -107,7 +107,7 @@ class EventService {
     /**
      * Utilitaire pour logger les messages de debug
      */
-    private logDebug(message: string, data?: any): void {
+    private logDebug(message: string, data?: unknown): void {
         if (this.debugMode) {
             if (data) {
                 logger.debug(`[EventService] ${message}`, data);

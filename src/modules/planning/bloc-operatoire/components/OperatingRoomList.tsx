@@ -129,8 +129,8 @@ export function OperatingRoomList() {
             });
             setIsDeleteDialogOpen(false);
             setRoomToDelete(null);
-        } catch (error) {
-            logger.error('Erreur lors de la suppression:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la suppression:', error instanceof Error ? error : new Error(String(error)));
             toast({
                 variant: 'destructive',
                 title: 'Erreur de suppression',
@@ -174,8 +174,8 @@ export function OperatingRoomList() {
                 });
             }
             setIsDialogOpen(false);
-        } catch (error) {
-            logger.error('Erreur lors de l\'enregistrement:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'enregistrement:', error instanceof Error ? error : new Error(String(error)));
             toast({
                 variant: 'destructive',
                 title: 'Erreur d\'enregistrement',

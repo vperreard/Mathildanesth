@@ -93,8 +93,8 @@ export async function GET(
     };
 
     return NextResponse.json(responseData);
-  } catch (error) {
-    logger.error('Erreur lors de la récupération du résultat de simulation:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération du résultat de simulation:', error instanceof Error ? error : new Error(String(error)));
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       return NextResponse.json({ message: 'Ressource non trouvée.' }, { status: 404 });
     }

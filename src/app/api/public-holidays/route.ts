@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
         // L'API renvoie maintenant les jours fériés calculés
         return NextResponse.json({ holidays });
 
-    } catch (error: any) {
-        logger.error(`Erreur API [GET /api/jours-feries?year=${year}]:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur API [GET /api/jours-feries?year=${year}]:`, error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des jours fériés.', details: error.message },
             { status: 500 }

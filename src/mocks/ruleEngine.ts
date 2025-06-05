@@ -11,11 +11,11 @@ const mockSolver = { resolve: async () => ({ description: 'Mock resolution' }) }
 
 // Interface simplifiée pour le mock, ne contenant que ce qui est utilisé
 interface MockRuleEngineEvaluator {
-    evaluate(context: RuleEvaluationContext): Promise<any>; // Utiliser any pour RuleEvaluationSummary pour l'instant
+    evaluate(context: RuleEvaluationContext): Promise<unknown>; // Utiliser any pour RuleEvaluationSummary pour l'instant
 }
 
 export const mockRuleEngine: MockRuleEngineEvaluator = {
-    evaluate: async (context: RuleEvaluationContext): Promise<any> => {
+    evaluate: async (context: RuleEvaluationContext): Promise<unknown> => {
         console.log("Mock RuleEngine evaluate called with context:", context);
 
         // Assurer context.attributions est un tableau

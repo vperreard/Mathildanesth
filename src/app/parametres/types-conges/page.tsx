@@ -31,7 +31,7 @@ interface LeaveTypeSettingData extends Partial<LeaveTypeSetting> {
 // Interface pour le type attendu par le modal (simplifiée pour le cast)
 interface LeaveTypeFormModalProps {
     initialData?: Partial<LeaveTypeSetting & {
-        rules: any; // Simplifié pour le cast, le type réel est plus complexe
+        rules: unknown; // Simplifié pour le cast, le type réel est plus complexe
     }>;
 }
 
@@ -56,7 +56,7 @@ export default function ManageLeaveTypesPage() {
             }
             const data: LeaveTypeSettingData[] = await response.json();
             setLeaveTypes(data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la récupération des types de congés:", err);
             setError(err.message || "Impossible de charger les types de congés.");
         } finally {
@@ -110,7 +110,7 @@ export default function ManageLeaveTypesPage() {
             alert(`Le type "${label}" a été supprimé.`);
             fetchLeaveTypes(); // Recharger la liste
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la suppression:", err);
             alert(`Erreur lors de la suppression: ${err.message}`);
         }

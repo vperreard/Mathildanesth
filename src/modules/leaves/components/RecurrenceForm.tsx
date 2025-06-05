@@ -48,7 +48,7 @@ export const RecurrenceForm: React.FC<RecurrenceFormProps> = ({
     }, [value]);
 
     // Gérer les modifications de champs
-    const handleChange = (field: keyof RecurrencePattern, newValue: any) => {
+    const handleChange = (field: keyof RecurrencePattern, newValue: unknown) => {
         const updatedPattern = { ...pattern, [field]: newValue };
         setPattern(updatedPattern);
         onChange(updatedPattern);

@@ -126,8 +126,8 @@ async function postHandler(request: Request) {
       attributions: allAssignments,
       validationResult: generationResult,
     });
-  } catch (error) {
-    logger.error('[API /planning/generate] Error:', error);
+  } catch (error: unknown) {
+    logger.error('[API /planning/generate] Error:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Erreur lors de la génération du planning',

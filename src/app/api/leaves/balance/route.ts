@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
                 logger.debug(`Solde de congés récupéré depuis le cache: ${cacheKey}`);
                 return NextResponse.json(cachedData);
             }
-        } catch (cacheError) {
+        } catch (cacheError: unknown) {
             // Enregistrer l'erreur mais continuer le traitement
             logger.warn(`Erreur avec le cache Redis, continuons sans cache: ${cacheError}`);
         }
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
                     finalBalancesByType[lb.leaveType].initial = lb.initial;
                 }
             });
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error("Erreur lors de la récupération des LeaveBalance pour le solde initial", { error, userIdInt, targetYear });
         }
 
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
                     finalBalancesByType[co.leaveType].carryOver += co.amount;
                 }
             });
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error("Erreur lors de la récupération des QuotaCarryOver", { error, userIdInt, targetYear });
         }
 
@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
                     finalBalancesByType[qt.fromType].transfers -= qt.amount;
                 }
             });
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error("Erreur lors de la récupération des QuotaTransfer", { error, userIdInt, targetYear });
         }
 
@@ -187,7 +187,7 @@ export async function GET(request: NextRequest) {
                     }
                 }
             });
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error("Erreur lors de la récupération des congés pour le calcul du solde", { error, userIdInt, targetYear });
         }
 
@@ -237,13 +237,13 @@ export async function GET(request: NextRequest) {
             if (cacheService && cacheKey) {
                 await cacheService.cacheData(cacheKey, response, 'BALANCE');
             }
-        } catch (cacheError) {
+        } catch (cacheError: unknown) {
             logger.warn(`Impossible de mettre les données en cache: ${cacheError}`);
             // Ne pas bloquer la réponse en cas d'erreur de cache
         }
 
         return NextResponse.json(response);
-    } catch (error) {
+    } catch (error: unknown) {
         logger.error("Erreur lors du calcul du solde de congés", { error, userId, year });
         return NextResponse.json({ error: "Une erreur est survenue lors du calcul du solde de congés" }, { status: 500 });
     }

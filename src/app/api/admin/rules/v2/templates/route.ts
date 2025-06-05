@@ -347,8 +347,8 @@ export async function GET(request: NextRequest) {
       total: templates.length
     });
 
-  } catch (error) {
-    logger.error('Error fetching templates:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching templates:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des templates' },
       { status: 500 }
@@ -404,7 +404,7 @@ export async function POST(request: NextRequest) {
     const rule = JSON.parse(JSON.stringify(template.baseRule));
     
     // Replace placeholders in all string fields
-    const replacePlaceholders = (obj: any): any => {
+    const replacePlaceholders = (obj: unknown): any => {
       if (typeof obj === 'string') {
         return obj.replace(/\{(\w+)\}/g, (match, key) => {
           return parameters[key] !== undefined ? parameters[key] : match;
@@ -432,8 +432,8 @@ export async function POST(request: NextRequest) {
       parameters
     });
 
-  } catch (error) {
-    logger.error('Error creating from template:', error);
+  } catch (error: unknown) {
+    logger.error('Error creating from template:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur lors de la création depuis le template' },
       { status: 500 }

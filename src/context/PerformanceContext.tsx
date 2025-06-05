@@ -63,7 +63,7 @@ export function PerformanceProvider({ children }: { children: ReactNode }) {
             if (savedMetrics) {
                 setMetrics(JSON.parse(savedMetrics));
             }
-        } catch (e) {
+        } catch (e: unknown) {
             logger.error('Erreur lors du chargement des métriques de performance:', e);
         }
     }, []);
@@ -72,7 +72,7 @@ export function PerformanceProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         try {
             localStorage.setItem('performanceMetrics', JSON.stringify(metrics));
-        } catch (e) {
+        } catch (e: unknown) {
             logger.error('Erreur lors de la sauvegarde des métriques de performance:', e);
         }
     }, [metrics]);

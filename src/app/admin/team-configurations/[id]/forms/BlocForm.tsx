@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 interface BlocFormProps {
     config: TeamConfiguration;
-    updateConfig: (path: string, value: any) => void;
+    updateConfig: (path: string, value: unknown) => void;
 }
 
 export default function BlocForm({ config, updateConfig }: BlocFormProps) {

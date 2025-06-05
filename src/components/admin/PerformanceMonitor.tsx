@@ -206,7 +206,7 @@ export default function PerformanceMonitor({
             },
             tooltip: {
                 callbacks: {
-                    label: (context: any) => {
+                    label: (context: unknown) => {
                         const index = context.dataIndex;
                         const page = slowestPages[index]?.page || '';
                         const loadTime = slowestPages[index]?.loadTime || 0;

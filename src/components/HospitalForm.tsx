@@ -95,7 +95,7 @@ export default function HospitalForm({
 
         try {
             await onSubmit(formData);
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(err.response?.data?.message || err.message || 'Une erreur est survenue lors de la sauvegarde.');
         }
     };

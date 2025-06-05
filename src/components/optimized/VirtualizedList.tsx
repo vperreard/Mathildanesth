@@ -1,12 +1,14 @@
 import React, { memo, useCallback, useRef, useEffect } from 'react';
 import { VariableSizeList as List } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
+// TODO: Install react-virtualized-auto-sizer or use alternative
+// // TODO: Install react-virtualized-auto-sizer or use alternative
+// import AutoSizer from 'react-virtualized-auto-sizer';
 import { cn } from '@/lib/utils';
 
 interface VirtualizedListItem {
     id: string;
     height?: number;
-    data: any;
+    data: unknown;
 }
 
 interface VirtualizedListProps {
@@ -132,9 +134,9 @@ interface VirtualizedTableProps {
         key: string;
         label: string;
         width?: number;
-        render?: (item: any) => React.ReactNode;
+        render?: (item: unknown) => React.ReactNode;
     }>;
-    data: any[];
+    data: unknown[];
     rowHeight?: number;
     headerHeight?: number;
     className?: string;

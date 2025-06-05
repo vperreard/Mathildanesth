@@ -54,8 +54,8 @@ export async function GET(request: NextRequest) {
       roles
     );
     return NextResponse.json(stats);
-  } catch (error) {
-    logger.error('Erreur lors de la récupération des statistiques de distribution:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération des statistiques de distribution:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         success: false,

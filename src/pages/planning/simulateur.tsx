@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import PlanningSimulatorComponent from '../../components/PlanningSimulator';
 import { Attribution, GenerationParameters, AssignmentType } from '../../types/assignment';
 import { User } from '../../types/user';
@@ -64,7 +64,7 @@ export default function SimulateurPage() {
                 setExistingAssignments(assignmentsData);
 
                 setLoading(false);
-            } catch (err) {
+            } catch (err: unknown) {
                 setError(`Erreur de chargement: ${err instanceof Error ? err.message : String(err)}`);
                 setLoading(false);
             }
@@ -100,7 +100,7 @@ export default function SimulateurPage() {
             // Ferme la boîte de dialogue et redirige vers le calendrier
             setShowConfirmDialog(false);
             router.push('/planning/calendrier');
-        } catch (err) {
+        } catch (err: unknown) {
             setError(`Erreur d'application: ${err instanceof Error ? err.message : String(err)}`);
             setLoading(false);
         }

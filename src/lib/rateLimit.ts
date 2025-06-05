@@ -152,7 +152,7 @@ export function withRateLimit(
           if (authResult.authenticated) {
             userId = authResult.userId;
           }
-        } catch (e) {
+        } catch (e: unknown) {
           // Ignorer les erreurs de vérification du token
         }
       }

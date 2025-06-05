@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
             message: 'Tests de performance exécutés avec succès',
             results
         });
-    } catch (error) {
+    } catch (error: unknown) {
         logger.error('Erreur lors de l\'exécution des tests de performance', { error });
         return NextResponse.json({
             error: 'Erreur lors de l\'exécution des tests de performance',
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
                 invalidateEvery: invalidateEvery || 20
             }
         });
-    } catch (error) {
+    } catch (error: unknown) {
         logger.error('Erreur lors de l\'exécution des tests de performance', { error });
         return NextResponse.json({
             error: 'Erreur lors de l\'exécution des tests de performance',

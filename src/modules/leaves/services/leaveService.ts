@@ -48,8 +48,8 @@ const BASE_URL = '/conges';
  * Helper pour construire ErrorDetails pour ce service
  */
 const buildLeaveServiceErrorDetails = (
-  error: any,
-  context?: Record<string, any>
+  error: unknown,
+  context?: Record<string, unknown>
 ): Omit<ErrorDetails, 'timestamp' | 'retry'> => {
   let message = 'Erreur inconnue dans le service des congés.';
   let code = 'LEAVE_SERVICE_ERROR';
@@ -234,7 +234,7 @@ export const fetchLeaves = async (filters: LeaveFilters = {}): Promise<Paginated
       limit,
       totalPages: Math.ceil(total / limit),
     };
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { filters });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -259,7 +259,7 @@ export const fetchLeaveById = async (leaveId: string): Promise<Leave> => {
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { leaveId });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -284,7 +284,7 @@ export const fetchLeaveBalance = async (userId: string): Promise<LeaveBalance> =
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { userId });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -325,7 +325,7 @@ export const saveLeave = async (leave: Partial<Leave>): Promise<Leave> => {
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { leaveId: leave.id });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -353,7 +353,7 @@ export const submitLeaveRequest = async (leaveData: Partial<Leave>): Promise<Lea
     };
 
     return await saveLeave(payloadForSaveLeave);
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { leaveId: leaveData.id });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -384,7 +384,7 @@ export const approveLeave = async (leaveId: string, comment?: string): Promise<L
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { leaveId });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -415,7 +415,7 @@ export const rejectLeave = async (leaveId: string, comment?: string): Promise<Le
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { leaveId });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -446,7 +446,7 @@ export const cancelLeave = async (leaveId: string, comment?: string): Promise<Le
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { leaveId });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -496,7 +496,7 @@ export const checkLeaveConflicts = async (
     }
 
     return result;
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, {
       startDate,
       endDate,
@@ -547,7 +547,7 @@ export const checkLeaveAllowance = async (
     }
 
     return result;
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, {
       userId,
       leaveType,
@@ -683,7 +683,7 @@ export const createRecurringLeaveRequest = async (
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { request: recurringRequest });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -732,7 +732,7 @@ export const updateRecurringLeaveRequest = async (
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { request: recurringRequest });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -761,7 +761,7 @@ export const fetchRecurringLeaveRequestById = async (
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { id });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -790,7 +790,7 @@ export const fetchRecurringLeaveRequestsByUser = async (
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { userId });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -825,7 +825,7 @@ export const deleteRecurringLeaveRequest = async (
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { id, deleteOccurrences });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -870,7 +870,7 @@ export const previewRecurringLeaveOccurrences = async (
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { request: recurringRequest });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -915,7 +915,7 @@ export const checkRecurringLeaveConflicts = async (
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { request: recurringRequest });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;

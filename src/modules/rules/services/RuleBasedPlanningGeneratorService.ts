@@ -78,8 +78,8 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
                 type: 'rules:loaded',
                 data: { count: this.dynamicRules.length }
             });
-        } catch (error) {
-            logger.error('Erreur lors du chargement des règles:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des règles:', error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     }

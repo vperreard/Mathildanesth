@@ -23,7 +23,7 @@ export const createQueryClient = () => {
                 retry: false, // Ne pas réessayer les mutations par défaut
                 onError: (error) => {
                     // Logger les erreurs de mutation
-                    logger.error('Erreur de mutation:', error);
+                    logger.error('Erreur de mutation:', error instanceof Error ? error : new Error(String(error)));
                 }
             }
         }

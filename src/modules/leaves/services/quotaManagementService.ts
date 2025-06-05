@@ -67,7 +67,7 @@ export class QuotaManagementService {
             }
 
             return await response.json();
-        } catch (error) {
+        } catch (error: unknown) {
             // logger.error('Échec de récupération des règles de transfert:');
             logger.info('>>> DEBUG: Dans catch getTransferRules'); // Log de débogage
             this.eventBus.publish({
@@ -94,7 +94,7 @@ export class QuotaManagementService {
             }
 
             return await response.json();
-        } catch (error) {
+        } catch (error: unknown) {
             // logger.error('Échec de récupération des règles de report:');
             logger.info('>>> DEBUG: Dans catch getCarryOverRules'); // Log de débogage
             this.eventBus.publish({
@@ -120,7 +120,7 @@ export class QuotaManagementService {
             }
 
             return await response.json();
-        } catch (error) {
+        } catch (error: unknown) {
             // logger.error('Échec de récupération des périodes actives:');
             logger.info('>>> DEBUG: Dans catch getActivePeriods'); // Log de débogage
             this.eventBus.publish({
@@ -149,7 +149,7 @@ export class QuotaManagementService {
             }
 
             return await response.json();
-        } catch (error) {
+        } catch (error: unknown) {
             // logger.error('Échec de récupération du bilan des quotas:');
             logger.info('>>> DEBUG: Dans catch getUserQuotaSummary'); // Log de débogage
             this.eventBus.publish({
@@ -186,7 +186,7 @@ export class QuotaManagementService {
             }
 
             return await response.json();
-        } catch (error) {
+        } catch (error: unknown) {
             // logger.error('Échec de récupération de l\'historique des transactions:');
             logger.info('>>> DEBUG: Dans catch getUserTransactionHistory'); // Log de débogage
             this.eventBus.publish({
@@ -241,7 +241,7 @@ export class QuotaManagementService {
             }
 
             return await response.json();
-        } catch (error) {
+        } catch (error: unknown) {
             // logger.error('Échec de la simulation du transfert:');
             logger.info('>>> DEBUG: Dans catch simulateTransfer'); // Log de débogage
             this.eventBus.publish({
@@ -302,7 +302,7 @@ export class QuotaManagementService {
             this.eventBus.publish({ type: QuotaManagementEvents.TRANSFER_REQUESTED, data: result });
 
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             // logger.error('Échec de la demande de transfert:');
             logger.info('>>> DEBUG: Dans catch requestTransfer'); // Log de débogage
             this.eventBus.publish({
@@ -351,7 +351,7 @@ export class QuotaManagementService {
             this.eventBus.publish({ type: QuotaManagementEvents.TRANSFER_PROCESSED, data: result });
 
             return true;
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error('Échec du traitement de la demande de transfert:');
             this.eventBus.publish({
                 type: QuotaManagementEvents.ERROR_OCCURRED,
@@ -405,7 +405,7 @@ export class QuotaManagementService {
             }
 
             return await response.json();
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error('Échec de la simulation du report:');
             this.eventBus.publish({
                 type: QuotaManagementEvents.ERROR_OCCURRED,
@@ -464,7 +464,7 @@ export class QuotaManagementService {
             this.eventBus.publish({ type: QuotaManagementEvents.CARRY_OVER_REQUESTED, data: result });
 
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error('Échec de la demande de report:');
             this.eventBus.publish({
                 type: QuotaManagementEvents.ERROR_OCCURRED,
@@ -512,7 +512,7 @@ export class QuotaManagementService {
             this.eventBus.publish({ type: QuotaManagementEvents.CARRY_OVER_PROCESSED, data: result });
 
             return true;
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error('Échec du traitement de la demande de report:');
             this.eventBus.publish({
                 type: QuotaManagementEvents.ERROR_OCCURRED,
@@ -557,7 +557,7 @@ export class QuotaManagementService {
             }
 
             return await response.json();
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error('Échec du calcul de disponibilité:');
             this.eventBus.publish({
                 type: QuotaManagementEvents.ERROR_OCCURRED,
@@ -614,7 +614,7 @@ export class QuotaManagementService {
                     }
                 }
             }
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error('Erreur lors de la notification des alertes de quota:');
         }
     }
@@ -661,7 +661,7 @@ export class QuotaManagementService {
             this.eventBus.publish({ type: QuotaManagementEvents.QUOTA_UPDATED, data: result });
 
             return true;
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error('Échec de l\'ajustement du quota:');
             this.eventBus.publish({
                 type: QuotaManagementEvents.ERROR_OCCURRED,
@@ -679,7 +679,7 @@ export class QuotaManagementService {
      * @param event Type d'événement
      * @param callback Fonction à appeler
      */
-    public subscribe(event: QuotaManagementEvents, callback: (data: any) => void): () => void {
+    public subscribe(event: QuotaManagementEvents, callback: (data: unknown) => void): () => void {
         // Retourner directement la fonction de désabonnement de l'eventBus réel
         return this.eventBus.subscribe(event, callback);
     }

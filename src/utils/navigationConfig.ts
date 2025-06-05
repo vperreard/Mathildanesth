@@ -18,7 +18,7 @@ import {
 export interface NavigationItem {
   href: string;
   label: string;
-  icon?: any;
+  icon?: unknown;
   description?: string;
   roles?: string[];
   badge?: string;
@@ -26,7 +26,7 @@ export interface NavigationItem {
 
 export interface NavigationGroup {
   name: string;
-  icon?: any;
+  icon?: unknown;
   items: NavigationItem[];
   roles?: string[];
 }
@@ -339,7 +339,7 @@ export const medicalTerminology = {
 export interface BreadcrumbItem {
   label: string;
   href?: string;
-  icon?: any;
+  icon?: unknown;
 }
 
 export const getBreadcrumbs = (pathname: string): BreadcrumbItem[] => {

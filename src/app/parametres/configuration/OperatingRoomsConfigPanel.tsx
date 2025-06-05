@@ -189,7 +189,7 @@ const getRoomTypeOptions = () => {
 };
 
 // Fonctions de normalisation des données
-const normalizeOperatingSectors = (sectors: any[]): OperatingSector[] => {
+const normalizeOperatingSectors = (sectors: unknown[]): OperatingSector[] => {
     return sectors.map(sector => ({
         ...sector,
         originalName: sector.name,
@@ -200,7 +200,7 @@ const normalizeOperatingSectors = (sectors: any[]): OperatingSector[] => {
     }));
 };
 
-const normalizeOperatingRooms = (rooms: any[]): OperatingRoom[] => {
+const normalizeOperatingRooms = (rooms: unknown[]): OperatingRoom[] => {
     return rooms.map(room => ({
         ...room,
         name: room.name || '',
@@ -671,8 +671,8 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                 setSelectedSiteId(sitesList[0].id);
             }
 
-        } catch (error) {
-            logger.error("Erreur lors du chargement des données:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des données:", error instanceof Error ? error : new Error(String(error)));
             setError("Erreur lors du chargement des données");
         } finally {
             setIsLoading(false);
@@ -888,8 +888,8 @@ const OperatingRoomsConfigPanel: React.FC = () => {
             setTimeout(() => {
                 setShowSuccess(false);
             }, 3000);
-        } catch (error) {
-            logger.error("Erreur lors de la soumission :", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la soumission :", error instanceof Error ? error : new Error(String(error)));
             setFormError("Une erreur est survenue lors de la soumission du formulaire");
         } finally {
             setIsSubmitting(false);
@@ -993,8 +993,8 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                 // Mise à jour de l'état local
                 setRooms(prevRooms => prevRooms.filter(room => room.id !== id));
                 toast.success("La salle a été supprimée avec succès");
-            } catch (error) {
-                logger.error("Erreur lors de la suppression de la salle:", error);
+            } catch (error: unknown) {
+                logger.error("Erreur lors de la suppression de la salle:", error instanceof Error ? error : new Error(String(error)));
                 toast.error("Erreur lors de la suppression de la salle");
             }
         }
@@ -1820,8 +1820,8 @@ const runTest = async () => {
     try {
         // Simuler les tests
         logger.info("Test terminé avec succès");
-    } catch (error) {
-        logger.error("Erreur pendant les tests:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur pendant les tests:", error instanceof Error ? error : new Error(String(error)));
     }
 };
 

@@ -57,7 +57,7 @@ export const EVENTS = {
  * @param events Événements et leurs gestionnaires
  * @returns Une fonction pour se désabonner
  */
-export const subscribeToChannel = (channelName: string, events: Record<string, (data: any) => void>) => {
+export const subscribeToChannel = (channelName: string, events: Record<string, (data: unknown) => void>) => {
     if (!channelName) {
         logger.error('Nom de canal requis pour s\'abonner');
         return () => { };
@@ -83,8 +83,8 @@ export const subscribeToChannel = (channelName: string, events: Record<string, (
             });
             pusherClient.unsubscribe(channelName);
         };
-    } catch (error) {
-        logger.error('Erreur lors de l\'abonnement au canal Pusher:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'abonnement au canal Pusher:', error instanceof Error ? error : new Error(String(error)));
         return () => { };
     }
 };
@@ -98,7 +98,7 @@ export const subscribeToChannel = (channelName: string, events: Record<string, (
 export const triggerEvent = async (
     channelName: string,
     eventName: string,
-    data: any
+    data: unknown
 ) => {
     if (!channelName || !eventName) {
         logger.error('Nom de canal et d\'événement requis pour déclencher un événement');
@@ -112,8 +112,8 @@ export const triggerEvent = async (
 
     try {
         await pusherServer.trigger(channelName, eventName, data);
-    } catch (error) {
-        logger.error('Erreur lors du déclenchement de l\'événement Pusher:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors du déclenchement de l\'événement Pusher:', error instanceof Error ? error : new Error(String(error)));
     }
 };
 
@@ -124,7 +124,7 @@ export const triggerEvent = async (
  * @param userData Données utilisateur pour l'authentification
  * @returns Données d'authentification
  */
-export const authorizeChannel = (socketId: string, channel: string, userData: any) => {
+export const authorizeChannel = (socketId: string, channel: string, userData: unknown) => {
     if (!pusherServer) {
         logger.info('Pusher serveur non configuré, autorisation ignorée');
         return null;

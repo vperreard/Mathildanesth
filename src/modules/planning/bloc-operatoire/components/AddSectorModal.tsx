@@ -61,8 +61,8 @@ export default function AddSectorModal({ isOpen, onClose, onAdd }: AddSectorModa
             onAdd(createdSector);
             form.reset();
             onClose();
-        } catch (error) {
-            logger.error('Erreur:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
             setError(error instanceof Error ? error.message : 'Une erreur est survenue');
         } finally {
             setIsLoading(false);

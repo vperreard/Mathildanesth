@@ -103,7 +103,7 @@ export default function BlocPlanning() {
         setActiveTab('editor');
     };
 
-    const handleTrameSave = (affectations: any[]) => {
+    const handleTrameSave = (affectations: unknown[]) => {
         logger.info('TrameModele sauvegardée:', affectations);
         setActiveTab('planning');
     };

@@ -89,8 +89,8 @@ export class RuleEngineV2 {
       }
 
       return result;
-    } catch (error) {
-      logger.error(`Error evaluating rule ${rule.id}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Error evaluating rule ${rule.id}:`, error instanceof Error ? error : new Error(String(error)));
       return {
         ruleId: rule.id,
         ruleName: rule.name,
@@ -135,8 +135,8 @@ export class RuleEngineV2 {
           context
         );
       }
-    } catch (error) {
-      logger.error('Failed to send violation notification:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to send violation notification:', error instanceof Error ? error : new Error(String(error)));
       // Ne pas faire échouer l'évaluation si la notification échoue
     }
   }
@@ -240,8 +240,8 @@ export class RuleEngineV2 {
       try {
         const func = new Function('context', 'value', condition.customFunction);
         return func(context, condition.value);
-      } catch (error) {
-        logger.error('Error in custom condition:', error);
+      } catch (error: unknown) {
+        logger.error('Error in custom condition:', error instanceof Error ? error : new Error(String(error)));
         return false;
       }
     }

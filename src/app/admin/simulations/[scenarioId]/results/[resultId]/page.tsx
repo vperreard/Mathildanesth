@@ -169,7 +169,7 @@ export default function SimulationResultPage() {
                 try {
                     const errorData = await res.json();
                     errorMessage = errorData.message || errorMessage;
-                } catch (e) {
+                } catch (e: unknown) {
                     errorMessage = `Erreur ${res.status}: ${res.statusText}`;
                 }
                 throw new Error(errorMessage);
@@ -261,7 +261,7 @@ export default function SimulationResultPage() {
 
                 setStatistics(formattedStats);
 
-            } catch (e) {
+            } catch (e: unknown) {
                 logger.error("Erreur lors du traitement des statistiques", e);
             }
         }
@@ -283,7 +283,7 @@ export default function SimulationResultPage() {
                         resolution: conflict.resolution
                     })));
                 }
-            } catch (e) {
+            } catch (e: unknown) {
                 logger.error("Erreur lors du traitement des alertes de conflit", e);
             }
         }
@@ -327,7 +327,7 @@ export default function SimulationResultPage() {
 
                     setUserAssignments(Object.values(userMap));
                 }
-            } catch (e) {
+            } catch (e: unknown) {
                 logger.error("Erreur lors du traitement des données de planning", e);
             }
         }
@@ -361,7 +361,7 @@ export default function SimulationResultPage() {
         if (typeof jsonData === 'string') {
             try {
                 dataToDisplay = JSON.parse(jsonData);
-            } catch (e) {
+            } catch (e: unknown) {
                 return <p className="text-sm text-red-500">Données JSON invalides.</p>;
             }
         }
@@ -436,8 +436,8 @@ export default function SimulationResultPage() {
             URL.revokeObjectURL(url);
 
             toast.success("Export PDF généré avec succès");
-        } catch (error) {
-            logger.error('Erreur lors de l\'export PDF:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'export PDF:', error instanceof Error ? error : new Error(String(error)));
             toast.error("Échec de l'export PDF");
         }
     };
@@ -480,8 +480,8 @@ export default function SimulationResultPage() {
             URL.revokeObjectURL(url);
 
             toast.success("Export Excel généré avec succès");
-        } catch (error) {
-            logger.error('Erreur lors de l\'export Excel:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'export Excel:', error instanceof Error ? error : new Error(String(error)));
             toast.error("Échec de l'export Excel");
         }
     };

@@ -17,7 +17,7 @@ function parseRules(rulesJson: Prisma.JsonValue): { maxRoomsPerSupervisor: numbe
             if (typeof parsed === 'object' && parsed !== null && 'maxRoomsPerSupervisor' in parsed && typeof parsed.maxRoomsPerSupervisor === 'number') {
                 return { maxRoomsPerSupervisor: parsed.maxRoomsPerSupervisor };
             }
-        } catch (e) {
+        } catch (e: unknown) {
             logger.warn("Failed to parse rules JSON string:", rulesJson, e);
         }
     }
@@ -91,8 +91,8 @@ export async function GET(
         logger.info(`--- GET /api/sectors/${id} END (Prisma - JSON Rules) ---\n`);
         return NextResponse.json(responseData);
 
-    } catch (error) {
-        logger.error(`Error during GET /api/sectors/${params.id} (Prisma - JSON Rules):`, error);
+    } catch (error: unknown) {
+        logger.error(`Error during GET /api/sectors/${params.id} (Prisma - JSON Rules):`, error instanceof Error ? error : new Error(String(error)));
         logger.info(`--- GET /api/sectors/${params.id} END (Prisma - with error) ---\n`);
         return NextResponse.json({ error: 'Erreur lors de la récupération du secteur' }, { status: 500 });
     }
@@ -173,8 +173,8 @@ export async function PUT(
         logger.info(`--- PUT /api/sectors/${id} END (Prisma - JSON Rules) ---\n`);
         return NextResponse.json(responseData);
 
-    } catch (error) {
-        logger.error(`Error during PUT /api/sectors/${params.id} (Prisma - JSON Rules):`, error);
+    } catch (error: unknown) {
+        logger.error(`Error during PUT /api/sectors/${params.id} (Prisma - JSON Rules):`, error instanceof Error ? error : new Error(String(error)));
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 logger.error(`Prisma Error P2025: Record to update not found (ID: ${params.id})`);
@@ -230,8 +230,8 @@ export async function DELETE(
         logger.info(`--- DELETE /api/sectors/${id} END (Prisma - JSON Rules) ---\n`);
         return NextResponse.json({ message: 'Secteur supprimé avec succès' });
 
-    } catch (error) {
-        logger.error(`Error during DELETE /api/sectors/${params.id} (Prisma - JSON Rules):`, error);
+    } catch (error: unknown) {
+        logger.error(`Error during DELETE /api/sectors/${params.id} (Prisma - JSON Rules):`, error instanceof Error ? error : new Error(String(error)));
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 logger.error(`Prisma Error P2025: Record to delete not found (ID: ${params.id})`);

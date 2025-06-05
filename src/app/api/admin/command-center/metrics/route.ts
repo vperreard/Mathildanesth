@@ -127,8 +127,8 @@ async function handler(req: NextRequest) {
       weeklyTrends
     });
 
-  } catch (error) {
-    logger.error('Erreur lors de la récupération des métriques:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération des métriques:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }

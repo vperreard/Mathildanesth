@@ -47,8 +47,8 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(sectors);
-  } catch (error) {
-    logger.error('Erreur lors de la récupération des secteurs opératoires:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération des secteurs opératoires:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des secteurs opératoires' },
       { status: 500 }
@@ -94,8 +94,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(newSector, { status: 201 });
-  } catch (error) {
-    logger.error('Erreur lors de la création du secteur:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la création du secteur:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         error: 'Erreur lors de la création du secteur',

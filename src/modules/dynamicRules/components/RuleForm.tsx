@@ -150,7 +150,7 @@ const RuleForm: React.FC<RuleFormProps> = ({ rule, allRules = [], onSave, onCanc
         setFormData(prev => ({ ...prev, conditions: [...prev.conditions, newCondition] }));
     };
 
-    const updateCondition = (index: number, field: keyof RuleCondition, value: any) => {
+    const updateCondition = (index: number, field: keyof RuleCondition, value: unknown) => {
         setFormData(prev => ({
             ...prev,
             conditions: prev.conditions.map((cond, i) => i === index ? { ...cond, [field]: value } : cond)
@@ -170,7 +170,7 @@ const RuleForm: React.FC<RuleFormProps> = ({ rule, allRules = [], onSave, onCanc
         setFormData(prev => ({ ...prev, actions: [...prev.actions, newAction] }));
     };
 
-    const updateAction = (index: number, field: keyof RuleAction | 'paramValue', value: any) => {
+    const updateAction = (index: number, field: keyof RuleAction | 'paramValue', value: unknown) => {
         setFormData(prev => ({
             ...prev,
             actions: prev.actions.map((act, i) => {
@@ -179,7 +179,7 @@ const RuleForm: React.FC<RuleFormProps> = ({ rule, allRules = [], onSave, onCanc
                         try {
                             const parsedParams = JSON.parse(value || '{}');
                             return { ...act, parameters: parsedParams };
-                        } catch (err) {
+                        } catch (err: unknown) {
                             logger.error("Erreur parsing JSON pour les paramètres d'action:", err);
                             return act;
                         }

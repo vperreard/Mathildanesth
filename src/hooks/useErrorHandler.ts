@@ -9,7 +9,7 @@ export interface ErrorDetails {
     field?: string;
     severity: ErrorSeverity;
     timestamp: Date;
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
     retry?: () => Promise<void>;
 }
 
@@ -106,7 +106,7 @@ export const useErrorHandler = () => {
         return errorState.hasError;
     }, [errorState]);
 
-    const handleApiError = useCallback(async (error: any, key?: string) => {
+    const handleApiError = useCallback(async (error: unknown, key?: string) => {
         const errorResponse = error.response?.data || {};
         const status = error.response?.status || 500;
 

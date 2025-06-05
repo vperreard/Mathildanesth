@@ -33,8 +33,8 @@ import { patchRuleEngine, patchRuleCache } from './ruleProfiler';
  * @param ruleCache Le service de cache de règles à profiler
  */
 export function initializeProfiler(
-    ruleEngine?: any,
-    ruleCache?: any
+    ruleEngine?: unknown,
+    ruleCache?: unknown
 ) {
     // Activer le profileur en mode développement
     profilerService.configure({

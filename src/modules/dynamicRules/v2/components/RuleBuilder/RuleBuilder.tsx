@@ -71,8 +71,8 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
     setIsSaving(true);
     try {
       await onSave(state.rule);
-    } catch (error) {
-      logger.error('Error saving rule:', error);
+    } catch (error: unknown) {
+      logger.error('Error saving rule:', error instanceof Error ? error : new Error(String(error)));
     } finally {
       setIsSaving(false);
     }

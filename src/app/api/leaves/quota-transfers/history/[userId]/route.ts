@@ -54,8 +54,8 @@ export async function GET(
     }));
 
     return NextResponse.json(formattedHistory);
-  } catch (error) {
-    logger.error("Erreur lors de la récupération de l'historique des transferts:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de la récupération de l'historique des transferts:", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: "Erreur serveur lors de la récupération de l'historique des transferts" },
       { status: 500 }

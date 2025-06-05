@@ -1,5 +1,5 @@
 import { logger } from './logger';
-let Redis: any;
+let Redis: unknown;
 
 // Détecter l'environnement Edge Runtime
 const isEdgeRuntime =
@@ -13,8 +13,8 @@ if (typeof window === 'undefined' && !isEdgeRuntime) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     Redis = require('ioredis').default || require('ioredis');
-  } catch (error) {
-    logger.warn('IORedis non disponible:', error);
+  } catch (error: unknown) {
+    logger.warn('IORedis non disponible:', error instanceof Error ? error : new Error(String(error)));
     Redis = null;
   }
 }
@@ -58,8 +58,8 @@ if (typeof window === 'undefined' && !isEdgeRuntime && Redis) {
       logger.info(`Serveur Redis prêt (${REDIS_HOST}:${REDIS_PORT}, DB ${REDIS_DB})`);
     });
 
-    redisInstance.on('error', (error: any) => {
-      logger.error('Erreur de connexion Redis:', error);
+    redisInstance.on('error', (error: unknown) => {
+      logger.error('Erreur de connexion Redis:', error instanceof Error ? error : new Error(String(error)));
     });
 
     redisInstance.on('close', () => {
@@ -69,8 +69,8 @@ if (typeof window === 'undefined' && !isEdgeRuntime && Redis) {
     redisInstance.on('reconnecting', () => {
       logger.warn('Tentative de reconnexion au serveur Redis...');
     });
-  } catch (error) {
-    logger.warn('Impossible de créer la connexion Redis:', error);
+  } catch (error: unknown) {
+    logger.warn('Impossible de créer la connexion Redis:', error instanceof Error ? error : new Error(String(error)));
     redisInstance = null;
   }
 } else if (isEdgeRuntime) {
@@ -78,13 +78,13 @@ if (typeof window === 'undefined' && !isEdgeRuntime && Redis) {
 }
 
 // Wrapper autour de Redis pour la gestion du mode désactivé
-type RedisOperation = (...args: any[]) => Promise<any>;
+type RedisOperation = (...args: unknown[]) => Promise<unknown>;
 
 class RedisCacheClient {
-  private client: any;
+  private client: unknown;
   private enabled: boolean;
 
-  constructor(client: any, enabled: boolean = true) {
+  constructor(client: unknown, enabled: boolean = true) {
     this.client = client;
     this.enabled = enabled && client !== null;
   }
@@ -108,15 +108,15 @@ class RedisCacheClient {
    * Wrapper pour toutes les opérations Redis
    * Vérifie si le cache est activé avant d'exécuter la commande
    */
-  private async executeIfEnabled<T>(operation: RedisOperation, ...args: any[]): Promise<T | null> {
+  private async executeIfEnabled<T>(operation: RedisOperation, ...args: unknown[]): Promise<T | null> {
     if (!this.enabled) {
       return null;
     }
 
     try {
       return await operation.apply(this.client, args);
-    } catch (error) {
-      logger.error(`Erreur Redis pour l'opération ${operation.name}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Erreur Redis pour l'opération ${operation.name}:`, error instanceof Error ? error : new Error(String(error)));
       return null;
     }
   }
@@ -158,7 +158,7 @@ class RedisCacheClient {
     return this.executeIfEnabled(this.client.hset as RedisOperation, key, field, value);
   }
 
-  async hmset(key: string, data: Record<string, any>): Promise<'OK' | null> {
+  async hmset(key: string, data: Record<string, unknown>): Promise<'OK' | null> {
     return this.executeIfEnabled(this.client.hmset as RedisOperation, key, data);
   }
 
@@ -166,7 +166,7 @@ class RedisCacheClient {
     return this.executeIfEnabled(this.client.del as RedisOperation, ...keys);
   }
 
-  async scan(cursor: string, ...args: any[]): Promise<[string, string[]] | null> {
+  async scan(cursor: string, ...args: unknown[]): Promise<[string, string[]] | null> {
     return this.executeIfEnabled(this.client.scan as RedisOperation, cursor, ...args);
   }
 
@@ -198,8 +198,8 @@ class RedisCacheClient {
     try {
       const result = await this.client.ping();
       return result === 'PONG';
-    } catch (error) {
-      logger.error('Erreur lors du ping Redis:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors du ping Redis:', error instanceof Error ? error : new Error(String(error)));
       return false;
     }
   }

@@ -85,8 +85,8 @@ export async function GET(request: Request) {
         // prismaInstance = prisma; // Supprimé
         const users = await prisma.user.findMany(queryOptions);
         return NextResponse.json(users);
-    } catch (error) {
-        logger.error("Erreur GET /api/utilisateurs:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur GET /api/utilisateurs:", error instanceof Error ? error : new Error(String(error)));
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     } finally {
         // if (prismaInstance) await prismaInstance.$disconnect(); // Supprimé
@@ -184,8 +184,8 @@ export async function POST(request: Request) {
 
         return new NextResponse(JSON.stringify(newUser), { status: 201 });
 
-    } catch (error: any) {
-        logger.error("Erreur POST /api/utilisateurs:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur POST /api/utilisateurs:", error instanceof Error ? error : new Error(String(error)));
         // Utiliser les types importés directement
         if (error instanceof PrismaClientValidationError) {
             logger.error("Erreur de validation Prisma:", error.message);

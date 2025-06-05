@@ -107,7 +107,7 @@ export const useGlobalConflictDetection = ({
             // Mettre à jour l'état
             setGlobalResult(result);
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error('Erreur inconnue lors de la détection des conflits');
             setError(errorObj);
             logger.error('Erreur dans la détection des conflits:', err);

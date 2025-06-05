@@ -35,7 +35,7 @@ import type { TrameModele } from '@/components/trames/grid-view/TrameGridView';
 
 export interface TemplateManagerProps {
     initialTemplatesParam?: PlanningTemplate[]; // Renommé pour éviter confusion avec l'état
-    availableSitesParam: any[]; // Correction du type pour éviter l'erreur d'import
+    availableSitesParam: unknown[]; // Correction du type pour éviter l'erreur d'import
     availableActivityTypesParam: FullActivityType[];
     availableRolesParam: RoleType[];
 }
@@ -219,7 +219,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 }
             });
 
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Error fetching modèles:", err);
             setError("Erreur lors du chargement des trameModeles.");
             toast.error("Impossible de charger les trameModeles.");
@@ -232,7 +232,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
         try {
             const types = await templateService.getAvailableAffectationTypes();
             setAvailableTypes(types);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Error fetching available types:", err);
             toast.error("Impossible de charger les types d'affectation.");
         }
@@ -298,7 +298,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 setEditingTemplate(duplicatedTemplate);
                 setIsEditorOpen(true);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Error duplicating modèle:", err);
             setError("Erreur lors de la duplication de la trameModele.");
             toast.error("Impossible de dupliquer la trameModele.");
@@ -313,7 +313,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 await templateService.deleteTemplate(id);
                 toast.success(`Tableau de service "${name}" supprimée.`);
                 loadTemplates();
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error("Error deleting modèle:", err);
                 setError("Erreur lors de la suppression de la trameModele.");
                 toast.error("Impossible de supprimer la trameModele.");
@@ -377,7 +377,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             setIsEditorOpen(false);
             await loadTemplates();
             setSaveProcessCompleted(true);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Error saving modèle:", err);
             if (err instanceof Error && err.message && err.message.includes("Un modèle de trameModele avec ce nom existe déjà")) {
                 toast.error(err.message);
@@ -409,7 +409,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 const sitesData = await response.json();
                 setSites(sitesData);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du chargement des sites:', err);
         }
     }, []);
@@ -434,7 +434,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             logger.info('✅✅✅ [DEBUG TemplateManager] Modèles reloaded successfully after edit');
             toast.success('Tableau de service modifiée avec succès');
         }).catch((error) => {
-            logger.error('❌❌❌ [DEBUG TemplateManager] Error reloading modèles after edit:', error);
+            logger.error('❌❌❌ [DEBUG TemplateManager] Error reloading modèles after edit:', error instanceof Error ? error : new Error(String(error)));
             toast.error('Tableau de service modifiée mais erreur lors du rechargement');
         });
     }, [loadTemplates]);

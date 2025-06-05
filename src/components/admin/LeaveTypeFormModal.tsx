@@ -309,7 +309,7 @@ const LeaveTypeFormModal: React.FC<LeaveTypeFormModalProps> = ({
         const apiUrl = isEditing ? `/api/admin/leave-types/${initialData?.id}` : '/api/admin/leave-types';
         const method = isEditing ? 'PUT' : 'POST';
 
-        let bodyToSend: any;
+        let bodyToSend: unknown;
         if (isEditing) {
             bodyToSend = {
                 label: formData.label,
@@ -346,7 +346,7 @@ const LeaveTypeFormModal: React.FC<LeaveTypeFormModalProps> = ({
             alert(`Type de congé ${isEditing ? 'mis à jour' : 'créé'} avec succès !`);
             onSuccess();
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la soumission:", err);
             setError(err.message || `Une erreur est survenue.`);
         } finally {

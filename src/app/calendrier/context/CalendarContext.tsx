@@ -91,7 +91,7 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({
     const filters = useCalendarFilters({ initialFilters });
 
     // Wrapper pour fetchEvents qui utilise le cache
-    const fetchEventsWithCache = async (start: Date, end: Date, filterOptions?: any) => {
+    const fetchEventsWithCache = async (start: Date, end: Date, filterOptions?: unknown) => {
         if (!eventServices.fetchEvents) {
             return [];
         }

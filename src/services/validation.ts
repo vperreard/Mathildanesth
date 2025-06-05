@@ -3,7 +3,7 @@ import { RulesConfiguration } from '../types/rules';
 
 interface ValidationResult {
     isValid: boolean;
-    violations: any[];
+    violations: unknown[];
 }
 
 /**
@@ -16,7 +16,7 @@ export function validateAssignments(
     attributions: Attribution[],
     rules: RulesConfiguration
 ): ValidationResult {
-    const violations: any[] = [];
+    const violations: unknown[] = [];
 
     // Vérifier les conflits d'horaire (même médecin, même jour)
     const userDayMap: Record<string, Attribution[]> = {};

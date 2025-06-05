@@ -82,7 +82,7 @@ const leaveRequestSchema = z.object({
 
 export interface LeaveFormProps {
     userId: number;
-    onSuccess: (newLeave: any) => void;
+    onSuccess: (newLeave: unknown) => void;
 }
 
 // Composant Tooltip personnalisé qui n'utilise pas element.ref de manière dépréciée
@@ -193,7 +193,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                 if (translatedData.length > 0 && !leaveType) {
                     setLeaveType(translatedData[0].code);
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 logger.error("Erreur lors du chargement des types de congés:", err);
                 setLoadTypeError("Impossible de charger les types de congés.");
             } finally {
@@ -281,7 +281,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                 // Cas où la réponse n'a pas le format attendu
                 throw new Error("Réponse invalide de l'API batch.");
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la soumission de la demande batch:", err);
             const apiError = err.response?.data?.error || err.message || 'Une erreur est survenue lors de la soumission.';
             setErrors({ global: apiError });

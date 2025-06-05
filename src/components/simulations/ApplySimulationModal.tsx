@@ -99,8 +99,8 @@ export function ApplySimulationModal({
                 router.push('/planning/hebdomadaire');
                 router.refresh();
             }
-        } catch (error) {
-            logger.error('Erreur lors de l\'application de la simulation:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'application de la simulation:', error instanceof Error ? error : new Error(String(error)));
             setError('Une erreur est survenue lors de la communication avec le serveur');
         } finally {
             setLoading(false);

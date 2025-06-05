@@ -2,9 +2,9 @@ import React from 'react';
 import { CalendarViewType } from '../../types/event';
 
 interface DayGridViewProps {
-    events: any[];
+    events: unknown[];
     date: Date;
-    onEventClick?: (event: any) => void;
+    onEventClick?: (event: unknown) => void;
 }
 
 const DayGridView: React.FC<DayGridViewProps> = ({ events, date, onEventClick }) => {

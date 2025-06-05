@@ -55,8 +55,8 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(planningRules);
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des règles de planning:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des règles de planning:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des règles de planning' },
             { status: 500 }
@@ -110,8 +110,8 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json(planningRule, { status: 201 });
-    } catch (error) {
-        logger.error('Erreur lors de la création de la règle de planning:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création de la règle de planning:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la création de la règle de planning' },
             { status: 500 }

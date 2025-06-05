@@ -15,7 +15,7 @@ export default function NewRulePage() {
     const { createRule } = useScheduleRules({ autoFetch: false });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = async (data: any) => {
+    const handleSubmit = async (data: unknown) => {
         if (!user?.id) {
             toast({
                 variant: 'destructive',
@@ -38,8 +38,8 @@ export default function NewRulePage() {
             });
 
             router.push('/admin/planningMedical-rules');
-        } catch (error) {
-            logger.error('Erreur lors de la création de la règle:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la création de la règle:', error instanceof Error ? error : new Error(String(error)));
             toast({
                 variant: 'destructive',
                 title: 'Erreur',

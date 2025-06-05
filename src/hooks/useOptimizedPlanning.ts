@@ -150,7 +150,7 @@ export function useOptimizedPlanning({
             queryClient.invalidateQueries({ queryKey });
         },
         onError: (error) => {
-            logger.error('Erreur de sauvegarde:', error);
+            logger.error('Erreur de sauvegarde:', error instanceof Error ? error : new Error(String(error)));
         }
     });
 

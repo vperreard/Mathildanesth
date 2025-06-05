@@ -106,7 +106,7 @@ export default function UnifiedRequestForm({
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: unknown) => {
       return axios.post('/api/requests', data);
     },
     onSuccess: () => {
@@ -144,7 +144,7 @@ export default function UnifiedRequestForm({
     createMutation.mutate(requestData);
   };
 
-  const generateTitle = (type: UnifiedRequestType, data: any): string => {
+  const generateTitle = (type: UnifiedRequestType, data: unknown): string => {
     switch (type) {
       case UnifiedRequestType.LEAVE:
         return `Congé du ${data.startDate ? format(new Date(data.startDate), 'dd/MM') : ''} au ${data.endDate ? format(new Date(data.endDate), 'dd/MM') : ''}`;

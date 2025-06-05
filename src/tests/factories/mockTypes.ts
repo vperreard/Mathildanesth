@@ -1,6 +1,6 @@
 /**
  * Types et factories pour les mocks de test
- * Élimine le besoin d'utiliser @ts-ignore dans les tests
+ * Élimine le besoin d'utiliser @ts-expect-error dans les tests
  */
 
 import {
@@ -253,6 +253,6 @@ export const createMockPrisma = (): MockPrismaClient => ({
 });
 
 // Helper pour valider les types au runtime
-export const assertMockType = <T>(mock: any, expected: Partial<T>): T => {
+export const assertMockType = <T>(mock: unknown, expected: Partial<T>): T => {
     return { ...expected, ...mock } as T;
 }; 

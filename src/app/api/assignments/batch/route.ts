@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
                             data: assignmentData,
                         });
                     }
-                } catch (error) {
+                } catch (error: unknown) {
                     logger.error(`Erreur lors du traitement de l'affectation: ${error}`);
                     return { error: `Échec pour l'affectation de l'utilisateur ${attribution.userId}` };
                 }
@@ -96,8 +96,8 @@ export async function POST(req: NextRequest) {
             },
             { status: 200 }
         );
-    } catch (error) {
-        logger.error('Erreur lors du traitement des affectations par lots:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors du traitement des affectations par lots:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Une erreur est survenue lors du traitement des affectations' },
             { status: 500 }

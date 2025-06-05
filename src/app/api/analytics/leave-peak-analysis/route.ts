@@ -85,8 +85,8 @@ export async function GET(request: NextRequest) {
       data: stats,
       metadata,
     });
-  } catch (error) {
-    logger.error("Erreur lors de l'analyse des pics de congés:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de l'analyse des pics de congés:", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         success: false,

@@ -99,8 +99,8 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({
             setLoading(true);
             await onSubmit(values);
             toast.success(isEditing ? 'Consultation mise à jour' : 'Consultation créée');
-        } catch (error) {
-            logger.error('Erreur lors de la soumission :', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la soumission :', error instanceof Error ? error : new Error(String(error)));
             toast.error('Une erreur est survenue');
         } finally {
             setLoading(false);

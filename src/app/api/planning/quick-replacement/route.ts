@@ -123,8 +123,8 @@ export async function POST(request: Request) {
             candidates: candidates.slice(0, 10) // Top 10 candidats
         });
 
-    } catch (error) {
-        logger.error('Erreur dans quick-replacement:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur dans quick-replacement:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur lors de la recherche de remplaçants' },
             { status: 500 }
@@ -133,7 +133,7 @@ export async function POST(request: Request) {
 }
 
 async function calculateReplacementScore(
-    user: any,
+    user: unknown,
     shiftType: string,
     startDate: Date,
     endDate: Date
@@ -141,11 +141,11 @@ async function calculateReplacementScore(
     let score = 100;
 
     // 1. Disponibilité (40 points)
-    const hasConflict = user.attributions.some((a: any) => {
+    const hasConflict = user.attributions.some((a: unknown) => {
         return isWithinInterval(new Date(a.startDate), { start: startDate, end: endDate });
     });
     
-    const onLeave = user.leaves.some((l: any) => {
+    const onLeave = user.leaves.some((l: unknown) => {
         return isWithinInterval(startDate, { 
             start: new Date(l.startDate), 
             end: new Date(l.endDate) 
@@ -174,17 +174,17 @@ async function calculateReplacementScore(
 }
 
 function determineAvailability(
-    user: any,
+    user: unknown,
     startDate: Date,
     endDate: Date
 ): 'available' | 'partial' | 'busy' {
-    const hasDirectConflict = user.attributions.some((a: any) => {
+    const hasDirectConflict = user.attributions.some((a: unknown) => {
         return isWithinInterval(new Date(a.startDate), { start: startDate, end: endDate });
     });
 
     if (hasDirectConflict) return 'busy';
 
-    const hasNearbyAssignment = user.attributions.some((a: any) => {
+    const hasNearbyAssignment = user.attributions.some((a: unknown) => {
         const daysDiff = Math.abs(differenceInDays(new Date(a.startDate), startDate));
         return daysDiff <= 1;
     });
@@ -194,7 +194,7 @@ function determineAvailability(
     return 'available';
 }
 
-function calculateFatigueScore(attributions: any[]): number {
+function calculateFatigueScore(attributions: unknown[]): number {
     // Calculer un score de fatigue basé sur les affectations récentes
     const recentAssignments = attributions.filter(a => {
         const daysSince = differenceInDays(new Date(), new Date(a.startDate));
@@ -205,19 +205,19 @@ function calculateFatigueScore(attributions: any[]): number {
     return Math.min(100, baseScore);
 }
 
-function checkRequiredSkills(competencies: any[], shiftType: string): boolean {
+function checkRequiredSkills(competencies: unknown[], shiftType: string): boolean {
     // TODO: Implémenter la vérification des compétences selon le type de shift
     return true;
 }
 
-function countRecentReplacements(attributions: any[]): number {
+function countRecentReplacements(attributions: unknown[]): number {
     return attributions.filter(a => {
         const daysSince = differenceInDays(new Date(), new Date(a.startDate));
         return daysSince >= 0 && daysSince <= 30 && a.isReplacement;
     }).length;
 }
 
-function getLastReplacementDate(attributions: any[]): Date | undefined {
+function getLastReplacementDate(attributions: unknown[]): Date | undefined {
     const replacements = attributions
         .filter(a => a.isReplacement)
         .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
@@ -225,7 +225,7 @@ function getLastReplacementDate(attributions: any[]): Date | undefined {
     return replacements[0] ? new Date(replacements[0].startDate) : undefined;
 }
 
-function countReplacementsThisMonth(attributions: any[]): number {
+function countReplacementsThisMonth(attributions: unknown[]): number {
     const currentMonth = new Date().getMonth();
     return attributions.filter(a => 
         new Date(a.startDate).getMonth() === currentMonth && a.isReplacement

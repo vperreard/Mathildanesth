@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(trameModeles);
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des trames:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des trames:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des trameModeles' },
             { status: 500 }
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
             startDate: startDate,
             ...(endDate && { endDate: endDate }), // Inclure seulement si endDate est valide
             periods: {
-                create: body.periods.map((period: any) => {
+                create: body.periods.map((period: unknown) => {
                     const periodId = uuidv4();
                     return {
                         id: periodId,
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
                         isActive: period.isActive,
                         // isLocked: period.isLocked, // isLocked n'est pas sur TramePeriod d'après le schéma récent
                         attributions: {
-                            create: period.attributions.map((attribution: any) => {
+                            create: period.attributions.map((attribution: unknown) => {
                                 const assignmentId = uuidv4();
                                 return {
                                     id: assignmentId,
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
                                     duration: attribution.duration,
                                     isActive: attribution.isActive,
                                     posts: {
-                                        create: attribution.posts.map((post: any) => {
+                                        create: attribution.posts.map((post: unknown) => {
                                             const postId = uuidv4();
                                             return {
                                                 id: postId,
@@ -179,8 +179,8 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(trameModele, { status: 201 });
-    } catch (error) {
-        logger.error('Erreur lors de la création de la trameModele:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création de la trameModele:', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur lors de la création de la trameModele' },
             { status: 500 }

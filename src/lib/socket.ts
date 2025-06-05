@@ -21,10 +21,10 @@ interface ClientToServerEvents {
 }
 
 interface ServerToClientEvents {
-    new_notification: (notification: any) => void;
+    new_notification: (notification: unknown) => void;
     notifications_read_update: (data: { count: number; all: boolean }) => void;
-    new_contextual_message: (message: any) => void;
-    updated_contextual_message: (message: any) => void;
+    new_contextual_message: (message: unknown) => void;
+    updated_contextual_message: (message: unknown) => void;
     deleted_contextual_message: (messageId: string) => void;
     auth_error: (message: string) => void;
 }
@@ -94,8 +94,8 @@ export const initSocket = (res: NextApiResponseWithSocket) => {
                         socket.data.authenticated = false;
                         return next();
                     }
-                } catch (error) {
-                    logger.error('Erreur dans le middleware d\'authentification WebSocket:', error);
+                } catch (error: unknown) {
+                    logger.error('Erreur dans le middleware d\'authentification WebSocket:', error instanceof Error ? error : new Error(String(error)));
                     socket.data.authenticated = false;
                     return next();
                 }
@@ -161,8 +161,8 @@ export const initSocket = (res: NextApiResponseWithSocket) => {
                             logger.warn(`Socket ${socket.id}: Tentative d'authentification sans token rejetée en production`);
                             socket.emit('auth_error', 'Token d\'authentification requis');
                         }
-                    } catch (error) {
-                        logger.error(`Socket ${socket.id}: Erreur lors de l'authentification:`, error);
+                    } catch (error: unknown) {
+                        logger.error(`Socket ${socket.id}: Erreur lors de l'authentification:`, error instanceof Error ? error : new Error(String(error)));
                         socket.emit('auth_error', 'Erreur lors de l\'authentification');
                     }
                 });
@@ -214,8 +214,8 @@ export const initSocket = (res: NextApiResponseWithSocket) => {
 
             res.socket.server.io = newIo;
             io = newIo;
-        } catch (error) {
-            logger.error('Erreur lors de l\'initialisation du serveur WebSocket:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'initialisation du serveur WebSocket:', error instanceof Error ? error : new Error(String(error)));
             io = null;
             return null;
         }
@@ -235,7 +235,7 @@ export const initSocket = (res: NextApiResponseWithSocket) => {
 /**
  * Émet un événement de notification à un utilisateur spécifique
  */
-export function emitNotification(userId: number, notification: any) {
+export function emitNotification(userId: number, notification: unknown) {
     if (!io) {
         logger.warn('Émission de notification impossible: instance io non initialisée');
         return false;
@@ -263,7 +263,7 @@ export function emitNotificationsReadUpdate(userId: number, count: number, all: 
 /**
  * Émet un événement de nouveau message contextuel
  */
-export function emitNewContextualMessage(message: any) {
+export function emitNewContextualMessage(message: unknown) {
     if (!io) {
         logger.warn('Émission de message impossible: instance io non initialisée');
         return false;
@@ -296,7 +296,7 @@ export function emitNewContextualMessage(message: any) {
 /**
  * Émet un événement de mise à jour de message contextuel
  */
-export function emitUpdatedContextualMessage(message: any) {
+export function emitUpdatedContextualMessage(message: unknown) {
     if (!io) {
         logger.warn('Émission de mise à jour de message impossible: instance io non initialisée');
         return false;

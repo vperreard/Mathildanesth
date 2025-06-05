@@ -51,7 +51,7 @@ const messagesCache = new Map<string, {
 const CACHE_TTL = 2 * 60 * 1000;
 
 // Fonction de debounce pour les opérations fréquentes
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (...args: unknown[]) => any>(
     func: T,
     wait: number
 ): (...args: Parameters<T>) => void {
@@ -169,7 +169,7 @@ export function useContextualMessagesWebSocket(options: UseContextualMessagesOpt
             });
 
             setMessages(data || []);
-        } catch (err) {
+        } catch (err: unknown) {
             // Ne pas définir d'erreur si la requête a été annulée intentionnellement
             if (err instanceof Error && err.name === 'AbortError') {
                 logger.info('Requête de messages annulée');
@@ -278,7 +278,7 @@ export function useContextualMessagesWebSocket(options: UseContextualMessagesOpt
             }
 
             return { success: true, message: newMessage };
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error('Erreur lors de l\'envoi du message:', err);
             return {
                 success: false,

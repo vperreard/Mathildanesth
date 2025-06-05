@@ -64,7 +64,7 @@ export interface RegularAssignment {
     user?: User | null;
     surgeon?: Surgeon | null;
     location?: Location | null;
-    attributions?: any[]; // Type à préciser lors de l'implémentation complète
+    attributions?: unknown[]; // Type à préciser lors de l'implémentation complète
 }
 
 export interface RegularAssignmentDetails {
@@ -72,7 +72,7 @@ export interface RegularAssignmentDetails {
     room?: string;
     comment?: string;
     duration?: number;
-    [key: string]: any; // Autres propriétés spécifiques
+    [key: string]: unknown; // Autres propriétés spécifiques
 }
 
 export interface TrameModele {

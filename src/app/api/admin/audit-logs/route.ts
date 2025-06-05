@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
                 if (log.details) {
                     parsedDetails = JSON.parse(log.details);
                 }
-            } catch (e) {
+            } catch (e: unknown) {
                 parsedDetails = { raw: log.details };
             }
 
@@ -119,8 +119,8 @@ export async function GET(req: NextRequest) {
             }
         });
 
-    } catch (error) {
-        logger.error('Error fetching audit logs', error);
+    } catch (error: unknown) {
+        logger.error('Error fetching audit logs', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -231,8 +231,8 @@ export async function POST(req: NextRequest) {
             data: enrichedStats
         });
 
-    } catch (error) {
-        logger.error('Error generating audit statistics', error);
+    } catch (error: unknown) {
+        logger.error('Error generating audit statistics', error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

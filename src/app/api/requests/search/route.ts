@@ -39,8 +39,8 @@ async function handler(req: NextRequest) {
     const results = await unifiedRequestService.getRequests(filter);
 
     return NextResponse.json(results);
-  } catch (error) {
-    logger.error('Erreur API requests/search:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur API requests/search:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }

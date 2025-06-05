@@ -167,8 +167,8 @@ export const LeaveConflictRecommendation: React.FC<LeaveConflictRecommendationPr
             if (!success) {
                 setErrorMessage(t('leaves.recommendations.error.apply_failed'));
             }
-        } catch (error) {
-            logger.error('Erreur lors de l\'application de la stratégie:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'application de la stratégie:', error instanceof Error ? error : new Error(String(error)));
             setErrorMessage(t('leaves.recommendations.error.apply_failed'));
         } finally {
             setIsApplying(false);

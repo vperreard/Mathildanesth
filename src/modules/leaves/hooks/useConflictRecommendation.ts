@@ -141,8 +141,8 @@ export const useConflictRecommendation = ({
                 setAutomatedResolutionsCount(result.automatedResolutionsCount);
                 setManualResolutionsCount(result.manualResolutionsCount);
                 setHighestPriorityConflicts(result.highestPriorityConflicts);
-            } catch (error) {
-                logger.error('Erreur lors de l\'analyse des recommandations:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors de l\'analyse des recommandations:', error instanceof Error ? error : new Error(String(error)));
                 // En cas d'erreur, mettre à jour avec les conflits sans recommandations
                 setConflictsWithRecommendations(conflictDetection.conflicts.map(conflict => ({
                     ...conflict
@@ -264,8 +264,8 @@ export const useConflictRecommendation = ({
             conflictDetection.resolveConflict(conflictId);
 
             return resolution;
-        } catch (error) {
-            logger.error(`Erreur lors de l'application de la stratégie pour le conflit ${conflictId}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de l'application de la stratégie pour le conflit ${conflictId}:`, error instanceof Error ? error : new Error(String(error)));
             return null;
         }
     }, [conflictsWithRecommendations, userId, eventBus, t]);
@@ -357,8 +357,8 @@ export const useConflictRecommendation = ({
             if (onRecommendationsGenerated) {
                 onRecommendationsGenerated(result);
             }
-        } catch (error) {
-            logger.error('Erreur lors de la génération des recommandations:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la génération des recommandations:', error instanceof Error ? error : new Error(String(error)));
             setRecommendationsError(error instanceof Error ? error : new Error(String(error)));
         } finally {
             setRecommendationsLoading(false);
@@ -396,8 +396,8 @@ export const useConflictRecommendation = ({
             );
 
             return true;
-        } catch (error) {
-            logger.error('Erreur lors de l\'application de la résolution:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'application de la résolution:', error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }, []);

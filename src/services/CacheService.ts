@@ -216,7 +216,7 @@ class CacheService {
             const { storage = 'localStorage', key = this.persistKey } = options;
 
             // Préparer les données à persister
-            const dataToSave: Record<string, any> = {};
+            const dataToSave: Record<string, unknown> = {};
 
             for (const [cacheKey, item] of this.cache.entries()) {
                 // Ne pas persister les éléments expirés
@@ -245,8 +245,8 @@ class CacheService {
             storageApi.setItem(key, JSON.stringify(persistData));
 
             return true;
-        } catch (error) {
-            logger.error('Erreur lors de la persistance du cache:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la persistance du cache:', error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }
@@ -274,7 +274,7 @@ class CacheService {
 
             // Restaurer les données
             for (const [cacheKey, item] of Object.entries(persistData.data)) {
-                const typedItem = item as { data: any; expiresAt: number };
+                const typedItem = item as { data: unknown; expiresAt: number };
 
                 // Ne pas restaurer les éléments expirés
                 if (typedItem.expiresAt > now) {
@@ -302,8 +302,8 @@ class CacheService {
             }
 
             return true;
-        } catch (error) {
-            logger.error('Erreur lors de la restauration du cache:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la restauration du cache:', error instanceof Error ? error : new Error(String(error)));
             return false;
         }
     }

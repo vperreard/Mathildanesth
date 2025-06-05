@@ -24,7 +24,7 @@ type CacheKey = string;
 function generateCacheKey(
     modelName: string,
     operation: string,
-    args: any
+    args: unknown
 ): CacheKey {
     return `${modelName}:${operation}:${JSON.stringify(args)}`;
 }
@@ -113,8 +113,8 @@ export class PrismaCacheClient extends PrismaClient {
     public preloadCache(
         modelName: string,
         operation: string,
-        args: any,
-        data: any
+        args: unknown,
+        data: unknown
     ) {
         const cacheKey = generateCacheKey(modelName, operation, args);
         logger.info(`[PrismaCache] Preloading cache: ${cacheKey}`);
@@ -137,7 +137,7 @@ export class PrismaCacheClient extends PrismaClient {
 export const prismaCacheClient = new PrismaCacheClient();
 
 // Middleware pour les API qui expose les statistiques du cache
-export function cacheStatsMiddleware(req: any, res: any, next: any) {
+export function cacheStatsMiddleware(req: unknown, res: unknown, next: unknown) {
     if (req.url === '/api/cache-stats' && req.method === 'GET') {
         return res.json(prismaCacheClient.getCacheStats());
     }
@@ -192,7 +192,7 @@ export function createCachedPrismaClient() {
         // Intercepter findMany avec cache
         if (typeof model.findMany === 'function') {
             const originalFindMany = model.findMany;
-            model.findMany = async function (params: any) {
+            model.findMany = async function (params: unknown) {
                 const cacheKey = createCacheKey(modelName, 'findMany', params);
                 const cachedResult = prismaCache.get(cacheKey);
 
@@ -209,7 +209,7 @@ export function createCachedPrismaClient() {
         // Intercepter findUnique avec cache
         if (typeof model.findUnique === 'function') {
             const originalFindUnique = model.findUnique;
-            model.findUnique = async function (params: any) {
+            model.findUnique = async function (params: unknown) {
                 const cacheKey = createCacheKey(modelName, 'findUnique', params);
                 const cachedResult = prismaCache.get(cacheKey);
 
@@ -226,7 +226,7 @@ export function createCachedPrismaClient() {
         // Intercepter findFirst avec cache
         if (typeof model.findFirst === 'function') {
             const originalFindFirst = model.findFirst;
-            model.findFirst = async function (params: any) {
+            model.findFirst = async function (params: unknown) {
                 const cacheKey = createCacheKey(modelName, 'findFirst', params);
                 const cachedResult = prismaCache.get(cacheKey);
 
@@ -243,7 +243,7 @@ export function createCachedPrismaClient() {
         // Intercepter count avec cache
         if (typeof model.count === 'function') {
             const originalCount = model.count;
-            model.count = async function (params: any) {
+            model.count = async function (params: unknown) {
                 const cacheKey = createCacheKey(modelName, 'count', params);
                 const cachedResult = prismaCache.get(cacheKey);
 
@@ -263,7 +263,7 @@ export function createCachedPrismaClient() {
         for (const mutation of mutations) {
             if (typeof model[mutation] === 'function') {
                 const originalMutation = model[mutation];
-                model[mutation] = async function (params: any) {
+                model[mutation] = async function (params: unknown) {
                     // Exécuter la mutation
                     const result = await originalMutation.call(this, params);
 

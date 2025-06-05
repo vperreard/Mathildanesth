@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useState, useMemo } from 'react';
 import { FixedSizeList as List } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
+// TODO: Install react-virtualized-auto-sizer or use alternative
+// import AutoSizer from 'react-virtualized-auto-sizer';
 import { AnyCalendarEvent, CalendarEventType } from '../types/event';
 import { format } from 'date-fns';
 import fr from 'date-fns/locale/fr';

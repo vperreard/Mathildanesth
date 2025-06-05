@@ -33,8 +33,8 @@ export default function SectorsList({ onSelect, selectable = false }: SectorsLis
                 const data = await response.json();
                 setSectors(data);
                 setError(null);
-            } catch (error) {
-                logger.error('Erreur:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
                 setError('Impossible de charger les secteurs opératoires');
             } finally {
                 setIsLoading(false);

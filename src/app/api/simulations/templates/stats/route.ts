@@ -139,8 +139,8 @@ export async function GET() {
       recentlyUsed: formattedRecentlyUsed,
       categoryBreakdown,
     });
-  } catch (error) {
-    logger.error('Erreur lors de la récupération des statistiques:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération des statistiques:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

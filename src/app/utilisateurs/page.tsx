@@ -60,7 +60,7 @@ function UsersPageContent() {
                 params: { includeInactive: showInactiveUsers }
             });
             setUsers(response.data);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Erreur fetchUsers:", err);
             if (axios.isAxiosError(err) && err.response?.status !== 401) { // Ne pas afficher l'erreur 401 du middleware ici
                 setError(`Erreur ${err.response?.status || 'inconnue'}: ${err.response?.data?.message || 'Impossible de récupérer les utilisateurs'}`);
@@ -77,7 +77,7 @@ function UsersPageContent() {
         try {
             const response = await axios.get<Skill[]>('/api/skills');
             setAllSkills(response.data);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error("Erreur fetchAllSkills:", err);
             toast({ title: "Erreur", description: "Impossible de charger la liste des compétences.", variant: "destructive" });
         }
@@ -93,7 +93,7 @@ function UsersPageContent() {
         try {
             const response = await axios.get<UserSkill[]>(`/api/utilisateurs/${userId}/skills`);
             setEditingUserSkills(response.data);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error(`Erreur fetchUserSkills pour ${userId}:`, err);
             toast({ title: "Erreur", description: "Impossible de charger les compétences de l'utilisateur.", variant: "destructive" });
             setEditingUserSkills([]); // Réinitialiser en cas d'erreur
@@ -110,7 +110,7 @@ function UsersPageContent() {
         try {
             const response = await axios.get<Site[]>(`/api/utilisateurs/${userId}/sites`);
             setEditingUserSites(response.data);
-        } catch (err) {
+        } catch (err: unknown) {
             logger.error(`Erreur fetchUserSites pour ${userId}:`, err);
             setEditingUserSites([]); // Réinitialiser en cas d'erreur
         }
@@ -184,7 +184,7 @@ function UsersPageContent() {
                         await axios.post(`http://localhost:3000/api/utilisateurs/${newUser.id}/skills`, { skillId });
                     }
                     toast({ title: "Succès", description: `${selectedSkills.length} compétence(s) assignée(s) à l'utilisateur.` });
-                } catch (err) {
+                } catch (err: unknown) {
                     logger.error("Erreur lors de l'assignation des compétences:", err);
                     toast({
                         title: "Attention",
@@ -202,7 +202,7 @@ function UsersPageContent() {
                         siteIds: selectedSites.map(site => site.id)
                     });
                     toast({ title: "Succès", description: `${selectedSites.length} site(s) assigné(s) à l'utilisateur.` });
-                } catch (err) {
+                } catch (err: unknown) {
                     logger.error("Erreur lors de l'assignation des sites:", err);
                     toast({
                         title: "Attention",
@@ -213,7 +213,7 @@ function UsersPageContent() {
             }
 
             handleApiResponse(newUser);
-        } catch (err: any) {
+        } catch (err: unknown) {
             setActionLoading(null);
             if (axios.isAxiosError(err) && err.response) {
                 throw new Error(err.response.data.message || 'Erreur lors de la création');
@@ -259,7 +259,7 @@ function UsersPageContent() {
                         description: `${skillsToAdd.length} compétence(s) ajoutée(s) et ${skillsToRemove.length} retirée(s).`
                     });
                 }
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error("Erreur lors de la synchronisation des compétences:", err);
                 toast({
                     title: "Attention",
@@ -280,7 +280,7 @@ function UsersPageContent() {
                         description: `${selectedSites.length} site(s) assigné(s) à l'utilisateur.`
                     });
                 }
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error("Erreur lors de la synchronisation des sites:", err);
                 toast({
                     title: "Attention",
@@ -290,7 +290,7 @@ function UsersPageContent() {
             }
 
             handleApiResponse(updatedUser);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur handleUpdateUser:", err);
             setActionLoading(null);
             if (axios.isAxiosError(err) && err.response) {
@@ -308,7 +308,7 @@ function UsersPageContent() {
         try {
             await axios.delete(`http://localhost:3000/api/utilisateurs/${userId}`);
             handleApiResponse({ id: userId }, true);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur handleDeleteUser:", err);
             setActionLoading(null);
             const message = (axios.isAxiosError(err) && err.response?.data?.message) || 'Erreur lors de la suppression';
@@ -328,7 +328,7 @@ function UsersPageContent() {
             setSuccessMessage(`Mot de passe de l'utilisateur ${userId} réinitialisé avec succès (nouveau mot de passe = login).`);
             // Optionnel: rafraîchir les données ou juste retirer le message après un délai
             setTimeout(() => setSuccessMessage(null), 7000);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur handleResetPassword:", err);
             const message = (axios.isAxiosError(err) && err.response?.data?.message) || 'Erreur lors de la réinitialisation du mot de passe';
             setError(message);

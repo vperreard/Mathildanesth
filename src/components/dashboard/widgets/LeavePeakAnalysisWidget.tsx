@@ -29,7 +29,7 @@ export default function LeavePeakAnalysisWidget() {
 
                 const result = await response.json();
                 setData(result.data);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 logger.error('Erreur lors du chargement des données:', err);
                 setError(err.message || 'Erreur inconnue');
             } finally {

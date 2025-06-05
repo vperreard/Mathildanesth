@@ -38,7 +38,7 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
         };
 
         next();
-    } catch (error) {
+    } catch (error: unknown) {
         res.status(401).json({ error: 'Veuillez vous authentifier' });
     }
 };

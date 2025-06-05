@@ -71,12 +71,12 @@ class OptimizedPrismaClient extends PrismaClient {
         return result;
     };
 
-    private generateCacheKey(model: string, action: string, args: any): string {
+    private generateCacheKey(model: string, action: string, args: unknown): string {
         const argsHash = this.hashArgs(args);
         return `mathilda:db:${model}:${action}:${argsHash}`;
     }
 
-    private hashArgs(args: any): string {
+    private hashArgs(args: unknown): string {
         const str = JSON.stringify(args, Object.keys(args).sort());
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
@@ -102,7 +102,7 @@ class OptimizedPrismaClient extends PrismaClient {
         return modelTTL[model] || 0; // Pas de cache par défaut
     }
 
-    private async logSlowQuery(params: any, duration: number): Promise<void> {
+    private async logSlowQuery(params: unknown, duration: number): Promise<void> {
         try {
             // Enregistrer dans un fichier de log ou système de monitoring
             const logEntry = {
@@ -115,8 +115,8 @@ class OptimizedPrismaClient extends PrismaClient {
             
             // Ici on pourrait envoyer vers un système de monitoring
             logger.info('Slow query logged:', logEntry);
-        } catch (error) {
-            logger.warn('Failed to log slow query:', error);
+        } catch (error: unknown) {
+            logger.warn('Failed to log slow query:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -351,7 +351,7 @@ class OptimizedPrismaClient extends PrismaClient {
     }
 
     // Requêtes bulk optimisées
-    async bulkCreateAssignments(assignments: any[]) {
+    async bulkCreateAssignments(assignments: unknown[]) {
         // Utiliser transaction pour performance
         const result = await this.$transaction(async (tx) => {
             const created = await tx.assignment.createMany({

@@ -30,7 +30,7 @@ export const useRulePreview = () => {
 
       const data = await response.json();
       setPreview(data);
-    } catch (err) {
+    } catch (err: unknown) {
       logger.error('Preview error:', err);
       setError(err.message || 'Erreur lors de la prévisualisation');
     } finally {

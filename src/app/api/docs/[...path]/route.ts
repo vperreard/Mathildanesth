@@ -33,8 +33,8 @@ export async function GET(
         'Cache-Control': 'public, max-age=3600', // Cache pendant 1 heure
       },
     });
-  } catch (error) {
-    logger.error('Erreur lors de la lecture du fichier de documentation:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la lecture du fichier de documentation:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Erreur lors de la lecture du fichier' }, { status: 500 });
   }
 }

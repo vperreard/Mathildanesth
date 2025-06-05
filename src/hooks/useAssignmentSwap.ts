@@ -17,7 +17,7 @@ export interface Attribution {
         profileImageUrl?: string;
     };
     // Autres propriétés potentielles
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface AssignmentSwapRequest {
@@ -111,7 +111,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
     /**
      * Construit les paramètres de requête à partir d'un objet
      */
-    const buildQueryParams = (params: Record<string, any>) => {
+    const buildQueryParams = (params: Record<string, unknown>) => {
         const queryParams = new URLSearchParams();
 
         Object.entries(params).forEach(([key, value]) => {
@@ -151,7 +151,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
             setTotalSwapRequests(data.total);
 
             return data;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err.message || 'Erreur inconnue';
             setError(errorMessage);
             toast.error(`Erreur: ${errorMessage}`);
@@ -195,7 +195,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
             });
 
             return data;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err.message || 'Erreur inconnue';
             setError(errorMessage);
             toast.error(`Erreur: ${errorMessage}`);
@@ -242,7 +242,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
             toast.success('Demande d\'échange créée avec succès');
 
             return newSwapRequest;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err.message || 'Erreur inconnue';
             setError(errorMessage);
             toast.error(`Erreur: ${errorMessage}`);
@@ -306,7 +306,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
             toast.success(successMessage);
 
             return updatedSwapRequest;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err.message || 'Erreur inconnue';
             setError(errorMessage);
             toast.error(`Erreur: ${errorMessage}`);
@@ -345,7 +345,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
             toast.success('Demande d\'échange supprimée avec succès');
 
             return true;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err.message || 'Erreur inconnue';
             setError(errorMessage);
             toast.error(`Erreur: ${errorMessage}`);
@@ -399,7 +399,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
             toast.success(successMessage);
 
             return updatedSwapRequest;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err.message || 'Erreur inconnue';
             setError(errorMessage);
             toast.error(`Erreur: ${errorMessage}`);

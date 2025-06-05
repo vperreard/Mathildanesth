@@ -62,8 +62,8 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(rooms);
-  } catch (error) {
-    logger.error("Erreur lors de la récupération des salles d'opération:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de la récupération des salles d'opération:", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: "Erreur lors de la récupération des salles d'opération" },
       { status: 500 }
@@ -133,8 +133,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(newRoom, { status: 201 });
-  } catch (error) {
-    logger.error("Erreur lors de la création de la salle d'opération:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de la création de la salle d'opération:", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         error: "Erreur lors de la création de la salle d'opération",

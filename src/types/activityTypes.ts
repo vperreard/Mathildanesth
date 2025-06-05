@@ -65,7 +65,7 @@ export interface OperatingSector {
   colorCode?: string;
   isActive: boolean;
   description?: string;
-  rules?: Record<string, any>;
+  rules?: Record<string, unknown>;
   displayOrder?: number;
   siteId?: string;
   category: SectorCategory;
@@ -87,7 +87,7 @@ export interface OperatingRoom {
   isActive: boolean;
   displayOrder: number;
   colorCode?: string;
-  supervisionRules?: Record<string, any>;
+  supervisionRules?: Record<string, unknown>;
   allowedSpecialties: string[];
   siteId: string;
   operatingSectorId?: number;
@@ -130,7 +130,7 @@ export interface CreateSectorData {
   colorCode?: string;
   displayOrder?: number;
   siteId?: string;
-  rules?: Record<string, any>;
+  rules?: Record<string, unknown>;
 }
 
 /**

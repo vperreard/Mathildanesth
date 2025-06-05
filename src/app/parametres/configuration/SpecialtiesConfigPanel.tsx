@@ -48,7 +48,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
         try {
             const response = await axios.get<SpecialtyWithSurgeons[]>('/api/specialties');
             setSpecialties(response.data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors du chargement des spécialités:", err);
             setError(err.response?.data?.message || err.message || 'Impossible de charger les spécialités.');
         } finally {
@@ -61,7 +61,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
         try {
             const response = await axios.get<Surgeon[]>('/api/chirurgiens');
             setSurgeons(response.data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error('Erreur lors du chargement des chirurgiens:', err);
         }
     }, []);
@@ -114,7 +114,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
             resetForm();
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la soumission:", err);
             setFormError(err.response?.data?.message || err.message || 'Une erreur est survenue.');
         } finally {
@@ -133,7 +133,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
             setSpecialties(prev => prev.filter(s => s.id !== id));
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Erreur lors de la suppression:", err);
             setError(err.response?.data?.message || err.message || 'Impossible de supprimer la spécialité (vérifiez si elle est utilisée).');
         }

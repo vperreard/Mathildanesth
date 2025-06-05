@@ -130,8 +130,8 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
 
             const holidays = await holidayCalendarService.getHolidayEvents(startDateStr, endDateStr);
             setHolidayEvents(holidays);
-        } catch (error) {
-            logger.error('Erreur lors du chargement des jours fériés:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des jours fériés:', error instanceof Error ? error : new Error(String(error)));
             setHolidayEvents([]);
         } finally {
             setHolidaysLoading(false);
@@ -139,7 +139,7 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
     }, [finalUserSettings?.showPublicHolidays]);
 
     // Mise à jour du gestionnaire de changement de plage de dates
-    const handleDatesSet = useCallback((info: any) => {
+    const handleDatesSet = useCallback((info: unknown) => {
         if (onDateRangeChange) {
             onDateRangeChange(info.view.currentStart, info.view.currentEnd);
         }
@@ -167,14 +167,14 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
     }, [allEvents, finalUserSettings]);
 
     // Gestionnaire de clic sur un événement
-    const handleEventClick = useCallback((info: any) => {
+    const handleEventClick = useCallback((info: unknown) => {
         if (onEventClick && info.event.extendedProps) {
             onEventClick(info.event.extendedProps);
         }
     }, [onEventClick]);
 
     // Gestionnaire de déplacement d'un événement
-    const handleEventDrop = useCallback((info: any) => {
+    const handleEventDrop = useCallback((info: unknown) => {
         if (onEventDrop) {
             const eventId = info.event.id;
             const newStart = info.event.start;
@@ -184,7 +184,7 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
     }, [onEventDrop]);
 
     // Gestionnaire de redimensionnement d'un événement
-    const handleEventResize = useCallback((info: any) => {
+    const handleEventResize = useCallback((info: unknown) => {
         if (onEventResize) {
             const eventId = info.event.id;
             const newStart = info.event.start;
@@ -194,14 +194,14 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
     }, [onEventResize]);
 
     // Gestionnaire de sélection d'une plage de dates
-    const handleDateSelect = useCallback((info: any) => {
+    const handleDateSelect = useCallback((info: unknown) => {
         if (onDateSelect) {
             onDateSelect(info.start, info.end);
         }
     }, [onDateSelect]);
 
     // Gestionnaire de changement de vue
-    const handleViewChange = useCallback((info: any) => {
+    const handleViewChange = useCallback((info: unknown) => {
         if (onViewChange) {
             const newView = info.view.type as CalendarViewType;
             onViewChange(newView);
@@ -565,7 +565,7 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
 // Mise à jour des fonctions getEventBackgroundColor et getEventBorderColor
 const getEventBackgroundColor = (
     event: AnyCalendarEvent,
-    colorScheme?: any
+    colorScheme?: unknown
 ): string => {
     switch (event.type) {
         case CalendarEventType.LEAVE:
@@ -585,7 +585,7 @@ const getEventBackgroundColor = (
 
 const getEventBorderColor = (
     event: AnyCalendarEvent,
-    colorScheme?: any
+    colorScheme?: unknown
 ): string => {
     switch (event.type) {
         case CalendarEventType.LEAVE:

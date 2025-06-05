@@ -30,7 +30,7 @@ const RecurringLeavePage: React.FC = () => {
 
             // Rediriger vers une page de confirmation ou la liste des congés
             router.push('/conges?success=recurring-created');
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Une erreur est survenue lors de la création de la demande');
             setIsLoading(false);
         }

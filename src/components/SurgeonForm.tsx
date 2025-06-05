@@ -115,7 +115,7 @@ export default function SurgeonForm({
             try {
                 const response = await axios.get<LinkableUser[]>('/api/utilisateurs/linkable');
                 setLinkableUsers(response.data);
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error("Erreur fetch linkable users:", err);
                 // Gérer l'erreur si nécessaire (ex: afficher un message)
             } finally {
@@ -138,7 +138,7 @@ export default function SurgeonForm({
                 }
                 const data: Specialty[] = await response.json();
                 setAvailableSpecialties(data);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 logger.error("Fetch specialties error:", err);
                 setError(err.message || 'Impossible de charger la liste des spécialités.');
             } finally {
@@ -204,7 +204,7 @@ export default function SurgeonForm({
 
         try {
             await onSubmit(dataToSubmit, selectedSites);
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(err.response?.data?.message || err.message || 'Une erreur est survenue lors de la sauvegarde.');
         }
     };

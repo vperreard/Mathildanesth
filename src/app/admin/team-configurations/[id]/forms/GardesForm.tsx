@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 interface GardesFormProps {
     config: TeamConfiguration;
-    updateConfig: (path: string, value: any) => void;
+    updateConfig: (path: string, value: unknown) => void;
 }
 
 export default function GardesForm({ config, updateConfig }: GardesFormProps) {

@@ -67,9 +67,9 @@ export function OperatingSectorList() {
                 toast.success("Secteur créé avec succès !");
             }
             handleCloseForm();
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error(`Erreur lors de la sauvegarde du secteur: ${error instanceof Error ? error.message : String(error)}`);
-            logger.error("Erreur sauvegarde secteur:", error);
+            logger.error("Erreur sauvegarde secteur:", error instanceof Error ? error : new Error(String(error)));
         }
     };
 
@@ -89,9 +89,9 @@ export function OperatingSectorList() {
             await deleteMutation.mutateAsync(sectorToDelete.id);
             toast.success("Secteur supprimé avec succès !");
             closeDeleteDialog();
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error(`Erreur lors de la suppression du secteur: ${error instanceof Error ? error.message : String(error)}`);
-            logger.error("Erreur suppression secteur:", error);
+            logger.error("Erreur suppression secteur:", error instanceof Error ? error : new Error(String(error)));
             // Garder la modale ouverte en cas d'erreur pour feedback
         }
     };

@@ -219,7 +219,7 @@ export function QuotaTransferReportPanel({ userId, departmentId, className = '' 
     /**
      * Gère l'application des filtres
      */
-    const handleApplyFilters = (newFilters: any) => {
+    const handleApplyFilters = (newFilters: unknown) => {
         setFilters(newFilters);
         setIsFilterOpen(false);
         generateReport();

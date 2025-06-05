@@ -104,7 +104,7 @@ export const dataCyWithPrefix = (prefix: string, id: string): DataCyProps => {
  * };
  * ```
  */
-export const extractDataCyProps = (props: Record<string, any>): DataCyProps => {
+export const extractDataCyProps = (props: Record<string, unknown>): DataCyProps => {
   const { 'data-cy': dataCy } = props;
   return dataCy ? { 'data-cy': dataCy } : {};
 };

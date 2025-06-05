@@ -59,7 +59,7 @@ export async function GET(
     }
 
     return NextResponse.json(trameModele);
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(
       `Erreur lors de la récupération du template de trameModele ${trameModeleId}:`,
       error
@@ -107,7 +107,7 @@ export async function PUT(
       // Vérifier seulement si le champ est présent dans la requête PUT
       if (
         !Array.isArray(data.joursSemaineActifs) ||
-        !data.joursSemaineActifs.every((d: any) => typeof d === 'number' && d >= 1 && d <= 7) ||
+        !data.joursSemaineActifs.every((d: unknown) => typeof d === 'number' && d >= 1 && d <= 7) ||
         new Set(data.joursSemaineActifs).size !== data.joursSemaineActifs.length // Vérifier les doublons
       ) {
         return NextResponse.json(
@@ -142,7 +142,7 @@ export async function PUT(
           `[API PUT /trameModele-modeles/${trameModeleId}] detailsJson traité:`,
           JSON.stringify(processedDetailsJson, null, 2)
         );
-      } catch (jsonError) {
+      } catch (jsonError: unknown) {
         logger.error(
           `[API PUT /trameModele-modeles/${trameModeleId}] Erreur lors du traitement de detailsJson:`,
           jsonError
@@ -206,7 +206,7 @@ export async function PUT(
         `[API PUT /trameModele-modeles/${trameModeleId}] Mise à jour réussie, ID: ${updatedTrameModele.id}`
       );
       return NextResponse.json(updatedTrameModele);
-    } catch (updateError: any) {
+    } catch (updateError: unknown) {
       logger.error(
         `[API PUT /trameModele-modeles/${trameModeleId}] Erreur Prisma lors de la mise à jour:`,
         updateError
@@ -220,7 +220,7 @@ export async function PUT(
 
       throw updateError; // Relancer l'erreur pour qu'elle soit traitée dans le catch principal
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(
       `[API PUT /trameModele-modeles/${trameModeleId}] Erreur lors de la mise à jour:`,
       error
@@ -296,7 +296,7 @@ export async function DELETE(
       { message: 'Modèle de trameModele supprimé avec succès' },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(
       `Erreur lors de la suppression du template de trameModele ${trameModeleId}:`,
       error

@@ -62,8 +62,8 @@ export async function middleware(request: NextRequest) {
                 userRole = authResult.role || null;
                 logger.info(`[MIDDLEWARE] User authenticated: ${userId} (${userRole})`);
             }
-        } catch (error) {
-            logger.error('[MIDDLEWARE] Token verification failed:', error);
+        } catch (error: unknown) {
+            logger.error('[MIDDLEWARE] Token verification failed:', error instanceof Error ? error : new Error(String(error)));
         }
     }
     
