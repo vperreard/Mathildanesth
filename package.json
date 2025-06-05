@@ -173,7 +173,10 @@
     "migrate:trame-modeles": "node package-scripts/migrate-trame-modeles.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "verify": "npm run lint && npm test && npm run build",
+    "verify:quick": "npm run test:fast && npm run lint",
+    "verify:pre-commit": "npm run lint && npm test"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
