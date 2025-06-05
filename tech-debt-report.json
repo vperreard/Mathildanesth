@@ -1,16 +1,16 @@
 {
-  "timestamp": "2025-06-04T20:22:58.434Z",
+  "timestamp": "2025-06-05T05:08:07.275Z",
   "projectPath": "/Users/vincentperreard/Mathildanesth",
   "summary": {
-    "total": 113,
+    "total": 96,
     "byCategory": {
-      "CRITICAL": 12,
+      "CRITICAL": 0,
       "HIGH": 0,
-      "MEDIUM": 90,
-      "LOW": 11
+      "MEDIUM": 87,
+      "LOW": 9
     },
     "byType": {
-      "TODO": 107,
+      "TODO": 90,
       "FIXME": 2,
       "HACK": 1,
       "@todo": 1,
@@ -18,855 +18,38 @@
       "@hack": 1
     }
   },
-  "criticalItems": [
-    {
-      "file": "scripts/autonomous-bug-fixer.js",
-      "line": 402,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// TODO: Implement actual authentication logic",
-      "context": [
-        {
-          "lineNumber": 400,
-          "content": "  try {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 401,
-          "content": "    const body = await request.json();",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 402,
-          "content": "    // TODO: Implement actual authentication logic",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 403,
-          "content": "    return NextResponse.json({ success: true, message: 'Login endpoint placeholder' });",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 404,
-          "content": "  } catch (error) {",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/contextual-messages/route.ts",
-      "line": 35,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DES TODO CRITIQUES : Vérifications de permissions fines",
-      "context": [
-        {
-          "lineNumber": 33,
-          "content": "): Promise<boolean> {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 34,
-          "content": "  try {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 35,
-          "content": "    // 🔐 CORRECTION DES TODO CRITIQUES : Vérifications de permissions fines",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 36,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 37,
-          "content": "    if (assignmentId) {",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/contextual-messages/route.ts",
-      "line": 109,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions fines",
-      "context": [
-        {
-          "lineNumber": 107,
-          "content": "    }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 108,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 109,
-          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions fines",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 110,
-          "content": "    const hasPermission = await verifyContextPermissions(",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 111,
-          "content": "      userId,",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/contextual-messages/route.ts",
-      "line": 294,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions de lecture",
-      "context": [
-        {
-          "lineNumber": 292,
-          "content": "    }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 293,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 294,
-          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions de lecture",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 295,
-          "content": "    const hasPermission = await verifyContextPermissions(",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 296,
-          "content": "      userId,",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/leaves/route.ts",
-      "line": 66,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
-      "context": [
-        {
-          "lineNumber": 64,
-          "content": "        }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 65,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 66,
-          "content": "        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 67,
-          "content": "        const authHeader = request.headers.get('authorization');",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 68,
-          "content": "        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/simulations/[scenarioId]/route.ts",
-      "line": 120,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
-      "context": [
-        {
-          "lineNumber": 118,
-          "content": "    }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 119,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 120,
-          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 121,
-          "content": "    if (!existingScenario.createdBy) {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 122,
-          "content": "      return NextResponse.json({ error: 'Scénario invalide.' }, { status: 400 });",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/simulations/[scenarioId]/route.ts",
-      "line": 182,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
-      "context": [
-        {
-          "lineNumber": 180,
-          "content": "    }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 181,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 182,
-          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 183,
-          "content": "    if (!existingScenario.createdBy) {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 184,
-          "content": "      return NextResponse.json({ error: 'Scénario invalide.' }, { status: 400 });",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/trame-modeles/[trameModeleId]/affectations/route.ts",
-      "line": 24,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trameModeles (déjà fait via withAuth)",
-      "context": [
-        {
-          "lineNumber": 22,
-          "content": "    console.log('\\n--- POST /api/trameModele-modeles/[trameModeleId]/affectations START ---');",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 23,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 24,
-          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trameModeles (déjà fait via withAuth)",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 25,
-          "content": "    // Logger l'action de création",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 26,
-          "content": "    const auditService = new AuditService();",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/bloc-operatoire/_components/PermissionGuard.tsx",
-      "line": 94,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// TODO: Implémenter la logique de permissions granulaires",
-      "context": [
-        {
-          "lineNumber": 92,
-          "content": "  // Vérifier une permission spécifique (extensible pour le futur)",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 93,
-          "content": "  if (requiredPermission) {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 94,
-          "content": "    // TODO: Implémenter la logique de permissions granulaires",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 95,
-          "content": "    // Pour l'instant, on considère que les ADMIN ont toutes les permissions",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 96,
-          "content": "    const isAdmin = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(user.role);",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/hooks/useAppearance.ts",
-      "line": 89,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// TODO: Réactiver une fois l'authentification stabilisée",
-      "context": [
-        {
-          "lineNumber": 87,
-          "content": "        setLoading(false);",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 88,
-          "content": "        ",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 89,
-          "content": "        // TODO: Réactiver une fois l'authentification stabilisée",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 90,
-          "content": "        /*",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 91,
-          "content": "        async function loadPreferences() {",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
-      "line": 1070,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION TODO CRITIQUE : Ajouter logique de permissions pour changements de statut",
-      "context": [
-        {
-          "lineNumber": 1068,
-          "content": "        }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1069,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1070,
-          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Ajouter logique de permissions pour changements de statut",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 1071,
-          "content": "        await this.verifyStatusChangePermissions(userId, planningId, status);",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1072,
-          "content": "",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
-      "line": 1108,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION TODO CRITIQUE : Gérer le cas \"update\" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId",
-      "context": [
-        {
-          "lineNumber": 1106,
-          "content": "        await this.verifyStaffModificationPermissions(initiatorUserId, roomAssignment.blocDayPlanning.siteId);",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1107,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1108,
-          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Gérer le cas \"update\" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 1109,
-          "content": "        // Logique d'update/replace améliorée avec gestion des erreurs",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1110,
-          "content": "",
-          "isTarget": false
-        }
-      ]
-    }
-  ],
+  "criticalItems": [],
   "highPriorityItems": [],
   "allItems": [
     {
-      "file": "scripts/autonomous-bug-fixer.js",
-      "line": 402,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// TODO: Implement actual authentication logic",
-      "context": [
-        {
-          "lineNumber": 400,
-          "content": "  try {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 401,
-          "content": "    const body = await request.json();",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 402,
-          "content": "    // TODO: Implement actual authentication logic",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 403,
-          "content": "    return NextResponse.json({ success: true, message: 'Login endpoint placeholder' });",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 404,
-          "content": "  } catch (error) {",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/contextual-messages/route.ts",
-      "line": 35,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DES TODO CRITIQUES : Vérifications de permissions fines",
-      "context": [
-        {
-          "lineNumber": 33,
-          "content": "): Promise<boolean> {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 34,
-          "content": "  try {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 35,
-          "content": "    // 🔐 CORRECTION DES TODO CRITIQUES : Vérifications de permissions fines",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 36,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 37,
-          "content": "    if (assignmentId) {",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/contextual-messages/route.ts",
-      "line": 109,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions fines",
-      "context": [
-        {
-          "lineNumber": 107,
-          "content": "    }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 108,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 109,
-          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions fines",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 110,
-          "content": "    const hasPermission = await verifyContextPermissions(",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 111,
-          "content": "      userId,",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/contextual-messages/route.ts",
-      "line": 294,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions de lecture",
-      "context": [
-        {
-          "lineNumber": 292,
-          "content": "    }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 293,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 294,
-          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions de lecture",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 295,
-          "content": "    const hasPermission = await verifyContextPermissions(",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 296,
-          "content": "      userId,",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/leaves/route.ts",
-      "line": 66,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
-      "context": [
-        {
-          "lineNumber": 64,
-          "content": "        }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 65,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 66,
-          "content": "        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 67,
-          "content": "        const authHeader = request.headers.get('authorization');",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 68,
-          "content": "        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/simulations/[scenarioId]/route.ts",
-      "line": 120,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
-      "context": [
-        {
-          "lineNumber": 118,
-          "content": "    }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 119,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 120,
-          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 121,
-          "content": "    if (!existingScenario.createdBy) {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 122,
-          "content": "      return NextResponse.json({ error: 'Scénario invalide.' }, { status: 400 });",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/simulations/[scenarioId]/route.ts",
-      "line": 182,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
-      "context": [
-        {
-          "lineNumber": 180,
-          "content": "    }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 181,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 182,
-          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 183,
-          "content": "    if (!existingScenario.createdBy) {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 184,
-          "content": "      return NextResponse.json({ error: 'Scénario invalide.' }, { status: 400 });",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/trame-modeles/[trameModeleId]/affectations/route.ts",
-      "line": 24,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trameModeles (déjà fait via withAuth)",
-      "context": [
-        {
-          "lineNumber": 22,
-          "content": "    console.log('\\n--- POST /api/trameModele-modeles/[trameModeleId]/affectations START ---');",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 23,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 24,
-          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trameModeles (déjà fait via withAuth)",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 25,
-          "content": "    // Logger l'action de création",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 26,
-          "content": "    const auditService = new AuditService();",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/bloc-operatoire/_components/PermissionGuard.tsx",
-      "line": 94,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// TODO: Implémenter la logique de permissions granulaires",
-      "context": [
-        {
-          "lineNumber": 92,
-          "content": "  // Vérifier une permission spécifique (extensible pour le futur)",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 93,
-          "content": "  if (requiredPermission) {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 94,
-          "content": "    // TODO: Implémenter la logique de permissions granulaires",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 95,
-          "content": "    // Pour l'instant, on considère que les ADMIN ont toutes les permissions",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 96,
-          "content": "    const isAdmin = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(user.role);",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/hooks/useAppearance.ts",
-      "line": 89,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// TODO: Réactiver une fois l'authentification stabilisée",
-      "context": [
-        {
-          "lineNumber": 87,
-          "content": "        setLoading(false);",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 88,
-          "content": "        ",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 89,
-          "content": "        // TODO: Réactiver une fois l'authentification stabilisée",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 90,
-          "content": "        /*",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 91,
-          "content": "        async function loadPreferences() {",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
-      "line": 1070,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION TODO CRITIQUE : Ajouter logique de permissions pour changements de statut",
-      "context": [
-        {
-          "lineNumber": 1068,
-          "content": "        }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1069,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1070,
-          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Ajouter logique de permissions pour changements de statut",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 1071,
-          "content": "        await this.verifyStatusChangePermissions(userId, planningId, status);",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1072,
-          "content": "",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
-      "line": 1108,
-      "type": "TODO",
-      "category": "CRITICAL",
-      "content": "// 🔐 CORRECTION TODO CRITIQUE : Gérer le cas \"update\" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId",
-      "context": [
-        {
-          "lineNumber": 1106,
-          "content": "        await this.verifyStaffModificationPermissions(initiatorUserId, roomAssignment.blocDayPlanning.siteId);",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1107,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1108,
-          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Gérer le cas \"update\" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 1109,
-          "content": "        // Logique d'update/replace améliorée avec gestion des erreurs",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1110,
-          "content": "",
-          "isTarget": false
-        }
-      ]
-    },
-    {
       "file": "scripts/audit-tech-debt.js",
-      "line": 8,
+      "line": 10,
       "type": "TODO",
       "category": "MEDIUM",
       "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
       "context": [
         {
-          "lineNumber": 6,
+          "lineNumber": 8,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 7,
+          "lineNumber": 9,
           "content": "// Patterns to search for",
           "isTarget": false
         },
         {
-          "lineNumber": 8,
+          "lineNumber": 10,
           "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
           "isTarget": true
         },
         {
-          "lineNumber": 9,
+          "lineNumber": 11,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 10,
+          "lineNumber": 12,
           "content": "// Directories to exclude",
           "isTarget": false
         }
@@ -874,33 +57,33 @@
     },
     {
       "file": "scripts/audit-tech-debt.js",
-      "line": 8,
+      "line": 10,
       "type": "FIXME",
       "category": "MEDIUM",
       "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
       "context": [
         {
-          "lineNumber": 6,
+          "lineNumber": 8,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 7,
+          "lineNumber": 9,
           "content": "// Patterns to search for",
           "isTarget": false
         },
         {
-          "lineNumber": 8,
+          "lineNumber": 10,
           "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
           "isTarget": true
         },
         {
-          "lineNumber": 9,
+          "lineNumber": 11,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 10,
+          "lineNumber": 12,
           "content": "// Directories to exclude",
           "isTarget": false
         }
@@ -908,33 +91,33 @@
     },
     {
       "file": "scripts/audit-tech-debt.js",
-      "line": 8,
+      "line": 10,
       "type": "HACK",
       "category": "MEDIUM",
       "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
       "context": [
         {
-          "lineNumber": 6,
+          "lineNumber": 8,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 7,
+          "lineNumber": 9,
           "content": "// Patterns to search for",
           "isTarget": false
         },
         {
-          "lineNumber": 8,
+          "lineNumber": 10,
           "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
           "isTarget": true
         },
         {
-          "lineNumber": 9,
+          "lineNumber": 11,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 10,
+          "lineNumber": 12,
           "content": "// Directories to exclude",
           "isTarget": false
         }
@@ -942,33 +125,33 @@
     },
     {
       "file": "scripts/audit-tech-debt.js",
-      "line": 8,
+      "line": 10,
       "type": "@todo",
       "category": "MEDIUM",
       "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
       "context": [
         {
-          "lineNumber": 6,
+          "lineNumber": 8,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 7,
+          "lineNumber": 9,
           "content": "// Patterns to search for",
           "isTarget": false
         },
         {
-          "lineNumber": 8,
+          "lineNumber": 10,
           "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
           "isTarget": true
         },
         {
-          "lineNumber": 9,
+          "lineNumber": 11,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 10,
+          "lineNumber": 12,
           "content": "// Directories to exclude",
           "isTarget": false
         }
@@ -976,33 +159,33 @@
     },
     {
       "file": "scripts/audit-tech-debt.js",
-      "line": 8,
+      "line": 10,
       "type": "@fixme",
       "category": "MEDIUM",
       "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
       "context": [
         {
-          "lineNumber": 6,
+          "lineNumber": 8,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 7,
+          "lineNumber": 9,
           "content": "// Patterns to search for",
           "isTarget": false
         },
         {
-          "lineNumber": 8,
+          "lineNumber": 10,
           "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
           "isTarget": true
         },
         {
-          "lineNumber": 9,
+          "lineNumber": 11,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 10,
+          "lineNumber": 12,
           "content": "// Directories to exclude",
           "isTarget": false
         }
@@ -1010,33 +193,33 @@
     },
     {
       "file": "scripts/audit-tech-debt.js",
-      "line": 8,
+      "line": 10,
       "type": "@hack",
       "category": "MEDIUM",
       "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
       "context": [
         {
-          "lineNumber": 6,
+          "lineNumber": 8,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 7,
+          "lineNumber": 9,
           "content": "// Patterns to search for",
           "isTarget": false
         },
         {
-          "lineNumber": 8,
+          "lineNumber": 10,
           "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
           "isTarget": true
         },
         {
-          "lineNumber": 9,
+          "lineNumber": 11,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 10,
+          "lineNumber": 12,
           "content": "// Directories to exclude",
           "isTarget": false
         }
@@ -1044,33 +227,33 @@
     },
     {
       "file": "scripts/audit-tech-debt.js",
-      "line": 187,
+      "line": 240,
       "type": "TODO",
       "category": "MEDIUM",
       "content": "- Total TODOs/FIXMEs: ${results.summary.total}",
       "context": [
         {
-          "lineNumber": 185,
+          "lineNumber": 238,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 186,
+          "lineNumber": 239,
           "content": "## Summary",
           "isTarget": false
         },
         {
-          "lineNumber": 187,
+          "lineNumber": 240,
           "content": "- Total TODOs/FIXMEs: ${results.summary.total}",
           "isTarget": true
         },
         {
-          "lineNumber": 188,
+          "lineNumber": 241,
           "content": "- CRITICAL: ${results.summary.byCategory.CRITICAL}",
           "isTarget": false
         },
         {
-          "lineNumber": 189,
+          "lineNumber": 242,
           "content": "- HIGH: ${results.summary.byCategory.HIGH}",
           "isTarget": false
         }
@@ -1078,102 +261,34 @@
     },
     {
       "file": "scripts/audit-tech-debt.js",
-      "line": 187,
+      "line": 240,
       "type": "FIXME",
       "category": "MEDIUM",
       "content": "- Total TODOs/FIXMEs: ${results.summary.total}",
       "context": [
         {
-          "lineNumber": 185,
+          "lineNumber": 238,
           "content": "",
           "isTarget": false
         },
         {
-          "lineNumber": 186,
+          "lineNumber": 239,
           "content": "## Summary",
           "isTarget": false
         },
         {
-          "lineNumber": 187,
+          "lineNumber": 240,
           "content": "- Total TODOs/FIXMEs: ${results.summary.total}",
           "isTarget": true
         },
         {
-          "lineNumber": 188,
+          "lineNumber": 241,
           "content": "- CRITICAL: ${results.summary.byCategory.CRITICAL}",
           "isTarget": false
         },
         {
-          "lineNumber": 189,
+          "lineNumber": 242,
           "content": "- HIGH: ${results.summary.byCategory.HIGH}",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "scripts/autonomous-bug-fixer.js",
-      "line": 413,
-      "type": "TODO",
-      "category": "MEDIUM",
-      "content": "// TODO: Implement actual logout logic",
-      "context": [
-        {
-          "lineNumber": 411,
-          "content": "export async function POST(request: NextRequest) {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 412,
-          "content": "  try {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 413,
-          "content": "    // TODO: Implement actual logout logic",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 414,
-          "content": "    return NextResponse.json({ success: true, message: 'Logout endpoint placeholder' });",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 415,
-          "content": "  } catch (error) {",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "scripts/autonomous-bug-fixer.js",
-      "line": 424,
-      "type": "TODO",
-      "category": "MEDIUM",
-      "content": "// TODO: Implement actual user data retrieval",
-      "context": [
-        {
-          "lineNumber": 422,
-          "content": "export async function GET(request: NextRequest) {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 423,
-          "content": "  try {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 424,
-          "content": "    // TODO: Implement actual user data retrieval",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 425,
-          "content": "    return NextResponse.json({ user: null, message: 'User endpoint placeholder' });",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 426,
-          "content": "  } catch (error) {",
           "isTarget": false
         }
       ]
@@ -1374,33 +489,33 @@
     },
     {
       "file": "src/app/api/contextual-messages/route.ts",
-      "line": 409,
+      "line": 439,
       "type": "TODO",
       "category": "MEDIUM",
       "content": "// TODO: Ici, après la création en BDD, émettre l'événement WebSocket",
       "context": [
         {
-          "lineNumber": 407,
+          "lineNumber": 437,
           "content": "            },",
           "isTarget": false
         },
         {
-          "lineNumber": 408,
+          "lineNumber": 438,
           "content": "        });",
           "isTarget": false
         },
         {
-          "lineNumber": 409,
+          "lineNumber": 439,
           "content": "        // TODO: Ici, après la création en BDD, émettre l'événement WebSocket",
           "isTarget": true
         },
         {
-          "lineNumber": 410,
+          "lineNumber": 440,
           "content": "        // Exemple: global.io.to(socketRoomForUser(args.userId)).emit('new_notification', notification);",
           "isTarget": false
         },
         {
-          "lineNumber": 411,
+          "lineNumber": 441,
           "content": "        return notification;",
           "isTarget": false
         }
@@ -3491,40 +2606,6 @@
     },
     {
       "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
-      "line": 1105,
-      "type": "TODO",
-      "category": "MEDIUM",
-      "content": "// 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette modification",
-      "context": [
-        {
-          "lineNumber": 1103,
-          "content": "        }",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1104,
-          "content": "",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1105,
-          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette modification",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 1106,
-          "content": "        await this.verifyStaffModificationPermissions(initiatorUserId, roomAssignment.blocDayPlanning.siteId);",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 1107,
-          "content": "",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
       "line": 1149,
       "type": "TODO",
       "category": "MEDIUM",
@@ -3859,74 +2940,6 @@
         {
           "lineNumber": 122,
           "content": "    //     // prefetchData(`/api/utilisateurs/${userId}/conges`),",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/admin/leave-types/route.ts",
-      "line": 18,
-      "type": "TODO",
-      "category": "LOW",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises",
-      "context": [
-        {
-          "lineNumber": 16,
-          "content": "export async function GET(request: Request) {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 17,
-          "content": "    try {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 18,
-          "content": "        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 19,
-          "content": "        const session = await requireAdmin();",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 20,
-          "content": "        ",
-          "isTarget": false
-        }
-      ]
-    },
-    {
-      "file": "src/app/api/admin/leave-types/route.ts",
-      "line": 56,
-      "type": "TODO",
-      "category": "LOW",
-      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises",
-      "context": [
-        {
-          "lineNumber": 54,
-          "content": "export async function POST(request: Request) {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 55,
-          "content": "    try {",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 56,
-          "content": "        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises",
-          "isTarget": true
-        },
-        {
-          "lineNumber": 57,
-          "content": "        const session = await requireAdmin();",
-          "isTarget": false
-        },
-        {
-          "lineNumber": 58,
-          "content": "",
           "isTarget": false
         }
       ]

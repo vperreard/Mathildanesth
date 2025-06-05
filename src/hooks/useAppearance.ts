@@ -82,12 +82,7 @@ export function useAppearance({ initialPreferences }: UseAppearanceProps = {}) {
 
     // Charger les préférences depuis l'API au montage du composant (temporairement désactivé)
     useEffect(() => {
-        // Temporairement désactivé pour éviter les erreurs Failed to fetch
-        console.log('Chargement des préférences API temporairement désactivé - utilisation des préférences par défaut');
-        setLoading(false);
-        
-        // TODO: Réactiver une fois l'authentification stabilisée
-        /*
+        // Chargement des préférences utilisateur depuis l'API
         async function loadPreferences() {
             try {
                 // Vérifier si l'utilisateur est authentifié
@@ -112,7 +107,6 @@ export function useAppearance({ initialPreferences }: UseAppearanceProps = {}) {
         }
 
         loadPreferences();
-        */
     }, [isAuthenticated, user]);
 
     // Appliquer les préférences à chaque changement

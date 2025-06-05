@@ -395,38 +395,152 @@ class AutonomousBugFixer {
         const templates = {
             login: `
 import { NextRequest, NextResponse } from 'next/server';
+import { generateAuthTokenServer } from '@/lib/auth-server-utils';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
+import { withAuthRateLimit } from '@/lib/rateLimit';
 
-export async function POST(request: NextRequest) {
+async function loginHandler(req: NextRequest) {
   try {
-    const body = await request.json();
-    // TODO: Implement actual authentication logic
-    return NextResponse.json({ success: true, message: 'Login endpoint placeholder' });
+    const { login, password } = await req.json();
+
+    if (!login || !password) {
+      return NextResponse.json(
+        { error: 'Login et mot de passe requis' },
+        { status: 400 }
+      );
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { login },
+      select: {
+        id: true,
+        login: true,
+        email: true,
+        nom: true,
+        prenom: true,
+        role: true,
+        password: true,
+        actif: true,
+      }
+    });
+
+    if (!user || !user.password || !user.actif) {
+      return NextResponse.json(
+        { error: 'Identifiants invalides' },
+        { status: 401 }
+      );
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return NextResponse.json(
+        { error: 'Identifiants invalides' },
+        { status: 401 }
+      );
+    }
+
+    const token = await generateAuthTokenServer({
+      userId: user.id,
+      login: user.login,
+      role: user.role
+    });
+
+    const { password: _, ...userWithoutPassword } = user;
+
+    const response = NextResponse.json({
+      user: userWithoutPassword,
+      token: token,
+      redirectUrl: '/dashboard'
+    });
+
+    response.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60,
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Login error:', error);
+    return NextResponse.json(
+      { error: 'Erreur serveur lors de la connexion' },
+      { status: 500 }
+    );
   }
-}`,
+}
+
+export const POST = withAuthRateLimit(loginHandler);`,
             logout: `
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-server-utils';
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest) => {
   try {
-    // TODO: Implement actual logout logic
-    return NextResponse.json({ success: true, message: 'Logout endpoint placeholder' });
+    const response = NextResponse.json({ 
+      success: true, 
+      message: 'Déconnexion réussie',
+      redirectUrl: '/login'
+    });
+
+    // Remove the auth cookie
+    response.cookies.set('auth_token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0, // Expire immediately
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Logout error:', error);
+    return NextResponse.json({ 
+      error: 'Erreur lors de la déconnexion' 
+    }, { status: 500 });
   }
-}`,
+});`,
             user: `
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-server-utils';
+import { prisma } from '@/lib/prisma';
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest, { user }) => {
   try {
-    // TODO: Implement actual user data retrieval
-    return NextResponse.json({ user: null, message: 'User endpoint placeholder' });
+    const userData = await prisma.user.findUnique({
+      where: { id: user.userId },
+      select: {
+        id: true,
+        login: true,
+        email: true,
+        nom: true,
+        prenom: true,
+        role: true,
+        actif: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
+
+    if (!userData) {
+      return NextResponse.json({ 
+        error: 'Utilisateur non trouvé' 
+      }, { status: 404 });
+    }
+
+    return NextResponse.json({ 
+      user: userData,
+      authenticated: true
+    });
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('User fetch error:', error);
+    return NextResponse.json({ 
+      error: 'Erreur lors de la récupération des données utilisateur' 
+    }, { status: 500 });
   }
-}`
+});`
         };
 
         return templates[routeName] || `

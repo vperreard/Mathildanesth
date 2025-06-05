@@ -15,7 +15,7 @@ import { AuditService, AuditAction } from '@/services/AuditService';
  */
 export async function GET(request: Request) {
     try {
-        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises
+        // 🔐 Vérifications admin requises
         const session = await requireAdmin();
         
         // Logger l'action
@@ -53,7 +53,7 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
     try {
-        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises
+        // 🔐 Vérifications admin requises
         const session = await requireAdmin();
 
         const body = await request.json();

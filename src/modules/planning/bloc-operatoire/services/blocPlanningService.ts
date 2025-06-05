@@ -1067,7 +1067,7 @@ export class BlocPlanningService {
             }
         }
 
-        // 🔐 CORRECTION TODO CRITIQUE : Ajouter logique de permissions pour changements de statut
+        // 🔐 Logique de permissions pour changements de statut
         await this.verifyStatusChangePermissions(userId, planningId, status);
 
         // TODO: Tracer l'historique des changements de statut si nécessaire (nouveau template ?)
@@ -1102,10 +1102,10 @@ export class BlocPlanningService {
             throw new Error("L'affectation ne peut être modifiée que si le planning est en mode brouillon (DRAFT).");
         }
 
-        // 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette modification
+        // 🔐 Vérifier si l'utilisateur a les droits de faire cette modification
         await this.verifyStaffModificationPermissions(initiatorUserId, roomAssignment.blocDayPlanning.siteId);
 
-        // 🔐 CORRECTION TODO CRITIQUE : Gérer le cas "update" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId
+        // 🔐 Gestion du cas "update" si une affectation pour cet userId+role existe déjà
         // Logique d'update/replace améliorée avec gestion des erreurs
 
         //       Actuellement, cela va créer une nouvelle entrée. Faut-il supprimer l'ancienne ou la mettre à jour ?

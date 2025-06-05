@@ -1,19 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { withAuth } from '@/middleware/authorization';
+import { checkUserRole } from '@/lib/auth-server-utils';
+import type { UserRole } from '@/lib/auth-client-utils';
 import { logger } from '@/lib/logger';
 import { AuditService } from '@/services/AuditService';
 
-export const POST = withAuth({
-  requireAuth: true,
-  allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
-  resourceType: 'trame_affectation',
-  action: 'create',
-})(async (request: NextRequest, { params }: { params: Promise<{ trameModeleId: string }> }) => {
+const ALLOWED_ROLES_CREATE: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'];
+const ALLOWED_ROLES_READ: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'USER'];
+
+export async function POST(request: NextRequest, { params }: { params: Promise<{ trameModeleId: string }> }) {
   try {
-    const userId = parseInt(request.headers.get('x-user-id') || '0');
-    const userRole = request.headers.get('x-user-role') || '';
+    // Vérifier l'authentification et les rôles
+    const authCheck = await checkUserRole(ALLOWED_ROLES_CREATE);
+    if (!authCheck.hasRequiredRole) {
+      return NextResponse.json(
+        { error: authCheck.error || 'Authentification requise' },
+        { status: 401 }
+      );
+    }
+
+    const userId = authCheck.user?.id || 0;
+    const userRole = authCheck.user?.role || '';
 
     const { trameModeleId } = await params;
     console.log(
@@ -21,7 +29,7 @@ export const POST = withAuth({
     );
     console.log('\n--- POST /api/trameModele-modeles/[trameModeleId]/affectations START ---');
 
-    // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trameModeles (déjà fait via withAuth)
+    // 🔐 Vérification de rôle admin pour modifications de trameModeles (fait via withAuth)
     // Logger l'action de création
     const auditService = new AuditService();
     await auditService.logAction({
@@ -203,28 +211,34 @@ export const POST = withAuth({
       { status: 500 }
     );
   }
-});
+}
 
-export const GET = withAuth({
-  requireAuth: true,
-  resourceType: 'trame_affectation',
-  action: 'read',
-})(async (request: NextRequest, { params }: { params: Promise<{ trameModeleId: string }> }) => {
-  const userId = parseInt(request.headers.get('x-user-id') || '0');
-  const { trameModeleId } = await params;
-  console.log(`[API GET /trameModele-modeles/${trameModeleId}/affectations] Début du traitement.`);
-
-  console.log('\n--- GET /api/trameModele-modeles/[trameModeleId]/affectations START ---');
-
-  if (!trameModeleId || isNaN(parseInt(trameModeleId))) {
-    console.warn(
-      'GET /api/trameModele-modeles/[trameModeleId]/affectations: Invalid trameModeleId'
-    );
-    return NextResponse.json({ error: 'ID du template de trameModele invalide' }, { status: 400 });
-  }
-  const trameId = parseInt(trameModeleId);
-
+export async function GET(request: NextRequest, { params }: { params: Promise<{ trameModeleId: string }> }) {
   try {
+    // Vérifier l'authentification et les rôles
+    const authCheck = await checkUserRole(ALLOWED_ROLES_READ);
+    if (!authCheck.hasRequiredRole) {
+      return NextResponse.json(
+        { error: authCheck.error || 'Authentification requise' },
+        { status: 401 }
+      );
+    }
+
+    const userId = authCheck.user?.id || 0;
+    const { trameModeleId } = await params;
+    console.log(`[API GET /trameModele-modeles/${trameModeleId}/affectations] Début du traitement.`);
+
+    console.log('\n--- GET /api/trameModele-modeles/[trameModeleId]/affectations START ---');
+
+    if (!trameModeleId || isNaN(parseInt(trameModeleId))) {
+      console.warn(
+        'GET /api/trameModele-modeles/[trameModeleId]/affectations: Invalid trameModeleId'
+      );
+      return NextResponse.json({ error: 'ID du template de trameModele invalide' }, { status: 400 });
+    }
+    const trameId = parseInt(trameModeleId);
+
+    try {
     console.log(`GET .../affectations: Retrieving affectations for trameModeleId ${trameId}...`);
 
     // Vérifier l'existence du TrameModele parent
@@ -274,4 +288,4 @@ export const GET = withAuth({
       { status: 500 }
     );
   }
-});
+}

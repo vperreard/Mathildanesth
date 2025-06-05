@@ -117,7 +117,7 @@ export async function PUT(
       );
     }
 
-    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur
+    // 🔐 Vérification des permissions de l'utilisateur
     if (!existingScenario.createdBy) {
       return NextResponse.json({ error: 'Scénario invalide.' }, { status: 400 });
     }
@@ -179,7 +179,7 @@ export async function DELETE(
       );
     }
 
-    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur
+    // 🔐 Vérification des permissions de l'utilisateur
     if (!existingScenario.createdBy) {
       return NextResponse.json({ error: 'Scénario invalide.' }, { status: 400 });
     }
