@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from "@/lib/logger";
+import { logger } from '@/lib/logger';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { checkUserRole } from '@/lib/auth-server-utils';
 import type { UserRole } from '@/lib/auth-client-utils';
-import { logger } from '@/lib/logger';
 import { AuditService } from '@/services/AuditService';
 
 const ALLOWED_ROLES_CREATE: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'];
@@ -160,10 +159,7 @@ export async function POST(
       throw prismaError; // Relancer pour la gestion globale des erreurs
     }
   } catch (error) {
-    logger.error(
-      'Error during POST /api/trameModele-modeles/[trameModeleId]/affectations:',
-      error
-    );
+    logger.error('Error during POST /api/trameModele-modeles/[trameModeleId]/affectations:', error);
 
     // Afficher plus d'informations sur l'erreur
     if (error instanceof Error) {

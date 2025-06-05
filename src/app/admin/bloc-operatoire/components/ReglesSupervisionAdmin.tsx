@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { logger } from "../../../../lib/logger";
+import { logger } from '../../../../lib/logger';
 import {
   Table,
   TableBody,
@@ -108,7 +108,7 @@ export default function ReglesSupervisionAdmin() {
         } else if (regle.type === 'REQUIRED_COMPETENCE') {
           mappedType = 'EXCEPTION';
         }
-        
+
         return {
           id: regle.id || '',
           nom: regle.name || '',
@@ -119,20 +119,23 @@ export default function ReglesSupervisionAdmin() {
             maxSallesParMAR: regle.value || 1,
           },
           priorite: regle.value || 1,
-          estActif: regle.isActive
+          estActif: regle.isActive,
         };
       });
-      
+
       setRegles(adaptedRegles);
       // Adapter les données des secteurs pour ajouter la propriété salles requise
-      const adaptedSectors = (secteursData || []).map(sector => ({
-        ...sector,
-        salles: []
-      } as BlocSector));
+      const adaptedSectors = (secteursData || []).map(
+        sector =>
+          ({
+            ...sector,
+            salles: [],
+          }) as BlocSector
+      );
       setSecteurs(adaptedSectors);
     } catch (err) {
       setError('Erreur lors du chargement des données');
-      logger.error('Erreur de chargement:', err);
+      logger.error('Erreur de chargement:', err instanceof Error ? err : new Error(String(err)));
     } finally {
       setIsLoading(false);
     }
@@ -316,7 +319,11 @@ export default function ReglesSupervisionAdmin() {
 
     try {
       // Convertir le type pour correspondre au service
-      let serviceType: 'MAX_ROOMS_PER_SUPERVISOR' | 'REQUIRED_COMPETENCE' | 'SECTOR_RESTRICTION' | 'SPECIALTY_REQUIREMENT' = 'MAX_ROOMS_PER_SUPERVISOR';
+      let serviceType:
+        | 'MAX_ROOMS_PER_SUPERVISOR'
+        | 'REQUIRED_COMPETENCE'
+        | 'SECTOR_RESTRICTION'
+        | 'SPECIALTY_REQUIREMENT' = 'MAX_ROOMS_PER_SUPERVISOR';
       if (currentRegle.type === 'SPECIFIQUE') {
         serviceType = 'SECTOR_RESTRICTION';
       } else if (currentRegle.type === 'EXCEPTION') {
@@ -345,14 +352,17 @@ export default function ReglesSupervisionAdmin() {
               : undefined,
           incompatibilites:
             currentRegle.incompatibilites.length > 0 ? currentRegle.incompatibilites : undefined,
-        }
+        },
       };
 
       let updatedRegle: SupervisionRule;
 
       if (currentRegle.id) {
         // Mise à jour
-        const serviceResult = await blocPlanningService.updateSupervisorRule(currentRegle.id, serviceData as any);
+        const serviceResult = await blocPlanningService.updateSupervisorRule(
+          currentRegle.id,
+          serviceData as any
+        );
         // Adapter le résultat du service au format attendu
         updatedRegle = {
           id: serviceResult.id || currentRegle.id || '',
@@ -367,10 +377,11 @@ export default function ReglesSupervisionAdmin() {
             supervisionContigues: currentRegle.supervisionContigues,
             competencesRequises: currentRegle.competencesRequises,
             supervisionDepuisAutreSecteur: currentRegle.supervisionDepuisAutreSecteur,
-            incompatibilites: currentRegle.incompatibilites
+            incompatibilites: currentRegle.incompatibilites,
           },
           priorite: serviceResult.value || currentRegle.priorite,
-          estActif: serviceResult.isActive !== undefined ? serviceResult.isActive : currentRegle.estActif
+          estActif:
+            serviceResult.isActive !== undefined ? serviceResult.isActive : currentRegle.estActif,
         } as unknown as SupervisionRule;
         setRegles(prev => prev.map(r => (r.id === currentRegle.id ? updatedRegle : r)));
         toast({
@@ -394,10 +405,10 @@ export default function ReglesSupervisionAdmin() {
             supervisionContigues: currentRegle.supervisionContigues,
             competencesRequises: currentRegle.competencesRequises,
             supervisionDepuisAutreSecteur: currentRegle.supervisionDepuisAutreSecteur,
-            incompatibilites: currentRegle.incompatibilites
+            incompatibilites: currentRegle.incompatibilites,
           },
           priorite: serviceResult.value || 1,
-          estActif: serviceResult.isActive !== undefined ? serviceResult.isActive : true
+          estActif: serviceResult.isActive !== undefined ? serviceResult.isActive : true,
         } as unknown as SupervisionRule;
         setRegles(prev => [...prev, updatedRegle]);
         toast({
@@ -422,7 +433,7 @@ export default function ReglesSupervisionAdmin() {
   // Obtenir le nom d'un secteur par son ID
   const getSecteurName = (secteurId?: string) => {
     if (!secteurId) return 'Tous les secteurs';
-    const secteur = secteurs.find(s => s.id === secteurId);
+    const secteur = secteurs.find(s => s.id === Number(secteurId));
     return secteur ? secteur.name : 'Secteur inconnu';
   };
 
@@ -708,7 +719,7 @@ export default function ReglesSupervisionAdmin() {
                       <SelectItem value="">Tous les secteurs</SelectItem>
                     )}
                     {secteurs.map(secteur => (
-                      <SelectItem key={secteur.id} value={secteur.id}>
+                      <SelectItem key={secteur.id} value={String(secteur.id)}>
                         {secteur.name}
                       </SelectItem>
                     ))}
@@ -860,17 +871,23 @@ export default function ReglesSupervisionAdmin() {
                   {secteurs.length > 0 ? (
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       {secteurs
-                        .filter(s => !currentRegle?.secteurId || s.id !== currentRegle.secteurId)
+                        .filter(
+                          s => !currentRegle?.secteurId || s.id !== Number(currentRegle.secteurId)
+                        )
                         .map(secteur => (
                           <div key={secteur.id} className="flex items-center space-x-2">
                             <Checkbox
                               id={`supervision-${secteur.id}`}
                               checked={
-                                currentRegle?.supervisionDepuisAutreSecteur.includes(secteur.id) ||
-                                false
+                                currentRegle?.supervisionDepuisAutreSecteur.includes(
+                                  String(secteur.id)
+                                ) || false
                               }
                               onCheckedChange={() =>
-                                handleToggleSecteur(secteur.id, 'supervisionDepuisAutreSecteur')
+                                handleToggleSecteur(
+                                  String(secteur.id),
+                                  'supervisionDepuisAutreSecteur'
+                                )
                               }
                             />
                             <Label
@@ -897,14 +914,18 @@ export default function ReglesSupervisionAdmin() {
                   {secteurs.length > 0 ? (
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       {secteurs
-                        .filter(s => !currentRegle?.secteurId || s.id !== currentRegle.secteurId)
+                        .filter(
+                          s => !currentRegle?.secteurId || s.id !== Number(currentRegle.secteurId)
+                        )
                         .map(secteur => (
                           <div key={secteur.id} className="flex items-center space-x-2">
                             <Checkbox
                               id={`incompatible-${secteur.id}`}
-                              checked={currentRegle?.incompatibilites.includes(secteur.id) || false}
+                              checked={
+                                currentRegle?.incompatibilites.includes(String(secteur.id)) || false
+                              }
                               onCheckedChange={() =>
-                                handleToggleSecteur(secteur.id, 'incompatibilites')
+                                handleToggleSecteur(String(secteur.id), 'incompatibilites')
                               }
                             />
                             <Label

@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from "@/lib/logger";
+import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 import { LeaveStatus, LeaveType as PrismaLeaveType } from '@prisma/client';
 import { withAuth, SecurityChecks } from '@/middleware/authorization';
-import { logger } from '@/lib/logger';
 import { auth } from '@/lib/auth';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { BusinessRulesValidator } from '@/services/businessRulesValidator';

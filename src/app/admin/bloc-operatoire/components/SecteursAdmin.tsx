@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { logger } from "../../../../lib/logger";
+import { logger } from '../../../../lib/logger';
 import {
   Table,
   TableBody,
@@ -88,11 +88,34 @@ export default function SecteursAdmin() {
         blocPlanningService.getAllOperatingSectors(),
         blocPlanningService.getAllOperatingRooms(),
       ]);
-      setSecteurs(secteursData);
-      setSalles(sallesData);
+
+      // Map the data from service to match BlocSector type
+      const mappedSecteurs: BlocSector[] = secteursData.map((sector: any) => ({
+        id: sector.id,
+        name: sector.name,
+        description: sector.description,
+        colorCode: sector.colorCode || '#3B82F6',
+        specialites: sector.specialites || [],
+        salles: sector.rooms ? sector.rooms.map((r: any) => r.name) : [],
+        isActive: sector.isActive,
+        requiresSpecificSkills: sector.requiresSpecificSkills || false,
+        supervisionSpeciale: sector.supervisionSpeciale || false,
+      }));
+
+      // Map the data from service to match OperatingRoom type
+      const mappedSalles: OperatingRoom[] = sallesData.map((room: any) => ({
+        id: room.id,
+        number: room.number,
+        name: room.name,
+        operatingSectorId: room.operatingSectorId || room.sectorId || 0,
+        isActive: room.isActive,
+      }));
+
+      setSecteurs(mappedSecteurs);
+      setSalles(mappedSalles);
     } catch (err) {
       setError('Erreur lors du chargement des données');
-      logger.error('Erreur de chargement:', err);
+      logger.error('Erreur de chargement:', err as Error);
     } finally {
       setIsLoading(false);
     }
@@ -115,7 +138,7 @@ export default function SecteursAdmin() {
   // Ouvrir le dialogue pour modifier un secteur existant
   const handleEditSecteur = (secteur: BlocSector) => {
     setCurrentSecteur({
-      id: secteur.id,
+      id: secteur.id.toString(),
       nom: secteur.name,
       description: secteur.description || '',
       couleur: secteur.colorCode || COLOR_PRESETS[0],
@@ -130,7 +153,7 @@ export default function SecteursAdmin() {
   // Ouvrir le dialogue de confirmation de suppression
   const handleDeleteClick = (secteur: BlocSector) => {
     setCurrentSecteur({
-      id: secteur.id,
+      id: secteur.id.toString(),
       nom: secteur.name,
       description: secteur.description || '',
       couleur: secteur.colorCode || '',
@@ -148,8 +171,8 @@ export default function SecteursAdmin() {
 
     setIsSubmitting(true);
     try {
-      await blocPlanningService.deleteSector(currentSecteur.id);
-      setSecteurs(prev => prev.filter(s => s.id !== currentSecteur.id));
+      await blocPlanningService.deleteSector(parseInt(currentSecteur.id));
+      setSecteurs(prev => prev.filter(s => s.id !== parseInt(currentSecteur.id)));
       toast({
         title: 'Secteur supprimé',
         description: `Le secteur ${currentSecteur.nom} a été supprimé avec succès.`,
@@ -229,15 +252,17 @@ export default function SecteursAdmin() {
 
       if (currentSecteur.id) {
         // Mise à jour
-        const existingSecteur = secteurs.find(s => s.id === currentSecteur.id);
+        const existingSecteur = secteurs.find(s => s.id === parseInt(currentSecteur.id));
         if (!existingSecteur) throw new Error('Secteur introuvable');
 
         // On conserve la liste des salles
-        updatedSecteur = await blocPlanningService.updateSector(currentSecteur.id, {
+        updatedSecteur = await blocPlanningService.updateSector(parseInt(currentSecteur.id), {
           ...secteurData,
           salles: existingSecteur.salles,
         });
-        setSecteurs(prev => prev.map(s => (s.id === currentSecteur.id ? updatedSecteur : s)));
+        setSecteurs(prev =>
+          prev.map(s => (s.id === parseInt(currentSecteur.id) ? updatedSecteur : s))
+        );
         toast({
           title: 'Secteur mis à jour',
           description: `Le secteur ${updatedSecteur.nom} a été mis à jour avec succès.`,
