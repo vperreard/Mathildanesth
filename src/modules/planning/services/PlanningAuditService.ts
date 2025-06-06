@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
+import { logger } from "../../../lib/logger";
 import { BlocPlanningStatus } from '@/modules/planning/bloc-operatoire/models/BlocModels';
-import { getSession } from 'next-auth/react';
+// getSession remplacé - utiliser getServerSession côté serveur ou useAuth côté client;
 import { notifyUsers } from '@/modules/notifications/services/notificationService';
 
 export interface AuditLogEntry {
@@ -12,7 +13,7 @@ export interface AuditLogEntry {
     targetType: 'attribution' | 'planning' | 'supervisor' | 'annotation';
     targetId: string;
     planningId: string;
-    details: any;
+    details: unknown;
 }
 
 export interface AuditTrailOptions {
@@ -36,7 +37,7 @@ export class PlanningAuditService {
         targetType: 'attribution' | 'planning' | 'supervisor' | 'annotation',
         targetId: string,
         planningId: string,
-        details: any,
+        details: unknown,
         options: AuditTrailOptions = {}
     ): Promise<AuditLogEntry> {
         try {
@@ -67,8 +68,8 @@ export class PlanningAuditService {
                 ...auditEntry,
                 details: JSON.parse(auditEntry.details),
             };
-        } catch (error) {
-            console.error('Erreur lors de la création du log d\'audit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la création du log d\'audit:', { error: error });
             throw error;
         }
     }
@@ -129,8 +130,8 @@ export class PlanningAuditService {
             }));
 
             return { items: transformedItems, total };
-        } catch (error) {
-            console.error('Erreur lors de la récupération des logs d\'audit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des logs d\'audit:', { error: error });
             throw error;
         }
     }
@@ -142,7 +143,7 @@ export class PlanningAuditService {
         action: string,
         targetType: string,
         planningId: string,
-        details: any,
+        details: unknown,
         options: AuditTrailOptions
     ): Promise<void> {
         try {
@@ -211,8 +212,8 @@ export class PlanningAuditService {
                     }
                 });
             }
-        } catch (error) {
-            console.error('Erreur lors de l\'envoi des notifications d\'audit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'envoi des notifications d\'audit:', { error: error });
             // Ne pas faire échouer la fonction principale si les notifications échouent
         }
     }
@@ -220,7 +221,7 @@ export class PlanningAuditService {
     /**
      * Génère un message par défaut pour les notifications
      */
-    private static generateDefaultMessage(action: string, targetType: string, planning: any): string {
+    private static generateDefaultMessage(action: string, targetType: string, planning: unknown): string {
         const date = new Date(planning.date).toLocaleDateString('fr-FR');
         const period = planning.period === 'MORNING' ? 'matin' : planning.period === 'AFTERNOON' ? 'après-midi' : planning.period;
 

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 
 // Récupérer une règle de planning par ID
@@ -47,8 +48,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         }
 
         return NextResponse.json(planningRule);
-    } catch (error) {
-        console.error('Erreur lors de la récupération de la règle de planning:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération de la règle de planning:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération de la règle de planning' },
             { status: 500 }
@@ -123,8 +124,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         });
 
         return NextResponse.json(updatedRule);
-    } catch (error) {
-        console.error('Erreur lors de la mise à jour de la règle de planning:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la mise à jour de la règle de planning:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour de la règle de planning' },
             { status: 500 }
@@ -172,8 +173,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         });
 
         return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error('Erreur lors de la suppression de la règle de planning:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la suppression de la règle de planning:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la suppression de la règle de planning' },
             { status: 500 }

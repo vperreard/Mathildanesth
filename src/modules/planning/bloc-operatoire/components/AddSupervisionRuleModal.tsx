@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     Dialog,
     DialogContent,
@@ -65,9 +66,9 @@ export default function AddSupervisionRuleModal({ isOpen, onClose, onAdd, sector
                 throw new Error('Erreur lors de la récupération des salles');
             }
             const data = await response.json();
-            setRooms(data.map((room: any) => ({ id: room.id, number: room.number })));
-        } catch (error) {
-            console.error('Erreur:', error);
+            setRooms(data.map((room: unknown) => ({ id: room.id, number: room.number })));
+        } catch (error: unknown) {
+            logger.error('Erreur:', { error: error });
         }
     }
 
@@ -118,8 +119,8 @@ export default function AddSupervisionRuleModal({ isOpen, onClose, onAdd, sector
             onAdd(createdRule);
             form.reset();
             onClose();
-        } catch (error) {
-            console.error('Erreur:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur:', { error: error });
             setError(error instanceof Error ? error.message : 'Une erreur est survenue');
         } finally {
             setIsLoading(false);

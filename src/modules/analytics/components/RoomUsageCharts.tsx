@@ -20,12 +20,12 @@ interface RoomUsageChartsProps {
     reportData: RoomUtilizationReport | null;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: unknown) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-white p-2 border border-gray-300 shadow-lg rounded text-sm">
                 <p className="font-bold">{`${label}`}</p>
-                {payload.map((pld: any, index: number) => (
+                {payload.map((pld: unknown, index: number) => (
                     <p key={index} style={{ color: pld.fill }}>{`${pld.name}: ${pld.value.toFixed(1)}%`}</p>
                 ))}
             </div>
@@ -34,7 +34,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
-const renderPercentLabel = (props: any) => {
+const renderPercentLabel = (props: unknown) => {
     const { x, y, width, height, value } = props;
     if (value === 0 || !value) return null;
     const radius = 10;

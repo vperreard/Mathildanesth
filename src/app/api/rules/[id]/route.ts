@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { connectToDatabase } from '@/lib/mongodb';
 
 // GET /api/rules/[id] - Récupérer une règle par ID
@@ -22,8 +23,8 @@ export async function GET(
         }
 
         return NextResponse.json(rule);
-    } catch (error) {
-        console.error('Erreur lors de la récupération de la règle:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération de la règle:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération de la règle' },
             { status: 500 }
@@ -63,8 +64,8 @@ export async function PUT(
         await collection.updateOne({ id }, { $set: updatedRule });
 
         return NextResponse.json(updatedRule);
-    } catch (error) {
-        console.error('Erreur lors de la mise à jour de la règle:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la mise à jour de la règle:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la mise à jour de la règle' },
             { status: 500 }
@@ -93,8 +94,8 @@ export async function DELETE(
         }
 
         return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error('Erreur lors de la suppression de la règle:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la suppression de la règle:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la suppression de la règle' },
             { status: 500 }

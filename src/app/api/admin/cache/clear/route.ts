@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { redis } from '@/lib/redis';
 
 export async function POST(req: NextRequest) {
@@ -57,8 +58,8 @@ export async function POST(req: NextRequest) {
             clearedKeys,
             message: `Cache ${type} cleared successfully`
         });
-    } catch (error) {
-        console.error('Failed to clear cache:', error);
+    } catch (error: unknown) {
+        logger.error('Failed to clear cache:', { error: error });
         return NextResponse.json(
             { error: 'Failed to clear cache' },
             { status: 500 }

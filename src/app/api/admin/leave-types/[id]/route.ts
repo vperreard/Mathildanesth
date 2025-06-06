@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { PrismaClient, User } from '@prisma/client';
-// import { getServerSession } from 'next-auth/next'; // Ancien import
-import { getServerSession } from "next-auth"; // Nouvel import
-// import { authOptions } from '@/lib/auth'; // <--- Chemin potentiellement incorrect, commenté temporairement
+// import { getServerSession } from '@/lib/auth/migration-shim'; // Ancien import
+import { getServerSession } from '@/lib/auth/migration-shim'; // Nouvel import
+// import { authOptions } from '@/lib/auth/migration-shim'; // <--- Chemin potentiellement incorrect, commenté temporairement
 
 import { prisma } from "@/lib/prisma";
 
@@ -61,8 +62,8 @@ export async function PUT(
 
         return NextResponse.json(updatedLeaveTypeSetting);
 
-    } catch (error: any) {
-        console.error(`Erreur API [PUT /admin/leave-types/${id}]:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur API [PUT /admin/leave-types/${id}]:`, { error: error });
         // Gérer le cas où l'enregistrement n'est pas trouvé
         if (error.code === 'P2025') {
             return NextResponse.json({ error: `Type de congé avec ID ${id} non trouvé.` }, { status: 404 });
@@ -112,8 +113,8 @@ export async function DELETE(
         // return NextResponse.json(deletedLeaveTypeSetting); // Retourner l'objet supprimé
         return new NextResponse(null, { status: 204 }); // Ou juste 204 No Content
 
-    } catch (error: any) {
-        console.error(`Erreur API [DELETE /admin/leave-types/${id}]:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur API [DELETE /admin/leave-types/${id}]:`, { error: error });
         if (error.code === 'P2025') {
             return NextResponse.json({ error: `Type de congé avec ID ${id} non trouvé.` }, { status: 404 });
         }

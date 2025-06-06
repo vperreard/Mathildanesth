@@ -6,6 +6,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { logger } from "../../lib/logger";
 import * as workerpool from 'workerpool';
 
 
@@ -38,7 +39,7 @@ export enum EnhancedStrategy {
 }
 
 // Cache en mémoire pour les résultats intermédiaires
-const enhancedSimulationCache: { [key: string]: any } = {};
+const enhancedSimulationCache: { [key: string]: unknown } = {};
 
 /**
  * Crée un hash simple à partir des paramètres de simulation
@@ -67,8 +68,8 @@ function createSimulationHash(params: EnhancedSimulationParams): string {
  * Cette fonction est un placeholder - dans un environnement réel,
  * elle serait reliée à un système de notifications
  */
-function notifyProgressUpdate(userId: string, notification: any) {
-    console.log(`[Simulation Progress] User ${userId}:`, notification);
+function notifyProgressUpdate(userId: string, notification: unknown) {
+    logger.info(`[Simulation Progress] User ${userId}:`, notification);
     // Dans une implémentation réelle, envoyer la notification à l'utilisateur
     // via WebSockets, SSE, ou un autre mécanisme
 }
@@ -140,8 +141,8 @@ export async function runEnhancedSimulation(params: EnhancedSimulationParams) {
         }
 
         return result;
-    } catch (error) {
-        console.error('Erreur lors de la simulation optimisée:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la simulation optimisée:', { error: error });
 
         // Notification d'erreur
         if (notifyProgress && params.userId) {

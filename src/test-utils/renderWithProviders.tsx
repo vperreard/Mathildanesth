@@ -123,7 +123,7 @@ export const waitForLoadingToFinish = () =>
   });
 
 // Helper pour mock les réponses API
-export const mockApiResponse = (url: string, response: any, status = 200) => {
+export const mockApiResponse = (url: string, response: unknown, status = 200) => {
   global.fetch = jest.fn().mockImplementation((requestUrl) => {
     if (requestUrl.includes(url)) {
       return Promise.resolve({

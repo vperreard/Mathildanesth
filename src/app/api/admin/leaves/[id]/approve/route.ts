@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { LeaveStatus, NotificationType } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-utils';
@@ -110,8 +111,8 @@ export async function POST(
             }
         });
 
-    } catch (error) {
-        console.error('[API /api/admin/conges/approve] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API /api/admin/conges/approve] Erreur:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de l\'approbation de la demande de congé' },
             { status: 500 }

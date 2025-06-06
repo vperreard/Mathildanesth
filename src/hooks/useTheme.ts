@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import { Theme, themes, defaultTheme } from '@/config/themes';
 
 export const useTheme = () => {
@@ -14,9 +15,9 @@ export const useTheme = () => {
                     setCurrentTheme(savedTheme);
                 }
             }
-        } catch (error) {
+        } catch (error: unknown) {
             // Ignorer les erreurs localStorage et utiliser le thème par défaut
-            console.warn('Erreur lors du chargement du thème:', error);
+            logger.warn('Erreur lors du chargement du thème:', { error: error });
         }
     }, []);
 
@@ -26,9 +27,9 @@ export const useTheme = () => {
             setCurrentTheme(newTheme);
             try {
                 localStorage.setItem('dashboard-theme', themeId);
-            } catch (error) {
+            } catch (error: unknown) {
                 // Ignorer les erreurs localStorage
-                console.warn('Erreur lors de la sauvegarde du thème:', error);
+                logger.warn('Erreur lors de la sauvegarde du thème:', { error: error });
             }
         }
     };

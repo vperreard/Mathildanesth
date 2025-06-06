@@ -47,7 +47,7 @@ export const RuleViolationsProvider: React.FC<{ children: React.ReactNode }> = (
     }, []);
 
     // Pour adapter l'API système de l'application à notre nouveau format
-    const adaptExistingViolationsSystem = useCallback((systemViolations: any[]) => {
+    const adaptExistingViolationsSystem = useCallback((systemViolations: unknown[]) => {
         if (!systemViolations || !Array.isArray(systemViolations)) return;
 
         const adaptedViolations: RuleViolation[] = systemViolations.map(violation => {

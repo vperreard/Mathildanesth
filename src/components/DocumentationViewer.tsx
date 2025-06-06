@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
+import { logger } from "../lib/logger";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { Button } from '@/components/ui/button';
 import { HomeIcon, ArrowLeftIcon, XIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 interface DocumentationViewerProps {
     path?: string;
@@ -31,8 +32,8 @@ export function DocumentationViewer({ path = 'index.md', onClose }: Documentatio
             const markdown = await response.text();
             setContent(markdown);
             setError(null);
-        } catch (err) {
-            console.error('Erreur de chargement de la documentation:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur de chargement de la documentation:', { error: err });
             setError('Impossible de charger la documentation demandée.');
             setContent('');
         } finally {

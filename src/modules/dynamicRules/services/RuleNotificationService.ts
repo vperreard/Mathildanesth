@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { logger } from "../../../lib/logger";
 import { io, Socket } from 'socket.io-client';
 import { RuleEvaluationResult } from '../v2/types/ruleV2.types';
 import { RuleSeverity } from '@/types/rules';
@@ -27,7 +28,7 @@ export interface RuleChangeNotification {
     ruleName: string;
     changedBy: string;
     timestamp: Date;
-    changes?: Record<string, any>;
+    changes?: Record<string, unknown>;
 }
 
 interface RuleNotificationEvents {
@@ -51,7 +52,7 @@ export class RuleNotificationService extends EventEmitter {
     // Queue pour stocker les notifications hors ligne
     private offlineQueue: Array<{
         type: 'violation' | 'rule-change';
-        data: any;
+        data: unknown;
     }> = [];
 
     constructor() {
@@ -64,7 +65,7 @@ export class RuleNotificationService extends EventEmitter {
      */
     async connect(userId: string, authToken: string): Promise<void> {
         if (this.socket?.connected) {
-            console.log('Already connected to notification service');
+            logger.info('Already connected to notification service');
             return;
         }
 
@@ -101,8 +102,8 @@ export class RuleNotificationService extends EventEmitter {
                 });
             });
 
-        } catch (error) {
-            console.error('Failed to connect to notification service:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to connect to notification service:', { error: error });
             throw error;
         }
     }
@@ -115,7 +116,7 @@ export class RuleNotificationService extends EventEmitter {
 
         // Connexion établie
         this.socket.on('connect', () => {
-            console.log('Connected to rule notification service');
+            logger.info('Connected to rule notification service');
             this.isConnected = true;
             this.reconnectAttempts = 0;
             this.emit('connection-status', 'connected');
@@ -131,14 +132,14 @@ export class RuleNotificationService extends EventEmitter {
 
         // Déconnexion
         this.socket.on('disconnect', () => {
-            console.log('Disconnected from rule notification service');
+            logger.info('Disconnected from rule notification service');
             this.isConnected = false;
             this.emit('connection-status', 'disconnected');
         });
 
         // Erreur de connexion
         this.socket.on('connect_error', (error) => {
-            console.error('Connection error:', error);
+            logger.error('Connection error:', { error: error });
             this.reconnectAttempts++;
             
             if (this.reconnectAttempts >= this.maxReconnectAttempts) {
@@ -178,7 +179,7 @@ export class RuleNotificationService extends EventEmitter {
         this.emit('violation', notification);
         
         // Logger pour debug
-        console.log('Rule violation notification:', {
+        logger.info('Rule violation notification:', {
             rule: notification.ruleName,
             severity: notification.severity,
             message: notification.message
@@ -198,7 +199,7 @@ export class RuleNotificationService extends EventEmitter {
         // Émettre l'événement
         this.emit('batch-violations', enrichedNotifications);
         
-        console.log(`Received ${notifications.length} rule violations`);
+        logger.info(`Received ${notifications.length} rule violations`);
     }
 
     /**
@@ -209,7 +210,7 @@ export class RuleNotificationService extends EventEmitter {
         
         this.emit('rule-change', notification);
         
-        console.log('Rule change notification:', {
+        logger.info('Rule change notification:', {
             type: notification.type,
             rule: notification.ruleName,
             changedBy: notification.changedBy
@@ -219,7 +220,7 @@ export class RuleNotificationService extends EventEmitter {
     /**
      * Envoie une notification de violation au serveur
      */
-    async sendViolation(result: RuleEvaluationResult, context: any): Promise<void> {
+    async sendViolation(result: RuleEvaluationResult, context: unknown): Promise<void> {
         const notification: Omit<RuleViolationNotification, 'id' | 'timestamp' | 'acknowledged'> = {
             ruleId: result.ruleId,
             ruleName: result.ruleName,
@@ -253,7 +254,7 @@ export class RuleNotificationService extends EventEmitter {
         ruleId: string,
         ruleName: string,
         changedBy: string,
-        changes?: Record<string, any>
+        changes?: Record<string, unknown>
     ): Promise<void> {
         const notification: Omit<RuleChangeNotification, 'id' | 'timestamp'> = {
             type,
@@ -306,7 +307,7 @@ export class RuleNotificationService extends EventEmitter {
     private processOfflineQueue(): void {
         if (!this.socket?.connected || this.offlineQueue.length === 0) return;
 
-        console.log(`Processing ${this.offlineQueue.length} offline notifications`);
+        logger.info(`Processing ${this.offlineQueue.length} offline notifications`);
 
         while (this.offlineQueue.length > 0) {
             const item = this.offlineQueue.shift();

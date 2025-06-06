@@ -25,7 +25,7 @@ export default function TestAuthPage() {
                 status: 'success', 
                 data: meResponse.data 
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             tests.push({ 
                 endpoint: '/api/auth/me', 
                 status: 'error', 
@@ -41,7 +41,7 @@ export default function TestAuthPage() {
                 status: 'success', 
                 count: sitesResponse.data.length 
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             tests.push({ 
                 endpoint: '/api/sites', 
                 status: 'error', 
@@ -58,7 +58,7 @@ export default function TestAuthPage() {
                     status: 'success', 
                     count: leavesResponse.data.length 
                 });
-            } catch (error: any) {
+            } catch (error: unknown) {
                 tests.push({ 
                     endpoint: `/api/leaves?userId=${user.id}`, 
                     status: 'error', 
@@ -76,7 +76,7 @@ export default function TestAuthPage() {
                 count: Array.isArray(usersResponse.data) ? usersResponse.data.length : 
                        (usersResponse.data.users ? usersResponse.data.users.length : 0)
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             tests.push({ 
                 endpoint: '/api/utilisateurs', 
                 status: 'error', 

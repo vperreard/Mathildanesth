@@ -34,7 +34,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({
         });
     };
 
-    const handleDisplayChange = (key: string, value: any) => {
+    const handleDisplayChange = (key: string, value: unknown) => {
         updatePreferences({
             display: {
                 ...preferences.display,

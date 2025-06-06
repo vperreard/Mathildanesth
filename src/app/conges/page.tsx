@@ -219,7 +219,7 @@ export default function LeavesPage() {
         setSort(field);
     };
 
-    const handleLeaveCreatedOrUpdated = async (leaveData: any) => {
+    const handleLeaveCreatedOrUpdated = async (leaveData: unknown) => {
         if (leaveToEdit) {
             await updateLeave(leaveToEdit.id, leaveData);
         } else {

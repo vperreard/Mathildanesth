@@ -21,6 +21,7 @@ import {
     endOfWeek,
     eachDayOfInterval
 } from 'date-fns';
+import { logger } from "../lib/logger";
 import { fr } from 'date-fns/locale'; // Utiliser la locale française pour les formats
 
 // Ré-exporter addDays pour qu'il soit accessible via ce module
@@ -85,7 +86,7 @@ export const parseDate = (value: string | number | Date | null | undefined): Dat
         }
 
         return isValid(parsedDate) ? parsedDate : null;
-    } catch (e) {
+    } catch (e: unknown) {
         return null;
     }
 };
@@ -127,8 +128,8 @@ export const formatDate = (date: string | number | Date | null | undefined, form
 
     try {
         return format(validDate, formatString, { locale: fr });
-    } catch (e) {
-        console.error("Erreur de formatage de date:", e);
+    } catch (e: unknown) {
+        logger.error("Erreur de formatage de date:", e);
         return '';
     }
 };

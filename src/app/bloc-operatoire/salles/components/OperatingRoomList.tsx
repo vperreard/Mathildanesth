@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
+import { logger } from "../../../../lib/logger";
 import { OperatingRoom } from '@/modules/planning/bloc-operatoire/types';
 import {
     useOperatingRoomsQuery,
@@ -75,9 +76,9 @@ export function OperatingRoomList() {
                 toast.success("Salle créée avec succès !");
             }
             handleCloseForm();
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error(`Erreur lors de la sauvegarde de la salle: ${error instanceof Error ? error.message : String(error)}`);
-            console.error("Erreur sauvegarde salle:", error);
+            logger.error("Erreur sauvegarde salle:", { error: error });
         }
     };
 
@@ -97,9 +98,9 @@ export function OperatingRoomList() {
             await deleteMutation.mutateAsync(roomToDelete.id);
             toast.success("Salle supprimée avec succès !");
             closeDeleteDialog();
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error(`Erreur lors de la suppression de la salle: ${error instanceof Error ? error.message : String(error)}`);
-            console.error("Erreur suppression salle:", error);
+            logger.error("Erreur suppression salle:", { error: error });
         }
     };
 

@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
+import { logger } from "../../../lib/logger";
 interface ErrorBoundaryProps {
     children: ReactNode;
     fallback: ReactNode;
@@ -33,7 +34,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         // Vous pouvez également enregistrer l'erreur dans un service de reporting d'erreurs
-        console.error('Calendar error caught by ErrorBoundary:', error, errorInfo);
+        logger.error('Calendar error caught by ErrorBoundary:', error, errorInfo);
     }
 
     render() {

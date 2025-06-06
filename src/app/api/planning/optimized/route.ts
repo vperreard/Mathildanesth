@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { startOfWeek, endOfWeek, parseISO } from 'date-fns';
 import { unstable_cache } from 'next/cache';
 
@@ -205,8 +206,8 @@ export async function GET(request: NextRequest) {
         response.headers.set('X-Cache-Status', 'HIT');
 
         return response;
-    } catch (error) {
-        console.error('Error fetching optimized planning:', error);
+    } catch (error: unknown) {
+        logger.error('Error fetching optimized planning:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération du planning' },
             { status: 500 }
@@ -257,8 +258,8 @@ export async function PUT(request: NextRequest) {
             updated: results.length,
             results
         });
-    } catch (error) {
-        console.error('Error updating planning:', error);
+    } catch (error: unknown) {
+        logger.error('Error updating planning:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour du planning' },
             { status: 500 }

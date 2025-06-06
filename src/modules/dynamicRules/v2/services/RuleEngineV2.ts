@@ -1,4 +1,5 @@
 import { RuleV2, RuleEvaluationContext, RuleEvaluationResult, RuleConflict } from '../types/ruleV2.types';
+import { logger } from "../../../../lib/logger";
 import { RuleCondition, RuleAction, ConditionGroup } from '../../types/rule';
 import { prisma } from '@/lib/prisma';
 import { cache } from 'react';
@@ -88,8 +89,8 @@ export class RuleEngineV2 {
       }
 
       return result;
-    } catch (error) {
-      console.error(`Error evaluating rule ${rule.id}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Error evaluating rule ${rule.id}:`, { error: error });
       return {
         ruleId: rule.id,
         ruleName: rule.name,
@@ -134,8 +135,8 @@ export class RuleEngineV2 {
           context
         );
       }
-    } catch (error) {
-      console.error('Failed to send violation notification:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to send violation notification:', { error: error });
       // Ne pas faire échouer l'évaluation si la notification échoue
     }
   }
@@ -239,8 +240,8 @@ export class RuleEngineV2 {
       try {
         const func = new Function('context', 'value', condition.customFunction);
         return func(context, condition.value);
-      } catch (error) {
-        console.error('Error in custom condition:', error);
+      } catch (error: unknown) {
+        logger.error('Error in custom condition:', { error: error });
         return false;
       }
     }
@@ -399,7 +400,7 @@ export class RuleEngineV2 {
     await Promise.all(
       updates.map(update => 
         prisma.planningRule.update(update).catch(err => 
-          console.error('Failed to update metrics:', err)
+          logger.error('Failed to update metrics:', { error: err })
         )
       )
     );

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from "../../../lib/logger";
 import { useAuth } from '@/hooks/useAuth';
 import { 
     getRuleNotificationService, 
@@ -64,7 +65,7 @@ export function useRuleNotifications(
     const playNotificationSound = useCallback(() => {
         if (playSound && audioRef.current) {
             audioRef.current.play().catch(err => {
-                console.warn('Failed to play notification sound:', err);
+                logger.warn('Failed to play notification sound:', { error: err });
             });
         }
     }, [playSound]);
@@ -79,7 +80,7 @@ export function useRuleNotifications(
                 label: 'Voir',
                 onClick: () => {
                     // Navigation vers les détails si nécessaire
-                    console.log('View violation:', violation);
+                    logger.info('View violation:', violation);
                 }
             }
         };
@@ -140,7 +141,7 @@ export function useRuleNotifications(
                         label: 'Voir tout',
                         onClick: () => {
                             // Navigation vers la liste complète
-                            console.log('View all violations');
+                            logger.info('View all violations');
                         }
                     }
                 });
@@ -199,7 +200,7 @@ export function useRuleNotifications(
         // Se connecter
         setConnectionStatus('connecting');
         service.connect(String(user.id), token).catch(err => {
-            console.error('Failed to connect to notifications:', err);
+            logger.error('Failed to connect to notifications:', { error: err });
             setConnectionStatus('error');
         });
 

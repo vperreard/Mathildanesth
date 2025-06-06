@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import { Calendar, CheckCircle, Clock, AlertCircle, User } from 'lucide-react';
 import { Request } from '@/lib/requestUtils';
 import { formatDateRange, groupOverlappingRequests } from '@/lib/dateUtils';
@@ -45,8 +46,8 @@ export default function AdminRequestsHeader({
                         setConfig(data.header);
                     }
                 }
-            } catch (error) {
-                console.error("Erreur lors du chargement de la configuration:", error);
+            } catch (error: unknown) {
+                logger.error("Erreur lors du chargement de la configuration:", { error: error });
             }
         };
 

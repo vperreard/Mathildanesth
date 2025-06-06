@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 // GET /api/utilisateurs/[userId]/calendrier-settings
 export async function GET(request: Request, { params }: { params: Promise<{ userId: string }> }) {
@@ -43,8 +44,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
     }
 
     return NextResponse.json(settings);
-  } catch (error) {
-    console.error('Erreur lors de la récupération des paramètres:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération des paramètres:', { error: error });
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des paramètres' },
       { status: 500 }
@@ -97,8 +98,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ user
     });
 
     return NextResponse.json(settings);
-  } catch (error) {
-    console.error('Erreur lors de la mise à jour des paramètres:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la mise à jour des paramètres:', { error: error });
     return NextResponse.json(
       { error: 'Erreur lors de la mise à jour des paramètres' },
       { status: 500 }

@@ -1,3 +1,5 @@
+import { logger } from "../logger";
+
 // Système d'alerte pour monitoring en temps réel
 
 interface Alert {
@@ -7,13 +9,13 @@ interface Alert {
     message: string;
     timestamp: number;
     resolved: boolean;
-    details?: any;
+    details?: unknown;
 }
 
 interface AlertRule {
     id: string;
     name: string;
-    condition: (metrics: any) => boolean;
+    condition: (metrics: unknown) => boolean;
     severity: 'critical' | 'warning' | 'info';
     description: string;
     cooldownMs: number;
@@ -108,7 +110,7 @@ export class AlertingService {
         return AlertingService.instance;
     }
 
-    processHealthMetrics(metrics: any): Alert[] {
+    processHealthMetrics(metrics: unknown): Alert[] {
         const triggeredAlerts: Alert[] = [];
         const currentTime = Date.now();
 
@@ -153,7 +155,7 @@ export class AlertingService {
         return triggeredAlerts;
     }
 
-    private extractRelevantDetails(metrics: any, rule: AlertRule): any {
+    private extractRelevantDetails(metrics: unknown, rule: AlertRule): any {
         switch (rule.id) {
             case 'database_slow':
             case 'database_down':
@@ -181,7 +183,7 @@ export class AlertingService {
     private async sendNotification(alert: Alert): Promise<void> {
         try {
             // Log l'alerte
-            console.error(`🚨 ALERT: ${alert.service} - ${alert.message}`, alert.details);
+            logger.error(`🚨 ALERT: ${alert.service} - ${alert.message}`, alert.details);
 
             // En production, ici on enverrait des notifications via :
             // - Email
@@ -198,14 +200,14 @@ export class AlertingService {
             // Sauvegarder en base pour historique
             await this.saveAlertToDatabase(alert);
 
-        } catch (error) {
-            console.error('Failed to send alert notification:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to send alert notification:', { error: error });
         }
     }
 
     private async sendCriticalAlert(alert: Alert): Promise<void> {
         // Notifications immédiates pour les alertes critiques
-        console.error(`🔥 CRITICAL ALERT: ${alert.message}`);
+        logger.error(`🔥 CRITICAL ALERT: ${alert.message}`);
         
         // Ici on implémenterait :
         // - SMS aux administrateurs
@@ -216,7 +218,7 @@ export class AlertingService {
 
     private async sendStandardAlert(alert: Alert): Promise<void> {
         // Notifications standard
-        console.warn(`⚠️  ALERT: ${alert.message}`);
+        logger.warn(`⚠️  ALERT: ${alert.message}`);
         
         // Ici on implémenterait :
         // - Email aux équipes
@@ -225,7 +227,7 @@ export class AlertingService {
     }
 
     private async sendResolutionNotification(alert: Alert): Promise<void> {
-        console.info(`✅ RESOLVED: ${alert.service} - ${alert.message}`);
+        logger.info(`✅ RESOLVED: ${alert.service} - ${alert.message}`);
         
         // Notifications de résolution
         // - Email de confirmation
@@ -249,8 +251,8 @@ export class AlertingService {
                     resolved: alert.resolved,
                 }
             });
-        } catch (error) {
-            console.error('Failed to save alert to database:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to save alert to database:', { error: error });
         }
     }
 
@@ -268,7 +270,7 @@ export class AlertingService {
         const alert = this.alerts.get(alertId);
         if (alert && !alert.resolved) {
             alert.details = { ...alert.details, acknowledgedBy: userId, acknowledgedAt: Date.now() };
-            console.info(`Alert ${alertId} acknowledged by user ${userId}`);
+            logger.info(`Alert ${alertId} acknowledged by user ${userId}`);
             return true;
         }
         return false;
@@ -285,7 +287,7 @@ export class AlertingService {
                 resolvedAt: Date.now(),
                 resolution 
             };
-            console.info(`Alert ${alertId} resolved by user ${userId}: ${resolution || 'No resolution provided'}`);
+            logger.info(`Alert ${alertId} resolved by user ${userId}: ${resolution || 'No resolution provided'}`);
             return true;
         }
         return false;

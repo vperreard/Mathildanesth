@@ -44,7 +44,7 @@ export const ConditionEditor: React.FC<ConditionEditorProps> = ({
     };
 
     // Mettre à jour une condition
-    const handleUpdateCondition = (index: number, field: keyof RuleCondition, value: any) => {
+    const handleUpdateCondition = (index: number, field: keyof RuleCondition, value: unknown) => {
         const updatedConditions = [...conditions];
         updatedConditions[index] = {
             ...updatedConditions[index],

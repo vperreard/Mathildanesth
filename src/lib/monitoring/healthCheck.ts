@@ -20,7 +20,7 @@ interface HealthStatus {
     status: 'ok' | 'warning' | 'error';
     responseTime: number;
     message: string;
-    details?: any;
+    details?: unknown;
 }
 
 export class HealthCheckService {
@@ -90,7 +90,7 @@ export class HealthCheckService {
                 details: { userCount }
             };
 
-        } catch (error) {
+        } catch (error: unknown) {
             return {
                 status: 'error',
                 responseTime: Date.now() - startTime,
@@ -127,7 +127,7 @@ export class HealthCheckService {
                 message: 'Redis healthy'
             };
 
-        } catch (error) {
+        } catch (error: unknown) {
             return {
                 status: 'error',
                 responseTime: Date.now() - startTime,
@@ -175,7 +175,7 @@ export class HealthCheckService {
                 details: { freeSpaceGB }
             };
 
-        } catch (error) {
+        } catch (error: unknown) {
             return {
                 status: 'error',
                 responseTime: Date.now() - startTime,
@@ -221,7 +221,7 @@ export class HealthCheckService {
                 details: { usagePercent, heapUsedMB, heapTotalMB }
             };
 
-        } catch (error) {
+        } catch (error: unknown) {
             return {
                 status: 'error',
                 responseTime: Date.now() - startTime,
@@ -266,7 +266,7 @@ export class HealthCheckService {
                 message: 'All critical services healthy'
             };
 
-        } catch (error) {
+        } catch (error: unknown) {
             return {
                 status: 'error',
                 responseTime: Date.now() - startTime,
@@ -349,7 +349,7 @@ export class HealthCheckService {
         return 'unhealthy';
     }
 
-    async getMetrics(): Promise<any> {
+    async getMetrics(): Promise<unknown> {
         const healthCheck = await this.performHealthCheck();
         
         return {

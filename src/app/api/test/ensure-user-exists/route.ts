@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
@@ -18,7 +19,7 @@ const isTestEnv = process.env.NODE_ENV === 'test' || process.env.CYPRESS === 'tr
 export async function POST(request: NextRequest) {
     // Vérifier l'environnement
     if (!isTestEnv) {
-        console.error("Tentative d'accès à un endpoint de test en environnement de production");
+        logger.error("Tentative d'accès à un endpoint de test en environnement de production");
         return NextResponse.json({ error: 'Endpoint disponible uniquement en environnement de test' }, { status: 403 });
     }
 
@@ -74,8 +75,8 @@ export async function POST(request: NextRequest) {
             }
         }, { status: 201 });
 
-    } catch (error: any) {
-        console.error("Erreur lors de la création de l'utilisateur de test:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la création de l'utilisateur de test:", { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la création de l\'utilisateur de test',
             details: error.message

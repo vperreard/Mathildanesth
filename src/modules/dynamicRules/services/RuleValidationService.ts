@@ -611,7 +611,7 @@ export class RuleValidationService {
     /**
      * Détermine le type d'une valeur
      */
-    private getValueType(value: any): AcceptedValueType {
+    private getValueType(value: unknown): AcceptedValueType {
         if (value === null || value === undefined) {
             return 'string'; // Valeur par défaut
         }

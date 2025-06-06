@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { prisma } from '@/lib/prisma';
 import { RuleSimulator } from '@/modules/dynamicRules/v2/services/RuleSimulator';
 import { z } from 'zod';
@@ -112,8 +113,8 @@ export async function POST(
         report,
       });
     }
-  } catch (error) {
-    console.error('Error running simulation:', error);
+  } catch (error: unknown) {
+    logger.error('Error running simulation:', { error: error });
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Paramètres invalides', details: error.errors },

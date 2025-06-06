@@ -1,4 +1,5 @@
 import { connectToDatabase, closeDatabase } from '../../lib/mongodb';
+import { logger } from "../../lib/logger";
 import { v4 as uuid } from 'uuid';
 
 /**
@@ -68,7 +69,7 @@ const operatingRoomsStructure = {
  * Fonction pour initialiser l'architecture du bloc opératoire
  */
 export async function seedOperatingRooms() {
-  console.log("Démarrage de l'initialisation de l'architecture du bloc opératoire...");
+  logger.info("Démarrage de l'initialisation de l'architecture du bloc opératoire...");
 
   const { db, client } = await connectToDatabase();
   const sitesCollection = db.collection('sites');
@@ -128,7 +129,7 @@ export async function seedOperatingRooms() {
   const existingSite = await sitesCollection.findOne({ name: 'Clinique Mathilde' });
 
   if (existingSite) {
-    console.log("Le site existe déjà, mise à jour de l'architecture...");
+    logger.info("Le site existe déjà, mise à jour de l'architecture...");
 
     // Supprimer tous les secteurs existants pour éviter les doublons
     await sectorsCollection.deleteMany({ siteId: existingSite._id });
@@ -151,7 +152,7 @@ export async function seedOperatingRooms() {
         updatedAt: new Date(),
       });
 
-      console.log(`Secteur ${sector.name} créé avec ${rooms.length} salles`);
+      logger.info(`Secteur ${sector.name} créé avec ${rooms.length} salles`);
     }
   } else {
     // Créer le site s'il n'existe pas
@@ -181,11 +182,11 @@ export async function seedOperatingRooms() {
         updatedAt: new Date(),
       });
 
-      console.log(`Secteur ${sector.name} créé avec ${rooms.length} salles`);
+      logger.info(`Secteur ${sector.name} créé avec ${rooms.length} salles`);
     }
   }
 
-  console.log('Architecture du bloc opératoire initialisée avec succès!');
+  logger.info('Architecture du bloc opératoire initialisée avec succès!');
   await closeDatabase();
 }
 
@@ -194,7 +195,7 @@ export async function seedOperatingRooms() {
 //     seedOperatingRooms()
 //         .then(() => process.exit(0))
 //         .catch(error => {
-//             console.error('Erreur lors du seed de l\'architecture du bloc opératoire:', error);
+//             logger.error('Erreur lors du seed de l\'architecture du bloc opératoire:', { error: error });
 //             process.exit(1);
 //         });
 // }

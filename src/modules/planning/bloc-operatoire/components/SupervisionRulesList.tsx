@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     useSupervisionRulesQuery,
     useOperatingSectorsQuery,
@@ -174,8 +175,8 @@ export default function SupervisionRulesList() {
             });
             setIsDeleteDialogOpen(false);
             setRuleToDelete(null);
-        } catch (error) {
-            console.error('Erreur lors de la suppression:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la suppression:', { error: error });
             toast({
                 variant: 'destructive',
                 title: 'Erreur de suppression',
@@ -221,8 +222,8 @@ export default function SupervisionRulesList() {
                 });
             }
             setIsDialogOpen(false);
-        } catch (error) {
-            console.error('Erreur lors de l\'enregistrement:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'enregistrement:', { error: error });
             toast({
                 variant: 'destructive',
                 title: 'Erreur d\'enregistrement',

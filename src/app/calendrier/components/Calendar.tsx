@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, RefObject, forwardRef } from 'react';
+import { logger } from "../../../lib/logger";
 import { CalendarHeader, CalendarViewType } from './CalendarHeader';
 import { CalendarGrid, CalendarEvent as CalendarEventType } from './CalendarGrid';
 import { CalendarEvent, EventType } from './CalendarEvent';
@@ -27,11 +28,11 @@ export interface CalendarProps {
         snapDuration?: string;
         slotDuration?: string;
         slotLabelInterval?: string;
-        slotLabelFormat?: any;
+        slotLabelFormat?: unknown;
         slotMinTime?: string;
         slotMaxTime?: string;
     };
-    fetchEvents?: (start: Date, end: Date, filters?: any) => Promise<CalendarEventType[]>;
+    fetchEvents?: (start: Date, end: Date, filters?: unknown) => Promise<CalendarEventType[]>;
     initialDate?: Date;
     onViewChange?: (view: CalendarViewType) => void;
     onDateRangeChange?: (start: Date, end: Date) => void;
@@ -167,7 +168,7 @@ const CalendarInner: React.FC = () => {
 
     const handleEventClick = useCallback((event: CalendarEventType) => {
         // Vous pouvez personnaliser le comportement lors du clic sur un événement
-        console.log('Event clicked:', event);
+        logger.info('Event clicked:', event);
         // Utilisez updateEvent si nécessaire
     }, []);
 
@@ -244,7 +245,7 @@ export const Calendar: React.FC<CalendarProps> = ({
     // Créer un service d'événements à partir des callbacks fournis
     const eventServices = useMemo(() => ({
         fetchEvents: fetchEvents ?
-            async (start: Date, end: Date, filters?: any) => {
+            async (start: Date, end: Date, filters?: unknown) => {
                 const result = await fetchEvents(start, end, filters);
                 return result;
             }

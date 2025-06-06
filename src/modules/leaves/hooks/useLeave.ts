@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     Leave,
     LeaveStatus,
@@ -189,7 +190,7 @@ export const useLeave = ({
             setLoading(false);
             return conflictResult;
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             setConflictCheckResult(null);
             setError('conflicts', { message: error.message, severity: 'error' });
             // Convertir l'erreur au format ErrorDetails pour les tests
@@ -222,8 +223,8 @@ export const useLeave = ({
             setAllowanceCheckResult(result);
             setLoading(false);
             return result;
-        } catch (err: any) {
-            console.error('Erreur dans checkAllowance:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur dans checkAllowance:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -265,8 +266,8 @@ export const useLeave = ({
             setLeave(savedLeave);
             setLoading(false);
             return savedLeave;
-        } catch (err: any) {
-            console.error('Erreur dans saveLeaveAsDraft:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur dans saveLeaveAsDraft:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -314,8 +315,8 @@ export const useLeave = ({
             setLeave(submittedLeave);
             setLoading(false);
             return submittedLeave;
-        } catch (err: any) {
-            console.error('Erreur dans submitLeave:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur dans submitLeave:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -343,8 +344,8 @@ export const useLeave = ({
             setLeave(approvedLeave);
             setLoading(false);
             return approvedLeave;
-        } catch (err: any) {
-            console.error('Erreur dans approveLeaveRequest:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur dans approveLeaveRequest:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -372,8 +373,8 @@ export const useLeave = ({
             setLeave(rejectedLeave);
             setLoading(false);
             return rejectedLeave;
-        } catch (err: any) {
-            console.error('Erreur dans rejectLeaveRequest:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur dans rejectLeaveRequest:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -401,8 +402,8 @@ export const useLeave = ({
             setLeave(cancelledLeave);
             setLoading(false);
             return cancelledLeave;
-        } catch (err: any) {
-            console.error('Erreur dans cancelLeaveRequest:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur dans cancelLeaveRequest:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -436,8 +437,8 @@ export const useLeave = ({
             const fetchedLeaves = await fetchLeaves(combinedFilters);
             setLeaves(fetchedLeaves);
             setLoading(false);
-        } catch (err: any) {
-            console.error('Erreur dans fetchUserLeaves:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur dans fetchUserLeaves:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -458,8 +459,8 @@ export const useLeave = ({
             const fetchedLeave = await fetchLeaveById(leaveId);
             setLeave(fetchedLeave);
             setLoading(false);
-        } catch (err: any) {
-            console.error('Erreur dans fetchLeaveDetails:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur dans fetchLeaveDetails:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../../lib/logger";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, Lightbulb, Settings, Users, Calendar, Loader2, SaveIcon, RefreshCw } from 'lucide-react';
@@ -75,15 +76,15 @@ export default function TemplatesRecommendationsPage() {
             setFeaturedTemplates(['2', '5', '7']);
             setHiddenTemplates(['3', '9']);
 
-        } catch (error) {
-            console.error('Erreur lors du chargement des données:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des données:', { error: error });
             toast.error('Erreur lors du chargement des données');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleSettingsChange = (key: string, value: any) => {
+    const handleSettingsChange = (key: string, value: unknown) => {
         setSettings(prev => {
             // Gérer les chemins imbriqués avec la notation point
             if (key.includes('.')) {
@@ -129,7 +130,7 @@ export default function TemplatesRecommendationsPage() {
             // Simuler un appel API pour sauvegarder les paramètres
             await new Promise(resolve => setTimeout(resolve, 1000));
             toast.success('Paramètres de recommandation enregistrés');
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error('Erreur lors de l\'enregistrement des paramètres');
         } finally {
             setIsSaving(false);

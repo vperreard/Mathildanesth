@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { RulesConfiguration, FatigueConfig, defaultRulesConfiguration, defaultFatigueConfig } from '@/types/rules';
 
 // Clé pour stocker la configuration dans la base de données
@@ -30,8 +31,8 @@ export async function GET(request: Request) {
             fatigueConfig: fatigueConfig?.value ? JSON.parse(fatigueConfig.value as string) : defaultFatigueConfig
         });
 
-    } catch (error) {
-        console.error('Erreur lors de la récupération des règles:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des règles:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération de la configuration' },
             { status: 500 }
@@ -109,8 +110,8 @@ export async function PUT(request: Request) {
             fatigueConfig
         });
 
-    } catch (error) {
-        console.error('Erreur lors de la sauvegarde des règles:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la sauvegarde des règles:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la sauvegarde de la configuration' },
             { status: 500 }
@@ -177,8 +178,8 @@ export async function POST(request: Request) {
             { status: 400 }
         );
 
-    } catch (error) {
-        console.error('Erreur dans l\'action:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur dans l\'action:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors du traitement' },
             { status: 500 }

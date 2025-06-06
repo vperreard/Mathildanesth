@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { headers } from 'next/headers';
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
                 return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
             }
-            console.log('[DEV MODE] Authentification par en-tête uniquement pour POST /api/operating-rooms/reorder');
+            logger.info('[DEV MODE] Authentification par en-tête uniquement pour POST /api/operating-rooms/reorder');
         }
 
         // Récupérer les données
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Les données sont invalides' }, { status: 400 });
         }
 
-        console.log('Mise à jour de l\'ordre des salles:', rooms);
+        logger.info('Mise à jour de l\'ordre des salles:', rooms);
 
         // Traiter chaque salle
         const updatePromises = rooms.map((room: RoomOrder) => {
@@ -44,14 +45,14 @@ export async function POST(request: NextRequest) {
         });
 
         const results = await Promise.all(updatePromises);
-        console.log(`${results.length} salles mises à jour`);
+        logger.info(`${results.length} salles mises à jour`);
 
         return NextResponse.json({
             success: true,
             message: `${results.length} salles mises à jour`
         });
-    } catch (error) {
-        console.error('Erreur lors de la mise à jour de l\'ordre des salles:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la mise à jour de l\'ordre des salles:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour de l\'ordre des salles' },
             { status: 500 }

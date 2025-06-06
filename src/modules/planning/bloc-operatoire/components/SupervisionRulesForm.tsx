@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     Card,
     CardContent,
@@ -147,9 +148,9 @@ export const SupervisionRulesForm: React.FC<SupervisionRulesFormProps> = ({
             setSectors(allSectors);
 
             setError(null);
-        } catch (err) {
+        } catch (err: unknown) {
             setError("Erreur lors du chargement des secteurs");
-            console.error(err);
+            logger.error(err);
         } finally {
             setIsLoading(false);
         }
@@ -176,9 +177,9 @@ export const SupervisionRulesForm: React.FC<SupervisionRulesFormProps> = ({
             }
 
             setError(null);
-        } catch (err) {
+        } catch (err: unknown) {
             setError("Erreur lors de l'enregistrement de la règle de supervision");
-            console.error(err);
+            logger.error(err);
         } finally {
             setIsLoading(false);
         }

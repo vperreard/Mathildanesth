@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     QuotaCarryOverCalculationRequest,
     QuotaCarryOverCalculationResult,
@@ -54,7 +55,7 @@ export interface UseQuotaCarryOverReturn {
     // Données
     balance: LeaveBalance | null;
     carryOverRules: QuotaCarryOverRule[];
-    carryOverHistory: any[];
+    carryOverHistory: unknown[];
     carryOverPreviews: CarryOverPreviewResult[];
     eligibleTypes: LeaveType[];
 
@@ -125,9 +126,9 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
         try {
             const balanceData = await fetchLeaveBalance(userId);
             setBalance(balanceData);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err as Error);
-            console.error('Erreur lors de la récupération du solde des congés', err);
+            logger.error('Erreur lors de la récupération du solde des congés', { error: err });
         } finally {
             setLoading(false);
         }
@@ -143,9 +144,9 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
         try {
             const rules = await fetchActiveCarryOverRulesForUser(userId);
             setCarryOverRules(rules);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err as Error);
-            console.error('Erreur lors de la récupération des règles de report', err);
+            logger.error('Erreur lors de la récupération des règles de report', { error: err });
         } finally {
             setLoading(false);
         }
@@ -163,9 +164,9 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
         try {
             const history = await fetchCarryOverHistory(userId, maxHistoryItems);
             setCarryOverHistory(history);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err as Error);
-            console.error('Erreur lors de la récupération de l\'historique des reports', err);
+            logger.error('Erreur lors de la récupération de l\'historique des reports', err);
         } finally {
             setHistoryLoading(false);
         }
@@ -214,9 +215,9 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             });
 
             return extendedPreview;
-        } catch (err) {
+        } catch (err: unknown) {
             setCarryOverError(err as Error);
-            console.error('Erreur lors de la simulation du report', err);
+            logger.error('Erreur lors de la simulation du report', { error: err });
 
             // Retourner un objet d'erreur
             return {
@@ -259,16 +260,16 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
                 try {
                     const preview = await simulateCarryOver(request);
                     previews.push(preview);
-                } catch (err) {
-                    console.error(`Erreur lors de la simulation du report pour ${getTypeLabel(type)}`, err);
+                } catch (err: unknown) {
+                    logger.error(`Erreur lors de la simulation du report pour ${getTypeLabel(type)}`, err);
                 }
             }
 
             setCarryOverPreviews(previews);
             return previews;
-        } catch (err) {
+        } catch (err: unknown) {
             setCarryOverError(err as Error);
-            console.error('Erreur lors de la simulation des reports', err);
+            logger.error('Erreur lors de la simulation des reports', { error: err });
             return [];
         } finally {
             setSimulationLoading(false);
@@ -301,9 +302,9 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             }
 
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             setCarryOverError(err as Error);
-            console.error('Erreur lors de l\'exécution du report', err);
+            logger.error('Erreur lors de l\'exécution du report', err);
 
             return {
                 originalRemaining: 0,
@@ -341,16 +342,16 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
                     try {
                         const result = await executeCarryOver(request);
                         results.push(result);
-                    } catch (err) {
-                        console.error(`Erreur lors de l'exécution du report pour ${preview.typeLabel}`, err);
+                    } catch (err: unknown) {
+                        logger.error(`Erreur lors de l'exécution du report pour ${preview.typeLabel}`, err);
                     }
                 }
             }
 
             return results;
-        } catch (err) {
+        } catch (err: unknown) {
             setCarryOverError(err as Error);
-            console.error('Erreur lors de l\'exécution des reports', err);
+            logger.error('Erreur lors de l\'exécution des reports', err);
             return [];
         } finally {
             setCarryOverLoading(false);

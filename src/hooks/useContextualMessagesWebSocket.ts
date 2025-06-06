@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { logger } from "../lib/logger";
 import { io, Socket } from 'socket.io-client';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/migration-shim';
 import { getAuthToken, createAuthHeaders } from '@/lib/auth-helpers';
 
 // Interface pour les messages contextuels
@@ -50,7 +51,7 @@ const messagesCache = new Map<string, {
 const CACHE_TTL = 2 * 60 * 1000;
 
 // Fonction de debounce pour les opérations fréquentes
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (...args: unknown[]) => any>(
     func: T,
     wait: number
 ): (...args: Parameters<T>) => void {
@@ -168,13 +169,13 @@ export function useContextualMessagesWebSocket(options: UseContextualMessagesOpt
             });
 
             setMessages(data || []);
-        } catch (err) {
+        } catch (err: unknown) {
             // Ne pas définir d'erreur si la requête a été annulée intentionnellement
             if (err instanceof Error && err.name === 'AbortError') {
-                console.log('Requête de messages annulée');
+                logger.info('Requête de messages annulée');
             } else {
                 setError(err instanceof Error ? err : new Error('Erreur inconnue'));
-                console.error('Erreur lors du chargement des messages contextuels:', err);
+                logger.error('Erreur lors du chargement des messages contextuels:', { error: err });
             }
         } finally {
             setIsLoading(false);
@@ -277,8 +278,8 @@ export function useContextualMessagesWebSocket(options: UseContextualMessagesOpt
             }
 
             return { success: true, message: newMessage };
-        } catch (err) {
-            console.error('Erreur lors de l\'envoi du message:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors de l\'envoi du message:', err);
             return {
                 success: false,
                 error: err instanceof Error ? err.message : 'Erreur inconnue lors de l\'envoi'
@@ -325,7 +326,7 @@ export function useContextualMessagesWebSocket(options: UseContextualMessagesOpt
             // Gestionnaires d'événements socket
             const handleConnect = () => {
                 setIsConnected(true);
-                console.log('WebSocket connected for contextual messages');
+                logger.info('WebSocket connected for contextual messages');
 
                 // Rejoindre les rooms spécifiques basées sur le contexte
                 const rooms = [];
@@ -345,17 +346,17 @@ export function useContextualMessagesWebSocket(options: UseContextualMessagesOpt
             };
 
             const handleDisconnect = (reason: string) => {
-                console.log('WebSocket disconnected:', reason);
+                logger.info('WebSocket disconnected:', reason);
                 setIsConnected(false);
             };
 
             const handleAuthError = (errorMessage: string) => {
-                console.error('WebSocket authentication error:', errorMessage);
+                logger.error('WebSocket authentication error:', errorMessage);
                 setAuthError(true);
             };
 
             const handleNewMessage = (message: ContextualMessage) => {
-                console.log('New contextual message received:', message);
+                logger.info('New contextual message received:', message);
                 debouncedAddMessage(message);
             };
 

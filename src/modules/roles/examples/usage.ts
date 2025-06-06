@@ -1,4 +1,5 @@
 import { ProfessionalRoleConfigService } from '../services/professional-role-config.service';
+import { logger } from "../../../lib/logger";
 import { DisplayPreferences } from '../types/professional-role-config';
 
 async function example() {
@@ -32,9 +33,9 @@ async function example() {
 
     // Récupérer les préférences d'un rôle spécifique
     const marConfig = await service.getDisplayPreferences('MAR');
-    console.log('Préférences MAR:', marConfig);
+    logger.info('Préférences MAR:', marConfig);
 
     // Récupérer tous les rôles avec leurs préférences
     const allRoles = await service.getAllRolesWithPreferences();
-    console.log('Tous les rôles:', allRoles);
+    logger.info('Tous les rôles:', allRoles);
 } 

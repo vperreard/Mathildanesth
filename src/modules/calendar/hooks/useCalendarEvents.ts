@@ -55,7 +55,7 @@ export const useCalendarEvents = (options: UseCalendarEventsOptions = {}): {
             const newEvents = await fetchEvents(updatedFilters);
             setEvents(newEvents);
             setLoading(false);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error("Erreur lors du chargement des événements"));
             setLoading(false);
         }
@@ -69,7 +69,7 @@ export const useCalendarEvents = (options: UseCalendarEventsOptions = {}): {
             const fetchedEvents = await fetchEvents(filters);
             setEvents(fetchedEvents);
             setLoading(false);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error("Erreur lors du chargement des événements"));
             setLoading(false);
         }
@@ -88,7 +88,7 @@ export const useCalendarEvents = (options: UseCalendarEventsOptions = {}): {
             const newEvent = await calendarService.createEvent(event);
             setEvents(prevEvents => [...prevEvents, newEvent]);
             return newEvent;
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error("Erreur lors de l'ajout de l'événement");
             setError(error);
             throw error;
@@ -118,7 +118,7 @@ export const useCalendarEvents = (options: UseCalendarEventsOptions = {}): {
             );
 
             return updatedEvent;
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error("Erreur lors de la mise à jour de l'événement");
             setError(error);
             throw error;
@@ -138,7 +138,7 @@ export const useCalendarEvents = (options: UseCalendarEventsOptions = {}): {
 
             await calendarService.deleteEvent(eventId, typeToUse);
             setEvents(prevEvents => prevEvents.filter(e => e.id !== eventId));
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error("Erreur lors de la suppression de l'événement");
             setError(error);
             throw error;
@@ -161,7 +161,7 @@ export const useCalendarEvents = (options: UseCalendarEventsOptions = {}): {
                     return event;
                 })
             );
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error("Erreur lors de la mise à jour du statut de l'événement");
             setError(error);
             throw error;

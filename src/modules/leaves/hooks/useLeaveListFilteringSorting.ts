@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { logger } from "../../../lib/logger";
 import { LeaveWithUser, LeaveType, LeaveStatus } from '../types/leave';
 
 // Helper function (peut aussi être dans un fichier utils/dates)
@@ -14,14 +15,14 @@ const formatDateForInput = (dateString: string | Date | undefined): string => {
         const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Mois est 0-indexé
         const day = date.getDate().toString().padStart(2, '0');
         return `${year}-${month}-${day}`;
-    } catch (e) {
-        console.error("Erreur de formatage de date pour input:", e);
+    } catch (e: unknown) {
+        logger.error("Erreur de formatage de date pour input:", e);
         return '';
     }
 };
 
 // 🔧 CORRECTION @TS-IGNORE : Helper typé pour l'accès aux noms d'utilisateur
-const getUserDisplayName = (user: any): string => {
+const getUserDisplayName = (user: unknown): string => {
     if (!user) return '';
 
     // Support de la double structure de nommage de façon typée
@@ -59,7 +60,7 @@ export const useLeaveListFilteringSorting = ({
 
     const sortedLeaves = useMemo(() => {
         if (!Array.isArray(leaves)) {
-            console.warn("useLeaveListFilteringSorting: 'leaves' n'est pas un tableau.");
+            logger.warn("useLeaveListFilteringSorting: 'leaves' n'est pas un tableau.");
             return [];
         }
         const sorted = [...leaves].sort((a, b) => {
@@ -69,7 +70,7 @@ export const useLeaveListFilteringSorting = ({
 
             try {
                 if (field === 'user') {
-                    // 🔧 PLUS DE @ts-ignore : Utilisation de la fonction helper typée
+                    // 🔧 PLUS DE @ts-expect-error : Utilisation de la fonction helper typée
                     aValue = getUserDisplayName(a.user).toLowerCase();
                     bValue = getUserDisplayName(b.user).toLowerCase();
                 } else if (field === 'startDate' || field === 'endDate') {
@@ -89,12 +90,12 @@ export const useLeaveListFilteringSorting = ({
                     aValue = a[field]?.toString().toLowerCase() ?? '';
                     bValue = b[field]?.toString().toLowerCase() ?? '';
                 } else {
-                    // 🔧 PLUS DE @ts-ignore : Utilisation de la fonction helper typée
+                    // 🔧 PLUS DE @ts-expect-error : Utilisation de la fonction helper typée
                     aValue = getLeaveProperty(a, field as string).toLowerCase();
                     bValue = getLeaveProperty(b, field as string).toLowerCase();
                 }
-            } catch (e) {
-                console.error(`Erreur durant la récupération des valeurs pour le tri sur le champ ${String(field)}:`, e);
+            } catch (e: unknown) {
+                logger.error(`Erreur durant la récupération des valeurs pour le tri sur le champ ${String(field)}:`, e);
                 return 0;
             }
 
@@ -120,7 +121,7 @@ export const useLeaveListFilteringSorting = ({
                 let leaveValue: string = '';
                 try {
                     if (key === 'user') {
-                        // 🔧 PLUS DE @ts-ignore : Utilisation de la fonction helper typée
+                        // 🔧 PLUS DE @ts-expect-error : Utilisation de la fonction helper typée
                         leaveValue = getUserDisplayName(leave.user).toLowerCase();
                     } else if (key === 'startDate' || key === 'endDate') {
                         const date = leave[key];
@@ -138,8 +139,8 @@ export const useLeaveListFilteringSorting = ({
                         // Ignorer les clés non gérées explicitement pour le filtrage
                         return true;
                     }
-                } catch (e) {
-                    console.error(`Erreur durant le filtrage sur le champ ${String(key)}:`, e);
+                } catch (e: unknown) {
+                    logger.error(`Erreur durant le filtrage sur le champ ${String(key)}:`, e);
                     return false;
                 }
 

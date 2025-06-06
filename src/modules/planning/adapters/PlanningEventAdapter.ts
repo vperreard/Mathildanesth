@@ -183,7 +183,7 @@ export class PlanningEventAdapter {
     /**
      * Émet un événement lors d'un conflit détecté dans le planning
      */
-    public emitPlanningConflictDetected(planning: Planning, conflictDetails: any): void {
+    public emitPlanningConflictDetected(planning: Planning, conflictDetails: unknown): void {
         const event: PlanningEvent = {
             type: EventType.PLANNING_CONFLICT_DETECTED,
             timestamp: new Date(),

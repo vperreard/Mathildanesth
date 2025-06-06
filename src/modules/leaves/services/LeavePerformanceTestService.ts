@@ -142,7 +142,7 @@ export class LeavePerformanceTestService {
 
                 const iterationTime = Date.now() - iterationStart;
                 times.push(iterationTime);
-            } catch (error) {
+            } catch (error: unknown) {
                 logger.error(`Erreur durant le test "${scenario.name}"`, { error });
             }
         }
@@ -299,7 +299,7 @@ export class LeavePerformanceTestService {
                     // Exécuter la requête
                     await this.leaveService.fetchLeaves(randomFilter);
                     completedRequests++;
-                } catch (error) {
+                } catch (error: unknown) {
                     errors++;
                     logger.error(`Erreur durant le test de stress`, { error, iteration: i, concurrent: j });
                 }

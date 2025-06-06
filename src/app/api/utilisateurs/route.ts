@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma'; // Import nommé
 // import bcrypt from 'bcrypt'; // Temporairement désactivé pour éviter les erreurs
 import { checkUserRole } from '@/lib/auth-server-utils'; // Corrigé
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
         const authCheck = await checkUserRole(['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'USER'] as UserRole[]);
         
         if (!authCheck.hasRequiredRole) {
-            console.log("Vérification d'autorisation échouée:", authCheck.error);
+            logger.info("Vérification d'autorisation échouée:", authCheck.error);
             return new NextResponse(JSON.stringify({ message: 'Authentification requise', error: authCheck.error }), { status: 401 });
         }
 
@@ -84,8 +85,8 @@ export async function GET(request: Request) {
         // prismaInstance = prisma; // Supprimé
         const users = await prisma.user.findMany(queryOptions);
         return NextResponse.json(users);
-    } catch (error) {
-        console.error("Erreur GET /api/utilisateurs:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur GET /api/utilisateurs:", { error: error });
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     } finally {
         // if (prismaInstance) await prismaInstance.$disconnect(); // Supprimé
@@ -94,19 +95,19 @@ export async function GET(request: Request) {
 
 // --- Fonction POST ---
 export async function POST(request: Request) {
-    console.log("Requête POST /api/utilisateurs reçue"); // Log requête reçue
+    logger.info("Requête POST /api/utilisateurs reçue"); // Log requête reçue
 
     const authCheck = await checkUserRole(['ADMIN_TOTAL', 'ADMIN_PARTIEL'] as UserRole[]);
 
     if (!authCheck.hasRequiredRole) {
-        console.log("Vérification d'autorisation échouée:", authCheck.error);
+        logger.info("Vérification d'autorisation échouée:", authCheck.error);
         return new NextResponse(JSON.stringify({ message: 'Accès non autorisé', error: authCheck.error }), { status: 403 });
     }
     if (authCheck.user) {
-        console.log(`Vérification d'autorisation réussie pour utilisateur ID: ${authCheck.user.id}, Role: ${authCheck.user.role}`);
+        logger.info(`Vérification d'autorisation réussie pour utilisateur ID: ${authCheck.user.id}, Role: ${authCheck.user.role}`);
     } else {
         // Gérer le cas où user est undefined même si hasRequiredRole est true (ne devrait pas arriver mais pour TypeScript)
-        console.warn("Autorisation réussie mais objet utilisateur manquant dans authCheck.");
+        logger.warn("Autorisation réussie mais objet utilisateur manquant dans authCheck.");
         return new NextResponse(JSON.stringify({ message: "Erreur interne lors de la vérification d'autorisation" }), { status: 500 });
     }
 
@@ -183,11 +184,11 @@ export async function POST(request: Request) {
 
         return new NextResponse(JSON.stringify(newUser), { status: 201 });
 
-    } catch (error: any) {
-        console.error("Erreur POST /api/utilisateurs:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur POST /api/utilisateurs:", { error: error });
         // Utiliser les types importés directement
         if (error instanceof PrismaClientValidationError) {
-            console.error("Erreur de validation Prisma:", error.message);
+            logger.error("Erreur de validation Prisma:", error.message);
             return new NextResponse(JSON.stringify({ message: 'Données invalides fournies.', details: error.message }), { status: 400 });
         }
         if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {

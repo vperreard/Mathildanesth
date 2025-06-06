@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 
 // Récupérer toutes les règles de planning
@@ -54,8 +55,8 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(planningRules);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des règles de planning:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des règles de planning:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des règles de planning' },
             { status: 500 }
@@ -109,8 +110,8 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json(planningRule, { status: 201 });
-    } catch (error) {
-        console.error('Erreur lors de la création de la règle de planning:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création de la règle de planning:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la création de la règle de planning' },
             { status: 500 }

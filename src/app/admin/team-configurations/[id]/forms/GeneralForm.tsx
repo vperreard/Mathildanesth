@@ -4,7 +4,7 @@ import { TeamConfiguration } from '@/types/team-configuration';
 
 interface GeneralFormProps {
     config: TeamConfiguration;
-    updateConfig: (path: string, value: any) => void;
+    updateConfig: (path: string, value: unknown) => void;
 }
 
 export default function GeneralForm({ config, updateConfig }: GeneralFormProps) {

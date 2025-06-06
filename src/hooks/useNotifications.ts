@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import { notificationService, Notification } from '../services/notificationService';
 import { useAuth } from './useAuth';
 import { getClientAuthToken } from '../lib/auth-client-utils';
@@ -13,7 +14,7 @@ export const useNotifications = (type?: string) => {
 
     const handleNotification = useCallback((notification: Notification) => {
         // Gérer la notification ici si nécessaire
-        console.log('Nouvelle notification reçue:', notification);
+        logger.info('Nouvelle notification reçue:', notification);
     }, []);
 
     useEffect(() => {
@@ -30,14 +31,14 @@ export const useNotifications = (type?: string) => {
     // Fonction pour marquer une notification comme lue
     const markNotificationAsRead = useCallback(async (params: MarkAsReadParams) => {
         if (!user) {
-            console.warn('Tentative de marquer une notification comme lue sans être connecté');
+            logger.warn('Tentative de marquer une notification comme lue sans être connecté');
             return null;
         }
 
         try {
             const token = getClientAuthToken();
             if (!token) {
-                console.warn('Token d\'authentification manquant');
+                logger.warn('Token d\'authentification manquant');
                 return null;
             }
 
@@ -54,15 +55,15 @@ export const useNotifications = (type?: string) => {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    console.warn('Non autorisé : Veuillez vous connecter pour gérer vos notifications');
+                    logger.warn('Non autorisé : Veuillez vous connecter pour gérer vos notifications');
                     return null;
                 }
                 throw new Error(`Erreur ${response.status}: ${response.statusText}`);
             }
 
             return await response.json();
-        } catch (error) {
-            console.error('Erreur lors du marquage de la notification comme lue:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du marquage de la notification comme lue:', { error: error });
             return null;
         }
     }, [user]);
@@ -70,14 +71,14 @@ export const useNotifications = (type?: string) => {
     // Fonction pour récupérer les notifications de l'utilisateur
     const fetchNotifications = useCallback(async (options = { unreadOnly: false, limit: 10, page: 1 }) => {
         if (!user) {
-            console.warn('Tentative de récupérer des notifications sans être connecté');
+            logger.warn('Tentative de récupérer des notifications sans être connecté');
             return { notifications: [], unreadCount: 0 };
         }
 
         try {
             const token = getClientAuthToken();
             if (!token) {
-                console.warn('Token d\'authentification manquant');
+                logger.warn('Token d\'authentification manquant');
                 return { notifications: [], unreadCount: 0 };
             }
 
@@ -98,15 +99,15 @@ export const useNotifications = (type?: string) => {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    console.warn('Non autorisé : Veuillez vous connecter pour accéder à vos notifications');
+                    logger.warn('Non autorisé : Veuillez vous connecter pour accéder à vos notifications');
                     return { notifications: [], unreadCount: 0 };
                 }
                 throw new Error(`Erreur ${response.status}: ${response.statusText}`);
             }
 
             return await response.json();
-        } catch (error) {
-            console.error('Erreur lors de la récupération des notifications:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des notifications:', { error: error });
             return { notifications: [], unreadCount: 0 };
         }
     }, [user]);

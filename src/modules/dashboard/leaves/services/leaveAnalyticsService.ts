@@ -1,4 +1,5 @@
 import { LeaveType, LeaveStatus } from '../../../conges/types/leave';
+import { logger } from "../../../../lib/logger";
 import { performance } from 'perf_hooks';
 
 // Interface pour le département
@@ -177,7 +178,7 @@ class AnalyticsCache<T> {
     /**
      * Génère une clé de cache à partir d'un objet
      */
-    generateKey(obj: any): string {
+    generateKey(obj: unknown): string {
         return JSON.stringify(obj);
     }
 
@@ -288,7 +289,7 @@ export class LeaveAnalyticsService {
         const cachedData = this.departmentCache.get(cacheKey);
 
         if (cachedData) {
-            console.log(`[Performance] getDepartmentStats from cache: ${performance.now() - startTime}ms`);
+            logger.info(`[Performance] getDepartmentStats from cache: ${performance.now() - startTime}ms`);
             return cachedData;
         }
 
@@ -308,10 +309,10 @@ export class LeaveAnalyticsService {
             const data = await response.json();
             this.departmentCache.set(cacheKey, data);
 
-            console.log(`[Performance] getDepartmentStats from API: ${performance.now() - startTime}ms`);
+            logger.info(`[Performance] getDepartmentStats from API: ${performance.now() - startTime}ms`);
             return data;
-        } catch (error) {
-            console.error('Erreur dans getDepartmentStats:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getDepartmentStats:', { error: error });
             return [];
         }
     }
@@ -342,8 +343,8 @@ export class LeaveAnalyticsService {
             }
 
             return await response.json();
-        } catch (error) {
-            console.error('Erreur dans predictTeamAvailability:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans predictTeamAvailability:', { error: error });
             return {};
         }
     }
@@ -360,7 +361,7 @@ export class LeaveAnalyticsService {
         const cachedData = this.periodCache.get(cacheKey);
 
         if (cachedData) {
-            console.log(`[Performance] getPeriodStats from cache: ${performance.now() - startTime}ms`);
+            logger.info(`[Performance] getPeriodStats from cache: ${performance.now() - startTime}ms`);
             return cachedData;
         }
 
@@ -380,10 +381,10 @@ export class LeaveAnalyticsService {
             const data = await response.json();
             this.periodCache.set(cacheKey, data);
 
-            console.log(`[Performance] getPeriodStats from API: ${performance.now() - startTime}ms`);
+            logger.info(`[Performance] getPeriodStats from API: ${performance.now() - startTime}ms`);
             return data;
-        } catch (error) {
-            console.error('Erreur dans getPeriodStats:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getPeriodStats:', { error: error });
             return [];
         }
     }
@@ -397,7 +398,7 @@ export class LeaveAnalyticsService {
         const cachedData = this.teamCache.get(cacheKey);
 
         if (cachedData) {
-            console.log(`[Performance] getTeamAbsenceRates from cache: ${performance.now() - startTime}ms`);
+            logger.info(`[Performance] getTeamAbsenceRates from cache: ${performance.now() - startTime}ms`);
             return cachedData;
         }
 
@@ -417,10 +418,10 @@ export class LeaveAnalyticsService {
             const data = await response.json();
             this.teamCache.set(cacheKey, data);
 
-            console.log(`[Performance] getTeamAbsenceRates from API: ${performance.now() - startTime}ms`);
+            logger.info(`[Performance] getTeamAbsenceRates from API: ${performance.now() - startTime}ms`);
             return data;
-        } catch (error) {
-            console.error('Erreur dans getTeamAbsenceRates:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getTeamAbsenceRates:', { error: error });
             return [];
         }
     }
@@ -437,7 +438,7 @@ export class LeaveAnalyticsService {
         const cachedData = this.userCache.get(cacheKey);
 
         if (cachedData) {
-            console.log(`[Performance] getUserStats from cache: ${performance.now() - startTime}ms`);
+            logger.info(`[Performance] getUserStats from cache: ${performance.now() - startTime}ms`);
             return cachedData;
         }
 
@@ -461,10 +462,10 @@ export class LeaveAnalyticsService {
             const data = await response.json();
             this.userCache.set(cacheKey, data);
 
-            console.log(`[Performance] getUserStats from API: ${performance.now() - startTime}ms`);
+            logger.info(`[Performance] getUserStats from API: ${performance.now() - startTime}ms`);
             return data;
-        } catch (error) {
-            console.error('Erreur dans getUserStats:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getUserStats:', { error: error });
             return {
                 data: [],
                 total: 0,
@@ -487,7 +488,7 @@ export class LeaveAnalyticsService {
         const cachedData = this.trendCache.get(cacheKey);
 
         if (cachedData) {
-            console.log(`[Performance] getLeaveTypeTrends from cache: ${performance.now() - startTime}ms`);
+            logger.info(`[Performance] getLeaveTypeTrends from cache: ${performance.now() - startTime}ms`);
             return cachedData;
         }
 
@@ -507,10 +508,10 @@ export class LeaveAnalyticsService {
             const data = await response.json();
             this.trendCache.set(cacheKey, data);
 
-            console.log(`[Performance] getLeaveTypeTrends from API: ${performance.now() - startTime}ms`);
+            logger.info(`[Performance] getLeaveTypeTrends from API: ${performance.now() - startTime}ms`);
             return data;
-        } catch (error) {
-            console.error('Erreur dans getLeaveTypeTrends:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getLeaveTypeTrends:', { error: error });
             return [];
         }
     }
@@ -524,7 +525,7 @@ export class LeaveAnalyticsService {
         const cachedData = this.predictionCache.get(cacheKey);
 
         if (cachedData) {
-            console.log(`[Performance] predictPeakPeriods from cache: ${performance.now() - startTime}ms`);
+            logger.info(`[Performance] predictPeakPeriods from cache: ${performance.now() - startTime}ms`);
             return cachedData;
         }
 
@@ -544,10 +545,10 @@ export class LeaveAnalyticsService {
             const data = await response.json();
             this.predictionCache.set(cacheKey, data);
 
-            console.log(`[Performance] predictPeakPeriods from API: ${performance.now() - startTime}ms`);
+            logger.info(`[Performance] predictPeakPeriods from API: ${performance.now() - startTime}ms`);
             return data;
-        } catch (error) {
-            console.error('Erreur dans predictPeakPeriods:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans predictPeakPeriods:', { error: error });
             return [];
         }
     }
@@ -574,8 +575,8 @@ export class LeaveAnalyticsService {
 
             const blob = await response.blob();
             return URL.createObjectURL(blob);
-        } catch (error) {
-            console.error('Erreur dans exportAnalyticsToCSV:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans exportAnalyticsToCSV:', { error: error });
             throw error;
         }
     }
@@ -595,7 +596,7 @@ export class LeaveAnalyticsService {
     /**
      * Obtient des statistiques sur l'utilisation du cache
      */
-    public getCacheStats(): Record<string, any> {
+    public getCacheStats(): Record<string, unknown> {
         return {
             department: this.departmentCache.getStats(),
             period: this.periodCache.getStats(),

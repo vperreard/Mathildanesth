@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 // Type pour les statistiques
 interface TemplateUsageStats {
@@ -138,8 +139,8 @@ export async function GET() {
       recentlyUsed: formattedRecentlyUsed,
       categoryBreakdown,
     });
-  } catch (error) {
-    console.error('Erreur lors de la récupération des statistiques:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération des statistiques:', { error: error });
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 import { ConflictType, ConflictSeverity, LeaveConflict } from '@/modules/leaves/types/conflict';
 
+import { logger } from "../../lib/logger";
 // Types d'événements
 export enum ConflictEventType {
     CONFLICT_DETECTED = 'conflict_detected',
@@ -23,7 +24,7 @@ export interface ConflictDetectedEvent extends ConflictEvent {
     userId: string;
     conflictType: ConflictType;
     severity: ConflictSeverity;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 // Événement émis lorsqu'un conflit est résolu
@@ -34,7 +35,7 @@ export interface ConflictResolvedEvent extends ConflictEvent {
     resolvedBy: string;
     resolution: 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'AUTO';
     comment?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 // Événement émis lorsque les règles de conflit sont mises à jour
@@ -42,7 +43,7 @@ export interface ConflictRulesUpdatedEvent extends ConflictEvent {
     type: ConflictEventType.CONFLICT_RULES_UPDATED;
     updatedBy: string;
     changedRules: string[];
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 // Événement émis lorsqu'une vérification de conflit est demandée
@@ -52,7 +53,7 @@ export interface ConflictCheckRequestedEvent extends ConflictEvent {
     startDate: Date;
     endDate: Date;
     requestedBy: string;
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
 }
 
 // Événement émis lorsqu'une vérification de conflit est terminée
@@ -153,8 +154,8 @@ class ConflictEventBus {
             handlers.forEach(handler => {
                 try {
                     handler(completeEvent);
-                } catch (error) {
-                    console.error(`Erreur dans le gestionnaire d'événement pour ${event.type}:`, error);
+                } catch (error: unknown) {
+                    logger.error(`Erreur dans le gestionnaire d'événement pour ${event.type}:`, { error: error });
                 }
             });
         }

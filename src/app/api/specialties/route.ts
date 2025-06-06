@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
 
@@ -35,8 +36,8 @@ export async function GET() {
             }
         });
         return NextResponse.json(specialties);
-    } catch (error) {
-        console.error("Erreur GET /api/specialties:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur GET /api/specialties:", { error: error });
         return NextResponse.json(
             { error: 'Erreur interne du serveur lors de la récupération des spécialités.' },
             { status: 500 }
@@ -69,11 +70,11 @@ export async function POST(request: Request) {
         });
         return new NextResponse(JSON.stringify(newSpecialty), { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (error.code === 'P2002') { // Contrainte unique sur le nom
             return new NextResponse(JSON.stringify({ message: 'Ce nom de spécialité existe déjà.' }), { status: 409 });
         }
-        console.error("Erreur POST /api/specialties:", error);
+        logger.error("Erreur POST /api/specialties:", { error: error });
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 } 

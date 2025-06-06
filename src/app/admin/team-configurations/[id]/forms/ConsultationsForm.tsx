@@ -4,7 +4,7 @@ import { TeamConfiguration } from '@/types/team-configuration';
 
 interface ConsultationsFormProps {
     config: TeamConfiguration;
-    updateConfig: (path: string, value: any) => void;
+    updateConfig: (path: string, value: unknown) => void;
 }
 
 export default function ConsultationsForm({ config, updateConfig }: ConsultationsFormProps) {

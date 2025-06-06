@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import {
   analyticsService,
   LeavePeakAggregationUnit,
 } from '@/modules/analytics/services/analyticsService';
 import { LeaveType } from '@prisma/client';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { getLeavePeakAnalysis } from '@/services/analyticsService';
 
 export async function GET(request: NextRequest) {
@@ -84,8 +85,8 @@ export async function GET(request: NextRequest) {
       data: stats,
       metadata,
     });
-  } catch (error) {
-    console.error("Erreur lors de l'analyse des pics de congés:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de l'analyse des pics de congés:", { error: error });
     return NextResponse.json(
       {
         success: false,

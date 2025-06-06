@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { Rule, RuleType, RuleScope, RuleSeverity, RuleEvaluationContext, RuleEvaluationResult } from '../types/rule';
 import { ruleService } from '../services/ruleService';
 import { ruleEvaluationService } from '../services/ruleEvaluationService';
@@ -27,9 +28,9 @@ export const useRules = () => {
             // En mode MVP, on utilise les règles de démo
             const loadedRules = ruleService.createDemoRules();
             setRules(loadedRules);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors du chargement des règles'));
-            console.error('Erreur lors du chargement des règles:', err);
+            logger.error('Erreur lors du chargement des règles:', { error: err });
         } finally {
             setLoading(false);
         }
@@ -55,9 +56,9 @@ export const useRules = () => {
             const newRule = ruleService.createRule(ruleData);
             setRules(prevRules => [...prevRules, newRule]);
             return newRule;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la création de la règle'));
-            console.error('Erreur lors de la création de la règle:', err);
+            logger.error('Erreur lors de la création de la règle:', { error: err });
             throw err;
         }
     }, []);
@@ -81,9 +82,9 @@ export const useRules = () => {
             );
 
             return updatedRule;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la mise à jour de la règle'));
-            console.error('Erreur lors de la mise à jour de la règle:', err);
+            logger.error('Erreur lors de la mise à jour de la règle:', { error: err });
             throw err;
         }
     }, []);
@@ -100,9 +101,9 @@ export const useRules = () => {
             }
 
             return success;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la suppression de la règle'));
-            console.error('Erreur lors de la suppression de la règle:', err);
+            logger.error('Erreur lors de la suppression de la règle:', { error: err });
             throw err;
         }
     }, []);
@@ -123,9 +124,9 @@ export const useRules = () => {
             );
 
             return updatedRule;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors du changement de statut de la règle'));
-            console.error('Erreur lors du changement de statut de la règle:', err);
+            logger.error('Erreur lors du changement de statut de la règle:', { error: err });
             throw err;
         }
     }, []);

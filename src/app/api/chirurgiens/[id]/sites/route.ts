@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
 
@@ -42,8 +43,8 @@ export async function GET(
         }
 
         return NextResponse.json({ sites: surgeon.sites });
-    } catch (error) {
-        console.error('Erreur GET /api/chirurgiens/[id]/sites:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur GET /api/chirurgiens/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }
@@ -97,8 +98,8 @@ export async function PUT(
             message: 'Sites mis à jour avec succès',
             surgeon: updatedSurgeon 
         });
-    } catch (error) {
-        console.error('Erreur PUT /api/chirurgiens/[id]/sites:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur PUT /api/chirurgiens/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }
@@ -141,8 +142,8 @@ export async function POST(
             message: 'Sites ajoutés avec succès',
             surgeon: updatedSurgeon 
         });
-    } catch (error) {
-        console.error('Erreur POST /api/chirurgiens/[id]/sites:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur POST /api/chirurgiens/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }
@@ -185,8 +186,8 @@ export async function DELETE(
             message: 'Sites retirés avec succès',
             surgeon: updatedSurgeon 
         });
-    } catch (error) {
-        console.error('Erreur DELETE /api/chirurgiens/[id]/sites:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur DELETE /api/chirurgiens/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }

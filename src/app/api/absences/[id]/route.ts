@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { prisma } from '@/lib/prisma';
 import { LeaveType, LeaveStatus } from '@prisma/client';
 import { z } from 'zod';
@@ -43,8 +44,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     return NextResponse.json(absence);
-  } catch (error) {
-    console.error("Erreur lors de la récupération de l'absence:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de la récupération de l'absence:", { error: error });
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -98,8 +99,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     });
 
     return NextResponse.json(updatedAbsence);
-  } catch (error) {
-    console.error("Erreur lors de la mise à jour de l'absence:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de la mise à jour de l'absence:", { error: error });
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -140,8 +141,8 @@ export async function DELETE(
     });
 
     return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    console.error("Erreur lors de la suppression de l'absence:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de la suppression de l'absence:", { error: error });
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }

@@ -23,7 +23,7 @@ export const AbsenceManager: React.FC = () => {
         try {
             const data = await absenceService.getAllAbsences();
             setAbsences(data);
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error('Impossible de charger les absences');
         }
     };
@@ -34,7 +34,7 @@ export const AbsenceManager: React.FC = () => {
             toast.success('Absence créée avec succès');
             setIsFormOpen(false);
             fetchAbsences();
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error('Erreur lors de la création de l\'absence');
         }
     };

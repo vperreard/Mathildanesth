@@ -177,7 +177,7 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
             } else {
                 setLocalError(previewResult.reasonNotAllowed || 'Report non autorisé');
             }
-        } catch (err) {
+        } catch (err: unknown) {
             setLocalError((err as Error).message);
         }
     };
@@ -199,7 +199,7 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
             } else {
                 setLocalError('Aucun report possible avec les règles en vigueur.');
             }
-        } catch (err) {
+        } catch (err: unknown) {
             setLocalError((err as Error).message);
         }
     };
@@ -237,7 +237,7 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
             } else {
                 setLocalError('Le report n\'a pas pu être effectué.');
             }
-        } catch (err) {
+        } catch (err: unknown) {
             setLocalError((err as Error).message);
         }
     };
@@ -261,7 +261,7 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
             } else {
                 setLocalError('Aucun report n\'a pu être effectué.');
             }
-        } catch (err) {
+        } catch (err: unknown) {
             setLocalError((err as Error).message);
         }
     };

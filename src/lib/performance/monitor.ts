@@ -1,3 +1,5 @@
+import { logger } from "../logger";
+
 /**
  * Service de monitoring de performance simple
  * Remplace l'ancien PerformanceMonitoringService
@@ -8,7 +10,7 @@ interface PerformanceMeasure {
     startTime: number;
     endTime?: number;
     duration?: number;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 class PerformanceMonitor {
@@ -18,7 +20,7 @@ class PerformanceMonitor {
     /**
      * Démarre une mesure de performance
      */
-    startMeasure(id: string, metadata?: Record<string, any>): string {
+    startMeasure(id: string, metadata?: Record<string, unknown>): string {
         if (!this.enabled) return id;
 
         const measure: PerformanceMeasure = {
@@ -39,7 +41,7 @@ class PerformanceMonitor {
 
         const measure = this.measures.get(id);
         if (!measure) {
-            console.warn(`Performance measure '${id}' not found`);
+            logger.warn(`Performance measure '${id}' not found`);
             return 0;
         }
 
@@ -48,7 +50,7 @@ class PerformanceMonitor {
 
         // Log en développement
         if (process.env.NODE_ENV === 'development') {
-            console.log(`⏱️ [Performance] ${id}: ${measure.duration.toFixed(2)}ms`, measure.metadata);
+            logger.info(`⏱️ [Performance] ${id}: ${measure.duration.toFixed(2)}ms`, measure.metadata);
         }
 
         // Nettoyer après 1 minute
@@ -63,14 +65,14 @@ class PerformanceMonitor {
     async measureAsync<T>(
         id: string,
         fn: () => Promise<T>,
-        metadata?: Record<string, any>
+        metadata?: Record<string, unknown>
     ): Promise<T> {
         const measureId = this.startMeasure(id, metadata);
         try {
             const result = await fn();
             this.endMeasure(measureId);
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             this.endMeasure(measureId);
             throw error;
         }

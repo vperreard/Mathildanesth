@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from "../../../lib/logger";
 import { useAuth } from '@/hooks/useAuth';
 import axios from 'axios';
 import { CalendarSettings } from '../types/event';
@@ -102,8 +103,8 @@ export const useCalendarSettings = ({
                     localStorage.setItem(`calendar-settings-${userId}`, JSON.stringify(response.data));
                 }
 
-            } catch (err) {
-                console.error('Erreur dans useCalendarSettings:', err);
+            } catch (err: unknown) {
+                logger.error('Erreur dans useCalendarSettings:', { error: err });
                 setError(err instanceof Error ? err : new Error('Erreur inconnue'));
             } finally {
                 setLoading(false);
@@ -142,8 +143,8 @@ export const useCalendarSettings = ({
                 // Envoyer à l'API de manière asynchrone
                 await axios.put(`http://localhost:3000/api/utilisateurs/${userId}/calendrier-settings`, currentSettings);
 
-            } catch (err) {
-                console.error('Erreur lors de la mise à jour des paramètres:', err);
+            } catch (err: unknown) {
+                logger.error('Erreur lors de la mise à jour des paramètres:', { error: err });
                 setError(err instanceof Error ? err : new Error('Erreur inconnue'));
             }
         }, 1000); // Délai de 1 seconde pour le debounce
@@ -160,7 +161,7 @@ export const useCalendarSettings = ({
         // Envoyer à l'API
         axios.delete(`http://localhost:3000/api/utilisateurs/${userId}/calendrier-settings`)
             .catch(err => {
-                console.error('Erreur lors de la réinitialisation des paramètres:', err);
+                logger.error('Erreur lors de la réinitialisation des paramètres:', { error: err });
             });
     }, [userId]);
 

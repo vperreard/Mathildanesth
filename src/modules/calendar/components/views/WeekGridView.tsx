@@ -2,9 +2,9 @@ import React from 'react';
 import { CalendarViewType } from '../../types/event';
 
 interface WeekGridViewProps {
-    events: any[];
+    events: unknown[];
     startDate: Date;
-    onEventClick?: (event: any) => void;
+    onEventClick?: (event: unknown) => void;
 }
 
 const WeekGridView: React.FC<WeekGridViewProps> = ({ events, startDate, onEventClick }) => {

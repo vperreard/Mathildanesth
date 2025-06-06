@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { logger } from "../../lib/logger";
 import { cn } from "@/lib/utils";
 
 export interface DropdownMenuProps {
@@ -102,7 +103,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (ref.current && !ref.current.contains(event.target as Node) && isOpen) {
-                console.log('[DropdownMenuContent] Click outside detected. Closing menu.');
+                logger.info('[DropdownMenuContent] Click outside detected. Closing menu.');
                 closeMenu?.();
             }
         };
@@ -166,13 +167,13 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
         if (disabled || isProcessing) return;
         
         setIsProcessing(true);
-        console.log('[DropdownMenuItem] handleClick');
+        logger.info('[DropdownMenuItem] handleClick');
         
         try {
             if (onClick) {
                 await onClick(event);
             }
-            console.log('[DropdownMenuItem] Action complete, calling onItemActionComplete to close menu.');
+            logger.info('[DropdownMenuItem] Action complete, calling onItemActionComplete to close menu.');
             onItemActionComplete?.();
         } finally {
             // Reset après un délai pour éviter les double-clics

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { getPredictiveInsights } from '@/services/analyticsService';
 
 export async function GET() {
@@ -28,8 +29,8 @@ export async function GET() {
       data: insights,
       metadata,
     });
-  } catch (error) {
-    console.error('Erreur lors de la génération des insights prédictifs:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la génération des insights prédictifs:', { error: error });
     return NextResponse.json(
       {
         success: false,

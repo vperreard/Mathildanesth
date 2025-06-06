@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../../lib/logger";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, BarChart2, PieChart, Loader2, RefreshCwIcon, DownloadIcon, InfoIcon } from 'lucide-react';
@@ -11,7 +12,7 @@ import { toast } from 'sonner';
 import { fetchTemplateStats, downloadStatsAsCSV, TemplateStats } from '@/services/templateStatsService';
 
 // Composant fictif pour les graphiques (à remplacer par un vrai graphique avec Recharts)
-const Chart = ({ type, data }: { type: 'bar' | 'pie'; data: any }) => {
+const Chart = ({ type, data }: { type: 'bar' | 'pie'; data: unknown }) => {
     return (
         <div className="bg-gray-50 rounded-md border p-4 flex items-center justify-center h-64">
             <div className="text-center">
@@ -53,8 +54,8 @@ export default function TemplateStatsPage() {
         try {
             const statsData = await fetchTemplateStats();
             setStats(statsData);
-        } catch (err: any) {
-            console.error('Erreur lors du chargement des statistiques:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors du chargement des statistiques:', { error: err });
             setError(err.message || 'Erreur lors du chargement des statistiques');
             toast.error('Erreur lors du chargement des statistiques');
         } finally {
@@ -76,8 +77,8 @@ export default function TemplateStatsPage() {
         try {
             downloadStatsAsCSV(stats, `statistiques-templates-${new Date().toISOString().split('T')[0]}.csv`);
             toast.success('Statistiques exportées avec succès');
-        } catch (error) {
-            console.error('Erreur lors de l\'exportation:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'exportation:', { error: error });
             toast.error('Erreur lors de l\'exportation des statistiques');
         }
     };

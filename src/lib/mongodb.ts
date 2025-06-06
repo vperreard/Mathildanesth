@@ -1,5 +1,6 @@
 import { MongoClient, Db } from 'mongodb';
 
+import { logger } from "./logger";
 let cachedDb: Db | null = null;
 let cachedClient: MongoClient | null = null;
 
@@ -24,8 +25,8 @@ export async function connectToDatabase() {
         cachedClient = client;
 
         return { db, client };
-    } catch (error) {
-        console.error('Erreur de connexion à MongoDB:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur de connexion à MongoDB:', { error: error });
         throw error;
     }
 }

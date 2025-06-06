@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../../../../lib/logger";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon, Loader2, AlertTriangleIcon, FileJsonIcon, BarChartIcon, AlertCircleIcon, CheckCircle2Icon, ZapIcon, HourglassIcon, UserIcon, CalendarIcon, FileTextIcon, DownloadIcon, FileIcon, ClipboardCheckIcon, BarChart3Icon } from 'lucide-react';
@@ -97,7 +98,7 @@ export default function SimulationResultPage() {
     const [, setFilteredData] = useState(result);
 
     const handleFilterChange = (filters: FilterState) => {
-        // console.log('Nouveaux filtres appliqués:', filters);
+        // logger.info('Nouveaux filtres appliqués:', filters);
         // Implémenter la logique de filtrage des données
         // Cette fonction sera appelée chaque fois que les filtres sont modifiés
 
@@ -168,7 +169,7 @@ export default function SimulationResultPage() {
                 try {
                     const errorData = await res.json();
                     errorMessage = errorData.message || errorMessage;
-                } catch (e) {
+                } catch (e: unknown) {
                     errorMessage = `Erreur ${res.status}: ${res.statusText}`;
                 }
                 throw new Error(errorMessage);
@@ -260,8 +261,8 @@ export default function SimulationResultPage() {
 
                 setStatistics(formattedStats);
 
-            } catch (e) {
-                console.error("Erreur lors du traitement des statistiques", e);
+            } catch (e: unknown) {
+                logger.error("Erreur lors du traitement des statistiques", e);
             }
         }
 
@@ -282,8 +283,8 @@ export default function SimulationResultPage() {
                         resolution: conflict.resolution
                     })));
                 }
-            } catch (e) {
-                console.error("Erreur lors du traitement des alertes de conflit", e);
+            } catch (e: unknown) {
+                logger.error("Erreur lors du traitement des alertes de conflit", e);
             }
         }
 
@@ -326,8 +327,8 @@ export default function SimulationResultPage() {
 
                     setUserAssignments(Object.values(userMap));
                 }
-            } catch (e) {
-                console.error("Erreur lors du traitement des données de planning", e);
+            } catch (e: unknown) {
+                logger.error("Erreur lors du traitement des données de planning", e);
             }
         }
     };
@@ -360,7 +361,7 @@ export default function SimulationResultPage() {
         if (typeof jsonData === 'string') {
             try {
                 dataToDisplay = JSON.parse(jsonData);
-            } catch (e) {
+            } catch (e: unknown) {
                 return <p className="text-sm text-red-500">Données JSON invalides.</p>;
             }
         }
@@ -435,8 +436,8 @@ export default function SimulationResultPage() {
             URL.revokeObjectURL(url);
 
             toast.success("Export PDF généré avec succès");
-        } catch (error) {
-            console.error('Erreur lors de l\'export PDF:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'export PDF:', { error: error });
             toast.error("Échec de l'export PDF");
         }
     };
@@ -479,8 +480,8 @@ export default function SimulationResultPage() {
             URL.revokeObjectURL(url);
 
             toast.success("Export Excel généré avec succès");
-        } catch (error) {
-            console.error('Erreur lors de l\'export Excel:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'export Excel:', { error: error });
             toast.error("Échec de l'export Excel");
         }
     };

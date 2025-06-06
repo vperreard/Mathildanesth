@@ -42,10 +42,10 @@ export interface PlanningEvent {
     endDate: Date;              // Date et heure de fin
     location?: string;          // Localisation
     isRecurring?: boolean;      // Est-ce récurrent?
-    recurrencePattern?: any;    // Modèle de récurrence (si récurrent)
+    recurrencePattern?: unknown;    // Modèle de récurrence (si récurrent)
     linkedLeaveId?: string;     // ID d'un congé lié (si type LEAVE)
     linkedAbsenceId?: string;   // ID d'une absence liée (si type ABSENCE)
-    metadata?: Record<string, any>; // Métadonnées additionnelles
+    metadata?: Record<string, unknown>; // Métadonnées additionnelles
     createdAt: Date;
     updatedAt: Date;
 }
@@ -117,7 +117,7 @@ export interface PlanningTemplateEvent {
     startTime: string;             // Heure de début (format "HH:MM")
     endTime: string;               // Heure de fin (format "HH:MM")
     userRole?: string;             // Rôle utilisateur (si applicable)
-    metadata?: Record<string, any>; // Métadonnées additionnelles
+    metadata?: Record<string, unknown>; // Métadonnées additionnelles
 }
 
 /**

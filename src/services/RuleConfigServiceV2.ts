@@ -33,7 +33,7 @@ export class RuleConfigServiceV2 {
   async createRule(rule: Partial<RuleV2>, userId: string): Promise<{
     rule: RuleV2;
     conflicts: RuleConflict[];
-    validation: any;
+    validation: unknown;
   }> {
     // Validate rule
     const validation = await this.validator.validateRule(rule);
@@ -78,7 +78,7 @@ export class RuleConfigServiceV2 {
   ): Promise<{
     rule: RuleV2;
     conflicts: RuleConflict[];
-    validation: any;
+    validation: unknown;
   }> {
     // Get current rule
     const currentRule = await this.getRule(ruleId);
@@ -171,7 +171,7 @@ export class RuleConfigServiceV2 {
   }
 
   // Rule evaluation
-  async evaluateRules(context: any): Promise<any[]> {
+  async evaluateRules(context: unknown): Promise<any[]> {
     return this.ruleEngine.evaluateRules(context);
   }
 
@@ -184,7 +184,7 @@ export class RuleConfigServiceV2 {
     conflict: RuleConflict,
     strategy: 'priority' | 'merge' | 'override' | 'manual',
     resolution?: Partial<RuleV2>[]
-  ): Promise<any> {
+  ): Promise<unknown> {
     return this.conflictDetector.resolveConflict(conflict, strategy, resolution);
   }
 
@@ -202,7 +202,7 @@ export class RuleConfigServiceV2 {
     rule2: RuleV2,
     startDate: Date,
     endDate: Date
-  ): Promise<any> {
+  ): Promise<unknown> {
     return this.simulator.compareRules(rule1, rule2, startDate, endDate);
   }
 
@@ -251,7 +251,7 @@ export class RuleConfigServiceV2 {
   }
 
   // Import/Export
-  async exportRules(ruleIds?: string[]): Promise<any> {
+  async exportRules(ruleIds?: string[]): Promise<unknown> {
     const where = ruleIds ? { id: { in: ruleIds } } : {};
     const rules = await prisma.planningRule.findMany({ where });
 
@@ -267,22 +267,22 @@ export class RuleConfigServiceV2 {
     };
   }
 
-  async importRules(data: any, userId: string): Promise<{
+  async importRules(data: unknown, userId: string): Promise<{
     imported: number;
     failed: number;
-    errors: any[];
+    errors: unknown[];
   }> {
     const results = {
       imported: 0,
       failed: 0,
-      errors: [] as any[]
+      errors: [] as unknown[]
     };
 
     for (const rule of data.rules) {
       try {
         await this.createRule(rule, userId);
         results.imported++;
-      } catch (error) {
+      } catch (error: unknown) {
         results.failed++;
         results.errors.push({
           rule: rule.name,
@@ -300,7 +300,7 @@ export class RuleConfigServiceV2 {
   }
 
   // Monitoring
-  async getRuleMetrics(ruleId: string): Promise<any> {
+  async getRuleMetrics(ruleId: string): Promise<unknown> {
     const metrics = await prisma.ruleMetrics.findUnique({
       where: { ruleId }
     });
@@ -317,7 +317,7 @@ export class RuleConfigServiceV2 {
     return metrics;
   }
 
-  async getSystemMetrics(): Promise<any> {
+  async getSystemMetrics(): Promise<unknown> {
     const [
       totalRules,
       activeRules,

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { logger } from "../lib/logger";
 import { useState, useEffect } from 'react';
 
 interface PerformanceMetric {
@@ -135,7 +136,7 @@ export function usePerformanceMetrics(): UsePerformanceMetricsReturn {
           actions: [
             {
               label: 'Analyser',
-              action: () => console.log('Analyzing slow API...'),
+              action: () => logger.info('Analyzing slow API...'),
             },
           ],
         });
@@ -254,7 +255,7 @@ export function usePerformanceMetrics(): UsePerformanceMetricsReturn {
           actions: [
             {
               label: 'Optimiser',
-              action: () => console.log('Optimizing memory...'),
+              action: () => logger.info('Optimizing memory...'),
             },
           ],
         },

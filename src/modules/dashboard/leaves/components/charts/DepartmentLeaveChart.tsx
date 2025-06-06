@@ -32,7 +32,7 @@ const DepartmentLeaveChart: React.FC<DepartmentLeaveChartProps> = ({ data }) => 
     }));
 
     // Personnalisation du tooltip
-    const CustomTooltip = ({ active, payload, label }: any) => {
+    const CustomTooltip = ({ active, payload, label }: unknown) => {
         if (active && payload && payload.length) {
             return (
                 <div style={{

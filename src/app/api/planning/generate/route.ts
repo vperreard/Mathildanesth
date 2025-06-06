@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { PlanningGenerator } from '@/services/planningGenerator';
 import { ApiService } from '@/services/api'; // Supposons que l'ApiService peut aussi être utilisé côté serveur si nécessaire
 import { GenerationParameters } from '@/types/attribution';
@@ -125,8 +126,8 @@ async function postHandler(request: Request) {
       attributions: allAssignments,
       validationResult: generationResult,
     });
-  } catch (error) {
-    console.error('[API /planning/generate] Error:', error);
+  } catch (error: unknown) {
+    logger.error('[API /planning/generate] Error:', { error: error });
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Erreur lors de la génération du planning',

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import { AppearancePreferences, VisualTheme } from '../types/user';
 import { ApiService } from '../services/api';
 import { useAuth } from './useAuth';
@@ -87,7 +88,7 @@ export function useAppearance({ initialPreferences }: UseAppearanceProps = {}) {
             try {
                 // Vérifier si l'utilisateur est authentifié
                 if (!isAuthenticated || !user) {
-                    console.log('Utilisateur non authentifié, utilisation des préférences par défaut');
+                    logger.info('Utilisateur non authentifié, utilisation des préférences par défaut');
                     setLoading(false);
                     return;
                 }
@@ -98,8 +99,8 @@ export function useAppearance({ initialPreferences }: UseAppearanceProps = {}) {
                 if (userPreferences?.appearance) {
                     setPreferences(userPreferences.appearance);
                 }
-            } catch (error) {
-                console.error('Erreur lors du chargement des préférences:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors du chargement des préférences:', { error: error });
                 // En cas d'erreur, utiliser les préférences par défaut
             } finally {
                 setLoading(false);
@@ -131,8 +132,8 @@ export function useAppearance({ initialPreferences }: UseAppearanceProps = {}) {
             });
 
             return true;
-        } catch (error) {
-            console.error('Erreur lors de la mise à jour des préférences:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la mise à jour des préférences:', { error: error });
             return false;
         }
     };

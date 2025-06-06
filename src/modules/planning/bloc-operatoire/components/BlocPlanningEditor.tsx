@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { v4 as uuidv4 } from 'uuid';
@@ -74,9 +75,9 @@ const BlocPlanningEditor: React.FC<BlocPlanningEditorProps> = ({
     const [loading, setLoading] = useState(false);
     const [validation, setValidation] = useState<{
         isValid: boolean;
-        errors: any[];
-        warnings: any[];
-        infos: any[];
+        errors: unknown[];
+        warnings: unknown[];
+        infos: unknown[];
     }>({ isValid: true, errors: [], warnings: [], infos: [] });
     const [workingPlanning, setWorkingPlanning] = useState<BlocDayPlanning | null>(null);
     const [activeSalleId, setActiveSalleId] = useState<string | null>(null);
@@ -104,8 +105,8 @@ const BlocPlanningEditor: React.FC<BlocPlanningEditorProps> = ({
             try {
                 const supervisors = await blocPlanningService.getAvailableSupervisors(format(date, 'yyyy-MM-dd'));
                 setAvailableSupervisors(supervisors);
-            } catch (error) {
-                console.error("Erreur lors du chargement des superviseurs:", error);
+            } catch (error: unknown) {
+                logger.error("Erreur lors du chargement des superviseurs:", { error: error });
             } finally {
                 setLoading(false);
             }

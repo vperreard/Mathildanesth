@@ -1,3 +1,5 @@
+import { logger } from "../../../lib/logger";
+
 // Import des mêmes dépendances et types que page.tsx
 
 // Fonction corrigée pour l'import de données
@@ -75,8 +77,8 @@ const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
                 }
                 setImportPreview(newAssignments);
             }
-        } catch (error) {
-            console.error("Erreur lors du parsing du fichier importé:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du parsing du fichier importé:", { error: error });
         }
     };
     reader.readAsText(file);

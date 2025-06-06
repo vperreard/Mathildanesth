@@ -65,7 +65,7 @@ export class RuleValidator {
     try {
       // Basic schema validation
       this.ruleSchema.parse(rule);
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof ZodError) {
         error.errors.forEach(err => {
           const path = err.path.join('.');

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { logger } from "../../../lib/logger";
 import { RoomUsageFilters, RoomUsageFiltersState } from './RoomUsageFilters';
 import { RoomUsageDisplay } from './RoomUsageDisplay';
 import { RoomUsageCharts } from './RoomUsageCharts';
@@ -35,8 +36,8 @@ export default function RoomUsageReportPage() {
                 }
                 const sitesData: SiteInfo[] = await response.json();
                 setAvailableSites(sitesData);
-            } catch (err) {
-                console.error("Erreur lors de la récupération des sites:", err);
+            } catch (err: unknown) {
+                logger.error("Erreur lors de la récupération des sites:", err);
                 setSitesError(err instanceof Error ? err.message : 'Impossible de charger la liste des sites.');
                 setAvailableSites([]);
             } finally {
@@ -80,8 +81,8 @@ export default function RoomUsageReportPage() {
                     }
                     const data: RoomUtilizationReport = await response.json();
                     setReportData(data);
-                } catch (err) {
-                    console.error("Erreur lors du fetch des données du rapport:", err);
+                } catch (err: unknown) {
+                    logger.error("Erreur lors du fetch des données du rapport:", err);
                     setReportError(err instanceof Error ? err.message : 'Une erreur inconnue est survenue.');
                 } finally {
                     setIsLoading(false);

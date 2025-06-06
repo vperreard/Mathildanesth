@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
+import { logger } from "../../../lib/logger";
 interface PerformanceMetrics {
     renderTime: number;
     interactionDelay: number;
@@ -62,7 +63,7 @@ export const useCalendarPerformance = (options: CalendarPerformanceOptions = {})
             setMetrics(prev => ({ ...prev, renderTime: renderDuration }));
 
             if (debug) {
-                console.log(`Calendar render time: ${renderDuration.toFixed(2)}ms`);
+                logger.info(`Calendar render time: ${renderDuration.toFixed(2)}ms`);
             }
         };
     }, [measureRenderTime, debug]);
@@ -81,7 +82,7 @@ export const useCalendarPerformance = (options: CalendarPerformanceOptions = {})
         setMetrics(prev => ({ ...prev, interactionDelay }));
 
         if (debug) {
-            console.log(`Calendar interaction delay: ${interactionDelay.toFixed(2)}ms`);
+            logger.info(`Calendar interaction delay: ${interactionDelay.toFixed(2)}ms`);
         }
 
         interactionTimeRef.current = 0;
@@ -90,17 +91,17 @@ export const useCalendarPerformance = (options: CalendarPerformanceOptions = {})
     // Appliquer des optimisations basées sur les métriques et le type d'appareil
     useEffect(() => {
         if (!optimizeForMobile) {
-            if (debug) console.log('Mobile optimization disabled by options');
+            if (debug) logger.info('Mobile optimization disabled by options');
             return;
         }
 
-        if (debug) console.log('Checking mobile optimizations...', { isMobile: isMobile.current, renderTime: metrics.renderTime });
+        if (debug) logger.info('Checking mobile optimizations...', { isMobile: isMobile.current, renderTime: metrics.renderTime });
 
         // Optimisations pour les appareils mobiles
         if (isMobile.current) {
             const shouldSimplify = metrics.renderTime > 50;
             const shouldReduceDetails = metrics.renderTime > 100;
-            if (debug) console.log('Applying mobile optimizations', { shouldSimplify, shouldReduceDetails });
+            if (debug) logger.info('Applying mobile optimizations', { shouldSimplify, shouldReduceDetails });
 
             const newOptimizations = {
                 reducedAnimations: true,
@@ -111,7 +112,7 @@ export const useCalendarPerformance = (options: CalendarPerformanceOptions = {})
 
             // Vérifier si les optimisations ont réellement changé avant de mettre à jour
             if (JSON.stringify(newOptimizations) !== JSON.stringify(optimizations)) {
-                if (debug) console.log('Setting new optimizations:', newOptimizations);
+                if (debug) logger.info('Setting new optimizations:', newOptimizations);
                 setOptimizations(newOptimizations);
             }
 
@@ -124,10 +125,10 @@ export const useCalendarPerformance = (options: CalendarPerformanceOptions = {})
                 document.documentElement.classList.toggle('calendar-simplified-rendering', newOptimizations.simplifiedRendering);
             }
         } else {
-            if (debug) console.log('Not applying mobile optimizations (not mobile)');
+            if (debug) logger.info('Not applying mobile optimizations (not mobile)');
             // S'assurer que les optimisations sont désactivées si ce n'est pas mobile
             if (optimizations.reducedAnimations || optimizations.simplifiedRendering) {
-                if (debug) console.log('Resetting optimizations for desktop');
+                if (debug) logger.info('Resetting optimizations for desktop');
                 setOptimizations({
                     reducedAnimations: false,
                     simplifiedRendering: false,
@@ -146,11 +147,11 @@ export const useCalendarPerformance = (options: CalendarPerformanceOptions = {})
 
         // Alerter en cas de problèmes de performance significatifs
         if (metrics.renderTime > 200) {
-            console.warn('Calendar render time is high, consider further optimizations');
+            logger.warn('Calendar render time is high, consider further optimizations');
         }
 
         if (metrics.interactionDelay > 100) {
-            console.warn('Calendar interaction delay is high, check for blocking operations');
+            logger.warn('Calendar interaction delay is high, check for blocking operations');
         }
     }, [metrics, debug]);
 

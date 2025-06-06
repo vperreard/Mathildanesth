@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { BusinessRulesValidator } from '@/services/businessRulesValidator';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 // Schéma de validation pour les paramètres de requête
 const querySchema = z.object({
@@ -48,8 +51,8 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ attributions });
-  } catch (error: any) {
-    console.error('Erreur API [GET /api/affectations]:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur API [GET /api/affectations]:', { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors de la récupération des affectations.', details: error.message },
       { status: 500 }
@@ -190,8 +193,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(newAssignment, { status: 201 });
-  } catch (error: any) {
-    console.error('Erreur API [POST /api/affectations]:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur API [POST /api/affectations]:', { error: error });
     logger.error("Erreur lors de la création de l'affectation", { error: error.message });
     return NextResponse.json(
       { error: "Erreur serveur lors de la création de l'affectation.", details: error.message },

@@ -1,4 +1,5 @@
 import { Attribution } from '../types/attribution';
+import { logger } from "../lib/logger";
 import { ValidationResult, Violation, ViolationType } from '../types/validation';
 
 interface SyncResult {
@@ -46,8 +47,8 @@ export class SyncService {
                 success: true,
                 message: responseData.message || 'Synchronisation réussie',
             };
-        } catch (error: any) {
-            console.error("Erreur lors de l'appel API de synchronisation:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de l'appel API de synchronisation:", { error: error });
             return {
                 success: false,
                 message: error.message || 'Erreur réseau ou inconnue lors de la synchronisation',
@@ -71,7 +72,7 @@ export class SyncService {
             const responseData = await response.json();
 
             if (!response.ok) {
-                console.error('Erreur API de validation:', responseData);
+                logger.error('Erreur API de validation:', responseData);
                 const violations: Violation[] = responseData.violations || [
                     {
                         type: ViolationType.SCHEDULING_CONFLICT,
@@ -88,8 +89,8 @@ export class SyncService {
                 isValid: responseData.isValid ?? (responseData.violations?.length === 0), // Déduire isValid si non fourni
                 violations: responseData.violations || [],
             };
-        } catch (error: any) {
-            console.error("Erreur lors de l'appel API de validation:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de l'appel API de validation:", { error: error });
             const violations: Violation[] = [
                 {
                     type: ViolationType.SCHEDULING_CONFLICT,
@@ -163,7 +164,7 @@ export class SyncService {
     // La méthode logSync n'est plus pertinente côté client
     /*
     private logSync(attributions: Attribution[]): void {
-        console.log(`Synchronisation: ${attributions.length} gardes/vacations mises à jour à ${new Date().toISOString()}`);
+        logger.info(`Synchronisation: ${attributions.length} gardes/vacations mises à jour à ${new Date().toISOString()}`);
     }
     */
 } 

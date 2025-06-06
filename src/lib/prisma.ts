@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { logger } from "./logger";
 import { prisma as cachedPrisma } from './prisma-client';
 
 // Détermine si le code s'exécute côté serveur
@@ -36,9 +37,9 @@ if (isServer) {
                     ksize: 0,
                     vsize: 0
                 }),
-                invalidateAll: () => console.log('[DEV] Cache invalidation (no-op in dev)'),
-                invalidateModel: () => console.log('[DEV] Model cache invalidation (no-op in dev)'),
-                invalidateKey: () => console.log('[DEV] Key cache invalidation (no-op in dev)')
+                invalidateAll: () => logger.info('[DEV] Cache invalidation (no-op in dev)'),
+                invalidateModel: () => logger.info('[DEV] Model cache invalidation (no-op in dev)'),
+                invalidateKey: () => logger.info('[DEV] Key cache invalidation (no-op in dev)')
             };
         }
 
@@ -49,7 +50,7 @@ if (isServer) {
 
         // S'assurer que la méthode $cache existe
         if (!prismaInstance || !('$cache' in prismaInstance)) {
-            console.warn('Cache Prisma non initialisé correctement ou méthode $cache manquante');
+            logger.warn('Cache Prisma non initialisé correctement ou méthode $cache manquante');
         }
     }
 } else {
@@ -67,14 +68,14 @@ if (isServer) {
                 ksize: 0,
                 vsize: 0
             }),
-            invalidateAll: () => console.warn('[BROWSER] Cache invalidation not available'),
-            invalidateModel: () => console.warn('[BROWSER] Model cache invalidation not available'),
-            invalidateKey: () => console.warn('[BROWSER] Key cache invalidation not available')
+            invalidateAll: () => logger.warn('[BROWSER] Cache invalidation not available'),
+            invalidateModel: () => logger.warn('[BROWSER] Model cache invalidation not available'),
+            invalidateKey: () => logger.warn('[BROWSER] Key cache invalidation not available')
         };
     }
 
     if (process.env.NODE_ENV === 'development') {
-        console.warn('Accès à prisma depuis le navigateur. Ceci est uniquement pour la référence TypeScript et ne fonctionnera pas.');
+        logger.warn('Accès à prisma depuis le navigateur. Ceci est uniquement pour la référence TypeScript et ne fonctionnera pas.');
     }
 }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../lib/logger";
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '@/hooks/useAuth';
 import { getClientAuthToken } from '@/lib/auth-client-utils';
@@ -66,9 +67,9 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
             const data = await response.json();
             setNotifications(data.notifications || []);
             setUnreadCount(data.unreadCount || 0);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur inconnue'));
-            console.error('Erreur lors du chargement des notifications:', err);
+            logger.error('Erreur lors du chargement des notifications:', { error: err });
         } finally {
             setIsLoading(false);
         }
@@ -98,8 +99,8 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
             if (data.unreadCount !== undefined) {
                 setUnreadCount(data.unreadCount);
             }
-        } catch (err) {
-            console.error('Erreur lors du marquage de la notification:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors du marquage de la notification:', { error: err });
         }
     }, [user?.id]);
 
@@ -121,8 +122,8 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
             setUnreadCount(0);
 
             await response.json(); // Consomme la réponse
-        } catch (err) {
-            console.error('Erreur lors du marquage de toutes les notifications:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors du marquage de toutes les notifications:', { error: err });
         }
     }, [user?.id]);
 
@@ -132,7 +133,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
 
         // Désactiver temporairement les WebSockets en développement
         if (process.env.NODE_ENV === 'development') {
-            console.log('[WebSocket] Désactivé en développement - serveur Socket.IO non configuré');
+            logger.info('[WebSocket] Désactivé en développement - serveur Socket.IO non configuré');
             // TODO: Réactiver quand l'API notifications sera implémentée
             // fetchNotifications();
             return;
@@ -140,7 +141,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
 
         const token = getClientAuthToken();
         if (!token) {
-            console.log('Pas de token d\'authentification, WebSocket non initialisé');
+            logger.info('Pas de token d\'authentification, WebSocket non initialisé');
             return;
         }
 
@@ -157,7 +158,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
 
         // Événements de connexion
         socketInstance.on('connect', () => {
-            console.log('WebSocket connected for notifications');
+            logger.info('WebSocket connected for notifications');
             setIsConnected(true);
 
             // Rejoindre la room spécifique à l'utilisateur
@@ -165,25 +166,25 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
         });
 
         socketInstance.on('disconnect', () => {
-            console.log('WebSocket disconnected');
+            logger.info('WebSocket disconnected');
             setIsConnected(false);
         });
 
         socketInstance.on('connect_error', (err: Error) => {
-            console.error('WebSocket connection error:', err);
+            logger.error('WebSocket connection error:', { error: err });
             setError(new Error(`Erreur de connexion: ${err.message}`));
         });
 
         // Événement de nouvelle notification
         socketInstance.on('new_notification', (notification: Notification) => {
-            console.log('New notification received:', notification);
+            logger.info('New notification received:', notification);
             setNotifications(prev => [notification, ...prev]);
             setUnreadCount(prev => prev + 1);
         });
 
         // Événement de mise à jour des notifications lues
         socketInstance.on('notifications_read_update', (data: { count: number; all: boolean }) => {
-            console.log('Notifications read update:', data);
+            logger.info('Notifications read update:', data);
 
             if (data.all) {
                 // Toutes marquées comme lues

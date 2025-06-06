@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { logger } from "../../lib/logger";
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -98,8 +99,8 @@ export function ApplySimulationModal({
                 router.push('/planning/hebdomadaire');
                 router.refresh();
             }
-        } catch (error) {
-            console.error('Erreur lors de l\'application de la simulation:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'application de la simulation:', { error: error });
             setError('Une erreur est survenue lors de la communication avec le serveur');
         } finally {
             setLoading(false);

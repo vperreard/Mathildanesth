@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { AnyRule, RuleConflict, RuleSeverity, RuleType, RuleValidationResult } from '../../../../modules/rules/types/rule';
 
@@ -82,8 +83,8 @@ export async function POST(request: NextRequest) {
         };
 
         return NextResponse.json(validationResult);
-    } catch (error) {
-        console.error('Erreur lors de la validation des règles:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la validation des règles:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la validation des règles' },
             { status: 500 }
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
 /**
  * Vérifie si deux règles se chevauchent dans le temps
  */
-function isTimeOverlap(rule1: any, rule2: any): boolean {
+function isTimeOverlap(rule1: unknown, rule2: unknown): boolean {
     const validFrom1 = new Date(rule1.validFrom);
     const validTo1 = rule1.validTo ? new Date(rule1.validTo) : null;
     const validFrom2 = new Date(rule2.validFrom);
@@ -112,7 +113,7 @@ function isTimeOverlap(rule1: any, rule2: any): boolean {
 /**
  * Validation spécifique pour les règles de garde
  */
-async function validateDutyRule(rule: any, existingRules: any[], conflicts: RuleConflict[]): Promise<void> {
+async function validateDutyRule(rule: unknown, existingRules: unknown[], conflicts: RuleConflict[]): Promise<void> {
     const dutyRules = existingRules.filter(r => r.type === RuleType.DUTY && r.id !== rule.id);
 
     // Vérifier les conflits de périodes de garde
@@ -140,7 +141,7 @@ async function validateDutyRule(rule: any, existingRules: any[], conflicts: Rule
 /**
  * Vérifie si des périodes de garde se chevauchent
  */
-function checkDutyPeriodsOverlap(periods1: any[], periods2: any[]): boolean {
+function checkDutyPeriodsOverlap(periods1: unknown[], periods2: unknown[]): boolean {
     if (!periods1 || !periods2 || !Array.isArray(periods1) || !Array.isArray(periods2)) {
         return false;
     }
@@ -174,7 +175,7 @@ function convertTimeToMinutes(timeString: string): number {
 /**
  * Validation spécifique pour les règles de congé
  */
-async function validateLeaveRule(rule: any, existingRules: any[], conflicts: RuleConflict[]): Promise<void> {
+async function validateLeaveRule(rule: unknown, existingRules: unknown[], conflicts: RuleConflict[]): Promise<void> {
     const leaveRules = existingRules.filter(r => r.type === RuleType.LEAVE && r.id !== rule.id);
 
     for (const existingRule of leaveRules) {
@@ -198,7 +199,7 @@ async function validateLeaveRule(rule: any, existingRules: any[], conflicts: Rul
 /**
  * Vérifie si deux règles ont des restrictions qui se chevauchent
  */
-function hasOverlappingRestrictions(rule1: any, rule2: any): boolean {
+function hasOverlappingRestrictions(rule1: unknown, rule2: unknown): boolean {
     // Si les deux règles ont les mêmes restrictions de rôle ou de spécialité
     const roleOverlap = hasArrayOverlap(
         rule1.configuration.roleRestrictions,
@@ -233,7 +234,7 @@ function hasArrayOverlap(array1: string[], array2: string[]): boolean {
 /**
  * Vérifie si des périodes restreintes se chevauchent
  */
-function checkRestrictedPeriodsOverlap(periods1: any[], periods2: any[]): boolean {
+function checkRestrictedPeriodsOverlap(periods1: unknown[], periods2: unknown[]): boolean {
     if (!periods1 || !periods2 || !Array.isArray(periods1) || !Array.isArray(periods2)) {
         return false;
     }
@@ -258,7 +259,7 @@ function checkRestrictedPeriodsOverlap(periods1: any[], periods2: any[]): boolea
 /**
  * Validation spécifique pour les règles de supervision
  */
-async function validateSupervisionRule(rule: any, existingRules: any[], conflicts: RuleConflict[]): Promise<void> {
+async function validateSupervisionRule(rule: unknown, existingRules: unknown[], conflicts: RuleConflict[]): Promise<void> {
     const supervisionRules = existingRules.filter(r => r.type === RuleType.SUPERVISION && r.id !== rule.id);
 
     for (const existingRule of supervisionRules) {
@@ -298,7 +299,7 @@ async function validateSupervisionRule(rule: any, existingRules: any[], conflict
 /**
  * Validation spécifique pour les règles d'affectation
  */
-async function validateAssignmentRule(rule: any, existingRules: any[], conflicts: RuleConflict[]): Promise<void> {
+async function validateAssignmentRule(rule: unknown, existingRules: unknown[], conflicts: RuleConflict[]): Promise<void> {
     const assignmentRules = existingRules.filter(r => r.type === RuleType.ASSIGNMENT && r.id !== rule.id);
 
     for (const existingRule of assignmentRules) {
@@ -325,7 +326,7 @@ async function validateAssignmentRule(rule: any, existingRules: any[], conflicts
 /**
  * Validation spécifique pour les règles de garde
  */
-async function validateOnCallRule(rule: any, existingRules: any[], conflicts: RuleConflict[]): Promise<void> {
+async function validateOnCallRule(rule: unknown, existingRules: unknown[], conflicts: RuleConflict[]): Promise<void> {
     const onCallRules = existingRules.filter(r => r.type === RuleType.ON_CALL && r.id !== rule.id);
 
     for (const existingRule of onCallRules) {

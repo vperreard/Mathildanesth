@@ -2,6 +2,7 @@
  * Hook pour la gestion des transferts de quotas de congés
  */
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { LeaveBalance, LeaveType } from '../types/leave';
 import { QuotaTransferRequest, QuotaTransferResult, QuotaTransferRule } from '../types/quota';
 import {
@@ -66,7 +67,7 @@ export interface QuotaValidationResult {
     success?: boolean; // Pour compatibilité avec l'API quotaService
     message: string;
     validationCode?: string;
-    details?: Record<string, any>;
+    details?: Record<string, unknown>;
     sourceAmount?: number;
     targetAmount?: number;
     sourceRemaining?: number;
@@ -77,7 +78,7 @@ export interface QuotaValidationResult {
  * Résultat de la simulation d'un transfert
  */
 export interface TransferPreviewResult extends QuotaValidationResult {
-    applicableRules?: any[];
+    applicableRules?: unknown[];
     transferRatio?: number;
     sourceLabel?: string;
     targetLabel?: string;
@@ -104,7 +105,7 @@ export interface UseQuotaTransferReturn {
     loading: boolean;
     error: Error | null;
     simulationResult: SimulationResult | null;
-    transferHistory: any[];
+    transferHistory: unknown[];
     simulateTransfer: (fromType: LeaveType, toType: LeaveType, days: number) => Promise<void>;
     transferQuota: (fromType: LeaveType, toType: LeaveType, days: number, reason: string) => Promise<boolean>;
     fetchTransferHistory: () => Promise<void>;
@@ -126,8 +127,8 @@ Contenu original du fichier useQuotaTransfer.ts était ici...
 */
 
 // Retourner un hook vide pour éviter les erreurs d'importation
-export const useQuotaTransfer = (options?: any): any => {
-    console.warn("Hook useQuotaTransfer est commenté et doit être refactorisé.");
+export const useQuotaTransfer = (options?: unknown): any => {
+    logger.warn("Hook useQuotaTransfer est commenté et doit être refactorisé.");
     return {
         rules: [],
         balances: [],
@@ -135,9 +136,9 @@ export const useQuotaTransfer = (options?: any): any => {
         error: null,
         simulationResult: null,
         transferHistory: [],
-        simulateTransfer: async () => { console.warn("simulateTransfer non implémenté"); },
-        executeTransfer: async () => { console.warn("executeTransfer non implémenté"); return null; },
-        loadHistory: async () => { console.warn("loadHistory non implémenté"); },
+        simulateTransfer: async () => { logger.warn("simulateTransfer non implémenté"); },
+        executeTransfer: async () => { logger.warn("executeTransfer non implémenté"); return null; },
+        loadHistory: async () => { logger.warn("loadHistory non implémenté"); },
         getTransferRules: () => [],
         calculateConvertedDays: () => 0,
         // Ajouter d'autres clés si nécessaire pour satisfaire les imports

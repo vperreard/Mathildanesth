@@ -1,5 +1,6 @@
 // Service de notifications pour les simulations longues
 import { Notification, NotificationType, SimulationStatus } from '@prisma/client';
+import { logger } from "../../lib/logger";
 import { pusherServer } from '@/lib/pusher';
 import { prisma } from '@/lib/prisma';
 
@@ -34,8 +35,8 @@ export class SimulationNotificationService {
           },
         },
       });
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du statut de simulation:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la mise à jour du statut de simulation:', { error: error });
     }
   }
 
@@ -76,8 +77,8 @@ export class SimulationNotificationService {
         estimatedDuration,
         timestamp: new Date().toISOString(),
       });
-    } catch (error) {
-      console.error('Erreur lors de la notification de démarrage de simulation:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la notification de démarrage de simulation:', { error: error });
     }
   }
 
@@ -122,8 +123,8 @@ export class SimulationNotificationService {
           });
         }
       }
-    } catch (error) {
-      console.error('Erreur lors de la notification de progression de simulation:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la notification de progression de simulation:', { error: error });
     }
   }
 
@@ -215,8 +216,8 @@ export class SimulationNotificationService {
           });
         }
       }
-    } catch (error) {
-      console.error('Erreur lors de la notification de complétion de simulation:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la notification de complétion de simulation:', { error: error });
     }
   }
 
@@ -257,8 +258,8 @@ export class SimulationNotificationService {
         error,
         timestamp: new Date().toISOString(),
       });
-    } catch (err) {
-      console.error("Erreur lors de la notification d'échec de simulation:", err);
+    } catch (err: unknown) {
+      logger.error("Erreur lors de la notification d'échec de simulation:", err);
     }
   }
 }

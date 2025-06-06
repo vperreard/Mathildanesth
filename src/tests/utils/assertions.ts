@@ -43,7 +43,7 @@ export function expectNotToHaveBeenCalled(mockFn: MockFn): void {
 /**
  * Vérifie qu'une fonction mock a été appelée avec des arguments spécifiques
  */
-export function expectToHaveBeenCalledWith(mockFn: MockFn, ...args: any[]): void {
+export function expectToHaveBeenCalledWith(mockFn: MockFn, ...args: unknown[]): void {
     expect(mockFn).toHaveBeenCalledWith(...args);
 }
 
@@ -78,42 +78,42 @@ export function expectToBeChecked(element: HTMLElement | null | undefined): void
 /**
  * Vérifie qu'une valeur est undefined
  */
-export function expectToBeUndefined(value: any): void {
+export function expectToBeUndefined(value: unknown): void {
     expect(value).toBeUndefined();
 }
 
 /**
  * Vérifie qu'une valeur est null
  */
-export function expectToBeNull(value: any): void {
+export function expectToBeNull(value: unknown): void {
     expect(value).toBeNull();
 }
 
 /**
  * Vérifie qu'une valeur est définie
  */
-export function expectToBeDefined(value: any): void {
+export function expectToBeDefined(value: unknown): void {
     expect(value).toBeDefined();
 }
 
 /**
  * Vérifie qu'une valeur est égale à une autre
  */
-export function expectToBe(value: any, expected: any): void {
+export function expectToBe(value: unknown, expected: unknown): void {
     expect(value).toBe(expected);
 }
 
 /**
  * Vérifie qu'une valeur est égale à une autre
  */
-export function expectToEqual(value: any, expected: any): void {
+export function expectToEqual(value: unknown, expected: unknown): void {
     expect(value).toEqual(expected);
 }
 
 /**
  * Vérifie qu'un tableau contient tous les éléments d'un autre tableau
  */
-export function expectArrayContaining(value: any[], expected: any[]): void {
+export function expectArrayContaining(value: unknown[], expected: unknown[]): void {
     expect(value).toEqual(expect.arrayContaining(expected));
 }
 
@@ -127,14 +127,14 @@ export function objectContaining<T>(obj: T): T {
 /**
  * Crée un objet matcher qui accepte n'importe quelle valeur du type spécifié
  */
-export function anyValue(constructor: any): any {
+export function anyValue(constructor: unknown): any {
     return expect.any(constructor);
 }
 
 /**
  * Vérifie si un objet a une propriété spécifique
  */
-export function expectToHaveProperty(obj: any, property: string, value?: any): void {
+export function expectToHaveProperty(obj: unknown, property: string, value?: unknown): void {
     if (value !== undefined) {
         expect(obj).toHaveProperty(property, value);
     } else {
@@ -145,7 +145,7 @@ export function expectToHaveProperty(obj: any, property: string, value?: any): v
 /**
  * Vérifie si un objet n'a pas une propriété spécifique ou si la propriété est undefined
  */
-export function expectNotToHaveProperty(obj: any, property: string): void {
+export function expectNotToHaveProperty(obj: unknown, property: string): void {
     if (property in obj && obj[property] === undefined) {
         expectToBeUndefined(obj[property]);
     } else {

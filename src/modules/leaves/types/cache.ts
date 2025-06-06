@@ -89,7 +89,7 @@ export interface CacheStats {
 export interface CacheInvalidationEvent {
     event: LeaveEvent;       // Type d'événement
     timestamp: number;       // Timestamp de l'événement
-    data: any;               // Données associées
+    data: unknown;               // Données associées
     source: string;          // Source de l'événement
     strategy: CacheInvalidationStrategy; // Stratégie d'invalidation
     affectedKeys?: string[]; // Clés affectées (si connues)

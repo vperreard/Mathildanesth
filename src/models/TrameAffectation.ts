@@ -9,12 +9,13 @@ export { default } from './TrameAffectationPrisma';
 
 // Ré-export des types depuis TrameAffectationPrisma  
 import { PeriodeType as PT, TrameAffectationAttributes as TAA } from './TrameAffectationPrisma';
+import { logger } from "../lib/logger";
 export type PeriodeType = PT;
 export type TrameAffectationAttributes = TAA;
 
 // Avertissement de dépréciation
 if (process.env.NODE_ENV === 'development') {
-    console.warn(
+    logger.warn(
         '⚠️  DÉPRÉCIATION: src/models/TrameAffectation.ts utilise Sequelize (obsolète).\n' +
         '   → Utilisez TrameAffectationPrisma à la place.\n' +
         '   → Ce fichier sera supprimé dans une version future.'

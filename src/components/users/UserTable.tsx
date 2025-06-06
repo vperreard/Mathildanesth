@@ -109,7 +109,7 @@ export default function UserTable({
 
                     return (
                         <div className="flex flex-wrap gap-1">
-                            {sites.slice(0, 2).map((site: any) => (
+                            {sites.slice(0, 2).map((site: unknown) => (
                                 <Badge
                                     key={site.id}
                                     variant="outline"

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "../lib/logger";
 import { redisCache, CACHE_TTL } from '@/lib/redis-cache';
 
 // Configuration des routes cachables
@@ -51,7 +52,7 @@ export class ApiCacheMiddleware {
       const cached = await redisCache.get(cacheKey);
 
       if (cached) {
-        console.log(`🎯 Cache HIT: ${pathname}`);
+        logger.info(`🎯 Cache HIT: ${pathname}`);
 
         return new NextResponse(JSON.stringify(cached), {
           status: 200,
@@ -64,10 +65,10 @@ export class ApiCacheMiddleware {
         });
       }
 
-      console.log(`🔍 Cache MISS: ${pathname}`);
+      logger.info(`🔍 Cache MISS: ${pathname}`);
       return null; // Continue to API handler
-    } catch (error) {
-      console.warn('Cache middleware error:', error);
+    } catch (error: unknown) {
+      logger.warn('Cache middleware error:', { error: error });
       return null; // Continue without cache
     }
   }
@@ -88,8 +89,8 @@ export class ApiCacheMiddleware {
       }
 
       return response;
-    } catch (error) {
-      console.warn('Cache response handling error:', error);
+    } catch (error: unknown) {
+      logger.warn('Cache response handling error:', { error: error });
       return response;
     }
   }
@@ -107,9 +108,9 @@ export class ApiCacheMiddleware {
       const cacheKey = ApiCacheMiddleware.generateCacheKey(request, cacheConfig);
       await redisCache.set(cacheKey, data, cacheConfig.ttl);
 
-      console.log(`💾 Cached: ${pathname} for ${cacheConfig.ttl}s`);
-    } catch (error) {
-      console.warn('Failed to cache response:', error);
+      logger.info(`💾 Cached: ${pathname} for ${cacheConfig.ttl}s`);
+    } catch (error: unknown) {
+      logger.warn('Failed to cache response:', { error: error });
     }
   }
 
@@ -125,9 +126,9 @@ export class ApiCacheMiddleware {
         await ApiCacheMiddleware.invalidateCachePattern(keyPattern);
       }
 
-      console.log(`🗑️ Cache invalidated for: ${pathname}`);
-    } catch (error) {
-      console.warn('Cache invalidation error:', error);
+      logger.info(`🗑️ Cache invalidated for: ${pathname}`);
+    } catch (error: unknown) {
+      logger.warn('Cache invalidation error:', { error: error });
     }
   }
 
@@ -212,8 +213,8 @@ export function withApiCache<T extends (...args: HandlerParams) => Promise<Respo
         const data = await responseClone.json();
         const cacheKey = `api:${request.nextUrl.pathname}:${Date.now()}`;
         await redisCache.set(cacheKey, data, cacheConfig.ttl || 300);
-      } catch (error) {
-        console.warn('Failed to cache API response:', error);
+      } catch (error: unknown) {
+        logger.warn('Failed to cache API response:', { error: error });
       }
     }
 
@@ -224,7 +225,7 @@ export function withApiCache<T extends (...args: HandlerParams) => Promise<Respo
 // Cache warming pour les données critiques
 export async function warmCriticalCache(): Promise<void> {
   try {
-    console.log('🔥 Warming critical cache...');
+    logger.info('🔥 Warming critical cache...');
 
     // Données statiques qui changent rarement
     const staticEndpoints = ['/api/sectors', '/api/sites', '/api/specialties', '/api/health'];
@@ -235,16 +236,16 @@ export async function warmCriticalCache(): Promise<void> {
         if (response.ok) {
           const data = await response.json();
           await redisCache.set(`mathilda:api:${endpoint}`, data, CACHE_TTL.STATIC_DATA);
-          console.log(`✅ Warmed cache: ${endpoint}`);
+          logger.info(`✅ Warmed cache: ${endpoint}`);
         }
-      } catch (error) {
-        console.warn(`⚠️ Failed to warm cache for ${endpoint}:`, error);
+      } catch (error: unknown) {
+        logger.warn(`⚠️ Failed to warm cache for ${endpoint}:`, { error: error });
       }
     }
 
-    console.log('🔥 Cache warming completed');
-  } catch (error) {
-    console.warn('Cache warming failed:', error);
+    logger.info('🔥 Cache warming completed');
+  } catch (error: unknown) {
+    logger.warn('Cache warming failed:', { error: error });
   }
 }
 

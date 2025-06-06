@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { logger } from "../lib/logger";
+import { useSession } from '@/lib/auth/migration-shim';
 import { dashboardService, DashboardData } from '@/services/dashboardService';
 import { Widget } from '@/types/dashboard';
 import { useErrorHandler } from './useErrorHandler';
@@ -44,7 +45,7 @@ export const useDashboard = () => {
             }
             const userId = parseInt(session.user.id, 10);
             if (isNaN(userId)) {
-                console.error("ID utilisateur invalide dans la session:", session.user.id);
+                logger.error("ID utilisateur invalide dans la session:", session.user.id);
                 setLoading(false);
                 handleApiError({ message: "ID utilisateur invalide" }, 'useDashboard.loadDashboard.invalidId');
                 return;
@@ -66,7 +67,7 @@ export const useDashboard = () => {
                     const newDashboard = await dashboardService.createDashboard(defaultDashboard);
                     setDashboard(newDashboard);
                 }
-            } catch (err) {
+            } catch (err: unknown) {
                 handleApiError(err, 'useDashboard.loadDashboard');
             } finally {
                 setLoading(false);
@@ -84,7 +85,7 @@ export const useDashboard = () => {
                 widgets
             });
             setDashboard(updatedDashboard);
-        } catch (err) {
+        } catch (err: unknown) {
             handleApiError(err, 'useDashboard.updateWidgets');
         }
     };
@@ -102,7 +103,7 @@ export const useDashboard = () => {
                 widgets: [...dashboard.widgets, newWidget]
             });
             setDashboard(updatedDashboard);
-        } catch (err) {
+        } catch (err: unknown) {
             handleApiError(err, 'useDashboard.addWidget');
         }
     };
@@ -115,7 +116,7 @@ export const useDashboard = () => {
                 widgets: dashboard.widgets.filter(widget => widget.id !== id)
             });
             setDashboard(updatedDashboard);
-        } catch (err) {
+        } catch (err: unknown) {
             handleApiError(err, 'useDashboard.removeWidget');
         }
     };
@@ -131,7 +132,7 @@ export const useDashboard = () => {
                 widgets: updatedWidgets
             });
             setDashboard(updatedDashboard);
-        } catch (err) {
+        } catch (err: unknown) {
             handleApiError(err, 'useDashboard.updateWidgetPosition');
         }
     };
@@ -147,7 +148,7 @@ export const useDashboard = () => {
                 widgets: updatedWidgets
             });
             setDashboard(updatedDashboard);
-        } catch (err) {
+        } catch (err: unknown) {
             handleApiError(err, 'useDashboard.updateWidgetSize');
         }
     };
@@ -163,7 +164,7 @@ export const useDashboard = () => {
                 widgets: updatedWidgets
             });
             setDashboard(updatedDashboard);
-        } catch (err) {
+        } catch (err: unknown) {
             handleApiError(err, 'useDashboard.updateWidget');
         }
     };

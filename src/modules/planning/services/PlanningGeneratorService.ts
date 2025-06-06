@@ -1,4 +1,5 @@
 import { Attribution, AssignmentStatus } from '@/types/assignment';
+import { logger } from "../../../lib/logger";
 import { ShiftType } from '@/types/common';
 import { User, LeaveStatus } from '@/types/user';
 import { RulesConfiguration } from '@/types/rules';
@@ -60,14 +61,14 @@ export class PlanningGeneratorService {
             const availableUsers = this.getAvailableUsers(date, shiftType);
             if (availableUsers.length === 0) {
                 // Log détaillé pour diagnostic
-                console.warn(`Aucun utilisateur disponible pour le shift ${shiftType} le ${format(date, 'dd/MM/yyyy', { locale: fr })}`);
-                console.warn(`Users total: ${this.users.length}`);
-                console.warn(`Shifts déjà assignés ce jour: ${this.attributions.filter(a => isSameDay(new Date(a.startDate), date)).length}`);
+                logger.warn(`Aucun utilisateur disponible pour le shift ${shiftType} le ${format(date, 'dd/MM/yyyy', { locale: fr })}`);
+                logger.warn(`Users total: ${this.users.length}`);
+                logger.warn(`Shifts déjà assignés ce jour: ${this.attributions.filter(a => isSameDay(new Date(a.startDate), date)).length}`);
 
                 // Au lieu de lancer une erreur fatale, on essaie des stratégies de fallback
                 const fallbackUser = this.findFallbackUser(date, shiftType);
                 if (fallbackUser) {
-                    console.warn(`Utilisation d'un utilisateur de fallback: ${fallbackUser.firstName || fallbackUser.prenom} ${fallbackUser.lastName || fallbackUser.nom}`);
+                    logger.warn(`Utilisation d'un utilisateur de fallback: ${fallbackUser.firstName || fallbackUser.prenom} ${fallbackUser.lastName || fallbackUser.nom}`);
                     this.createAssignment(fallbackUser, date, shiftType);
                 } else {
                     // Si vraiment aucun fallback n'est possible, alors on lance l'erreur
@@ -92,14 +93,14 @@ export class PlanningGeneratorService {
         });
 
         if (usersWithSpecialty.length > 0) {
-            console.warn(`Fallback Strategy 1: Trouvé ${usersWithSpecialty.length} utilisateurs avec spécialité appropriée`);
+            logger.warn(`Fallback Strategy 1: Trouvé ${usersWithSpecialty.length} utilisateurs avec spécialité appropriée`);
             return this.selectUserWithLeastAssignments(usersWithSpecialty);
         }
 
         // Deuxième stratégie: prendre n'importe quel utilisateur disponible (ignorer spécialité temporairement)
         const anyAvailableUsers = this.users.filter(user => this.isUserAvailable(user, date, shiftType));
         if (anyAvailableUsers.length > 0) {
-            console.warn(`Fallback Strategy 2: Trouvé ${anyAvailableUsers.length} utilisateurs disponibles (spécialité ignorée)`);
+            logger.warn(`Fallback Strategy 2: Trouvé ${anyAvailableUsers.length} utilisateurs disponibles (spécialité ignorée)`);
             return this.selectUserWithLeastAssignments(anyAvailableUsers);
         }
 
@@ -111,7 +112,7 @@ export class PlanningGeneratorService {
         ));
 
         if (activeUsers.length > 0) {
-            console.warn(`Fallback Strategy 3: Trouvé ${activeUsers.length} utilisateurs non en congé (toutes contraintes ignorées)`);
+            logger.warn(`Fallback Strategy 3: Trouvé ${activeUsers.length} utilisateurs non en congé (toutes contraintes ignorées)`);
             return this.selectUserWithLeastAssignments(activeUsers);
         }
 
@@ -172,7 +173,7 @@ export class PlanningGeneratorService {
             )
         );
         if (onLeave) {
-            console.log(`${logPrefix} REJECTED due to leave: ${onLeave.type} from ${format(new Date(onLeave.startDate), 'yyyy-MM-dd')} to ${format(new Date(onLeave.endDate), 'yyyy-MM-dd')}`);
+            logger.info(`${logPrefix} REJECTED due to leave: ${onLeave.type} from ${format(new Date(onLeave.startDate), 'yyyy-MM-dd')} to ${format(new Date(onLeave.endDate), 'yyyy-MM-dd')}`);
             return false;
         }
 
@@ -190,7 +191,7 @@ export class PlanningGeneratorService {
 
             // Règle: Garde est incompatible avec toute autre affectation
             if (shiftType.includes('GARDE') || existingShiftTypes.some(type => type.includes('GARDE'))) {
-                console.log(`${logPrefix} REJECTED due to GARDE incompatibility`);
+                logger.info(`${logPrefix} REJECTED due to GARDE incompatibility`);
                 return false;
             }
 
@@ -204,7 +205,7 @@ export class PlanningGeneratorService {
                 );
 
                 if (isPreviousDayGarde) {
-                    console.log(`${logPrefix} REJECTED due to ASTREINTE incompatible with repos after GARDE`);
+                    logger.info(`${logPrefix} REJECTED due to ASTREINTE incompatible with repos after GARDE`);
                     return false;
                 }
 
@@ -224,7 +225,7 @@ export class PlanningGeneratorService {
                         existingShiftTypes.some(t => t.includes('BLOC') && t.includes('APRES_MIDI')));
 
                 if (hasMorningConsultation || hasAfternoonConsultation || hasBlockSameTime) {
-                    console.log(`${logPrefix} REJECTED due to CONSULTATION incompatibility`);
+                    logger.info(`${logPrefix} REJECTED due to CONSULTATION incompatibility`);
                     return false;
                 }
             }
@@ -236,7 +237,7 @@ export class PlanningGeneratorService {
                         existingShiftTypes.includes(ShiftType.APRES_MIDI));
 
                 if (hasConsultationSameTime) {
-                    console.log(`${logPrefix} REJECTED due to BLOC incompatibility with CONSULTATION`);
+                    logger.info(`${logPrefix} REJECTED due to BLOC incompatibility with CONSULTATION`);
                     return false;
                 }
 
@@ -245,7 +246,7 @@ export class PlanningGeneratorService {
                 const maxSalles = this.rules.supervision?.maxSallesParMAR?.standard || 2;
 
                 if (blocAssignmentsCount >= maxSalles) {
-                    console.log(`${logPrefix} REJECTED due to max supervised rooms (${blocAssignmentsCount}/${maxSalles})`);
+                    logger.info(`${logPrefix} REJECTED due to max supervised rooms (${blocAssignmentsCount}/${maxSalles})`);
                     return false;
                 }
             }
@@ -260,7 +261,7 @@ export class PlanningGeneratorService {
             );
 
             if (recentGardes.length > 0) {
-                console.log(`${logPrefix} REJECTED due to recent GARDE within minimum interval`);
+                logger.info(`${logPrefix} REJECTED due to recent GARDE within minimum interval`);
                 return false;
             }
         }

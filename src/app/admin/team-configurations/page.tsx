@@ -26,7 +26,7 @@ export default function TeamConfigurationsPage() {
 
                 const data = await response.json();
                 setConfigurations(data);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 setError(err.message || 'Une erreur est survenue');
                 toast.error(err.message || 'Une erreur est survenue');
             } finally {
@@ -56,7 +56,7 @@ export default function TeamConfigurationsPage() {
             // Mettre à jour la liste des configurations
             setConfigurations(prev => prev.filter(config => config.id !== id));
             toast.success('Configuration supprimée avec succès');
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.error(err.message || 'Erreur lors de la suppression');
         }
     };
@@ -87,7 +87,7 @@ export default function TeamConfigurationsPage() {
             );
 
             toast.success(`Configuration ${!isActive ? 'activée' : 'désactivée'} avec succès`);
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.error(err.message || 'Erreur lors de la mise à jour');
         }
     };
@@ -117,7 +117,7 @@ export default function TeamConfigurationsPage() {
             );
 
             toast.success('Configuration définie par défaut avec succès');
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.error(err.message || 'Erreur lors de la mise à jour');
         }
     };

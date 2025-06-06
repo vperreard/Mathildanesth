@@ -104,7 +104,7 @@ export class TrameApplicationService {
           result.assignmentsCreated += dayResult.assignmentsCreated;
           result.warnings.push(...dayResult.warnings);
           
-        } catch (error) {
+        } catch (error: unknown) {
           const errorMsg = `Erreur pour la date ${format(date, 'dd/MM/yyyy')}: ${error instanceof Error ? error.message : String(error)}`;
           result.errors.push(errorMsg);
           
@@ -120,7 +120,7 @@ export class TrameApplicationService {
 
       return result;
 
-    } catch (error) {
+    } catch (error: unknown) {
       result.errors.push(`Erreur générale: ${error instanceof Error ? error.message : String(error)}`);
       return result;
     }
@@ -323,7 +323,7 @@ export class TrameApplicationService {
           if (assignmentCreated) {
             assignmentsCreated++;
           }
-        } catch (error) {
+        } catch (error: unknown) {
           warnings.push(`Erreur lors de la création de l'affectation pour ${affectation.activityType.name}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }

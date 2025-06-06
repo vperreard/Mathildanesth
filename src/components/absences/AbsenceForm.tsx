@@ -21,7 +21,7 @@ export const AbsenceForm: React.FC<AbsenceFormProps> = ({ onSubmit, onCancel }) 
         try {
             await onSubmit(formData);
             toast.success('Absence créée avec succès');
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error('Erreur lors de la création de l\'absence');
         }
     };

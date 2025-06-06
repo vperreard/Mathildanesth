@@ -112,7 +112,7 @@ class ProfilerService {
     /**
      * Démarrer une mesure de performance
      */
-    public startMetric(type: MetricType, name: string, metadata?: Record<string, any>): string | null {
+    public startMetric(type: MetricType, name: string, metadata?: Record<string, unknown>): string | null {
         if (!this.config.enabled || !this.currentSession) return null;
 
         const metricId = uuidv4();
@@ -149,11 +149,11 @@ class ProfilerService {
     /**
      * Créer une fonction d'enveloppement pour mesurer le temps d'exécution
      */
-    public wrapFunction<T extends (...args: any[]) => any>(
+    public wrapFunction<T extends (...args: unknown[]) => any>(
         func: T,
         type: MetricType,
         name: string,
-        metadata?: Record<string, any>
+        metadata?: Record<string, unknown>
     ): (...args: Parameters<T>) => ReturnType<T> {
         return (...args: Parameters<T>): ReturnType<T> => {
             if (!this.config.enabled || !this.currentSession) {
@@ -179,7 +179,7 @@ class ProfilerService {
 
                 if (metricId) this.endMetric(metricId);
                 return result;
-            } catch (error) {
+            } catch (error: unknown) {
                 if (metricId) this.endMetric(metricId);
                 throw error;
             }
@@ -389,11 +389,11 @@ class ProfilerService {
 export const profilerService = ProfilerService.getInstance();
 
 // Fonction utilitaire pour mesurer une fonction unique
-export function profileFunction<T extends (...args: any[]) => any>(
+export function profileFunction<T extends (...args: unknown[]) => any>(
     func: T,
     type: MetricType,
     name: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
 ): (...args: Parameters<T>) => ReturnType<T> {
     return profilerService.wrapFunction(func, type, name, metadata);
 } 

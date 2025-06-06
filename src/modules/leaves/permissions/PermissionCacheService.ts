@@ -1,5 +1,6 @@
 import { LeavePermission } from './LeavePermissionService';
 
+import { logger } from "../../../lib/logger";
 /**
  * Configuration du cache distribué
  */
@@ -121,7 +122,7 @@ export class PermissionCacheService {
      */
     private constructor() {
         if (this.debug) {
-            console.debug('[PermissionCacheService] Initialized');
+            logger.debug('[PermissionCacheService] Initialized');
         }
 
         // Charger le cache distribué au démarrage
@@ -149,7 +150,7 @@ export class PermissionCacheService {
         };
 
         if (this.debug) {
-            console.debug('[PermissionCacheService] Configuration updated', this.config);
+            logger.debug('[PermissionCacheService] Configuration updated', this.config);
         }
 
         // Redémarrer la synchronisation si nécessaire
@@ -213,15 +214,15 @@ export class PermissionCacheService {
                             // Entrée expirée, la supprimer
                             sessionStorage.removeItem(distributedKey);
                         }
-                    } catch (error) {
-                        console.error(`[PermissionCacheService] Error parsing cache entry for key ${key}:`, error);
+                    } catch (error: unknown) {
+                        logger.error(`[PermissionCacheService] Error parsing cache entry for key ${key}:`, { error: error });
                         // Supprimer l'entrée corrompue
                         sessionStorage.removeItem(distributedKey);
                     }
                 }
-            } catch (error) {
+            } catch (error: unknown) {
                 // Ignorer les erreurs de sessionStorage (ex: en navigation privée)
-                console.warn('[PermissionCacheService] SessionStorage access error:', error);
+                logger.warn('[PermissionCacheService] SessionStorage access error:', { error: error });
             }
         }
 
@@ -284,15 +285,15 @@ export class PermissionCacheService {
                 // Dans un environnement réel, on utiliserait une vraie compression
                 // Ici, on se contente de signaler qu'on compresserait
                 if (this.debug) {
-                    console.debug(`[PermissionCacheService] Would compress entry for ${key} (${serializedEntry.length} bytes)`);
+                    logger.debug(`[PermissionCacheService] Would compress entry for ${key} (${serializedEntry.length} bytes)`);
                 }
             }
 
             sessionStorage.setItem(distributedKey, serializedEntry);
             this.stats.distributedSaves++;
-        } catch (error) {
+        } catch (error: unknown) {
             // Ignorer les erreurs de sessionStorage (ex: quota dépassé, navigation privée)
-            console.warn('[PermissionCacheService] Error storing in distributed cache:', error);
+            logger.warn('[PermissionCacheService] Error storing in distributed cache:', { error: error });
         }
     }
 
@@ -328,7 +329,7 @@ export class PermissionCacheService {
             }
 
             if (this.debug) {
-                console.debug(`[PermissionCacheService] Cleaned ${entriesToRemove} entries from local cache`);
+                logger.debug(`[PermissionCacheService] Cleaned ${entriesToRemove} entries from local cache`);
             }
         }
     }
@@ -344,7 +345,7 @@ export class PermissionCacheService {
         try {
             const distributedKey = this.getDistributedKey(key);
             sessionStorage.removeItem(distributedKey);
-        } catch (error) {
+        } catch (error: unknown) {
             // Ignorer les erreurs de sessionStorage
         }
     }
@@ -375,12 +376,12 @@ export class PermissionCacheService {
                     count++;
                 }
             }
-        } catch (error) {
+        } catch (error: unknown) {
             // Ignorer les erreurs de sessionStorage
         }
 
         if (this.debug) {
-            console.debug(`[PermissionCacheService] Invalidated ${count} entries with prefix '${prefix}'`);
+            logger.debug(`[PermissionCacheService] Invalidated ${count} entries with prefix '${prefix}'`);
         }
 
         return count;
@@ -404,12 +405,12 @@ export class PermissionCacheService {
                     sessionStorage.removeItem(key);
                 }
             }
-        } catch (error) {
+        } catch (error: unknown) {
             // Ignorer les erreurs de sessionStorage
         }
 
         if (this.debug) {
-            console.debug('[PermissionCacheService] Cache cleared');
+            logger.debug('[PermissionCacheService] Cache cleared');
         }
     }
 
@@ -448,7 +449,7 @@ export class PermissionCacheService {
         this.stats.preloadedEntries += preloadedCount;
 
         if (this.debug) {
-            console.debug(`[PermissionCacheService] Preloaded ${preloadedCount} permission entries for user ${userId}`);
+            logger.debug(`[PermissionCacheService] Preloaded ${preloadedCount} permission entries for user ${userId}`);
         }
     }
 
@@ -492,7 +493,7 @@ export class PermissionCacheService {
                                 // Entrée expirée, la supprimer
                                 sessionStorage.removeItem(fullKey);
                             }
-                        } catch (error) {
+                        } catch (error: unknown) {
                             // Entrée corrompue, la supprimer
                             sessionStorage.removeItem(fullKey);
                         }
@@ -503,10 +504,10 @@ export class PermissionCacheService {
             this.stats.distributedLoads++;
 
             if (this.debug) {
-                console.debug(`[PermissionCacheService] Loaded ${loadedCount} entries from distributed cache`);
+                logger.debug(`[PermissionCacheService] Loaded ${loadedCount} entries from distributed cache`);
             }
-        } catch (error) {
-            console.warn('[PermissionCacheService] Error loading distributed cache:', error);
+        } catch (error: unknown) {
+            logger.warn('[PermissionCacheService] Error loading distributed cache:', { error: error });
         }
     }
 
@@ -527,7 +528,7 @@ export class PermissionCacheService {
         }, this.config.distributedCache.synchronizationInterval);
 
         if (this.debug) {
-            console.debug(`[PermissionCacheService] Cache synchronization started (interval: ${this.config.distributedCache.synchronizationInterval}ms)`);
+            logger.debug(`[PermissionCacheService] Cache synchronization started (interval: ${this.config.distributedCache.synchronizationInterval}ms)`);
         }
     }
 
@@ -547,7 +548,7 @@ export class PermissionCacheService {
             this.syncTimer = null;
 
             if (this.debug) {
-                console.debug('[PermissionCacheService] Cache synchronization stopped');
+                logger.debug('[PermissionCacheService] Cache synchronization stopped');
             }
         }
     }

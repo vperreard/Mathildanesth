@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { Card, Row, Col, Statistic, Progress, Divider, Typography, Tooltip, Alert, Skeleton } from 'antd';
 import { CalendarOutlined, ClockCircleOutlined, WarningOutlined, InfoCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { LeaveType } from '@/modules/leaves/types/leave';
@@ -36,8 +37,8 @@ export const LeaveQuotaOverview: React.FC<LeaveQuotaOverviewProps> = ({
             try {
                 const data = await fetchLeaveBalance(userId);
                 setBalance(data);
-            } catch (err) {
-                console.error('Erreur lors de la récupération des soldes de congés', err);
+            } catch (err: unknown) {
+                logger.error('Erreur lors de la récupération des soldes de congés', { error: err });
                 setError('Impossible de charger les soldes de congés');
             } finally {
                 setLoading(false);

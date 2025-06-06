@@ -1,3 +1,5 @@
+import { logger } from "../../../lib/logger";
+
 /**
  * Service de gestion du planning
  * Fournit des méthodes pour gérer les plannings et les indisponibilités
@@ -17,10 +19,10 @@ export class PlanningService {
         startDate: string,
         endDate: string,
         reason: string,
-        metadata?: Record<string, any>
+        metadata?: Record<string, unknown>
     ): Promise<void> {
         // Implémentation à venir
-        console.debug(`Planning: Ajout d'un marqueur d'indisponibilité pour l'utilisateur ${userId}`);
+        logger.debug(`Planning: Ajout d'un marqueur d'indisponibilité pour l'utilisateur ${userId}`);
         // Ici, vous ajouteriez le code pour créer un marqueur d'indisponibilité
         // dans la base de données ou autre système de stockage
     }
@@ -40,7 +42,7 @@ export class PlanningService {
         reason: string
     ): Promise<void> {
         // Implémentation à venir
-        console.debug(`Planning: Suppression des marqueurs d'indisponibilité pour l'utilisateur ${userId}`);
+        logger.debug(`Planning: Suppression des marqueurs d'indisponibilité pour l'utilisateur ${userId}`);
         // Ici, vous ajouteriez le code pour supprimer les marqueurs d'indisponibilité
         // de la base de données ou autre système de stockage
     }
@@ -63,13 +65,13 @@ export class PlanningService {
      * @param userId Identifiant de l'utilisateur
      * @param startDate Date de début
      * @param endDate Date de fin
-     * @returns Promise<Array<{ startDate: string, endDate: string, reason: string, metadata?: any }>>
+     * @returns Promise<Array<{ startDate: string, endDate: string, reason: string, metadata?: unknown }>>
      */
     public async getUserUnavailabilityPeriods(
         userId: string,
         startDate: string,
         endDate: string
-    ): Promise<Array<{ startDate: string; endDate: string; reason: string; metadata?: any }>> {
+    ): Promise<Array<{ startDate: string; endDate: string; reason: string; metadata?: unknown }>> {
         // Implémentation à venir
         return [];
     }

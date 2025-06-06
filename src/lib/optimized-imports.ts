@@ -182,7 +182,7 @@ export const lazyWithPreload = <T extends React.ComponentType<any>>(
 };
 
 // Hook pour précharger les composants
-export const usePreloadComponent = (component: any) => {
+export const usePreloadComponent = (component: unknown) => {
     React.useEffect(() => {
         if (component.preload) {
             component.preload();

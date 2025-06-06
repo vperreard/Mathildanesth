@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { cn } from '@/lib/utils';
 import { 
   Smartphone,
@@ -85,8 +86,8 @@ export function InstallPrompt({ className }: InstallPromptProps) {
       
       setShowPrompt(false);
       setDeferredPrompt(null);
-    } catch (error) {
-      console.error('Erreur installation PWA:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur installation PWA:', { error: error });
     }
   };
 
@@ -238,8 +239,8 @@ export function usePWAInstall() {
       }
       
       return false;
-    } catch (error) {
-      console.error('Erreur installation PWA:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur installation PWA:', { error: error });
       return false;
     } finally {
       setDeferredPrompt(null);

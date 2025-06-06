@@ -5,12 +5,13 @@
 
 import { exportSimulationResults, exportLeaveData, exportPlanningData } from '@/services/exportServiceV2';
 
+import { logger } from "../lib/logger";
 // Types de compatibilité
 export type ExportFormat = 'csv' | 'pdf';
 
 // Fonction de migration pour les anciens appels
 export async function migrateExcelExport(
-    data: any,
+    data: unknown,
     format: string,
     fileName?: string
 ): Promise<Blob> {
@@ -32,7 +33,7 @@ export async function migrateExcelExport(
 
 // Message de dépréciation
 export function warnXlsxDeprecation() {
-    console.warn(
+    logger.warn(
         '⚠️ XLSX est déprécié et sera supprimé dans une future version. ' +
         'Utilisez les fonctions d\'export CSV/PDF du nouveau service exportServiceV2.'
     );

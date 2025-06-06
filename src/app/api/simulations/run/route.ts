@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { optimizedSimulationService } from '@/services/simulations/optimizedSimulationService';
 
 export async function POST(request: NextRequest) {
@@ -101,8 +102,8 @@ export async function POST(request: NextRequest) {
       message: 'Simulation démarrée avec succès',
       simulationId: simulationResult.id,
     });
-  } catch (error) {
-    console.error('Erreur lors du démarrage de la simulation:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors du démarrage de la simulation:', { error: error });
     return NextResponse.json(
       {
         success: false,
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Fonction pour exécuter la simulation en arrière-plan
-async function startSimulation(resultId: string, scenario: any) {
+async function startSimulation(resultId: string, scenario: unknown) {
   try {
     // Marquer la simulation comme en cours d'exécution
     await prisma.simulationResult.update({
@@ -182,8 +183,8 @@ async function startSimulation(resultId: string, scenario: any) {
         executionTime: 3000, // 3 secondes
       },
     });
-  } catch (error) {
-    console.error("Erreur lors de l'exécution de la simulation:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de l'exécution de la simulation:", { error: error });
 
     // Marquer la simulation comme échouée
     await prisma.simulationResult.update({

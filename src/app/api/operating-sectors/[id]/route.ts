@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { checkUserRole } from '@/lib/auth-server-utils';
 import type { UserRole } from '@/lib/auth-client-utils';
@@ -38,8 +39,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     return NextResponse.json(sector);
-  } catch (error) {
-    console.error('Erreur GET /api/operating-sectors/[id]:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur GET /api/operating-sectors/[id]:', { error: error });
     return NextResponse.json({ message: 'Erreur interne du serveur' }, { status: 500 });
   }
 }
@@ -121,8 +122,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     return NextResponse.json(updatedSector);
-  } catch (error) {
-    console.error('Erreur PUT /api/operating-sectors/[id]:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur PUT /api/operating-sectors/[id]:', { error: error });
     return NextResponse.json(
       {
         message: 'Erreur interne du serveur',
@@ -192,8 +193,8 @@ export async function DELETE(
     });
 
     return NextResponse.json({ message: 'Secteur supprimé avec succès' });
-  } catch (error) {
-    console.error('Erreur DELETE /api/operating-sectors/[id]:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur DELETE /api/operating-sectors/[id]:', { error: error });
     return NextResponse.json({ message: 'Erreur interne du serveur' }, { status: 500 });
   }
 }

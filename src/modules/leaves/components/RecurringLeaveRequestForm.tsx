@@ -57,7 +57,7 @@ const RecurringLeaveRequestForm: React.FC<RecurringLeaveRequestFormProps> = ({
     }, [initialData]);
 
     // Fonction pour mettre à jour le state du formulaire
-    const handleChange = (field: keyof RecurringLeaveRequest, value: any) => {
+    const handleChange = (field: keyof RecurringLeaveRequest, value: unknown) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
@@ -138,7 +138,7 @@ const RecurringLeaveRequestForm: React.FC<RecurringLeaveRequestFormProps> = ({
         try {
             const occurrences = await previewRecurringLeaveOccurrences(formData);
             setPreviewOccurrences(occurrences);
-        } catch (error) {
+        } catch (error: unknown) {
             setPreviewError(error instanceof Error ? error.message : 'Erreur lors de la prévisualisation');
         } finally {
             setIsPreviewLoading(false);

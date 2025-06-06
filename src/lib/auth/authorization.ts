@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
-import { getServerSession, Session } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { logger } from "../logger";
+import { getServerSession, Session } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { Role } from '@prisma/client';
 
 // Utiliser directement l'enum Role de Prisma
@@ -218,13 +219,13 @@ export async function requireMessagePermission(
  */
 export function withAuthorization<T extends any[]>(
     authFunction: (...args: T) => Promise<AuthorizedSession>,
-    handler: (session: AuthorizedSession, ...args: any[]) => Promise<Response>
+    handler: (session: AuthorizedSession, ...args: unknown[]) => Promise<Response>
 ) {
-    return async (...args: any[]): Promise<Response> => {
+    return async (...args: unknown[]): Promise<Response> => {
         try {
             const session = await authFunction(...(args as T));
             return await handler(session, ...args);
-        } catch (error) {
+        } catch (error: unknown) {
             if (error instanceof AuthenticationError) {
                 return new Response(
                     JSON.stringify({ error: 'Authentication required' }),
@@ -239,7 +240,7 @@ export function withAuthorization<T extends any[]>(
                 );
             }
 
-            console.error('Authorization error:', error);
+            logger.error('Authorization error:', { error: error });
             return new Response(
                 JSON.stringify({ error: 'Internal server error' }),
                 { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -255,9 +256,9 @@ export function logSecurityAction(
     userId: number | string,
     action: string,
     resource: string,
-    details?: any
+    details?: unknown
 ) {
-    console.log(`[SECURITY] User ${userId} performed ${action} on ${resource}`, {
+    logger.info(`[SECURITY] User ${userId} performed ${action} on ${resource}`, {
         timestamp: new Date().toISOString(),
         userId,
         action,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "./logger";
 import * as jose from 'jose';
 import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
@@ -16,7 +17,7 @@ export type UserRole = 'ADMIN_TOTAL' | 'ADMIN_PARTIEL' | 'USER';
 const JWT_SECRET = process.env.JWT_SECRET || 'un_secret_jwt_robuste_et_difficile_a_deviner_pour_la_securite_de_l_application';
 const TOKEN_EXPIRATION = 24 * 60 * 60; // 24 heures en secondes
 
-export async function generateAuthToken(payload: any) {
+export async function generateAuthToken(payload: unknown) {
     const token = await new SignJWT({
         ...payload,
         iss: 'mathildanesth',
@@ -67,8 +68,8 @@ export async function verifyAuthToken(token?: string | null) {
                 role: payload.role
             } as UserJWTPayload
         };
-    } catch (error) {
-        console.error('Erreur de vérification du token:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur de vérification du token:', { error: error });
         return { authenticated: false, error: 'Token invalide ou expiré' };
     }
 }
@@ -77,8 +78,8 @@ export async function getAuthToken() {
     try {
         const cookieStore = await cookies();
         return cookieStore.get('auth_token')?.value;
-    } catch (error) {
-        console.error('Erreur lors de la récupération du token:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération du token:', { error: error });
         return null;
     }
 }
@@ -93,8 +94,8 @@ export async function setAuthToken(token: string) {
             maxAge: TOKEN_EXPIRATION,
             path: '/',
         });
-    } catch (error) {
-        console.error('Erreur lors de la définition du token:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la définition du token:', { error: error });
     }
 }
 
@@ -102,8 +103,8 @@ export async function removeAuthToken() {
     try {
         const cookieStore = await cookies();
         cookieStore.delete('auth_token');
-    } catch (error) {
-        console.error('Erreur lors de la suppression du token:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la suppression du token:', { error: error });
     }
 }
 

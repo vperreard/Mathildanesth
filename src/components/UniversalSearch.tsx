@@ -35,7 +35,7 @@ interface SearchResult {
   description?: string;
   icon: React.ReactNode;
   link: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   score?: number;
 }
 

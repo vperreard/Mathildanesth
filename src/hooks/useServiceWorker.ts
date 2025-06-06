@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+import { logger } from "../lib/logger";
 interface NetworkSpeed {
     effectiveType: '2g' | '3g' | '4g' | 'slow-2g' | undefined;
     downlink: number;
@@ -100,8 +101,8 @@ export const useServiceWorker = () => {
                     }
                 });
 
-            } catch (error) {
-                console.error('Erreur lors de l\'enregistrement du Service Worker:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors de l\'enregistrement du Service Worker:', { error: error });
                 setState(prev => ({
                     ...prev,
                     error: error instanceof Error ? error.message : 'Erreur inconnue'

@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 interface UseDragDropSyncOptions {
     rules: RulesConfiguration;
     doctors?: Doctor[];
-    onValidationError?: (violations: any[]) => void;
+    onValidationError?: (violations: unknown[]) => void;
     validateBeforeSave?: boolean;
     autoSaveDelay?: number;
     onSyncComplete?: (success: boolean) => void;
@@ -23,7 +23,7 @@ interface UseDragDropSyncReturn {
     saveChanges: () => Promise<boolean>;
     isSaving: boolean;
     lastSaved: Date | null;
-    validationErrors: any[];
+    validationErrors: unknown[];
     triggerValidation: () => void;
     isValidating: boolean;
     revertChange: (assignmentId: string) => void;
@@ -243,7 +243,7 @@ export function useDragDropSync({
 
                 return false;
             }
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error('Erreur lors de la sauvegarde : ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
 
             if (onSyncComplete) {

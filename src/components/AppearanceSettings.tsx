@@ -54,7 +54,7 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ onSave }) => {
         if (onSave) onSave(success);
     };
 
-    const handleTypographyChange = async (field: keyof AppearancePreferences['typography'], value: any) => {
+    const handleTypographyChange = async (field: keyof AppearancePreferences['typography'], value: unknown) => {
         const success = await updatePreferences({
             typography: {
                 ...preferences?.typography,
@@ -64,7 +64,7 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ onSave }) => {
         if (onSave) onSave(success);
     };
 
-    const handleInterfaceChange = async (field: keyof AppearancePreferences['interface'], value: any) => {
+    const handleInterfaceChange = async (field: keyof AppearancePreferences['interface'], value: unknown) => {
         const success = await updatePreferences({
             interface: {
                 ...preferences?.interface,
@@ -84,7 +84,7 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ onSave }) => {
         if (onSave) onSave(success);
     };
 
-    const handleHeaderChange = async (field: keyof AppearancePreferences['header'], value: any) => {
+    const handleHeaderChange = async (field: keyof AppearancePreferences['header'], value: unknown) => {
         const success = await updatePreferences({
             header: {
                 ...preferences?.header,

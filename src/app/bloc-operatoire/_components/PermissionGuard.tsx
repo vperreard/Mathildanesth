@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { logger } from "../../../lib/logger";
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
@@ -94,7 +95,7 @@ function PermissionGuard({
     // Vérifier si la permission est valide
     const permission = parsePermission(requiredPermission);
     if (!permission) {
-      console.error(`Permission invalide: ${requiredPermission}`);
+      logger.error(`Permission invalide: ${requiredPermission}`);
       router.replace(fallbackUrl);
       return null;
     }

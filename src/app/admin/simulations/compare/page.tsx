@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw, FileText, Check, X, Download } from 'lucide-react';
@@ -50,7 +51,7 @@ interface SimulationResult {
         [key: string]: number | undefined;
     };
     // Données pour la comparaison
-    data?: any;
+    data?: unknown;
 }
 
 interface ComparisonData {
@@ -105,8 +106,8 @@ export default function CompareSimulationsPage() {
 
                 const data = await response.json();
                 setComparisonData(data);
-            } catch (err) {
-                console.error('Erreur:', err);
+            } catch (err: unknown) {
+                logger.error('Erreur:', { error: err });
                 setError(err instanceof Error ? err.message : 'Erreur inconnue');
 
                 // En cas d'erreur, utiliser des données de démonstration

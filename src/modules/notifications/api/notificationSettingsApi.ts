@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logger } from "../../../lib/logger";
 import { NotificationSettings } from '../components/NotificationSettingsForm';
 
 /**
@@ -13,7 +14,7 @@ const API_BASE_URL = '/api/notifications';
 export const getUserNotificationSettings = async (userId: string): Promise<NotificationSettings> => {
     try {
         // TODO: À remplacer par un appel API réel
-        console.log(`Chargement des préférences pour l'utilisateur ${userId}`);
+        logger.info(`Chargement des préférences pour l'utilisateur ${userId}`);
 
         // Simuler un délai réseau pour les tests
         await new Promise(resolve => setTimeout(resolve, 800));
@@ -36,8 +37,8 @@ export const getUserNotificationSettings = async (userId: string): Promise<Notif
                 mentions: true
             }
         };
-    } catch (error) {
-        console.error('Erreur lors du chargement des préférences de notification:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors du chargement des préférences de notification:', { error: error });
         throw new Error('Impossible de charger les préférences de notification');
     }
 };
@@ -50,15 +51,15 @@ export const getUserNotificationSettings = async (userId: string): Promise<Notif
 export const saveUserNotificationSettings = async (userId: string, settings: NotificationSettings): Promise<void> => {
     try {
         // TODO: À remplacer par un appel API réel
-        console.log(`Enregistrement des préférences pour l'utilisateur ${userId}`, settings);
+        logger.info(`Enregistrement des préférences pour l'utilisateur ${userId}`, settings);
 
         // Simuler un délai réseau pour les tests
         await new Promise(resolve => setTimeout(resolve, 800));
 
         // Exemple de requête API
         // await axios.post(`${API_BASE_URL}/utilisateurs/${userId}/preferences`, settings);
-    } catch (error) {
-        console.error('Erreur lors de l\'enregistrement des préférences de notification:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'enregistrement des préférences de notification:', { error: error });
         throw new Error('Impossible d\'enregistrer les préférences de notification');
     }
 };
@@ -70,15 +71,15 @@ export const saveUserNotificationSettings = async (userId: string, settings: Not
 export const resetUserNotificationSettings = async (userId: string): Promise<void> => {
     try {
         // TODO: À remplacer par un appel API réel
-        console.log(`Réinitialisation des préférences pour l'utilisateur ${userId}`);
+        logger.info(`Réinitialisation des préférences pour l'utilisateur ${userId}`);
 
         // Simuler un délai réseau pour les tests
         await new Promise(resolve => setTimeout(resolve, 800));
 
         // Exemple de requête API
         // await axios.delete(`${API_BASE_URL}/utilisateurs/${userId}/preferences`);
-    } catch (error) {
-        console.error('Erreur lors de la réinitialisation des préférences de notification:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la réinitialisation des préférences de notification:', { error: error });
         throw new Error('Impossible de réinitialiser les préférences de notification');
     }
 }; 

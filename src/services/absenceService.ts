@@ -1,4 +1,5 @@
 import { PlannedAbsence, AbsenceCreateInput, AbsenceUpdateInput } from '@/types/absence';
+import { logger } from "../lib/logger";
 import { prisma } from '@/lib/prisma';
 import { LeaveStatus } from '@prisma/client';
 import { notificationService } from './notificationService';
@@ -154,8 +155,8 @@ export const absenceService = {
                 suspiciousPattern,
                 bridgeDays,
             };
-        } catch (error) {
-            console.error('Error getting absence patterns:', error);
+        } catch (error: unknown) {
+            logger.error('Error getting absence patterns:', { error: error });
             throw new Error('Failed to get absence patterns');
         }
     },
@@ -229,8 +230,8 @@ export const absenceService = {
                 averagePerUser,
                 topAbsentUsers: topAbsentUsers?.map(item => ({ userId: item.userId, count: item._count._all })),
             };
-        } catch (error) {
-            console.error('Error getting absence statistics:', error);
+        } catch (error: unknown) {
+            logger.error('Error getting absence statistics:', { error: error });
             throw new Error('Failed to get absence statistics');
         }
     },
@@ -300,8 +301,8 @@ export const absenceService = {
                     },
                 });
             });
-        } catch (error) {
-            console.error('Error handling late notification:', error);
+        } catch (error: unknown) {
+            logger.error('Error handling late notification:', { error: error });
             throw new Error('Failed to handle late notification');
         }
     },
@@ -397,15 +398,15 @@ export const absenceService = {
             available.sort((a, b) => b.score - a.score);
 
             return { available, unavailable };
-        } catch (error) {
-            console.error('Error finding replacement:', error);
+        } catch (error: unknown) {
+            logger.error('Error finding replacement:', { error: error });
             throw new Error('Failed to find replacement');
         }
     },
 
     async convertToLeave(absenceId: number, leaveTypeCode: string): Promise<{
-        absence: any;
-        leave: any;
+        absence: unknown;
+        leave: unknown;
     }> {
         try {
             const absence = await prisma.absence.findUnique({
@@ -450,8 +451,8 @@ export const absenceService = {
                 absence: updatedAbsence,
                 leave,
             };
-        } catch (error) {
-            console.error('Error converting to leave:', error);
+        } catch (error: unknown) {
+            logger.error('Error converting to leave:', { error: error });
             throw new Error('Failed to convert absence to leave');
         }
     },

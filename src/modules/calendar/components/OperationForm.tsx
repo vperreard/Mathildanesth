@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { useForm, Controller } from 'react-hook-form';
 import { format, addMinutes, parseISO } from 'date-fns';
 import { CalendarEventType } from '../types/event';
@@ -160,7 +161,7 @@ export const OperationForm: React.FC<OperationFormProps> = ({
             const startDate = parseISO(selectedStart);
             const endDate = addMinutes(startDate, selectedDuration);
             return format(endDate, 'HH:mm');
-        } catch (error) {
+        } catch (error: unknown) {
             return '';
         }
     }, [selectedStart, selectedDuration]);
@@ -198,8 +199,8 @@ export const OperationForm: React.FC<OperationFormProps> = ({
                         setHasTimeConflict(false);
                         setConflictDetails(null);
                     }
-                } catch (error) {
-                    console.error('Erreur lors de la vérification des conflits:', error);
+                } catch (error: unknown) {
+                    logger.error('Erreur lors de la vérification des conflits:', { error: error });
                 } finally {
                     setIsValidating(false);
                 }
@@ -238,8 +239,8 @@ export const OperationForm: React.FC<OperationFormProps> = ({
                         ? 'Opération modifiée avec succès'
                         : 'Nouvelle opération planifiée avec succès'
                 );
-            } catch (error) {
-                console.error('Erreur lors de la soumission du formulaire:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors de la soumission du formulaire:', { error: error });
                 showError('Une erreur est survenue lors de l\'enregistrement');
             } finally {
                 setIsSubmitting(false);

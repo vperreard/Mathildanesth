@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { PrismaClient, NotificationType } from '@prisma/client';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 import { prisma } from '@/lib/prisma';
 
@@ -20,12 +21,12 @@ interface ReadNotificationsRequest {
  * Marque des notifications comme lues en fonction de différents critères
  */
 export async function POST(request: NextRequest) {
-  console.log('\n--- POST /api/notifications/read START ---');
+  logger.info('\n--- POST /api/notifications/read START ---');
 
   // Authentification
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    console.error('POST /api/notifications/read: Utilisateur non authentifié');
+    logger.error('POST /api/notifications/read: Utilisateur non authentifié');
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body: ReadNotificationsRequest = await request.json();
-    console.log('POST /api/notifications/read - Body:', body);
+    logger.info('POST /api/notifications/read - Body:', body);
 
     // Construire la requête WHERE
     const whereClause: any = {
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
       (!body.types || body.types.length === 0) &&
       !body.all
     ) {
-      console.warn('POST /api/notifications/read: Aucun critère spécifié');
+      logger.warn('POST /api/notifications/read: Aucun critère spécifié');
       return NextResponse.json(
         {
           error: 'Au moins un critère (id, relatedRequestId, types) ou all=true doit être spécifié',
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (notifications.length === 0) {
-      console.log('POST /api/notifications/read: Aucune notification trouvée avec les critères');
+      logger.info('POST /api/notifications/read: Aucune notification trouvée avec les critères');
       return NextResponse.json({
         message: 'Aucune notification à marquer comme lue',
         updatedCount: 0,
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(
+    logger.info(
       `POST /api/notifications/read: ${result.count} notification(s) marquée(s) comme lue(s)`
     );
 
@@ -118,18 +119,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(
+    logger.info(
       `POST /api/notifications/read: Il reste ${unreadCount} notification(s) non lue(s) pour l'utilisateur`
     );
-    console.log('--- POST /api/notifications/read END ---\n');
+    logger.info('--- POST /api/notifications/read END ---\n');
 
     return NextResponse.json({
       message: `${result.count} notification(s) marquée(s) comme lue(s)`,
       updatedCount: result.count,
       unreadCount,
     });
-  } catch (error: any) {
-    console.error('POST /api/notifications/read: Erreur serveur', error);
+  } catch (error: unknown) {
+    logger.error('POST /api/notifications/read: Erreur serveur', { error: error });
     return NextResponse.json(
       {
         error: 'Erreur lors du marquage des notifications comme lues',

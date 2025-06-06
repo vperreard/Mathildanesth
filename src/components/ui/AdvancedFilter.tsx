@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../lib/logger";
 import { Button, Badge, Input, Checkbox } from '@/components/ui';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -147,7 +148,7 @@ export default function AdvancedFilter({
         setConditions([...conditions, newCondition]);
     }, [configs, conditions]);
 
-    const updateCondition = useCallback((id: string, field: string, value: any) => {
+    const updateCondition = useCallback((id: string, field: string, value: unknown) => {
         setConditions(prevConditions =>
             prevConditions.map(c =>
                 c.id === id ? { ...c, [field]: value } : c
@@ -210,8 +211,8 @@ export default function AdvancedFilter({
                 setFilterName('');
                 setShowSaveDialog(false);
                 // Après la sauvegarde, on présume que le filtre sera ajouté à savedFilters via les props
-            } catch (error) {
-                console.error('Erreur lors de la sauvegarde du filtre:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors de la sauvegarde du filtre:', { error: error });
             }
         }
     };

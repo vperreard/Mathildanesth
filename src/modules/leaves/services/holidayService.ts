@@ -1,4 +1,5 @@
 import apiClient from '@/utils/apiClient';
+import { logger } from "../../../lib/logger";
 import { parse, format, isBefore, isAfter, addMonths } from 'date-fns';
 
 /**
@@ -89,8 +90,8 @@ class HolidayService {
             });
 
             return holidays;
-        } catch (error) {
-            console.error('Erreur lors de la récupération des jours fériés:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des jours fériés:', { error: error });
 
             // En cas d'erreur, retourner les données du cache même si expirées
             if (cachedEntry) {

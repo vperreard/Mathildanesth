@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { logger } from "../../../lib/logger";
 import { format, parse, isValid } from 'date-fns';
 import { Leave, LeaveStatus, LeaveType } from '../types/leave';
 import { QuotaTransfer } from '../types/quota';
@@ -156,8 +157,8 @@ export class LeaveReportApi {
             });
 
             return response.data;
-        } catch (error) {
-            console.error(`Erreur lors de la récupération du rapport ${reportType}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la récupération du rapport ${reportType}:`, { error: error });
             throw error;
         } finally {
             const duration = performance.now() - startTime;
@@ -233,7 +234,7 @@ export class LeaveReportApi {
      * @param customQuery Configuration personnalisée
      * @returns Données personnalisées
      */
-    public async getCustomReport(customQuery: any): Promise<LeaveReportResult> {
+    public async getCustomReport(customQuery: unknown): Promise<LeaveReportResult> {
         const startTime = performance.now();
 
         try {
@@ -242,8 +243,8 @@ export class LeaveReportApi {
             });
 
             return response.data;
-        } catch (error) {
-            console.error('Erreur lors de la récupération du rapport personnalisé:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération du rapport personnalisé:', { error: error });
             throw error;
         } finally {
             const duration = performance.now() - startTime;
@@ -284,8 +285,8 @@ export class LeaveReportApi {
 
             // Retourner l'ID de la tâche d'exportation
             return response.data.id || response.data.exportTaskId;
-        } catch (error) {
-            console.error(`Erreur lors de l'exportation du rapport ${reportType}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de l'exportation du rapport ${reportType}:`, { error: error });
             throw error;
         } finally {
             const duration = performance.now() - startTime;
@@ -305,8 +306,8 @@ export class LeaveReportApi {
             });
 
             return response.data;
-        } catch (error) {
-            console.error(`Erreur lors de la vérification du statut d'exportation ${exportTaskId}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la vérification du statut d'exportation ${exportTaskId}:`, { error: error });
             throw error;
         }
     }
@@ -324,8 +325,8 @@ export class LeaveReportApi {
             });
 
             return response.data;
-        } catch (error) {
-            console.error(`Erreur lors du téléchargement du fichier d'exportation ${exportTaskId}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors du téléchargement du fichier d'exportation ${exportTaskId}:`, { error: error });
             throw error;
         }
     }

@@ -3,6 +3,7 @@
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { useLeaveApi } from './useLeaveApi';
 import { useUserApi } from '../../utilisateurs/hooks/useUserApi';
 import { useDepartmentApi } from '../../organization/hooks/useDepartmentApi';
@@ -56,7 +57,7 @@ interface UseLeaveConflictAnalyticsReturn {
     trends: ConflictTrend[];
     teamAnalytics: Record<string, TeamConflictAnalytics>;
     recommendations: ConflictRecommendation[];
-    highRiskPeriods: any[];
+    highRiskPeriods: unknown[];
     approvalTimeImpact: any | null;
 
     // Nouvelles fonctions
@@ -141,10 +142,10 @@ export const useLeaveConflictAnalytics = (
 
             // Générer le rapport
             generateReport(conflictsData, leavesData, usersData, departmentsData);
-        } catch (err) {
+        } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error('Erreur lors du chargement des données d\'analyse');
             setError(errorObj);
-            console.error('Erreur dans useLeaveConflictAnalytics.loadData:', err);
+            logger.error('Erreur dans useLeaveConflictAnalytics.loadData:', { error: err });
         } finally {
             setLoading(false);
         }
@@ -167,10 +168,10 @@ export const useLeaveConflictAnalytics = (
             );
 
             setReport(newReport);
-        } catch (err) {
+        } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error('Erreur lors de la génération du rapport');
             setError(errorObj);
-            console.error('Erreur dans useLeaveConflictAnalytics.generateReport:', err);
+            logger.error('Erreur dans useLeaveConflictAnalytics.generateReport:', { error: err });
         }
     }, [analyticsService, filter]);
 
@@ -208,7 +209,7 @@ export const useLeaveConflictAnalytics = (
     }, [conflicts, leaves]);
 
     // Obtenir les tendances de conflits pour une période
-    const getConflictTrendForPeriod = useCallback((startDate: Date, endDate: Date): any[] => {
+    const getConflictTrendForPeriod = useCallback((startDate: Date, endDate: Date): unknown[] => {
         if (!report) return [];
 
         return report.trends.filter(trend => {
@@ -261,7 +262,7 @@ export const useLeaveConflictAnalytics = (
             }
 
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la récupération des statistiques'));
             return null;
         } finally {
@@ -286,7 +287,7 @@ export const useLeaveConflictAnalytics = (
             }
 
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la récupération des tendances'));
             return [];
         } finally {
@@ -315,7 +316,7 @@ export const useLeaveConflictAnalytics = (
             }
 
             return results;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la récupération des analyses d\'équipe'));
             return {};
         } finally {
@@ -337,7 +338,7 @@ export const useLeaveConflictAnalytics = (
             }
 
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la récupération des recommandations'));
             return [];
         } finally {
@@ -355,7 +356,7 @@ export const useLeaveConflictAnalytics = (
             setHighRiskPeriods(result);
 
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de l\'identification des périodes à risque'));
             return [];
         } finally {
@@ -377,7 +378,7 @@ export const useLeaveConflictAnalytics = (
             }
 
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de l\'analyse de l\'impact sur les temps d\'approbation'));
             return null;
         } finally {
@@ -409,7 +410,7 @@ export const useLeaveConflictAnalytics = (
             }
 
             return { statsResult, trendsResult, recommendationsResult, approvalTimeResult };
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors du chargement des analyses'));
             return null;
         } finally {
@@ -432,7 +433,7 @@ export const useLeaveConflictAnalytics = (
             link.click();
 
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de l\'export des données'));
             return null;
         } finally {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authOptions } from '@/lib/auth';
-import { getServerSession } from 'next-auth/next';
+import { logger } from "@/lib/logger";
+import { authOptions } from '@/lib/auth/migration-shim';
+import { getServerSession } from '@/lib/auth/migration-shim';
 import { prisma } from '@/lib/prisma';
 import { LeaveType } from '@/modules/leaves/types/leave';
 import { z } from 'zod';
@@ -177,8 +178,8 @@ export async function POST(req: NextRequest) {
             targetTotal: result.targetBalance.remaining,
             transferId: result.transferId
         });
-    } catch (error) {
-        console.error('Erreur lors de l\'exécution du transfert:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'exécution du transfert:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors du traitement de la demande' },
             { status: 500 }

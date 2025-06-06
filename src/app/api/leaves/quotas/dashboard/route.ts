@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 
 /**
@@ -316,8 +317,8 @@ export async function GET(req: NextRequest) {
             carryOverStats,
             topUsers
         });
-    } catch (error) {
-        console.error('Erreur lors de la récupération des données du dashboard:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des données du dashboard:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des données' },
             { status: 500 }

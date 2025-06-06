@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { BlocPeriod, BlocRoomAssignment, BlocSupervisor } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 import { Card, Button } from '@/components/ui';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
@@ -48,8 +49,8 @@ export default function BlocPlanningCalendar({ date, period, onAssignmentChange 
                 }
 
                 setError(null);
-            } catch (error) {
-                console.error('Erreur:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur:', { error: error });
                 setError('Erreur lors du chargement des données');
             } finally {
                 setIsLoading(false);
@@ -82,7 +83,7 @@ export default function BlocPlanningCalendar({ date, period, onAssignmentChange 
         if (onAssignmentChange) onAssignmentChange(newAssignments);
     };
 
-    const handleDragEnd = (result: any) => {
+    const handleDragEnd = (result: unknown) => {
         if (!result.destination) return;
 
         const { draggableId, destination, source } = result;
@@ -351,7 +352,7 @@ export default function BlocPlanningCalendar({ date, period, onAssignmentChange 
                                 } else {
                                     setError('Erreur lors de l\'enregistrement');
                                 }
-                            } catch (err) {
+                            } catch (err: unknown) {
                                 setError('Erreur lors de l\'enregistrement');
                             }
                         }}

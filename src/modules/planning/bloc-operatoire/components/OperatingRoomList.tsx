@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     useOperatingRoomsQuery,
     useOperatingSectorsQuery,
@@ -128,8 +129,8 @@ export function OperatingRoomList() {
             });
             setIsDeleteDialogOpen(false);
             setRoomToDelete(null);
-        } catch (error) {
-            console.error('Erreur lors de la suppression:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la suppression:', { error: error });
             toast({
                 variant: 'destructive',
                 title: 'Erreur de suppression',
@@ -173,8 +174,8 @@ export function OperatingRoomList() {
                 });
             }
             setIsDialogOpen(false);
-        } catch (error) {
-            console.error('Erreur lors de l\'enregistrement:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'enregistrement:', { error: error });
             toast({
                 variant: 'destructive',
                 title: 'Erreur d\'enregistrement',

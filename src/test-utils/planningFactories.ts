@@ -74,7 +74,7 @@ export interface TestPlanningConfiguration {
   };
   active: boolean;
   createdBy: number;
-  constraints?: any[];
+  constraints?: unknown[];
 }
 
 export interface TestShiftTemplate {

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 
 export async function POST(request: Request) {
@@ -43,8 +44,8 @@ export async function POST(request: Request) {
             updatedCount: result.length
         });
 
-    } catch (error) {
-        console.error('Erreur lors de la réorganisation des sites:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la réorganisation des sites:', { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la réorganisation des sites',
             details: error instanceof Error ? error.message : 'Erreur inconnue'

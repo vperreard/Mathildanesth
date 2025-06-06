@@ -1,4 +1,5 @@
 import { connectToDatabase } from '../../lib/mongodb.js';
+import { logger } from "../../lib/logger";
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -212,7 +213,7 @@ export const surgeonsList = [
  */
 export async function seedSurgeons() {
   try {
-    console.log("Démarrage de l'initialisation des chirurgiens...");
+    logger.info("Démarrage de l'initialisation des chirurgiens...");
 
     // Connexion à la base de données
     const { db } = await connectToDatabase();
@@ -227,15 +228,15 @@ export async function seedSurgeons() {
     specialties.forEach(specialty => {
       const specialtyName = specialty.name.toLowerCase();
       specialtiesMap.set(specialtyName, specialty._id);
-      console.log(`Spécialité mappée: ${specialtyName} -> ${specialty._id}`);
+      logger.info(`Spécialité mappée: ${specialtyName} -> ${specialty._id}`);
     });
 
     // Vérifier si des chirurgiens existent déjà
     const existingSurgeons = await surgeonsCollection.countDocuments();
 
     if (existingSurgeons > 0) {
-      console.log(`${existingSurgeons} chirurgiens existent déjà dans la base de données.`);
-      console.log('Mise à jour des chirurgiens existants et ajout des nouveaux...');
+      logger.info(`${existingSurgeons} chirurgiens existent déjà dans la base de données.`);
+      logger.info('Mise à jour des chirurgiens existants et ajout des nouveaux...');
 
       for (const surgeon of surgeonsList) {
         // Convertir les noms de spécialités en IDs
@@ -244,11 +245,11 @@ export async function seedSurgeons() {
           const specialtyId = specialtiesMap.get(specialtyName.toLowerCase());
           if (specialtyId) {
             specialtyIds.push(specialtyId.toString());
-            console.log(
+            logger.info(
               `Spécialité trouvée pour ${surgeon.prenom} ${surgeon.nom}: ${specialtyName} -> ${specialtyId}`
             );
           } else {
-            console.warn(
+            logger.warn(
               `AVERTISSEMENT: Spécialité "${specialtyName}" non trouvée pour ${surgeon.prenom} ${surgeon.nom}`
             );
           }
@@ -273,7 +274,7 @@ export async function seedSurgeons() {
               },
             }
           );
-          console.log(
+          logger.info(
             `Chirurgien mis à jour: ${surgeon.prenom} ${surgeon.nom} avec ${specialtyIds.length} spécialités`
           );
         } else {
@@ -290,7 +291,7 @@ export async function seedSurgeons() {
             createdAt: new Date(),
             updatedAt: new Date(),
           });
-          console.log(
+          logger.info(
             `Nouveau chirurgien ajouté: ${surgeon.prenom} ${surgeon.nom} avec ${specialtyIds.length} spécialités`
           );
         }
@@ -304,11 +305,11 @@ export async function seedSurgeons() {
           const specialtyId = specialtiesMap.get(specialtyName.toLowerCase());
           if (specialtyId) {
             specialtyIds.push(specialtyId.toString());
-            console.log(
+            logger.info(
               `Spécialité trouvée pour ${surgeon.prenom} ${surgeon.nom}: ${specialtyName} -> ${specialtyId}`
             );
           } else {
-            console.warn(
+            logger.warn(
               `AVERTISSEMENT: Spécialité "${specialtyName}" non trouvée pour ${surgeon.prenom} ${surgeon.nom}`
             );
           }
@@ -329,13 +330,13 @@ export async function seedSurgeons() {
       });
 
       await surgeonsCollection.insertMany(surgeonsToInsert);
-      console.log(`${surgeonsToInsert.length} chirurgiens ont été ajoutés.`);
+      logger.info(`${surgeonsToInsert.length} chirurgiens ont été ajoutés.`);
     }
 
-    console.log('Initialisation des chirurgiens terminée avec succès!');
+    logger.info('Initialisation des chirurgiens terminée avec succès!');
     return true;
-  } catch (error) {
-    console.error("Erreur lors de l'initialisation des chirurgiens:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de l'initialisation des chirurgiens:", { error: error });
     throw error;
   }
 }
@@ -345,7 +346,7 @@ export async function seedSurgeons() {
 //     seedSurgeons()
 //         .then(() => process.exit(0))
 //         .catch(error => {
-//             console.error('Erreur lors du seed des chirurgiens:', error);
+//             logger.error('Erreur lors du seed des chirurgiens:', { error: error });
 //             process.exit(1);
 //         });
 // }

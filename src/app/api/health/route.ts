@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { healthCheckService } from '@/lib/monitoring/healthCheck';
 import { withPublicRateLimit } from '@/lib/rateLimit';
 
@@ -20,8 +21,8 @@ async function getHandler(request: NextRequest) {
             }
         });
 
-    } catch (error) {
-        console.error('Health check failed:', error);
+    } catch (error: unknown) {
+        logger.error('Health check failed:', { error: error });
         
         return NextResponse.json({
             status: 'unhealthy',
@@ -47,7 +48,7 @@ async function headHandler(request: NextRequest) {
         }
         
         return new NextResponse(null, { status: 200 });
-    } catch (error) {
+    } catch (error: unknown) {
         return new NextResponse(null, { status: 503 });
     }
 }

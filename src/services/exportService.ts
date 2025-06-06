@@ -7,7 +7,7 @@ import { fr } from 'date-fns/locale';
 // Ajout pour résoudre les problèmes de typage avec jsPDF
 declare module 'jspdf' {
     interface jsPDF {
-        autoTable: (options: any) => jsPDF;
+        autoTable: (options: unknown) => jsPDF;
         previousAutoTable?: {
             finalY: number;
         };
@@ -27,7 +27,7 @@ interface SimulationExportData {
     scenarioDescription?: string;
     createdAt: Date | string;
     status: string;
-    statistics: any;
+    statistics: unknown;
     conflicts: Array<any>;
     userAssignments: Array<any>;
     periodCoverage?: number;

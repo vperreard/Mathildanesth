@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -98,8 +99,8 @@ export default function TeamPlanningPage() {
             setTeamMembers(mockTeamMembers);
             setTeamShifts(mockShifts);
 
-        } catch (error) {
-            console.error('Erreur lors du chargement du planning équipe:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement du planning équipe:', { error: error });
             toast({
                 title: "Erreur",
                 description: "Impossible de charger le planning de l'équipe",

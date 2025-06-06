@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { PrismaClient, SimulationScenario, Prisma } from '@prisma/client';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { z } from 'zod';
 
 import { prisma } from "@/lib/prisma";
@@ -45,8 +46,8 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(newScenario, { status: 201 });
-    } catch (error) {
-        console.error("Erreur lors de la création du scénario de simulation:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la création du scénario de simulation:", { error: error });
         const errorMessage = error instanceof Error ? error.message : 'Erreur interne du serveur';
         return NextResponse.json({ error: "Impossible de créer le scénario.", details: errorMessage }, { status: 500 });
     }
@@ -76,8 +77,8 @@ export async function GET(request: NextRequest) {
             }
         });
         return NextResponse.json(scenarios);
-    } catch (error) {
-        console.error("Erreur lors de la récupération des scénarios de simulation:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la récupération des scénarios de simulation:", { error: error });
         const errorMessage = error instanceof Error ? error.message : 'Erreur interne du serveur';
         return NextResponse.json({ error: "Impossible de récupérer les scénarios.", details: errorMessage }, { status: 500 });
     }

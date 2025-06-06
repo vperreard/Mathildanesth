@@ -71,7 +71,7 @@ export class RuleEvaluationService {
             }
 
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             this.loggerService.log(LogLevel.ERROR, `Erreur lors de l'évaluation de la règle ${rule.id}: ${error.message}`);
             return this.createResult(
                 rule.id,
@@ -189,7 +189,7 @@ export class RuleEvaluationService {
         passed: boolean,
         severity: RuleSeverity,
         message: string,
-        details: any
+        details: unknown
     ): RuleEvaluationResult {
         return {
             ruleId,

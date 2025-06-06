@@ -86,7 +86,7 @@ const PlanningRuleForm: React.FC<PlanningRuleFormProps> = ({
         if (field.includes(".")) {
             const [parent, child] = field.split(".");
             setFormData((prev) => {
-                const parentObj = prev[parent as keyof PlanningRule] as Record<string, any>;
+                const parentObj = prev[parent as keyof PlanningRule] as Record<string, unknown>;
                 return {
                     ...prev,
                     [parent]: {

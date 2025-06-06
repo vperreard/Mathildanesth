@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from 'react';
+import { logger } from "../lib/logger";
 import { usePathname, useRouter } from 'next/navigation';
 import {
     prefetchCommonData,
@@ -38,11 +39,11 @@ export default function Prefetcher() {
 
             // Précharger les données de l'utilisateur si connecté (temporairement désactivé)
             if (user?.id) {
-                console.log(`Préchargement utilisateur ${user.id} temporairement désactivé`);
+                logger.info(`Préchargement utilisateur ${user.id} temporairement désactivé`);
                 // setTimeout(() => prefetchUserData(String(user.id)), 3000);
             }
         } else {
-            console.log('Utilisateur non authentifié, préchargement des données ignoré');
+            logger.info('Utilisateur non authentifié, préchargement des données ignoré');
         }
     }, [user, isAuthenticated]);
 

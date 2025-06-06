@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/migration-shim';
 import { WorkSchedule, WorkFrequency, WeekType } from '../types/workSchedule';
 import { getLogger } from '@/utils/logger';
 
@@ -50,7 +50,7 @@ export const useUserWorkSchedule = ({ userId }: UseUserWorkScheduleProps = {}): 
             const data = await response.json();
             setWorkSchedule(data);
             logger.info(`Successfully fetched work planning médical for user ID: ${targetUserId}`);
-        } catch (err) {
+        } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             setError(errorObj);
             logger.error(`Erreur dans useUserWorkSchedule catch block: ${errorObj.message}`, {

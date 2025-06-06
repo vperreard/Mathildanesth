@@ -108,8 +108,8 @@ export class ConflictDetector {
 
     // Check for inclusion conflicts
     if (c1.operator === 'IN' && c2.operator === 'NOT_IN') {
-      const values1 = c1.value as any[];
-      const values2 = c2.value as any[];
+      const values1 = c1.value as unknown[];
+      const values2 = c2.value as unknown[];
       const intersection = values1.filter(v => values2.includes(v));
       if (intersection.length > 0) {
         return 'inclusion_conflict';
@@ -458,7 +458,7 @@ export class ConflictDetector {
     return merged;
   }
 
-  private combineValues(value1: any, value2: any): any {
+  private combineValues(value1: unknown, value2: unknown): any {
     if (typeof value1 === 'number' && typeof value2 === 'number') {
       return Math.max(value1, value2);
     }

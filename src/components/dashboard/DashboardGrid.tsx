@@ -55,7 +55,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
     const [customizingWidget, setCustomizingWidget] = useState<Widget | null>(null);
     const { currentTheme } = useTheme();
 
-    const handleDragEnd = (result: any) => {
+    const handleDragEnd = (result: unknown) => {
         if (!result.destination) return;
 
         const items = Array.from(widgets);

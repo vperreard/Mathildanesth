@@ -39,6 +39,6 @@ export interface Theme {
 
 export interface ApiConfig {
     baseUrl: string;
-    endpoints: Record<string, any>;
+    endpoints: Record<string, unknown>;
     headers: Record<string, string>;
 } 

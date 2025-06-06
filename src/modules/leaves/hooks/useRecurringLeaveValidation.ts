@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { logger } from "../../../lib/logger";
 import { addDays, format, isAfter, isBefore } from 'date-fns';
 
 import {
@@ -32,8 +33,8 @@ function normalizeDate(date: Date | string | null | undefined): Date | null {
         // Remove time part
         normalizedDate.setHours(0, 0, 0, 0);
         return normalizedDate;
-    } catch (error) {
-        console.error('Error normalizing date:', error);
+    } catch (error: unknown) {
+        logger.error('Error normalizing date:', { error: error });
         return null;
     }
 }
@@ -85,7 +86,7 @@ export type RecurringValidationResult = {
     isValid: boolean;
     errors: RecurringValidationError[];
     occurrencesResult?: {
-        occurrences: Array<{ startDate: Date; endDate: Date; conflicts?: any[] }>;
+        occurrences: Array<{ startDate: Date; endDate: Date; conflicts?: unknown[] }>;
         totalDays: number;
     } | null;
 };
@@ -95,12 +96,12 @@ interface LocalLeaveValidationError {
     field: string;
     type: DateValidationErrorType;
     message: string;
-    details?: any;
+    details?: unknown;
 }
 
 export function useRecurringLeaveValidation() {
     const [errors, setErrors] = useState<RecurringValidationError[]>([]);
-    const [generationResult, setGenerationResult] = useState<{ occurrences: Array<{ startDate: Date; endDate: Date; conflicts?: any[] }>; totalDays: number; } | null>(null);
+    const [generationResult, setGenerationResult] = useState<{ occurrences: Array<{ startDate: Date; endDate: Date; conflicts?: unknown[] }>; totalDays: number; } | null>(null);
 
     // Explicitly type the return of the hooks
     const dateValidation: ReturnType<typeof useDateValidation> = useDateValidation({});
@@ -269,11 +270,11 @@ export function useRecurringLeaveValidation() {
         occurrences: Array<{ startDate: Date; endDate: Date }>,
         currentUserId: string,
         options?: RecurringValidationOptions
-    ): Promise<{ isValid: boolean; errors: RecurringValidationError[]; occurrences: Array<{ startDate: Date; endDate: Date; conflicts?: any[] }> }> => {
+    ): Promise<{ isValid: boolean; errors: RecurringValidationError[]; occurrences: Array<{ startDate: Date; endDate: Date; conflicts?: unknown[] }> }> => {
         const newValidationErrors: RecurringValidationError[] = [];
-        const occurrencesWithConflicts: Array<{ startDate: Date; endDate: Date; conflicts?: any[] }> = [];
+        const occurrencesWithConflicts: Array<{ startDate: Date; endDate: Date; conflicts?: unknown[] }> = [];
 
-        console.log(`[validateOccurrencesConflicts] Checking ${occurrences.length} occurrences for conflicts`);
+        logger.info(`[validateOccurrencesConflicts] Checking ${occurrences.length} occurrences for conflicts`);
 
         if (options?.validateAllOccurrences) {
             for (const occurrence of occurrences) {
@@ -283,7 +284,7 @@ export function useRecurringLeaveValidation() {
                     currentUserId
                 );
 
-                console.log(`[validateOccurrencesConflicts] Occurrence ${occurrence.startDate.toISOString()} - ${occurrence.endDate.toISOString()}: hasConflicts=${conflictResult.hasConflicts}`);
+                logger.info(`[validateOccurrencesConflicts] Occurrence ${occurrence.startDate.toISOString()} - ${occurrence.endDate.toISOString()}: hasConflicts=${conflictResult.hasConflicts}`);
 
                 if (conflictResult.hasConflicts) {
                     occurrencesWithConflicts.push({
@@ -305,7 +306,7 @@ export function useRecurringLeaveValidation() {
         }
 
         const hasNewErrors = newValidationErrors.length > 0;
-        console.log(`[validateOccurrencesConflicts] Validation complete: ${hasNewErrors ? 'INVALID' : 'VALID'}, errors: ${newValidationErrors.length}, conflictingOccurrences: ${occurrencesWithConflicts.filter(o => o.conflicts).length}`);
+        logger.info(`[validateOccurrencesConflicts] Validation complete: ${hasNewErrors ? 'INVALID' : 'VALID'}, errors: ${newValidationErrors.length}, conflictingOccurrences: ${occurrencesWithConflicts.filter(o => o.conflicts).length}`);
 
         return {
             isValid: !hasNewErrors,
@@ -357,7 +358,7 @@ export function useRecurringLeaveValidation() {
             const dateRangeValid = dateValidation.validateDateRange(startDate, endDate, 'patternStartDate', 'patternEndDate');
 
             if (!dateRangeValid) {
-                console.log('[validateRecurringLeaveRequest] Date validation failed');
+                logger.info('[validateRecurringLeaveRequest] Date validation failed');
 
                 // Attempt to access getErrors via string indexer as a workaround for linter issues
                 const dateValidationErrors = (dateValidation as any)['getErrors'] ? (dateValidation as any)['getErrors']() : {};
@@ -393,7 +394,7 @@ export function useRecurringLeaveValidation() {
 
         const isLeaveValid = await leaveValidation.validateLeaveRequest(startDate, endDate, userId, options);
         if (!isLeaveValid) {
-            console.log('[validateRecurringLeaveRequest] Leave validation failed');
+            logger.info('[validateRecurringLeaveRequest] Leave validation failed');
 
             // Attempt to access getErrors via string indexer as a workaround for linter issues
             const leaveRequestErrors = (leaveValidation as any)['getErrors'] ? (leaveValidation as any)['getErrors']() : [];
@@ -405,7 +406,7 @@ export function useRecurringLeaveValidation() {
                 });
             });
 
-            if (allErrors.length === 0 && (!leaveRequestErrors || (leaveRequestErrors as any[]).length === 0)) {
+            if (allErrors.length === 0 && (!leaveRequestErrors || (leaveRequestErrors as unknown[]).length === 0)) {
                 allErrors.push({
                     field: 'leaveRequest',
                     type: DateValidationErrorType.INVALID_RANGE,
@@ -424,7 +425,7 @@ export function useRecurringLeaveValidation() {
 
         // Validate pattern
         if (!validateRecurrencePattern(recurrencePattern, 'recurrencePattern', options)) {
-            console.log('[validateRecurringLeaveRequest] Pattern validation failed');
+            logger.info('[validateRecurringLeaveRequest] Pattern validation failed');
 
             const result: RecurringValidationResult = {
                 isValid: false,
@@ -438,7 +439,7 @@ export function useRecurringLeaveValidation() {
 
         // Generate occurrences
         try {
-            console.log('[validateRecurringLeaveRequest] Generating occurrences');
+            logger.info('[validateRecurringLeaveRequest] Generating occurrences');
 
             // Format request object for generateRecurringDates
             const recurringRequest = {
@@ -464,7 +465,7 @@ export function useRecurringLeaveValidation() {
             });
 
             if (generatedResult.occurrences.length === 0) {
-                console.log('[validateRecurringLeaveRequest] No occurrences generated');
+                logger.info('[validateRecurringLeaveRequest] No occurrences generated');
                 allErrors.push({
                     field: 'recurrencePattern',
                     type: RecurringValidationErrorType.NO_OCCURRENCES,
@@ -483,7 +484,7 @@ export function useRecurringLeaveValidation() {
 
             // Check max occurrences
             if (options?.maxOccurrences && generatedResult.occurrences.length > options.maxOccurrences) {
-                console.log(`[validateRecurringLeaveRequest] Too many occurrences: ${generatedResult.occurrences.length} > ${options.maxOccurrences}`);
+                logger.info(`[validateRecurringLeaveRequest] Too many occurrences: ${generatedResult.occurrences.length} > ${options.maxOccurrences}`);
                 allErrors.push({
                     field: 'recurrencePattern.endCount',
                     type: RecurringValidationErrorType.TOO_MANY_OCCURRENCES,
@@ -493,7 +494,7 @@ export function useRecurringLeaveValidation() {
 
             // Check max total days
             if (options?.maxTotalDays && generatedResult.totalDays > options.maxTotalDays) {
-                console.log(`[validateRecurringLeaveRequest] Too many total days: ${generatedResult.totalDays} > ${options.maxTotalDays}`);
+                logger.info(`[validateRecurringLeaveRequest] Too many total days: ${generatedResult.totalDays} > ${options.maxTotalDays}`);
                 allErrors.push({
                     field: 'recurrencePattern',
                     type: RecurringValidationErrorType.EXCEEDS_MAX_TOTAL_DAYS,
@@ -502,7 +503,7 @@ export function useRecurringLeaveValidation() {
             }
 
             // Validate occurrences for conflicts
-            console.log('[validateRecurringLeaveRequest] Validating occurrences for conflicts');
+            logger.info('[validateRecurringLeaveRequest] Validating occurrences for conflicts');
             const occurrencesValidation = await validateOccurrencesConflicts(
                 generatedResult.occurrences.map(o => ({ startDate: o.startDate, endDate: o.endDate })),
                 userId,
@@ -510,13 +511,13 @@ export function useRecurringLeaveValidation() {
             );
 
             if (!occurrencesValidation.isValid) {
-                console.log('[validateRecurringLeaveRequest] Conflicts detected');
+                logger.info('[validateRecurringLeaveRequest] Conflicts detected');
                 allErrors.push(...occurrencesValidation.errors);
             }
 
             // Calculate final validation result
             const isValid = allErrors.length === 0;
-            console.log(`[validateRecurringLeaveRequest] Final validation result: ${isValid ? 'VALID' : 'INVALID'}, errors: ${allErrors.length}`);
+            logger.info(`[validateRecurringLeaveRequest] Final validation result: ${isValid ? 'VALID' : 'INVALID'}, errors: ${allErrors.length}`);
 
             // Prepare occurrence result
             const occurrencesResult = {
@@ -553,8 +554,8 @@ export function useRecurringLeaveValidation() {
 
             return result;
 
-        } catch (error: any) {
-            console.error('[validateRecurringLeaveRequest] Error generating occurrences:', error);
+        } catch (error: unknown) {
+            logger.error('[validateRecurringLeaveRequest] Error generating occurrences:', { error: error });
 
             allErrors.push({
                 field: 'recurrencePattern',

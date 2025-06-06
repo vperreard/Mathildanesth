@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { useLeaveQuota, CalculateCarryOverParams, LeaveTypeQuota } from '../hooks/useLeaveQuota';
 import { LeaveType } from '../types/leave';
 import { QuotaCarryOverRule } from '../types/quota';
@@ -147,8 +148,8 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
             try {
                 const rules = await quotaAdvancedService.getActiveCarryOverRules(userId);
                 setCarryOverRules(rules);
-            } catch (err) {
-                console.error('Erreur lors du chargement des règles de report:', err);
+            } catch (err: unknown) {
+                logger.error('Erreur lors du chargement des règles de report:', { error: err });
                 setError(`Impossible de charger les règles de report: ${err instanceof Error ? err.message : String(err)}`);
             } finally {
                 setLoadingRules(false);
@@ -183,7 +184,7 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
                 if (result.carryOverAmount > 0) {
                     setValue('carryOverAmount', result.carryOverAmount);
                 }
-            } catch (err) {
+            } catch (err: unknown) {
                 setError(`Erreur lors de la simulation : ${err instanceof Error ? err.message : String(err)}`);
                 setSimulationResult(null);
             } finally {
@@ -232,7 +233,7 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
                 // Notifier le parent du succès du report
                 onCarryOverComplete();
             }, 2000);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(`Erreur lors du report : ${err instanceof Error ? err.message : String(err)}`);
         } finally {
             setIsSubmitting(false);

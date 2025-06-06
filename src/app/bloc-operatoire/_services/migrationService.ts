@@ -5,6 +5,7 @@
 
 import { redirect } from 'next/navigation';
 
+import { logger } from "../../../lib/logger";
 interface MigrationStatus {
   component: string;
   oldPath: string;
@@ -184,6 +185,6 @@ export function getMigrationSummary() {
  */
 export function logMigrationIssue(component: string, issue: string) {
   if (process.env.NODE_ENV === 'development') {
-    console.warn(`[Migration] ${component}: ${issue}`);
+    logger.warn(`[Migration] ${component}: ${issue}`);
   }
 }

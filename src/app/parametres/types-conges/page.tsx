@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { LeaveTypeSetting } from '@prisma/client'; // Importer le type généré par Prisma
 import LeaveTypeFormModal from '@/components/admin/LeaveTypeFormModal'; // Importer le modal
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
@@ -30,7 +31,7 @@ interface LeaveTypeSettingData extends Partial<LeaveTypeSetting> {
 // Interface pour le type attendu par le modal (simplifiée pour le cast)
 interface LeaveTypeFormModalProps {
     initialData?: Partial<LeaveTypeSetting & {
-        rules: any; // Simplifié pour le cast, le type réel est plus complexe
+        rules: unknown; // Simplifié pour le cast, le type réel est plus complexe
     }>;
 }
 
@@ -55,8 +56,8 @@ export default function ManageLeaveTypesPage() {
             }
             const data: LeaveTypeSettingData[] = await response.json();
             setLeaveTypes(data);
-        } catch (err: any) {
-            console.error("Erreur lors de la récupération des types de congés:", err);
+        } catch (err: unknown) {
+            logger.error("Erreur lors de la récupération des types de congés:", err);
             setError(err.message || "Impossible de charger les types de congés.");
         } finally {
             setIsLoading(false);
@@ -109,8 +110,8 @@ export default function ManageLeaveTypesPage() {
             alert(`Le type "${label}" a été supprimé.`);
             fetchLeaveTypes(); // Recharger la liste
 
-        } catch (err: any) {
-            console.error("Erreur lors de la suppression:", err);
+        } catch (err: unknown) {
+            logger.error("Erreur lors de la suppression:", err);
             alert(`Erreur lors de la suppression: ${err.message}`);
         }
     };

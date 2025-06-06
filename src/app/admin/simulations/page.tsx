@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Plus, Loader2, BarChart2, Calendar, Clock, Play, Eye, PencilIcon, Trash2, AlertTriangle, Copy, ArrowRightLeft, BarChart as BarChartIcon } from 'lucide-react';
@@ -80,8 +81,8 @@ export default function SimulationsPage() {
 
                 const templatesData = await templatesResponse.json();
                 setTemplates(templatesData.data);
-            } catch (err: any) {
-                console.error('Erreur lors du chargement des données:', err);
+            } catch (err: unknown) {
+                logger.error('Erreur lors du chargement des données:', { error: err });
                 setError(err.message || 'Erreur inconnue');
             } finally {
                 setIsLoading(false);
@@ -108,8 +109,8 @@ export default function SimulationsPage() {
             // Mettre à jour la liste des scénarios
             setScenarios(scenarios.filter(scenario => scenario.id !== selectedScenarioId));
             toast.success('Scénario supprimé avec succès');
-        } catch (err: any) {
-            console.error('Erreur lors de la suppression:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors de la suppression:', { error: err });
             toast.error(err.message || 'Erreur lors de la suppression');
         } finally {
             setIsDeleting(false);
@@ -155,8 +156,8 @@ export default function SimulationsPage() {
             ));
 
             toast.success('Simulation démarrée avec succès');
-        } catch (err: any) {
-            console.error('Erreur lors du démarrage de la simulation:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors du démarrage de la simulation:', { error: err });
             toast.error(err.message || 'Erreur lors du démarrage de la simulation');
         }
     };
@@ -193,8 +194,8 @@ export default function SimulationsPage() {
             // Fermer la boîte de dialogue et réinitialiser les états
             setIsDuplicateDialogOpen(false);
             setNewScenarioName('');
-        } catch (err: any) {
-            console.error('Erreur lors de la duplication du scénario:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors de la duplication du scénario:', { error: err });
             toast.error(err.message || 'Erreur lors de la duplication du scénario');
         } finally {
             setIsDuplicating(false);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { format, isValid, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useDateValidation, ValidationOptions as DateValidationOptions } from '../../hooks/useDateValidation';
@@ -213,7 +214,7 @@ export const DateRangePickerWithErrorHandling: React.FC<DateRangePickerProps & {
             maxRetries={2}
             onSuccess={(ranges) => {
                 // Les plages existantes sont chargées avec succès
-                console.log(`${ranges.length} plages existantes chargées`);
+                logger.info(`${ranges.length} plages existantes chargées`);
             }}
         >
             {(loadedRanges) => (

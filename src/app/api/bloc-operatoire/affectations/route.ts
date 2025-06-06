@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { prisma } from '@/lib/prisma';
 
 
@@ -40,8 +41,8 @@ export async function GET(request: Request) {
         });
 
         return NextResponse.json(affectations);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des affectations:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des affectations:', { error: error });
         return NextResponse.json({ error: 'Erreur lors de la récupération des affectations' }, { status: 500 });
     }
 }
@@ -116,8 +117,8 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json(newAffectation, { status: 201 });
-    } catch (error) {
-        console.error('Erreur lors de la création de l\'affectation:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création de l\'affectation:', { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la création de l\'affectation',
             details: error instanceof Error ? error.message : 'Erreur inconnue'
@@ -155,8 +156,8 @@ export async function DELETE(request: Request) {
         });
 
         return NextResponse.json({ success: true, message: 'Affectation supprimée avec succès' });
-    } catch (error) {
-        console.error('Erreur lors de la suppression de l\'affectation:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la suppression de l\'affectation:', { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la suppression de l\'affectation',
             details: error instanceof Error ? error.message : 'Erreur inconnue'

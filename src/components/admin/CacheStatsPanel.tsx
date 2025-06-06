@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
@@ -85,8 +86,8 @@ export default function CacheStatsPanel() {
             const data = await response.json();
             setStats(data.stats);
             setMessage(null);
-        } catch (error) {
-            console.error('Erreur lors de la récupération des statistiques:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des statistiques:', { error: error });
             setMessage({
                 type: 'error',
                 text: error instanceof Error ? error.message : 'Erreur inconnue'
@@ -138,8 +139,8 @@ export default function CacheStatsPanel() {
 
             // Rafraîchir les statistiques après invalidation
             fetchStats();
-        } catch (error) {
-            console.error('Erreur lors de l\'invalidation du cache:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'invalidation du cache:', { error: error });
             toast({
                 title: 'Erreur',
                 description: error instanceof Error ? error.message : 'Erreur inconnue',

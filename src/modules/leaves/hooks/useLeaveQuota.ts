@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { LeaveType, LeaveBalance, LeaveAllowanceCheckResult } from '../types/leave';
 import { fetchLeaveBalance, checkLeaveAllowance } from '../services/leaveService';
 import {
@@ -241,9 +242,9 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
             // Récupérer les règles de transfert actives pour l'utilisateur
             const rules = await fetchActiveTransferRulesForUser(userId);
             setTransferRules(rules);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err as Error);
-            console.error('Erreur lors de la récupération des quotas de congés', err);
+            logger.error('Erreur lors de la récupération des quotas de congés', { error: err });
         } finally {
             setLoading(false);
         }
@@ -318,8 +319,8 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
                 availableDays,
                 leaveType
             };
-        } catch (error) {
-            console.error('Erreur lors de la vérification des quotas', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la vérification des quotas', { error: error });
             return {
                 isValid: false,
                 message: 'Une erreur est survenue lors de la vérification des quotas.',
@@ -359,9 +360,9 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
             }
 
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err as Error;
-            console.error('Erreur lors du transfert de quotas :', error);
+            logger.error('Erreur lors du transfert de quotas :', { error: error });
             throw error;
         }
     }, [transferRules, refreshQuotas, leaveBalance?.useSimulation]);
@@ -386,9 +387,9 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
                 // Appeler l'API réelle
                 return await previewQuotaTransfer(request);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err as Error;
-            console.error('Erreur lors de la simulation du transfert :', error);
+            logger.error('Erreur lors de la simulation du transfert :', { error: error });
             throw error;
         }
     }, [transferRules, leaveBalance?.useSimulation]);
@@ -412,9 +413,9 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
                 // Appeler l'API réelle
                 return await calculateCarryOver(request);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err as Error;
-            console.error('Erreur lors du calcul du report :', error);
+            logger.error('Erreur lors du calcul du report :', { error: error });
             throw error;
         }
     }, [leaveBalance?.useSimulation]);
@@ -444,9 +445,9 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
 
                 return !!result.id;
             }
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err as Error;
-            console.error('Erreur lors de l\'exécution du report :', error);
+            logger.error('Erreur lors de l\'exécution du report :', { error: error });
             throw error;
         }
     }, [refreshQuotas, leaveBalance?.useSimulation]);

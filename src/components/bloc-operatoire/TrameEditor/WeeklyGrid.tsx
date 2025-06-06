@@ -21,7 +21,7 @@ import { AlertTriangle, Clock, User, Settings } from 'lucide-react';
 interface WeeklyGridProps {
     gridData: WeeklyGridData;
     affectations: EditorAffectation[];
-    onAffectationMove: (affectationId: number, target: any) => void;
+    onAffectationMove: (affectationId: number, target: unknown) => void;
     onAffectationSelect: (affectationId: number) => void;
     onCellClick: (jourSemaine: DayOfWeek, periode: Period, roomId?: number) => void;
     selectedAffectations: number[];

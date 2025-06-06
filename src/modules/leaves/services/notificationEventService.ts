@@ -1,4 +1,5 @@
 import { Leave, LeaveStatus } from '../types/leave';
+import { logger } from "../../../lib/logger";
 import { User } from '@/types/user';
 import {
     LeaveNotificationType,
@@ -112,8 +113,8 @@ export class NotificationEventService {
             const response = await fetch(`http://localhost:3000/api/utilisateurs/${userId}/approvers`);
             const data = await response.json();
             return data.map((user: User) => user.id);
-        } catch (error) {
-            console.error('Erreur lors de la récupération des approbateurs:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la récupération des approbateurs:', { error: error });
             return [];
         }
     }
@@ -191,7 +192,7 @@ export class NotificationEventService {
                 break;
 
             default:
-                console.warn(`Type d'événement non géré: ${event.eventType}`);
+                logger.warn(`Type d'événement non géré: ${event.eventType}`);
         }
     }
 }

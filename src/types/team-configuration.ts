@@ -181,17 +181,17 @@ export interface TeamConfiguration extends TeamConfigBase {
     fatigue?: FatigueConfig;
     tempsPartiel?: TempsPartielConfig;
     iades?: IadesConfig;
-    remplacants?: any;
-    preferences?: any;
-    statistiques?: any;
-    horaires?: any;
-    affectations: any;
-    transitions?: any;
-    equite?: any;
-    alertes?: any;
-    algorithme?: any;
-    rapports?: any;
-    audit?: any;
+    remplacants?: unknown;
+    preferences?: unknown;
+    statistiques?: unknown;
+    horaires?: unknown;
+    affectations: unknown;
+    transitions?: unknown;
+    equite?: unknown;
+    alertes?: unknown;
+    algorithme?: unknown;
+    rapports?: unknown;
+    audit?: unknown;
     createdAt?: Date;
     updatedAt?: Date;
 } 

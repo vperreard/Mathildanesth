@@ -51,7 +51,7 @@ const RuleEditor: React.FC<RuleEditorProps> = ({ rule, onSave, onCancel }) => {
     const [isDirty, setIsDirty] = useState(false);
 
     // Fonction pour gérer les changements dans les inputs
-    const handleInputChange = (field: keyof Rule, value: any) => {
+    const handleInputChange = (field: keyof Rule, value: unknown) => {
         setEditedRule(prev => ({
             ...prev,
             [field]: value
@@ -68,7 +68,7 @@ const RuleEditor: React.FC<RuleEditorProps> = ({ rule, onSave, onCancel }) => {
         setIsDirty(true);
     };
 
-    const handleConditionChange = (id: string, field: keyof RuleCondition, value: any) => {
+    const handleConditionChange = (id: string, field: keyof RuleCondition, value: unknown) => {
         setEditedRule(prev => ({
             ...prev,
             conditions: prev.conditions.map(cond => (cond.id === id ? { ...cond, [field]: value } : cond))
@@ -93,7 +93,7 @@ const RuleEditor: React.FC<RuleEditorProps> = ({ rule, onSave, onCancel }) => {
         setIsDirty(true);
     };
 
-    const handleActionChange = (id: string, field: keyof RuleAction, value: any) => {
+    const handleActionChange = (id: string, field: keyof RuleAction, value: unknown) => {
         setEditedRule(prev => ({
             ...prev,
             actions: prev.actions.map(action => (action.id === id ? { ...action, [field]: value } : action))
@@ -110,7 +110,7 @@ const RuleEditor: React.FC<RuleEditorProps> = ({ rule, onSave, onCancel }) => {
     };
 
     // Gérer le changement des paramètres d'action
-    const handleActionParameterChange = (actionId: string, paramKey: string, paramValue: any) => {
+    const handleActionParameterChange = (actionId: string, paramKey: string, paramValue: unknown) => {
         setEditedRule(prev => ({
             ...prev,
             actions: prev.actions.map(a => {

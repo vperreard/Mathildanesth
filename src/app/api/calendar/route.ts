@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { CalendarEventType, CalendarEvent } from '@/modules/calendrier/types/event';
 import { formatISO } from 'date-fns';
@@ -26,7 +27,7 @@ const validateAndParseDates = (startDateParam?: string, endDateParam?: string) =
         }
 
         return { start, end, isValid: true };
-    } catch (error) {
+    } catch (error: unknown) {
         return {
             start: new Date(),
             end: new Date(),
@@ -40,8 +41,8 @@ export async function GET(request: NextRequest) {
     // Vérifier d'abord la connexion à la base de données
     try {
         await prisma.$queryRaw`SELECT 1`;
-    } catch (dbConnectionError) {
-        console.error('Erreur de connexion à la base de données:', dbConnectionError);
+    } catch (dbConnectionError: unknown) {
+        logger.error('Erreur de connexion à la base de données:', dbConnectionError);
         return NextResponse.json({
             error: 'Erreur de connexion à la base de données',
             details: process.env.NODE_ENV === 'development' ?
@@ -89,12 +90,12 @@ export async function GET(request: NextRequest) {
                 // Par défaut, récupérer tous les types
                 requestedEventTypes = Object.values(CalendarEventType);
             }
-        } catch (typeError) {
-            console.error('Erreur lors de la validation des types d\'événements:', typeError);
+        } catch (typeError: unknown) {
+            logger.error('Erreur lors de la validation des types d\'événements:', typeError);
             return NextResponse.json({ error: 'Format de type d\'événement incorrect' }, { status: 400 });
         }
 
-        const events: any[] = [];
+        const events: unknown[] = [];
 
         // --- Préparer les conditions de filtre pour les IDs ---
         try {
@@ -173,8 +174,8 @@ export async function GET(request: NextRequest) {
                     }));
 
                     events.push(...leaveEvents);
-                } catch (leavesError) {
-                    console.error('Erreur lors de la récupération des congés:', leavesError);
+                } catch (leavesError: unknown) {
+                    logger.error('Erreur lors de la récupération des congés:', leavesError);
                     // Continuer sans ajouter d'événements de congés
                 }
             }
@@ -226,8 +227,8 @@ export async function GET(request: NextRequest) {
                     }));
 
                     events.push(...dutyEvents);
-                } catch (dutiesError) {
-                    console.error('Erreur lors de la récupération des gardes:', dutiesError);
+                } catch (dutiesError: unknown) {
+                    logger.error('Erreur lors de la récupération des gardes:', dutiesError);
                     // Continuer sans ajouter d'événements de gardes
                 }
             }
@@ -286,8 +287,8 @@ export async function GET(request: NextRequest) {
                     }));
 
                     events.push(...assignmentEvents);
-                } catch (assignmentsError) {
-                    console.error('Erreur lors de la récupération des affectations:', assignmentsError);
+                } catch (assignmentsError: unknown) {
+                    logger.error('Erreur lors de la récupération des affectations:', assignmentsError);
                     // Continuer sans ajouter d'événements d'affectations
                 }
             }
@@ -305,8 +306,8 @@ export async function GET(request: NextRequest) {
 
             return NextResponse.json(filteredEvents);
 
-        } catch (filterError) {
-            console.error('Erreur lors du filtrage des événements:', filterError);
+        } catch (filterError: unknown) {
+            logger.error('Erreur lors du filtrage des événements:', filterError);
             return NextResponse.json({
                 error: 'Erreur lors du filtrage des événements',
                 details: process.env.NODE_ENV === 'development' ?
@@ -314,8 +315,8 @@ export async function GET(request: NextRequest) {
             }, { status: 500 });
         }
 
-    } catch (error) {
-        console.error('Erreur lors de la récupération des événements du calendrier:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des événements du calendrier:', { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la récupération des événements du calendrier',
             details: process.env.NODE_ENV === 'development' ?

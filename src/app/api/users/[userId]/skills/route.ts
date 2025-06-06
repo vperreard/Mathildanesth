@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }
 
         return NextResponse.json(userSkills);
-    } catch (error) {
+    } catch (error: unknown) {
         return handleApiError(error, "Erreur lors de la récupération des compétences de l'utilisateur.");
     }
 }
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         });
 
         return NextResponse.json(newUserSkill, { status: 201 });
-    } catch (error) {
+    } catch (error: unknown) {
         return handleApiError(error, "Erreur lors de l'assignation de la compétence à l'utilisateur.");
     }
 } 

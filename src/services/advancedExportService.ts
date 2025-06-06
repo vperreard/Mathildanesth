@@ -7,7 +7,7 @@ import { fr } from 'date-fns/locale';
 // Ajout pour résoudre les problèmes de typage avec jsPDF
 declare module 'jspdf' {
     interface jsPDF {
-        autoTable: (options: any) => jsPDF;
+        autoTable: (options: unknown) => jsPDF;
         previousAutoTable?: {
             finalY: number;
         };
@@ -18,7 +18,7 @@ declare module 'jspdf' {
 export interface ExportOptions {
     format: 'csv' | 'excel' | 'pdf' | 'json';
     fileName?: string;
-    filters?: Record<string, any>;
+    filters?: Record<string, unknown>;
     columns?: string[];
     includeMetadata?: boolean;
     dateRange?: {
@@ -32,10 +32,10 @@ export interface ExportOptions {
 
 export interface ExportData {
     headers: string[];
-    rows: any[][];
+    rows: unknown[][];
     metadata?: {
         exportDate: Date;
-        filters: Record<string, any>;
+        filters: Record<string, unknown>;
         totalCount: number;
         exportedCount: number;
         user?: string;
@@ -49,7 +49,7 @@ export class AdvancedExportService {
     /**
      * Export générique de données
      */
-    static async export(data: any[], options: ExportOptions): Promise<Blob> {
+    static async export(data: unknown[], options: ExportOptions): Promise<Blob> {
         // Préparer les données
         const preparedData = this.prepareData(data, options);
         
@@ -71,7 +71,7 @@ export class AdvancedExportService {
     /**
      * Prépare les données pour l'export
      */
-    private static prepareData(data: any[], options: ExportOptions): ExportData {
+    private static prepareData(data: unknown[], options: ExportOptions): ExportData {
         let filteredData = [...data];
 
         // Appliquer les filtres
@@ -115,7 +115,7 @@ export class AdvancedExportService {
     /**
      * Applique les filtres aux données
      */
-    private static applyFilters(data: any[], filters: Record<string, any>): any[] {
+    private static applyFilters(data: unknown[], filters: Record<string, unknown>): unknown[] {
         return data.filter(item => {
             for (const [key, value] of Object.entries(filters)) {
                 if (value === null || value === undefined || value === '') continue;
@@ -140,7 +140,7 @@ export class AdvancedExportService {
     /**
      * Applique un filtre de plage de dates
      */
-    private static applyDateRange(data: any[], dateRange: { start: Date; end: Date }): any[] {
+    private static applyDateRange(data: unknown[], dateRange: { start: Date; end: Date }): unknown[] {
         return data.filter(item => {
             // Chercher automatiquement les champs de date
             const dateFields = ['date', 'createdAt', 'startDate', 'endDate'];
@@ -160,7 +160,7 @@ export class AdvancedExportService {
     /**
      * Groupe les données par un champ
      */
-    private static groupData(data: any[], groupBy: string): any[] {
+    private static groupData(data: unknown[], groupBy: string): unknown[] {
         const grouped = data.reduce((acc, item) => {
             const key = this.getNestedValue(item, groupBy) || 'Non défini';
             if (!acc[key]) {
@@ -171,7 +171,7 @@ export class AdvancedExportService {
         }, {} as Record<string, any[]>);
 
         // Transformer en tableau plat avec séparateurs de groupe
-        const result: any[] = [];
+        const result: unknown[] = [];
         for (const [group, items] of Object.entries(grouped)) {
             result.push({ _isGroupHeader: true, _groupName: group, _count: items.length });
             result.push(...items);
@@ -182,7 +182,7 @@ export class AdvancedExportService {
     /**
      * Trie les données
      */
-    private static sortData(data: any[], sortBy: string, order: 'asc' | 'desc' = 'asc'): any[] {
+    private static sortData(data: unknown[], sortBy: string, order: 'asc' | 'desc' = 'asc'): unknown[] {
         return [...data].sort((a, b) => {
             const aValue = this.getNestedValue(a, sortBy);
             const bValue = this.getNestedValue(b, sortBy);
@@ -348,7 +348,7 @@ export class AdvancedExportService {
             metadata: data.metadata,
             headers: data.headers,
             data: data.rows.map(row => {
-                const obj: Record<string, any> = {};
+                const obj: Record<string, unknown> = {};
                 data.headers.forEach((header, index) => {
                     obj[header] = row[index];
                 });
@@ -363,12 +363,12 @@ export class AdvancedExportService {
     /**
      * Extrait les en-têtes d'un objet
      */
-    private static extractHeaders(obj: any): string[] {
+    private static extractHeaders(obj: unknown): string[] {
         if (!obj) return [];
         
         const headers = new Set<string>();
         
-        const extract = (item: any, prefix = '') => {
+        const extract = (item: unknown, prefix = '') => {
             for (const [key, value] of Object.entries(item)) {
                 if (key.startsWith('_')) continue; // Ignorer les propriétés internes
                 
@@ -389,14 +389,14 @@ export class AdvancedExportService {
     /**
      * Obtient une valeur imbriquée d'un objet
      */
-    private static getNestedValue(obj: any, path: string): any {
+    private static getNestedValue(obj: unknown, path: string): any {
         return path.split('.').reduce((curr, prop) => curr?.[prop], obj);
     }
 
     /**
      * Formate la valeur d'une cellule
      */
-    private static getCellValue(obj: any, path: string): string {
+    private static getCellValue(obj: unknown, path: string): string {
         const value = this.getNestedValue(obj, path);
         
         if (value === null || value === undefined) return '';
@@ -413,7 +413,7 @@ export class AdvancedExportService {
  * Helper functions pour des exports spécifiques
  */
 
-export async function exportUsers(users: any[], options: Partial<ExportOptions> = {}) {
+export async function exportUsers(users: unknown[], options: Partial<ExportOptions> = {}) {
     const defaultOptions: ExportOptions = {
         format: 'excel',
         fileName: `utilisateurs_${dateFormat(new Date(), 'yyyy-MM-dd')}`,
@@ -425,7 +425,7 @@ export async function exportUsers(users: any[], options: Partial<ExportOptions> 
     return AdvancedExportService.export(users, defaultOptions);
 }
 
-export async function exportLeaves(leaves: any[], options: Partial<ExportOptions> = {}) {
+export async function exportLeaves(leaves: unknown[], options: Partial<ExportOptions> = {}) {
     const defaultOptions: ExportOptions = {
         format: 'excel',
         fileName: `conges_${dateFormat(new Date(), 'yyyy-MM-dd')}`,
@@ -437,7 +437,7 @@ export async function exportLeaves(leaves: any[], options: Partial<ExportOptions
     return AdvancedExportService.export(leaves, defaultOptions);
 }
 
-export async function exportPlanning(planning: any[], options: Partial<ExportOptions> = {}) {
+export async function exportPlanning(planning: unknown[], options: Partial<ExportOptions> = {}) {
     const defaultOptions: ExportOptions = {
         format: 'excel',
         fileName: `planning_${dateFormat(new Date(), 'yyyy-MM-dd')}`,

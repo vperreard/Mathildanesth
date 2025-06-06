@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { Leave, LeaveFilters, LeaveType, LeaveStatus } from '../types/leave';
 
 interface UseLeaveDataReturn {
@@ -151,11 +152,11 @@ export function useLeaveData(): UseLeaveDataReturn {
             setLeaves(filteredLeaves);
             setLoading(false);
             return filteredLeaves;
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error('Erreur lors de la récupération des congés');
             setError(error);
             setLoading(false);
-            console.error('Erreur lors de la récupération des congés:', error);
+            logger.error('Erreur lors de la récupération des congés:', { error: error });
             return [];
         }
     }, []);

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { unifiedRequestService } from '@/services/unifiedRequestService';
 import { withUserRateLimit } from '@/lib/rateLimit';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
@@ -54,8 +55,8 @@ async function handler(req: NextRequest) {
       { error: 'Méthode non autorisée' },
       { status: 405 }
     );
-  } catch (error) {
-    console.error('Erreur API requests:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur API requests:', { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }

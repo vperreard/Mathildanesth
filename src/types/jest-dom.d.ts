@@ -12,7 +12,7 @@ declare global {
             toHaveTextContent(text: string | RegExp): R;
             toHaveAttribute(attr: string, value?: string): R;
             toHaveClass(...classNames: string[]): R;
-            toHaveStyle(style: string | Record<string, any>): R;
+            toHaveStyle(style: string | Record<string, unknown>): R;
             toBeDisabled(): R;
             toBeEnabled(): R;
             toBeRequired(): R;
@@ -24,8 +24,8 @@ declare global {
 
             // Matchers Jest standards qui semblent manquer
             toHaveBeenCalled(): R;
-            toHaveBeenCalledWith(...args: any[]): R;
-            toHaveBeenLastCalledWith(...args: any[]): R;
+            toHaveBeenCalledWith(...args: unknown[]): R;
+            toHaveBeenLastCalledWith(...args: unknown[]): R;
         }
     }
 
@@ -33,7 +33,7 @@ declare global {
         namespace jest {
             interface Expect {
                 objectContaining<T>(object: T): T;
-                any(constructor: any): any;
+                any(constructor: unknown): unknown;
             }
         }
     }

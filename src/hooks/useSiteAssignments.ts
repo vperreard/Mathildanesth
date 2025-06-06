@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../lib/logger";
 import { apiClient } from '@/utils/apiClient';
 
 interface Site {
@@ -35,10 +36,10 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
 
             const response = await apiClient.get(`/api/utilisateurs/${userId}/sites`);
             setSites(response.data.sites || []);
-        } catch (err) {
+        } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur fetchUserSites:', err);
+            logger.error('Erreur fetchUserSites:', { error: err });
         } finally {
             setLoading(false);
         }
@@ -54,10 +55,10 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
             const response = await apiClient.put(`/api/utilisateurs/${userId}/sites`, { siteIds });
             setSites(response.data.user.sites || []);
             return true;
-        } catch (err) {
+        } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur updateSites:', err);
+            logger.error('Erreur updateSites:', { error: err });
             return false;
         } finally {
             setLoading(false);
@@ -74,10 +75,10 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
             const response = await apiClient.post(`/api/utilisateurs/${userId}/sites`, { siteIds });
             setSites(response.data.user.sites || []);
             return true;
-        } catch (err) {
+        } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur addSites:', err);
+            logger.error('Erreur addSites:', { error: err });
             return false;
         } finally {
             setLoading(false);
@@ -124,10 +125,10 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
 
             const response = await apiClient.get(`/api/chirurgiens/${surgeonId}/sites`);
             setSites(response.data.sites || []);
-        } catch (err) {
+        } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur fetchSurgeonSites:', err);
+            logger.error('Erreur fetchSurgeonSites:', { error: err });
         } finally {
             setLoading(false);
         }
@@ -143,10 +144,10 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
             const response = await apiClient.put(`/api/chirurgiens/${surgeonId}/sites`, { siteIds });
             setSites(response.data.surgeon.sites || []);
             return true;
-        } catch (err) {
+        } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur updateSites:', err);
+            logger.error('Erreur updateSites:', { error: err });
             return false;
         } finally {
             setLoading(false);
@@ -163,10 +164,10 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
             const response = await apiClient.post(`/api/chirurgiens/${surgeonId}/sites`, { siteIds });
             setSites(response.data.surgeon.sites || []);
             return true;
-        } catch (err) {
+        } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur addSites:', err);
+            logger.error('Erreur addSites:', { error: err });
             return false;
         } finally {
             setLoading(false);
@@ -185,10 +186,10 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
             });
             setSites(response.data.surgeon.sites || []);
             return true;
-        } catch (err) {
+        } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur removeSites:', err);
+            logger.error('Erreur removeSites:', { error: err });
             return false;
         } finally {
             setLoading(false);

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Bar, BarChart, ReferenceLine } from 'recharts';
 import { Calendar, Loader2, AlertTriangle, Clock, TrendingUp, TrendingDown } from 'lucide-react';
@@ -28,8 +29,8 @@ export default function LeavePeakAnalysisWidget() {
 
                 const result = await response.json();
                 setData(result.data);
-            } catch (err: any) {
-                console.error('Erreur lors du chargement des données:', err);
+            } catch (err: unknown) {
+                logger.error('Erreur lors du chargement des données:', { error: err });
                 setError(err.message || 'Erreur inconnue');
             } finally {
                 setIsLoading(false);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { ConflictDetector } from '@/modules/dynamicRules/v2/services/ConflictDetector';
 import { RuleV2 } from '@/modules/dynamicRules/v2/types/ruleV2.types';
 import { z } from 'zod';
@@ -89,8 +90,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-  } catch (error) {
-    console.error('Error in conflict handling:', error);
+  } catch (error: unknown) {
+    logger.error('Error in conflict handling:', { error: error });
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },
@@ -118,7 +119,7 @@ export async function GET(request: NextRequest) {
     });
 
     const conflictDetector = ConflictDetector.getInstance();
-    const allConflicts: any[] = [];
+    const allConflicts: unknown[] = [];
 
     // Check conflicts between all pairs of rules
     for (let i = 0; i < activeRules.length; i++) {
@@ -152,8 +153,8 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error) {
-    console.error('Error fetching conflicts:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching conflicts:', { error: error });
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des conflits' },
       { status: 500 }

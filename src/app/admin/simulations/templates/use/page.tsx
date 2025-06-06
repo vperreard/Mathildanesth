@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../../lib/logger";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon, AlertTriangleIcon, CalendarIcon, UserIcon, UsersIcon, SettingsIcon, SaveIcon, Loader2 } from 'lucide-react';
@@ -99,8 +100,8 @@ export default function UseTemplatePage() {
 
                 // Charger les utilisateurs et chirurgiens
                 loadUsersAndSurgeons();
-            } catch (err: any) {
-                console.error('Erreur lors du chargement du template:', err);
+            } catch (err: unknown) {
+                logger.error('Erreur lors du chargement du template:', { error: err });
                 setError(err.message || 'Erreur lors du chargement du template');
                 toast.error('Erreur lors du chargement du template');
             } finally {
@@ -131,8 +132,8 @@ export default function UseTemplatePage() {
                 setSurgeons(surgeonData);
             }
             setLoadingSurgeons(false);
-        } catch (error) {
-            console.error("Erreur lors du chargement des utilisateurs/chirurgiens:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des utilisateurs/chirurgiens:", { error: error });
             toast.error("Impossible de charger la liste des utilisateurs/chirurgiens");
         } finally {
             setLoadingUsers(false);
@@ -215,8 +216,8 @@ export default function UseTemplatePage() {
             toast.success('Scénario créé avec succès');
             // Rediriger vers la page d'édition du scénario
             router.push(`/admin/simulations/${result.id}/edit`);
-        } catch (err: any) {
-            console.error('Erreur lors de la création du scénario:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors de la création du scénario:', { error: err });
             toast.error(`Erreur lors de la création du scénario: ${err.message}`);
         } finally {
             setIsSubmitting(false);

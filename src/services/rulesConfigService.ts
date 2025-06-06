@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { logger } from "../lib/logger";
 import { RulesConfiguration, FatigueConfig, defaultRulesConfiguration, defaultFatigueConfig } from '@/types/rules';
 
 const CONFIG_KEY = 'PLANNING_RULES_CONFIG';
@@ -31,8 +32,8 @@ class RulesConfigService {
                 this.setCache(CONFIG_KEY, rules);
                 return rules;
             }
-        } catch (error) {
-            console.error('Erreur lors du chargement des règles:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des règles:', { error: error });
         }
 
         // Retourner la configuration par défaut si rien n'est trouvé
@@ -56,8 +57,8 @@ class RulesConfigService {
                 this.setCache(FATIGUE_CONFIG_KEY, fatigueConfig);
                 return fatigueConfig;
             }
-        } catch (error) {
-            console.error('Erreur lors du chargement de la config fatigue:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement de la config fatigue:', { error: error });
         }
 
         return defaultFatigueConfig;
@@ -126,8 +127,8 @@ class RulesConfigService {
                 this.setCache(key, value);
                 return value;
             }
-        } catch (error) {
-            console.error(`Erreur lors du chargement de la config ${key}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors du chargement de la config ${key}:`, { error: error });
         }
 
         return defaultValue;

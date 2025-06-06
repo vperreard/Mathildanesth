@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { PrismaClient, Prisma } from '@prisma/client';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 import { prisma } from '@/lib/prisma';
 
@@ -92,8 +93,8 @@ export async function GET(
     };
 
     return NextResponse.json(responseData);
-  } catch (error) {
-    console.error('Erreur lors de la récupération du résultat de simulation:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération du résultat de simulation:', { error: error });
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       return NextResponse.json({ message: 'Ressource non trouvée.' }, { status: 404 });
     }

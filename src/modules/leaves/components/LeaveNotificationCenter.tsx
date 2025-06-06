@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { logger } from "../../../lib/logger";
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, Calendar, Clock, CheckCircle, XCircle, AlertCircle, Info } from 'lucide-react';
 import { useLeaveNotifications } from '../hooks/useNotifications';
@@ -44,7 +45,7 @@ export const LeaveNotificationCenter: React.FC<LeaveNotificationCenterProps> = (
             if (notification.priority === NotificationPriority.HIGH ||
                 notification.priority === NotificationPriority.URGENT) {
                 // Vous pouvez ajouter ici une bibliothèque de toast
-                console.log('Notification importante reçue:', notification.title);
+                logger.info('Notification importante reçue:', notification.title);
             }
         }
     });
@@ -99,7 +100,7 @@ export const LeaveNotificationCenter: React.FC<LeaveNotificationCenterProps> = (
                 addSuffix: true,
                 locale: fr
             });
-        } catch (e) {
+        } catch (e: unknown) {
             return 'Date inconnue';
         }
     };

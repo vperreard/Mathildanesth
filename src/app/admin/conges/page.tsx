@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -91,8 +92,8 @@ export default function AdminLeavesPage() {
             const response = await axios.get('/api/conges', { params });
             setRequests(response.data);
             setLoading(false);
-        } catch (error) {
-            console.error('Erreur lors du chargement des demandes de congés:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des demandes de congés:', { error: error });
             toast.error('Erreur lors du chargement des demandes de congés');
             setLoading(false);
         }
@@ -102,8 +103,8 @@ export default function AdminLeavesPage() {
         try {
             const response = await axios.get('/api/conges/types');
             setTypes(response.data);
-        } catch (error) {
-            console.error('Erreur lors du chargement des types de congés:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des types de congés:', { error: error });
         }
     };
 
@@ -134,8 +135,8 @@ export default function AdminLeavesPage() {
             if (selectedRequest?.id === id) {
                 setSelectedRequest(prev => prev ? { ...prev, status: 'APPROVED' } : null);
             }
-        } catch (error) {
-            console.error('Erreur lors de l\'approbation de la demande:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'approbation de la demande:', { error: error });
             toast.error('Erreur lors de l\'approbation de la demande');
         } finally {
             setProcessingId(null);
@@ -158,8 +159,8 @@ export default function AdminLeavesPage() {
             if (selectedRequest?.id === id) {
                 setSelectedRequest(prev => prev ? { ...prev, status: 'REJECTED' } : null);
             }
-        } catch (error) {
-            console.error('Erreur lors du refus de la demande:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du refus de la demande:', { error: error });
             toast.error('Erreur lors du refus de la demande');
         } finally {
             setProcessingId(null);
@@ -204,7 +205,7 @@ export default function AdminLeavesPage() {
     const formatDate = (dateString: string) => {
         try {
             return format(new Date(dateString), 'dd MMM yyyy', { locale: fr });
-        } catch (error) {
+        } catch (error: unknown) {
             return dateString;
         }
     };

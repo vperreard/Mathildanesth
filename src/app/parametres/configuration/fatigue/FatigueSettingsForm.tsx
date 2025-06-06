@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import Input from '@/components/ui/input';
@@ -91,9 +92,9 @@ const FatigueSettingsForm: React.FC<FatigueSettingsFormProps> = ({ initialConfig
         try {
             await onSave(config);
             toast.success('Paramètres de fatigue sauvegardés.');
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error("Erreur lors de la sauvegarde des paramètres.");
-            console.error("Save fatigue settings error:", error);
+            logger.error("Save fatigue settings error:", { error: error });
         }
     };
 

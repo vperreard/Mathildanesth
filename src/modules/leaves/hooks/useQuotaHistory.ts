@@ -36,7 +36,7 @@ export const useQuotaHistory = (
             }
 
             return summary;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err?.message || 'Erreur lors du chargement du résumé des quotas';
             setError(errorMessage);
             return null;
@@ -64,7 +64,7 @@ export const useQuotaHistory = (
 
             setTransactions(history);
             return history;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err?.message || 'Erreur lors du chargement de l\'historique';
             setError(errorMessage);
             return [];
@@ -85,7 +85,7 @@ export const useQuotaHistory = (
                 name: p.name
             })));
             return periods;
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(err?.message || 'Erreur lors du chargement des périodes');
             return [];
         } finally {
@@ -138,7 +138,7 @@ export const useQuotaHistory = (
                 loadTransactionHistory(),
                 loadActivePeriods()
             ]);
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(err?.message || 'Erreur lors de la mise à jour des données');
         } finally {
             setLoading(false);

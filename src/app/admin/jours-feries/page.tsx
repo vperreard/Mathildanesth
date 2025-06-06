@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { format, parse, isValid } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DataTable } from '@/components/ui/data-table';
@@ -40,8 +41,8 @@ export default function PublicHolidaysPage() {
             };
             const result = await publicHolidayService.getPublicHolidays(filter);
             setHolidays(result);
-        } catch (error) {
-            console.error('Erreur lors du chargement des jours fériés:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des jours fériés:', { error: error });
             toast.error('Impossible de charger les jours fériés');
         } finally {
             setLoading(false);
@@ -75,8 +76,8 @@ export default function PublicHolidaysPage() {
             // Réinitialiser le formulaire et recharger les données
             resetForm();
             loadHolidays();
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde:', { error: error });
             toast.error('Erreur lors de la sauvegarde du jour férié');
         }
     };
@@ -120,8 +121,8 @@ export default function PublicHolidaysPage() {
                 await publicHolidayService.deletePublicHoliday(id);
                 toast.success('Jour férié supprimé avec succès');
                 loadHolidays();
-            } catch (error) {
-                console.error('Erreur lors de la suppression:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors de la suppression:', { error: error });
                 toast.error('Erreur lors de la suppression du jour férié');
             }
         }
@@ -134,8 +135,8 @@ export default function PublicHolidaysPage() {
             await publicHolidayService.calculateFrenchHolidays(yearFilter);
             toast.success(`Jours fériés recalculés pour ${yearFilter}`);
             loadHolidays();
-        } catch (error) {
-            console.error('Erreur lors du recalcul des jours fériés:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du recalcul des jours fériés:', { error: error });
             toast.error('Erreur lors du recalcul des jours fériés');
         } finally {
             setLoading(false);

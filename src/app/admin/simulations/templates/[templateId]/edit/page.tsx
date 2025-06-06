@@ -77,7 +77,7 @@ export default function EditTemplatePage() {
                         options
                     }
                 });
-            } catch (err: any) {
+            } catch (err: unknown) {
                 setError(err.message || 'Erreur lors du chargement du template');
                 toast.error('Erreur lors du chargement du template');
             } finally {
@@ -95,7 +95,7 @@ export default function EditTemplatePage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleParametersChange = (key: string, value: any) => {
+    const handleParametersChange = (key: string, value: unknown) => {
         setFormData(prev => ({
             ...prev,
             parametersJson: {
@@ -143,7 +143,7 @@ export default function EditTemplatePage() {
 
             toast.success('Modèle mis à jour avec succès');
             router.push('/admin/simulations/templates');
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast.error(`Erreur lors de la mise à jour du template: ${error.message}`);
         } finally {
             setIsSubmitting(false);

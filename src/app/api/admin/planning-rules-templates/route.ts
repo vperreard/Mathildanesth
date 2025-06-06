@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { RulesConfiguration, FatigueConfig } from '@/types/rules';
 import { getDefaultTemplates } from '@/lib/default-rule-templates';
 
@@ -23,8 +24,8 @@ export async function GET(request: Request) {
 
         return NextResponse.json({ templates });
 
-    } catch (error) {
-        console.error('Erreur lors de la récupération des templates:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des templates:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des templates' },
             { status: 500 }
@@ -72,8 +73,8 @@ export async function POST(request: Request) {
             template 
         });
 
-    } catch (error) {
-        console.error('Erreur lors de la création du template:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création du template:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la création du template' },
             { status: 500 }
@@ -125,8 +126,8 @@ export async function PUT(request: Request) {
             template 
         });
 
-    } catch (error) {
-        console.error('Erreur lors de la mise à jour du template:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la mise à jour du template:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour du template' },
             { status: 500 }
@@ -177,8 +178,8 @@ export async function DELETE(request: Request) {
             message: 'Modèle supprimé avec succès' 
         });
 
-    } catch (error) {
-        console.error('Erreur lors de la suppression du template:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la suppression du template:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la suppression du template' },
             { status: 500 }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, Loader2, TrendingUp, Calendar, Clock, ChevronRight, AlertCircle } from 'lucide-react';
 import { PredictiveInsight } from '@/services/analyticsService';
@@ -28,8 +29,8 @@ export default function PredictiveInsightsWidget() {
 
                 const result = await response.json();
                 setInsights(result.data);
-            } catch (err: any) {
-                console.error('Erreur lors du chargement des insights:', err);
+            } catch (err: unknown) {
+                logger.error('Erreur lors du chargement des insights:', { error: err });
                 setError(err.message || 'Erreur inconnue');
             } finally {
                 setIsLoading(false);

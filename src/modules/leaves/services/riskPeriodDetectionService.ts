@@ -204,7 +204,7 @@ export class RiskPeriodDetectionService {
     /**
      * Gérer un changement de congé
      */
-    private handleLeaveChange(event: any): void {
+    private handleLeaveChange(event: unknown): void {
         // Un nouveau congé peut créer une nouvelle période à risque
         this.analyzeRiskPeriods();
     }
@@ -212,7 +212,7 @@ export class RiskPeriodDetectionService {
     /**
      * Gérer une résolution de conflit
      */
-    private handleConflictResolution(event: any): void {
+    private handleConflictResolution(event: unknown): void {
         // Utiliser les résolutions pour améliorer l'analyse future
         this.updateHistoricalData(event.data);
     }
@@ -220,7 +220,7 @@ export class RiskPeriodDetectionService {
     /**
      * Mettre à jour les données historiques
      */
-    private updateHistoricalData(resolution: any): void {
+    private updateHistoricalData(resolution: unknown): void {
         const date = resolution.resolvedAt?.split('T')[0] || formatDate(new Date());
 
         // Trouver l'index des données historiques pour cette date
@@ -334,7 +334,7 @@ export class RiskPeriodDetectionService {
             }
 
             return this.riskPeriods;
-        } catch (error) {
+        } catch (error: unknown) {
             logError('Erreur lors de l\'analyse des périodes à risque', error);
             return [];
         }

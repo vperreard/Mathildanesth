@@ -161,7 +161,7 @@ export default function PlanningGeneratorWizard() {
       
       setValidationResult(response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       toast.error('Erreur lors de la validation');
       return null;
     }
@@ -188,7 +188,7 @@ export default function PlanningGeneratorWizard() {
 
       setPreviewData(response.data);
       toast.success('Planning généré avec succès !');
-    } catch (error) {
+    } catch (error: unknown) {
       toast.error('Erreur lors de la génération du planning');
     } finally {
       setIsGenerating(false);

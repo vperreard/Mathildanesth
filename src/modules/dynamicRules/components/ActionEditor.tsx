@@ -44,7 +44,7 @@ export const ActionEditor: React.FC<ActionEditorProps> = ({
     };
 
     // Mettre à jour une action
-    const handleUpdateAction = (index: number, field: keyof RuleAction, value: any) => {
+    const handleUpdateAction = (index: number, field: keyof RuleAction, value: unknown) => {
         const updatedActions = [...actions];
         updatedActions[index] = {
             ...updatedActions[index],
@@ -54,7 +54,7 @@ export const ActionEditor: React.FC<ActionEditorProps> = ({
     };
 
     // Mettre à jour un paramètre d'une action
-    const handleUpdateParameter = (index: number, paramName: string, value: any) => {
+    const handleUpdateParameter = (index: number, paramName: string, value: unknown) => {
         const updatedActions = [...actions];
         // Assurer que parameters existe
         if (!updatedActions[index].parameters) {
@@ -161,7 +161,7 @@ export const ActionEditor: React.FC<ActionEditorProps> = ({
                                     try {
                                         const params = JSON.parse(e.target.value);
                                         handleUpdateAction(index, 'parameters', params);
-                                    } catch (err) {
+                                    } catch (err: unknown) {
                                         // Ignorer les erreurs de parsing JSON
                                     }
                                 }}

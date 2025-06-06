@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { Prisma, NotificationType, Role } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { createNotification } from '@/lib/notifications';
 
 export async function GET(req: NextRequest) {
@@ -81,8 +82,8 @@ export async function GET(req: NextRequest) {
       },
       unreadCount,
     });
-  } catch (error) {
-    console.error('Erreur lors de la récupération des notifications:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération des notifications:', { error: error });
     return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
   }
 }
@@ -182,8 +183,8 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('API Notifications POST: Erreur lors de la création des notifications:', error);
+  } catch (error: unknown) {
+    logger.error('API Notifications POST: Erreur lors de la création des notifications:', { error: error });
     if (error instanceof SyntaxError) {
       return NextResponse.json({ error: 'Données JSON invalides' }, { status: 400 });
     }

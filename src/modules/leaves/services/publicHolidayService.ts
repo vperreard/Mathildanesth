@@ -1,4 +1,5 @@
 import { format, getYear, isBefore, isAfter, isSameDay, parse, parseISO } from 'date-fns';
+import { logger } from "../../../lib/logger";
 import { v4 as uuidv4 } from 'uuid';
 import apiClient from '@/utils/apiClient';
 import {
@@ -88,8 +89,8 @@ class PublicHolidayService {
             await Promise.all(
                 yearsToLoad.map(year => this.getPublicHolidaysForYear(year))
             );
-        } catch (error) {
-            console.error('[PublicHolidayService] Erreur lors du préchargement des données:', error);
+        } catch (error: unknown) {
+            logger.error('[PublicHolidayService] Erreur lors du préchargement des données:', { error: error });
         }
     }
 
@@ -280,8 +281,8 @@ class PublicHolidayService {
             this.updateCache(cacheKey, holidays);
 
             return holidays;
-        } catch (error) {
-            console.warn(`[PublicHolidayService] Impossible de récupérer les jours fériés depuis l'API pour l'année ${year}. Utilisation du calcul local.`);
+        } catch (error: unknown) {
+            logger.warn(`[PublicHolidayService] Impossible de récupérer les jours fériés depuis l'API pour l'année ${year}. Utilisation du calcul local.`);
 
             // Générer les jours fériés français en local
             const holidays = this.calculateFrenchPublicHolidays(year);
@@ -448,8 +449,8 @@ class PublicHolidayService {
             this.updateCache(cacheKey, result);
 
             return result;
-        } catch (error) {
-            console.error('[PublicHolidayService] Erreur lors de la récupération des jours fériés dans une plage:', error);
+        } catch (error: unknown) {
+            logger.error('[PublicHolidayService] Erreur lors de la récupération des jours fériés dans une plage:', { error: error });
 
             // En cas d'erreur, retourner les données en cache même si expirées
             if (cachedEntry) {
@@ -538,8 +539,8 @@ class PublicHolidayService {
                 this.invalidateCache(this.generateCacheKey(year));
 
                 return createdHoliday;
-            } catch (apiError) {
-                console.warn('[PublicHolidayService] Impossible de créer le jour férié via l\'API. Utilisation du stockage local.', apiError);
+            } catch (apiError: unknown) {
+                logger.warn('[PublicHolidayService] Impossible de créer le jour férié via l\'API. Utilisation du stockage local.', apiError);
 
                 // Ajouter au cache local
                 const year = getYear(parseISO(formattedDate));
@@ -550,8 +551,8 @@ class PublicHolidayService {
 
                 return newHoliday;
             }
-        } catch (error) {
-            console.error('[PublicHolidayService] Erreur lors de la création du jour férié:', error);
+        } catch (error: unknown) {
+            logger.error('[PublicHolidayService] Erreur lors de la création du jour férié:', { error: error });
             throw error;
         }
     }
@@ -587,8 +588,8 @@ class PublicHolidayService {
                 this.invalidateCache();
 
                 return updatedHoliday;
-            } catch (apiError) {
-                console.warn('[PublicHolidayService] Impossible de mettre à jour le jour férié via l\'API. Utilisation du stockage local.', apiError);
+            } catch (apiError: unknown) {
+                logger.warn('[PublicHolidayService] Impossible de mettre à jour le jour férié via l\'API. Utilisation du stockage local.', apiError);
 
                 // Mise à jour dans le cache local
                 let foundAndUpdated = false;
@@ -626,8 +627,8 @@ class PublicHolidayService {
 
                 return allHolidays.find(holiday => holiday.id === data.id) || null;
             }
-        } catch (error) {
-            console.error('[PublicHolidayService] Erreur lors de la mise à jour du jour férié:', error);
+        } catch (error: unknown) {
+            logger.error('[PublicHolidayService] Erreur lors de la mise à jour du jour férié:', { error: error });
             throw error;
         }
     }
@@ -645,8 +646,8 @@ class PublicHolidayService {
                 this.invalidateCache();
 
                 return true;
-            } catch (apiError) {
-                console.warn('[PublicHolidayService] Impossible de supprimer le jour férié via l\'API. Utilisation du stockage local.', apiError);
+            } catch (apiError: unknown) {
+                logger.warn('[PublicHolidayService] Impossible de supprimer le jour férié via l\'API. Utilisation du stockage local.', apiError);
 
                 // Suppression du cache local
                 let foundAndDeleted = false;
@@ -669,8 +670,8 @@ class PublicHolidayService {
 
                 return foundAndDeleted;
             }
-        } catch (error) {
-            console.error('[PublicHolidayService] Erreur lors de la suppression du jour férié:', error);
+        } catch (error: unknown) {
+            logger.error('[PublicHolidayService] Erreur lors de la suppression du jour férié:', { error: error });
             throw error;
         }
     }
@@ -685,8 +686,8 @@ class PublicHolidayService {
             try {
                 const holiday = await this.createPublicHoliday(holidayData);
                 importedHolidays.push(holiday);
-            } catch (error) {
-                console.error(`[PublicHolidayService] Erreur lors de l'importation du jour férié:`, holidayData, error);
+            } catch (error: unknown) {
+                logger.error(`[PublicHolidayService] Erreur lors de l'importation du jour férié:`, holidayData, error instanceof Error ? error : new Error(String(error)));
                 // Continuer avec les autres jours fériés
             }
         }

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import type { LeaveStatus } from '@prisma/client';
 
 // Interface pour le format de réponse attendu
@@ -103,8 +104,8 @@ export async function GET(request: NextRequest) {
         }
 
         return handleAuthorizedRequest(userIdForRequest);
-    } catch (error) {
-        console.error('[API /api/admin/conges/pending] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API /api/admin/conges/pending] Erreur:', { error: error });
         return NextResponse.json(
             {
                 error: 'Erreur serveur lors de la récupération des demandes en attente',
@@ -191,8 +192,8 @@ async function handleAuthorizedRequest(userId: number) {
         };
 
         return NextResponse.json(formattedLeaves);
-    } catch (error) {
-        console.error('[API /api/admin/conges/pending] Erreur lors du traitement:', error);
+    } catch (error: unknown) {
+        logger.error('[API /api/admin/conges/pending] Erreur lors du traitement:', { error: error });
         throw error;
     }
 } 

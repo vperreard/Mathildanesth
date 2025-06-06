@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { getDefaultTemplates } from '@/lib/default-rule-templates';
 
 export async function POST(request: Request) {
@@ -100,8 +101,8 @@ export async function POST(request: Request) {
             { status: 400 }
         );
 
-    } catch (error) {
-        console.error('Erreur lors de la réinitialisation:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la réinitialisation:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la réinitialisation' },
             { status: 500 }

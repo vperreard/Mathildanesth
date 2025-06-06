@@ -1,4 +1,5 @@
 import { NotificationType } from '@prisma/client';
+import { logger } from "./logger";
 import { createNotification } from '@/lib/notifications';
 
 /**
@@ -75,7 +76,7 @@ export async function sendAssignmentSwapNotification(
 
         // Si le type d'événement n'est pas configuré, utiliser GENERAL_INFO par défaut
         if (!config) {
-            console.warn(`Type d'événement non configuré: ${eventType}`);
+            logger.warn(`Type d'événement non configuré: ${eventType}`);
             return null;
         }
 
@@ -92,8 +93,8 @@ export async function sendAssignmentSwapNotification(
             relatedRequestId: swapRequestId
         });
 
-    } catch (error) {
-        console.error('Erreur lors de l\'envoi de la notification d\'échange d\'affectation:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'envoi de la notification d\'échange d\'affectation:', { error: error });
         return null;
     }
 }

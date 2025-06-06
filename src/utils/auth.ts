@@ -1,3 +1,5 @@
+import { logger } from "../lib/logger";
+
 /**
  * Utilitaires d'authentification
  */
@@ -68,8 +70,8 @@ export const decodeToken = (token: string): any | null => {
                 .join('')
         );
         return JSON.parse(jsonPayload);
-    } catch (error) {
-        console.error('Erreur de décodage du token:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur de décodage du token:', { error: error });
         return null;
     }
 };

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { logger } from "../../../lib/logger";
 import dynamic from 'next/dynamic';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
@@ -43,8 +44,8 @@ const safeToast = {
                     draggable: true,
                 });
             }, 100);
-        } catch (error) {
-            console.error('Erreur lors de l\'affichage du toast:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'affichage du toast:', { error: error });
         }
     },
     error: (message: string) => {
@@ -61,8 +62,8 @@ const safeToast = {
                     draggable: true,
                 });
             }, 100);
-        } catch (error) {
-            console.error('Erreur lors de l\'affichage du toast d\'erreur:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'affichage du toast d\'erreur:', { error: error });
         }
     }
 };
@@ -88,8 +89,8 @@ interface OperatingSector {
 }
 
 // Fonction pour convertir les données du back-end vers le format attendu par TrameGridView
-const mapTrameFromApi = (apiTrame: any): TrameModele => {
-    console.log('[MAPPING] API TrameModele before mapping:', apiTrame);
+const mapTrameFromApi = (apiTrame: unknown): TrameModele => {
+    logger.info('[MAPPING] API TrameModele before mapping:', apiTrame);
 
     // Mapping du type de semaine
     let weekType: 'ALL' | 'EVEN' | 'ODD' = 'ALL';
@@ -97,10 +98,10 @@ const mapTrameFromApi = (apiTrame: any): TrameModele => {
     if (apiTrame.typeSemaine === 'IMPAIRES') weekType = 'ODD';
     if (apiTrame.typeSemaine === 'TOUTES') weekType = 'ALL';
 
-    console.log(`[MAPPING] typeSemaine "${apiTrame.typeSemaine}" mapped to weekType "${weekType}"`);
+    logger.info(`[MAPPING] typeSemaine "${apiTrame.typeSemaine}" mapped to weekType "${weekType}"`);
 
     // Mapping des affectations
-    const affectations: AffectationModele[] = apiTrame.affectations?.map((aff: any) => {
+    const affectations: AffectationModele[] = apiTrame.affectations?.map((aff: unknown) => {
         // Mapping du type de période
         let period: 'MORNING' | 'AFTERNOON' | 'FULL_DAY' = 'FULL_DAY';
         if (aff.periode === 'MATIN') period = 'MORNING';
@@ -108,7 +109,7 @@ const mapTrameFromApi = (apiTrame: any): TrameModele => {
         if (aff.periode === 'JOURNEE_ENTIERE') period = 'FULL_DAY';
 
         // Mapping des personnels requis
-        const requiredStaff = aff.personnelRequis?.map((pr: any) => ({
+        const requiredStaff = aff.personnelRequis?.map((pr: unknown) => ({
             id: pr.id.toString(),
             affectationId: aff.id.toString(),
             role: mapRoleFromApi(pr.roleGenerique),
@@ -141,7 +142,7 @@ const mapTrameFromApi = (apiTrame: any): TrameModele => {
         affectations: affectations
     };
 
-    console.log('[MAPPING] Final mapped TrameModele:', mappedTrame);
+    logger.info('[MAPPING] Final mapped TrameModele:', mappedTrame);
     return mappedTrame;
 };
 
@@ -224,8 +225,8 @@ const TrameGridEditor: React.FC = () => {
                     }
                 }
             }
-        } catch (err: any) {
-            console.error('Erreur lors du chargement des trames:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors du chargement des trames:', { error: err });
 
             if (err.response && err.response.status === 401) {
                 setError("Erreur d'authentification. Votre session a peut-être expiré.");
@@ -243,8 +244,8 @@ const TrameGridEditor: React.FC = () => {
             if (response.status === 200) {
                 setSites(response.data);
             }
-        } catch (err) {
-            console.error('Erreur lors du chargement des sites:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors du chargement des sites:', { error: err });
         }
     };
 
@@ -266,22 +267,22 @@ const TrameGridEditor: React.FC = () => {
                 }
             } else {
                 // TrameModele globale (siteId null) : charger tous les secteurs et salles
-                console.log("📍 TrameModele globale détectée - chargement de tous les secteurs et salles");
+                logger.info("📍 TrameModele globale détectée - chargement de tous les secteurs et salles");
 
                 const sectorsResponse = await axios.get('http://localhost:3000/api/operating-sectors');
                 if (sectorsResponse.status === 200) {
                     setSectors(sectorsResponse.data);
-                    console.log(`📍 Secteurs chargés: ${sectorsResponse.data.length} secteurs`);
+                    logger.info(`📍 Secteurs chargés: ${sectorsResponse.data.length} secteurs`);
                 }
 
                 const roomsResponse = await axios.get('http://localhost:3000/api/operating-rooms');
                 if (roomsResponse.status === 200) {
                     setRooms(roomsResponse.data);
-                    console.log(`📍 Salles chargées: ${roomsResponse.data.length} salles`);
+                    logger.info(`📍 Salles chargées: ${roomsResponse.data.length} salles`);
                 }
             }
-        } catch (err) {
-            console.error('Erreur lors du chargement des secteurs et salles:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors du chargement des secteurs et salles:', { error: err });
         } finally {
             setIsRefreshing(false);
         }
@@ -309,7 +310,7 @@ const TrameGridEditor: React.FC = () => {
         if (selectedTrameId) {
             const trameModele = trameModeles.find(t => t.id === selectedTrameId);
             if (trameModele) {
-                console.log(`📍 Sélection de la trameModele "${trameModele.name}" avec siteId: ${trameModele.siteId}`);
+                logger.info(`📍 Sélection de la trameModele "${trameModele.name}" avec siteId: ${trameModele.siteId}`);
 
                 if (trameModele.siteId) {
                     // TrameModele liée à un site spécifique : forcer ce site
@@ -328,7 +329,7 @@ const TrameGridEditor: React.FC = () => {
     // Actualisation automatique des données quand on change de trameModele OU de site
     useEffect(() => {
         if (selectedTrameId && selectedSiteId !== undefined) {
-            console.log(`🔄 Actualisation automatique pour la trameModele ${selectedTrameId} (site: ${selectedSiteId || 'global'})`);
+            logger.info(`🔄 Actualisation automatique pour la trameModele ${selectedTrameId} (site: ${selectedSiteId || 'global'})`);
             fetchRoomsAndSectors(selectedSiteId);
         }
     }, [selectedTrameId, selectedSiteId, trameModeles, sites]);
@@ -350,8 +351,8 @@ const TrameGridEditor: React.FC = () => {
                     )
                 );
             }
-        } catch (err) {
-            console.error('Erreur lors de la mise à jour de la trameModele:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors de la mise à jour de la trameModele:', { error: err });
             setError("Erreur lors de la sauvegarde des modifications. Veuillez réessayer.");
 
             // En cas d'erreur, on recharge les données
@@ -517,9 +518,9 @@ const TrameGridEditor: React.FC = () => {
                                 // Également nettoyer le DOM des toasts orphelins
                                 const toastElements = document.querySelectorAll('[class*="Toastify"]');
                                 toastElements.forEach(el => el.remove());
-                                console.log('Tous les toasts ont été fermés');
-                            } catch (error) {
-                                console.error('Erreur lors de la fermeture des toasts:', error);
+                                logger.info('Tous les toasts ont été fermés');
+                            } catch (error: unknown) {
+                                logger.error('Erreur lors de la fermeture des toasts:', { error: error });
                             }
                         }}
                         className="text-red-600 hover:text-red-800 hover:bg-red-50 border-red-300"

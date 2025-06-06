@@ -82,6 +82,7 @@
     "cypress",
     "scripts",
     "tests",
+    "backup",
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",

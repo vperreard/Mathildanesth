@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 /**
  * Runtime Detector - Utilitaire centralisé pour détecter l'environnement d'exécution
  * Compatible avec les tests et la production
@@ -47,8 +49,8 @@ export function ifRuntimeSupports<T>(
     if (isFeatureAvailable(feature)) {
         try {
             return fn();
-        } catch (error) {
-            console.warn(`Runtime feature ${feature} failed:`, error);
+        } catch (error: unknown) {
+            logger.warn(`Runtime feature ${feature} failed:`, { error: error });
         }
     }
     return fallback;
@@ -59,7 +61,7 @@ export function ifRuntimeSupports<T>(
  */
 export function logRuntimeInfo(): void {
     if (isDevelopment) {
-        console.log('🔧 Runtime Detection:', {
+        logger.info('🔧 Runtime Detection:', {
             isServer,
             isBrowser,
             isEdgeRuntime,

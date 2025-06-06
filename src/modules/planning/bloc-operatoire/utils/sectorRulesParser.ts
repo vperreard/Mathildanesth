@@ -24,7 +24,7 @@ export function getSectorRules(rules: JsonValue | null | undefined): SectorRuleP
     const result: SectorRuleProperties = {};
 
     // Cast sûr après vérification du type
-    const rulesObj = rules as Record<string, any>;
+    const rulesObj = rules as Record<string, unknown>;
 
     // Extraction de requireContiguousRooms (boolean)
     if (typeof rulesObj.requireContiguousRooms === 'boolean') {

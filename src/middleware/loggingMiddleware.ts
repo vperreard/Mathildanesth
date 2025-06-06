@@ -33,7 +33,7 @@ export async function loggingMiddleware(
         });
 
         return response;
-    } catch (error) {
+    } catch (error: unknown) {
         // Log des erreurs
         logger.error('Erreur lors du traitement de la requête', {
             requestId,

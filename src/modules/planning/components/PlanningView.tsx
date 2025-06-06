@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Attribution, AssignmentStatus } from '@/types/attribution';
@@ -47,9 +48,9 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
             }
 
             setAssignments(Array.isArray(newAssignments) ? newAssignments : []);
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error('Erreur lors de la génération du planning');
-            console.error(error);
+            logger.error(error);
         } finally {
             setLoading(false);
         }

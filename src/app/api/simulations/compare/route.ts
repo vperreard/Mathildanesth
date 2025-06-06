@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 /**
  * API pour comparer plusieurs résultats de simulation
@@ -123,8 +124,8 @@ export async function GET(request: NextRequest) {
       results,
       metrics,
     });
-  } catch (error) {
-    console.error('Erreur lors de la comparaison des simulations:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la comparaison des simulations:', { error: error });
     return NextResponse.json(
       {
         success: false,
@@ -138,7 +139,7 @@ export async function GET(request: NextRequest) {
 /**
  * Extrait et normalise les statistiques d'un résultat de simulation
  */
-function extractStatistics(result: any): Record<string, number> {
+function extractStatistics(result: unknown): Record<string, number> {
   const statistics: Record<string, number> = {};
 
   // Essayer d'analyser statisticsJson si c'est une chaîne
@@ -146,8 +147,8 @@ function extractStatistics(result: any): Record<string, number> {
   if (typeof statsData === 'string') {
     try {
       statsData = JSON.parse(statsData);
-    } catch (e) {
-      console.error("Erreur lors de l'analyse des statistiques JSON:", e);
+    } catch (e: unknown) {
+      logger.error("Erreur lors de l'analyse des statistiques JSON:", e);
       statsData = {};
     }
   }
@@ -160,8 +161,8 @@ function extractStatistics(result: any): Record<string, number> {
       if (typeof resultDataObj === 'string') {
         try {
           resultDataObj = JSON.parse(resultDataObj);
-        } catch (e) {
-          console.error("Erreur lors de l'analyse des données de résultat JSON:", e);
+        } catch (e: unknown) {
+          logger.error("Erreur lors de l'analyse des données de résultat JSON:", e);
           resultDataObj = {};
         }
       }

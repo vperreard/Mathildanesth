@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { useAuth } from '@/hooks/useAuth';
 
 interface HeaderLoginFormProps {
@@ -23,8 +24,8 @@ export const HeaderLoginForm: React.FC<HeaderLoginFormProps> = ({ idPrefix = '' 
         e.preventDefault();
         try {
             await authLogin({ login, password });
-        } catch (err) {
-            console.error('Erreur de connexion:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur de connexion:', { error: err });
         }
     };
 

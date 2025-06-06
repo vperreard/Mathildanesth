@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -48,8 +49,8 @@ export default function CalendarSettingsPage() {
                 if (response.data) {
                     setSettings(response.data);
                 }
-            } catch (error) {
-                console.error('Erreur lors du chargement des paramètres:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors du chargement des paramètres:', { error: error });
                 toast.error('Impossible de charger les paramètres');
             } finally {
                 setIsLoading(false);
@@ -67,8 +68,8 @@ export default function CalendarSettingsPage() {
         try {
             await axios.put(`http://localhost:3000/api/utilisateurs/${user?.id}/calendrier-settings`, settings);
             toast.success('Paramètres sauvegardés avec succès');
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde des paramètres:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde des paramètres:', { error: error });
             toast.error('Impossible de sauvegarder les paramètres');
         } finally {
             setIsSaving(false);
@@ -76,7 +77,7 @@ export default function CalendarSettingsPage() {
     };
 
     // Gérer les changements de paramètres
-    const handleSettingChange = (key: keyof CalendarSettings, value: any) => {
+    const handleSettingChange = (key: keyof CalendarSettings, value: unknown) => {
         setSettings(prev => ({
             ...prev,
             [key]: value

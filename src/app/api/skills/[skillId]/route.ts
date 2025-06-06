@@ -21,7 +21,7 @@ export async function GET(
     }
 
     return NextResponse.json(skill);
-  } catch (error) {
+  } catch (error: unknown) {
     return handleApiError(error, 'Erreur lors de la récupération de la compétence.');
   }
 }
@@ -87,7 +87,7 @@ export async function PUT(
     });
 
     return NextResponse.json(updatedSkill);
-  } catch (error) {
+  } catch (error: unknown) {
     return handleApiError(error, 'Erreur lors de la mise à jour de la compétence.');
   }
 }
@@ -127,7 +127,7 @@ export async function DELETE(
     });
 
     return NextResponse.json({ message: 'Compétence supprimée avec succès.' });
-  } catch (error) {
+  } catch (error: unknown) {
     return handleApiError(error, 'Erreur lors de la suppression de la compétence.');
   }
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { checkUserRole, UserRole } from '@/lib/auth-utils';
 import { TeamConfiguration } from '@/types/team-configuration';
@@ -43,8 +44,8 @@ export async function GET(request: Request) {
         });
 
         return NextResponse.json(configs);
-    } catch (error) {
-        console.error("Erreur GET /api/admin/team-configurations:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur GET /api/admin/team-configurations:", { error: error });
         return new NextResponse(
             JSON.stringify({ message: 'Erreur interne du serveur' }),
             { status: 500 }
@@ -105,8 +106,8 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json(newConfig, { status: 201 });
-    } catch (error) {
-        console.error("Erreur POST /api/admin/team-configurations:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur POST /api/admin/team-configurations:", { error: error });
         return new NextResponse(
             JSON.stringify({ message: 'Erreur interne du serveur' }),
             { status: 500 }
@@ -174,8 +175,8 @@ export async function PUT(request: Request) {
         });
 
         return NextResponse.json(updatedConfig);
-    } catch (error) {
-        console.error("Erreur PUT /api/admin/team-configurations:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur PUT /api/admin/team-configurations:", { error: error });
         return new NextResponse(
             JSON.stringify({ message: 'Erreur interne du serveur' }),
             { status: 500 }
@@ -231,8 +232,8 @@ export async function DELETE(request: Request) {
         });
 
         return new NextResponse(null, { status: 204 });
-    } catch (error) {
-        console.error("Erreur DELETE /api/admin/team-configurations:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur DELETE /api/admin/team-configurations:", { error: error });
         return new NextResponse(
             JSON.stringify({ message: 'Erreur interne du serveur' }),
             { status: 500 }

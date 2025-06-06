@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { useDateValidation, DateValidationErrorType, BlackoutPeriod } from '@/hooks/useDateValidation';
-import DatePicker from '@/components/common/DatePicker';
+// TODO: These components need to be created or imported from a UI library
+// // TODO: These components need to be created or imported from a UI library
+// import DatePicker from '@/components/common/DatePicker';
 import { addDays, format, startOfToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import Button from '@/components/common/Button';
-import Alert from '@/components/common/Alert';
+// // TODO: These components need to be created or imported from a UI library
+// import Button from '@/components/common/Button';
+// // TODO: These components need to be created or imported from a UI library
+// import Alert from '@/components/common/Alert';
 
 // Jours fériés français pour l'exemple
 const HOLIDAYS_2023 = [
@@ -132,7 +137,7 @@ const DateValidationExample: React.FC = () => {
         // Si tout est valide, soumettre la demande
         if (isStartDateValid && isEndDateValid && isRangeValid) {
             // Simuler une soumission réussie
-            console.log('Demande de congé soumise:', {
+            logger.info('Demande de congé soumise:', {
                 startDate,
                 endDate,
                 durationDays: startDate && endDate ? (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) + 1 : 0

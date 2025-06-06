@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     Card,
     CardContent,
@@ -29,9 +30,9 @@ import { Switch } from '@/components/ui/switch';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { OperatingSupervisionRule, OperatingSector } from '../types';
-import { supervisionRulesService } from '../services/SupervisionRulesService';
-import { operatingRoomService } from '../services/OperatingRoomService';
+import { OperatingSupervisionRule, OperatingSector } from '@/modules/planning/bloc-operatoire/types';
+import { supervisionRulesService } from '@/modules/planning/bloc-operatoire/services/SupervisionRulesService';
+import { operatingRoomService } from '@/modules/planning/bloc-operatoire/services/OperatingRoomService';
 
 // Définition du schéma de validation avec Zod
 const ruleFormSchema = z.object({
@@ -147,9 +148,9 @@ export const SupervisionRulesForm: React.FC<SupervisionRulesFormProps> = ({
             setSectors(allSectors);
 
             setError(null);
-        } catch (err) {
+        } catch (err: unknown) {
             setError("Erreur lors du chargement des secteurs");
-            console.error(err);
+            logger.error(err);
         } finally {
             setIsLoading(false);
         }
@@ -176,9 +177,9 @@ export const SupervisionRulesForm: React.FC<SupervisionRulesFormProps> = ({
             }
 
             setError(null);
-        } catch (err) {
+        } catch (err: unknown) {
             setError("Erreur lors de l'enregistrement de la règle de supervision");
-            console.error(err);
+            logger.error(err);
         } finally {
             setIsLoading(false);
         }

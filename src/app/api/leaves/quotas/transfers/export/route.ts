@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { QuotaTransferReportOptions } from '@/modules/leaves/types/quota';
 import ExcelJS from 'exceljs';
 import { PDFDocument, rgb } from 'pdf-lib';
@@ -135,8 +136,8 @@ export async function POST(req: NextRequest) {
         } else {
             return await generatePdfReport(transfers, reportTitle);
         }
-    } catch (error) {
-        console.error(`Erreur lors de l'exportation du rapport :`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur lors de l'exportation du rapport :`, { error: error });
         return NextResponse.json(
             { error: `Erreur lors de l'exportation du rapport` },
             { status: 500 }
@@ -147,7 +148,7 @@ export async function POST(req: NextRequest) {
 /**
  * Génère un rapport Excel
  */
-async function generateExcelReport(transfers: any[], reportTitle: string): Promise<NextResponse> {
+async function generateExcelReport(transfers: unknown[], reportTitle: string): Promise<NextResponse> {
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Mathildanesth';
     workbook.created = new Date();
@@ -230,7 +231,7 @@ async function generateExcelReport(transfers: any[], reportTitle: string): Promi
 /**
  * Génère un rapport CSV
  */
-async function generateCsvReport(transfers: any[], reportTitle: string): Promise<NextResponse> {
+async function generateCsvReport(transfers: unknown[], reportTitle: string): Promise<NextResponse> {
     // Préparer les données
     const headers = [
         'ID', 'Utilisateur', 'Département', 'Type source', 'Type destination',
@@ -267,7 +268,7 @@ async function generateCsvReport(transfers: any[], reportTitle: string): Promise
 /**
  * Génère un rapport PDF
  */
-async function generatePdfReport(transfers: any[], reportTitle: string): Promise<NextResponse> {
+async function generatePdfReport(transfers: unknown[], reportTitle: string): Promise<NextResponse> {
     // Créer un document PDF
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([842, 595]); // A4 paysage

@@ -173,7 +173,7 @@ export const getEventBorderColor = (
  * @param info Informations sur l'événement
  * @returns Élément HTML personnalisé
  */
-export const customEventRender = (info: any): HTMLElement => {
+export const customEventRender = (info: unknown): HTMLElement => {
     const { event, view } = info;
     const originalEvent = event.extendedProps.originalEvent;
     const type = originalEvent.type;

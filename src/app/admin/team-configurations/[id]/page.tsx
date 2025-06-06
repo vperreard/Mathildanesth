@@ -167,7 +167,7 @@ export default function ConfigurationEditPage() {
 
                 const data = await response.json();
                 setConfig(data);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 setError(err.message || 'Une erreur est survenue');
                 toast.error(err.message || 'Une erreur est survenue');
             } finally {
@@ -208,7 +208,7 @@ export default function ConfigurationEditPage() {
                 const data = await response.json();
                 router.push(`/admin/team-configurations/${data.id}`);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(err.message || 'Une erreur est survenue');
             toast.error(err.message || 'Une erreur est survenue');
         } finally {
@@ -217,7 +217,7 @@ export default function ConfigurationEditPage() {
     };
 
     // Mettre à jour un champ dans la configuration
-    const updateConfig = (path: string, value: any) => {
+    const updateConfig = (path: string, value: unknown) => {
         setConfig((prev) => {
             const newConfig = { ...prev };
             const pathParts = path.split('.');

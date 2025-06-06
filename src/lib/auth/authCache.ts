@@ -4,10 +4,10 @@ import { logger } from '@/lib/logger';
 const CACHE_TTL = 5 * 60; // 5 minutes
 
 // Cache en mémoire comme fallback si Redis n'est pas disponible
-const memoryCache = new Map<string, { data: any; expiry: number }>();
+const memoryCache = new Map<string, { data: unknown; expiry: number }>();
 
 export const AuthCacheService = {
-  async cacheAuthToken(token: string, payload: any): Promise<void> {
+  async cacheAuthToken(token: string, payload: unknown): Promise<void> {
     try {
       const key = `auth:token:${token}`;
       
@@ -19,8 +19,8 @@ export const AuthCacheService = {
         memoryCache.set(key, { data: payload, expiry });
         logger.info('Using memory cache for auth token');
       }
-    } catch (error) {
-      logger.warn('Failed to cache auth token', error);
+    } catch (error: unknown) {
+      logger.warn('Failed to cache auth token', { error: error });
       // Try memory cache as last resort
       const key = `auth:token:${token}`;
       const expiry = Date.now() + (CACHE_TTL * 1000);
@@ -50,8 +50,8 @@ export const AuthCacheService = {
       }
       
       return null;
-    } catch (error) {
-      logger.warn('Failed to get cached auth token', error);
+    } catch (error: unknown) {
+      logger.warn('Failed to get cached auth token', { error: error });
       // Try memory cache as last resort
       const key = `auth:token:${token}`;
       const entry = memoryCache.get(key);
@@ -68,19 +68,19 @@ export const AuthCacheService = {
       
       const key = `auth:token:${token}`;
       await redis.del(key);
-    } catch (error) {
-      logger.warn('Failed to invalidate auth token', error);
+    } catch (error: unknown) {
+      logger.warn('Failed to invalidate auth token', { error: error });
     }
   },
 
-  async cacheUserData(userId: string, userData: any): Promise<void> {
+  async cacheUserData(userId: string, userData: unknown): Promise<void> {
     try {
       if (!redis) return;
       
       const key = `auth:user:${userId}`;
       await redis.setex(key, CACHE_TTL, JSON.stringify(userData));
-    } catch (error) {
-      logger.warn('Failed to cache user data', error);
+    } catch (error: unknown) {
+      logger.warn('Failed to cache user data', { error: error });
     }
   },
 
@@ -96,8 +96,8 @@ export const AuthCacheService = {
       }
       
       return null;
-    } catch (error) {
-      logger.warn('Failed to get cached user data', error);
+    } catch (error: unknown) {
+      logger.warn('Failed to get cached user data', { error: error });
       return null;
     }
   },
@@ -108,8 +108,8 @@ export const AuthCacheService = {
       
       const key = `auth:user:${userId}`;
       await redis.del(key);
-    } catch (error) {
-      logger.warn('Failed to invalidate user data', error);
+    } catch (error: unknown) {
+      logger.warn('Failed to invalidate user data', { error: error });
     }
   },
 
@@ -122,8 +122,8 @@ export const AuthCacheService = {
       if (keys.length > 0) {
         await redis.del(...keys);
       }
-    } catch (error) {
-      logger.warn('Failed to clear auth caches', error);
+    } catch (error: unknown) {
+      logger.warn('Failed to clear auth caches', { error: error });
     }
   },
 };

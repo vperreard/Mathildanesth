@@ -63,7 +63,7 @@ export async function applySimulationToPlanning(options: ApplySimulationOptions)
             message: data.message || 'Simulation appliquée avec succès',
             data: data.data,
         };
-    } catch (error) {
+    } catch (error: unknown) {
         return {
             success: false,
             error: 'Une erreur est survenue lors de la communication avec le serveur',
@@ -92,7 +92,7 @@ export async function getSimulationResult({ resultId }: GetSimulationResultOptio
         }
 
         return await response.json();
-    } catch (error) {
+    } catch (error: unknown) {
         throw error;
     }
 }
@@ -127,7 +127,7 @@ export async function getAdvancedVisualizationData(options: AdvancedVisualizatio
         }
 
         return await response.json();
-    } catch (error) {
+    } catch (error: unknown) {
         throw error;
     }
 } 

@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+import { logger } from "./logger";
 interface FetchOptions extends RequestInit {
     responseType?: 'json' | 'text' | 'blob' | 'arraybuffer';
 }
@@ -34,11 +35,11 @@ export async function fetchWithAuth<T = any>(url: string, options: FetchOptions 
 
         const response = await axios(config);
         return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
         // Gestion des erreurs
         if (error.response) {
             // Erreur de réponse (non-2xx)
-            console.error(`Erreur API (${error.response.status}):`, error.response.data);
+            logger.error(`Erreur API (${error.response.status}):`, error.response.data);
 
             // Redirection si 401 (non autorisé) - sera également géré par l'intercepteur Axios
             if (error.response.status === 401) {
@@ -51,11 +52,11 @@ export async function fetchWithAuth<T = any>(url: string, options: FetchOptions 
             );
         } else if (error.request) {
             // Pas de réponse reçue
-            console.error('Pas de réponse reçue:', error.request);
+            logger.error('Pas de réponse reçue:', error.request);
             throw new Error('Aucune réponse reçue du serveur');
         } else {
             // Erreur pendant la configuration de la requête
-            console.error('Erreur de requête:', error.message);
+            logger.error('Erreur de requête:', error.message);
             throw error;
         }
     }

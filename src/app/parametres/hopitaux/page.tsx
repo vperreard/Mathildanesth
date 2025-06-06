@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { Hospital, HospitalFormData } from '@/components/HospitalForm';
@@ -80,8 +81,8 @@ export default function HopitauxPage() {
                 if (!response.ok) throw new Error('Erreur lors du chargement des hôpitaux');
                 const data = await response.json();
                 setHospitals(data);
-            } catch (error) {
-                console.error('Erreur:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur:', { error: error });
                 toast.error('Impossible de charger les hôpitaux');
             } finally {
                 setLoading(false);
@@ -149,8 +150,8 @@ export default function HopitauxPage() {
             
             closeForm();
             */
-        } catch (error) {
-            console.error('Erreur:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur:', { error: error });
             toast.error('Erreur lors de la sauvegarde de l\'hôpital');
         } finally {
             setSaving(false);
@@ -183,8 +184,8 @@ export default function HopitauxPage() {
             setDeleteConfirmOpen(false);
             setHospitalToDelete(null);
             */
-        } catch (error) {
-            console.error('Erreur:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur:', { error: error });
             toast.error('Erreur lors de la suppression de l\'hôpital');
         }
     };

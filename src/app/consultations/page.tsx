@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { Period } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
@@ -51,12 +52,12 @@ const ConsultationsPage: React.FC = () => {
             }
 
             const data = await response.json();
-            setConsultations(data.consultations.map((item: any) => ({
+            setConsultations(data.consultations.map((item: unknown) => ({
                 ...item,
                 date: new Date(item.date),
             })));
-        } catch (error) {
-            console.error('Erreur lors du chargement des consultations:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des consultations:', { error: error });
             toast.error('Impossible de charger les consultations');
         } finally {
             setLoading(false);
@@ -86,8 +87,8 @@ const ConsultationsPage: React.FC = () => {
                 const sitesData = await sitesResponse.json();
                 setSites(sitesData.sites);
             }
-        } catch (error) {
-            console.error('Erreur lors du chargement des données:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des données:', { error: error });
             toast.error('Impossible de charger certaines données');
         }
     };
@@ -144,8 +145,8 @@ const ConsultationsPage: React.FC = () => {
                 // Actualiser la liste après suppression
                 setConsultations(consultations.filter(c => c.id !== consultationToDelete));
                 toast.success('Consultation supprimée');
-            } catch (error) {
-                console.error('Erreur de suppression:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur de suppression:', { error: error });
                 toast.error('Erreur lors de la suppression');
             } finally {
                 setIsDeleteConfirmOpen(false);
@@ -155,7 +156,7 @@ const ConsultationsPage: React.FC = () => {
     };
 
     // Soumission du formulaire (création ou mise à jour)
-    const handleSubmit = async (data: any) => {
+    const handleSubmit = async (data: unknown) => {
         try {
             // Si en mode édition, envoyer une requête PATCH
             if (isEditing && selectedConsultation) {
@@ -198,8 +199,8 @@ const ConsultationsPage: React.FC = () => {
 
             // Fermer le formulaire
             setIsFormOpen(false);
-        } catch (error) {
-            console.error('Erreur de soumission:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur de soumission:', { error: error });
             toast.error('Erreur lors de la soumission');
         }
     };

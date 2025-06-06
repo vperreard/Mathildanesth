@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '../../../../lib/prisma';
 import { verifyAuthToken, getAuthTokenServer } from '../../../../lib/auth-server-utils';
 
@@ -50,8 +51,8 @@ export async function GET(request: NextRequest) {
             }
         });
 
-    } catch (error) {
-        console.error("Erreur GET /api/user/preferences:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur GET /api/user/preferences:", { error: error });
         return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
     }
 }
@@ -99,8 +100,8 @@ export async function POST(request: NextRequest) {
             preferences 
         });
 
-    } catch (error) {
-        console.error("Erreur POST /api/user/preferences:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur POST /api/user/preferences:", { error: error });
         return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
     }
 }

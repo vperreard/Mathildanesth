@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import SiteSelector from '@/components/ui/SiteSelector';
 import { useUserSiteAssignments, useSurgeonSiteAssignments } from '@/hooks/useSiteAssignments';
 import Link from 'next/link';
@@ -71,8 +72,8 @@ export default function SiteAssignmentsPage() {
             setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
             setSurgeons(Array.isArray(surgeonsRes.data) ? surgeonsRes.data : []);
             setSites(Array.isArray(sitesRes.data) ? sitesRes.data : []);
-        } catch (error) {
-            console.error('Erreur lors du chargement:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement:', { error: error });
         } finally {
             setLoading(false);
         }
@@ -150,8 +151,8 @@ export default function SiteAssignmentsPage() {
             
             setIsMultiSelectMode(false);
             setBulkSelectedSites([]);
-        } catch (error) {
-            console.error('Erreur lors de la mise à jour groupée:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la mise à jour groupée:', { error: error });
             toast.error('Erreur lors de la mise à jour groupée');
         } finally {
             setIsBulkUpdating(false);

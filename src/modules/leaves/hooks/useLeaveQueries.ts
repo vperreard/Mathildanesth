@@ -29,7 +29,7 @@ export const leaveKeys = {
     balance: (userId: string) => [...leaveKeys.all, 'balance', userId] as const,
     conflicts: (startDate: string, endDate: string, userId: string, excludeId?: string) =>
         [...leaveKeys.all, 'conflicts', startDate, endDate, userId, excludeId] as const,
-    statistics: (filters: Record<string, any> = {}) => [...leaveKeys.all, 'stats', filters] as const
+    statistics: (filters: Record<string, unknown> = {}) => [...leaveKeys.all, 'stats', filters] as const
 };
 
 // Durées de cache optimisées pour différents types de données
@@ -309,7 +309,7 @@ export const useRejectLeave = () => {
  * Fonction pour précharger les données de congés fréquemment consultées
  * @param queryClient Client React Query
  */
-export const prefetchFrequentLeaveData = async (queryClient: any, userId?: string) => {
+export const prefetchFrequentLeaveData = async (queryClient: unknown, userId?: string) => {
     logger.info("Préchargement des données de congés fréquentes");
 
     // Précharger la liste des congés à venir

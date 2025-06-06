@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../../../lib/logger";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -70,8 +71,8 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
     setIsSaving(true);
     try {
       await onSave(state.rule);
-    } catch (error) {
-      console.error('Error saving rule:', error);
+    } catch (error: unknown) {
+      logger.error('Error saving rule:', { error: error });
     } finally {
       setIsSaving(false);
     }

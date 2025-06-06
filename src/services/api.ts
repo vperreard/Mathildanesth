@@ -1,4 +1,5 @@
 import { User } from '../types/user';
+import { logger } from "../lib/logger";
 import { Attribution, ValidationResult } from '../types/attribution';
 import { apiConfig } from '../config/api';
 import Cookies from 'js-cookie';
@@ -55,8 +56,8 @@ export class ApiService {
                 throw new Error('Erreur lors de la récupération des utilisateurs');
             }
             return await response.json();
-        } catch (error) {
-            console.error('Erreur API:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur API:', { error: error });
             throw error;
         }
     }
@@ -80,8 +81,8 @@ export class ApiService {
                 throw new Error('Erreur lors de la récupération des gardes/vacations');
             }
             return await response.json();
-        } catch (error) {
-            console.error('Erreur API:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur API:', { error: error });
             throw error;
         }
     }
@@ -100,8 +101,8 @@ export class ApiService {
             if (!response.ok) {
                 throw new Error('Erreur lors de la sauvegarde des gardes/vacations');
             }
-        } catch (error) {
-            console.error('Erreur API:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur API:', { error: error });
             throw error;
         }
     }
@@ -109,7 +110,7 @@ export class ApiService {
     /**
      * Génère un nouveau planning
      */
-    async generatePlanning(parameters: any): Promise<GeneratePlanningResponse> {
+    async generatePlanning(parameters: unknown): Promise<GeneratePlanningResponse> {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.planning.generate}`, {
                 method: 'POST',
@@ -123,15 +124,15 @@ export class ApiService {
                 try {
                     const errorData = await response.json();
                     errorBody = errorData.error || JSON.stringify(errorData);
-                } catch (parseError) {
+                } catch (parseError: unknown) {
                     // Si le corps n'est pas JSON ou vide
                     errorBody = await response.text() || response.statusText;
                 }
                 throw new Error(`Erreur lors de la génération du planning: ${errorBody} (Status: ${response.status})`);
             }
             return await response.json();
-        } catch (error) {
-            console.error('Erreur API (generatePlanning):', error);
+        } catch (error: unknown) {
+            logger.error('Erreur API (generatePlanning):', { error: error });
             throw error;
         }
     }
@@ -139,7 +140,7 @@ export class ApiService {
     /**
      * Valide un planning
      */
-    async validatePlanning(attributions: Attribution[]): Promise<any> {
+    async validatePlanning(attributions: Attribution[]): Promise<unknown> {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.planning.validate}`, {
                 method: 'POST',
@@ -151,8 +152,8 @@ export class ApiService {
                 throw new Error('Erreur lors de la validation du planning');
             }
             return await response.json();
-        } catch (error) {
-            console.error('Erreur API (validatePlanning):', error);
+        } catch (error: unknown) {
+            logger.error('Erreur API (validatePlanning):', { error: error });
             throw error;
         }
     }
@@ -171,8 +172,8 @@ export class ApiService {
             if (!response.ok) {
                 throw new Error('Erreur lors de l\'approbation du planning');
             }
-        } catch (error) {
-            console.error('Erreur API (approvePlanning):', error);
+        } catch (error: unknown) {
+            logger.error('Erreur API (approvePlanning):', { error: error });
             throw error;
         }
     }
@@ -180,7 +181,7 @@ export class ApiService {
     /**
      * Récupère les préférences d'affichage utilisateur
      */
-    async getUserPreferences(): Promise<any> {
+    async getUserPreferences(): Promise<unknown> {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondes de timeout
@@ -197,8 +198,8 @@ export class ApiService {
                 throw new Error(`Erreur lors de la récupération des préférences (${response.status}): ${errorText}`);
             }
             return await response.json();
-        } catch (error) {
-            console.error('Erreur API (getUserPreferences):', error);
+        } catch (error: unknown) {
+            logger.error('Erreur API (getUserPreferences):', { error: error });
             throw error;
         }
     }
@@ -208,7 +209,7 @@ export class ApiService {
      * @param preferences Objet des préférences utilisateur
      * @returns Confirmation de la sauvegarde
      */
-    async saveUserPreferences(preferences: any): Promise<{ success: boolean }> {
+    async saveUserPreferences(preferences: unknown): Promise<{ success: boolean }> {
         try {
             const response = await fetch(this.getUrl(apiConfig.endpoints.user.preferences), {
                 method: 'POST',
@@ -220,8 +221,8 @@ export class ApiService {
                 throw new Error('Erreur lors de la sauvegarde des préférences');
             }
             return await response.json();
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde des préférences utilisateur:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde des préférences utilisateur:', { error: error });
             throw error;
         }
     }
@@ -231,7 +232,7 @@ export class ApiService {
      * @param attributions Tableau des assignations à sauvegarder
      * @returns Résultat du traitement par lot
      */
-    async saveAssignmentsBatch(attributions: Attribution[]): Promise<{ message: string; count?: number; errors?: any[]; successCount?: number }> {
+    async saveAssignmentsBatch(attributions: Attribution[]): Promise<{ message: string; count?: number; errors?: unknown[]; successCount?: number }> {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.attributions.batch}`, {
                 method: 'POST',
@@ -243,8 +244,8 @@ export class ApiService {
                 throw new Error('Erreur lors de la sauvegarde des gardes/vacations par lots');
             }
             return await response.json();
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde des assignations par lots:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde des assignations par lots:', { error: error });
             throw error;
         }
     }

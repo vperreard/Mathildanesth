@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 
 interface CacheEntry {
     key: string;
-    data: any;
+    data: unknown;
     expiresAt: Date;
 }
 
@@ -14,7 +14,7 @@ class SimulationCacheService {
     private defaultTTL: number = 3600000; // 1 heure en millisecondes
 
     // Génère une clé de cache basée sur les paramètres de simulation
-    generateCacheKey(scenarioId: string, params: any): string {
+    generateCacheKey(scenarioId: string, params: unknown): string {
         const paramsString = JSON.stringify(params);
         return createHash('md5').update(`${scenarioId}:${paramsString}`).digest('hex');
     }
@@ -37,7 +37,7 @@ class SimulationCacheService {
     }
 
     // Stocke une entrée dans le cache avec une durée de vie optionnelle
-    set(key: string, data: any, ttl: number = this.defaultTTL): void {
+    set(key: string, data: unknown, ttl: number = this.defaultTTL): void {
         const expiresAt = new Date(Date.now() + ttl);
         this.cache.set(key, { key, data, expiresAt });
     }
@@ -69,10 +69,10 @@ class SimulationCacheService {
     // Récupère ou calcule des résultats intermédiaires
     async getOrCompute(
         scenarioId: string,
-        params: any,
-        computeFn: () => Promise<any>,
+        params: unknown,
+        computeFn: () => Promise<unknown>,
         ttl?: number
-    ): Promise<any> {
+    ): Promise<unknown> {
         const cacheKey = this.generateCacheKey(scenarioId, params);
         const cachedResult = this.get(cacheKey);
 
@@ -90,7 +90,7 @@ class SimulationCacheService {
     }
 
     // Stocke les résultats intermédiaires dans la base de données pour une persistance à long terme
-    async persistIntermediateResults(scenarioId: string, stepName: string, data: any): Promise<void> {
+    async persistIntermediateResults(scenarioId: string, stepName: string, data: unknown): Promise<void> {
         const hash = createHash('md5').update(JSON.stringify(data)).digest('hex');
 
         await prisma.simulationIntermediateResult.upsert({

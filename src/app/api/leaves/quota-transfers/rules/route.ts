@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -26,8 +27,8 @@ export async function GET(request: NextRequest) {
         }));
 
         return NextResponse.json(formattedRules);
-    } catch (error) {
-        console.error("Erreur lors de la récupération des règles de transfert:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la récupération des règles de transfert:", { error: error });
         return NextResponse.json(
             { error: "Erreur serveur lors de la récupération des règles de transfert" },
             { status: 500 }
@@ -95,8 +96,8 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(rule);
-    } catch (error) {
-        console.error("Erreur lors de la création/modification d'une règle de transfert:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la création/modification d'une règle de transfert:", { error: error });
         return NextResponse.json(
             { error: "Erreur serveur lors de la création/modification d'une règle de transfert" },
             { status: 500 }

@@ -111,7 +111,7 @@ export const useLeaveCalculation = ({
                 logger.warn('calculateLeaveCountedDays returned null or undefined');
                 throw new Error("Échec du calcul des jours de congés");
             }
-        } catch (err) {
+        } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             setError(errorObj);
             setStatus('error');
@@ -157,7 +157,7 @@ export const useLeaveCalculation = ({
 
                     setPublicHolidays(holidayDetails);
                     logger.info('Public holidays loaded successfully', { count: holidayDetails.length });
-                } catch (err) {
+                } catch (err: unknown) {
                     const errorObj = err instanceof Error ? err : new Error(String(err));
                     logger.error(`Erreur lors du chargement des jours fériés: ${errorObj.message}`, {
                         startDate,

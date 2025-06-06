@@ -7,12 +7,12 @@ declare type Args<T, F extends Operation> = T extends {
         types: {
             operations: {
                 [K in F]: {
-                    args: any;
+                    args: unknown;
                 };
             };
         };
     };
-} ? T[symbol]['types']['operations'][F]['args'] : any;
+} ? T[symbol]['types']['operations'][F]['args'] : unknown;
 
 declare class DbNull extends NullTypesEnumValue {
     private readonly _brand_DbNull;
@@ -239,7 +239,7 @@ export declare class Decimal {
     static exp(n: Decimal.Value): Decimal;
     static floor(n: Decimal.Value): Decimal;
     static hypot(...n: Decimal.Value[]): Decimal;
-    static isDecimal(object: any): object is Decimal;
+    static isDecimal(object: unknown): object is Decimal;
     static ln(n: Decimal.Value): Decimal;
     static log(n: Decimal.Value, base?: Decimal.Value): Decimal;
     static log2(n: Decimal.Value): Decimal;

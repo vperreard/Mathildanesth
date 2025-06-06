@@ -51,7 +51,7 @@ export default function EditSimulationScenarioPage() {
                 try {
                     const errorData = await res.json();
                     errorMessage = errorData.message || errorMessage;
-                } catch (e) {
+                } catch (e: unknown) {
                     errorMessage = `Erreur ${res.status}: ${res.statusText}`;
                 }
                 throw new Error(errorMessage);
@@ -62,7 +62,7 @@ export default function EditSimulationScenarioPage() {
                 description: data.description || '',
                 parametersJson: typeof data.parametersJson === 'string' ? data.parametersJson : JSON.stringify(data.parametersJson, null, 2),
             });
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(err.message);
             toast.error("Erreur lors du chargement du scénario: " + err.message);
         } finally {
@@ -87,7 +87,7 @@ export default function EditSimulationScenarioPage() {
         }
         try {
             JSON.parse(scenario.parametersJson);
-        } catch (e) {
+        } catch (e: unknown) {
             errors.parametersJson = "Le JSON des paramètres est invalide.";
         }
         setValidationErrors(errors);
@@ -133,7 +133,7 @@ export default function EditSimulationScenarioPage() {
                     } else {
                         errorMessage = errorData.message || errorMessage;
                     }
-                } catch (e) {
+                } catch (e: unknown) {
                     errorMessage = `Erreur ${res.status}: ${res.statusText}`;
                 }
                 throw new Error(errorMessage);
@@ -141,7 +141,7 @@ export default function EditSimulationScenarioPage() {
 
             toast.success("Scénario mis à jour avec succès !");
             router.push('/admin/simulations');
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(err.message);
             toast.error("Erreur lors de la mise à jour: " + err.message);
         } finally {

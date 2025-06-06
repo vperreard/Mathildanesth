@@ -8,8 +8,8 @@ import React from 'react';
 // Mock des modules Next.js critiques
 export const mockNextModules = () => {
   // Mock next/dynamic
-  jest.mock('next/dynamic', () => (componentImport: any) => {
-    const DynamicComponent = (props: any) => {
+  jest.mock('next/dynamic', () => (componentImport: unknown) => {
+    const DynamicComponent = (props: unknown) => {
       const Component = componentImport;
       return React.createElement('div', { 'data-testid': 'dynamic-component' }, 'Dynamic Component');
     };
@@ -26,14 +26,14 @@ export const mockNextModules = () => {
 
   // Mock next/link
   jest.mock('next/link', () => {
-    return function Link({ children, href, ...props }: any) {
+    return function Link({ children, href, ...props }: unknown) {
       return React.createElement('a', { href, ...props }, children);
     };
   });
 
   // Mock next/script
   jest.mock('next/script', () => {
-    return function Script(props: any) {
+    return function Script(props: unknown) {
       return React.createElement('script', props);
     };
   });

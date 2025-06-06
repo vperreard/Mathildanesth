@@ -42,8 +42,8 @@ export const mockRecharts = () => {
   jest.mock('recharts', () => {
     const React = require('react');
     return {
-      ResponsiveContainer: ({ children }: any) => React.createElement('div', { 'data-testid': 'responsive-container' }, children),
-      BarChart: ({ children }: any) => React.createElement('div', { 'data-testid': 'bar-chart' }, children),
+      ResponsiveContainer: ({ children }: unknown) => React.createElement('div', { 'data-testid': 'responsive-container' }, children),
+      BarChart: ({ children }: unknown) => React.createElement('div', { 'data-testid': 'bar-chart' }, children),
       Bar: () => React.createElement('div', { 'data-testid': 'bar' }),
       XAxis: () => React.createElement('div', { 'data-testid': 'x-axis' }),
       YAxis: () => React.createElement('div', { 'data-testid': 'y-axis' }),
@@ -51,13 +51,13 @@ export const mockRecharts = () => {
       Legend: () => React.createElement('div', { 'data-testid': 'legend' }),
       Cell: () => React.createElement('div', { 'data-testid': 'cell' }),
       CartesianGrid: () => React.createElement('div', { 'data-testid': 'cartesian-grid' }),
-      PieChart: ({ children }: any) => React.createElement('div', { 'data-testid': 'pie-chart' }, children),
+      PieChart: ({ children }: unknown) => React.createElement('div', { 'data-testid': 'pie-chart' }, children),
       Pie: () => React.createElement('div', { 'data-testid': 'pie' }),
-      LineChart: ({ children }: any) => React.createElement('div', { 'data-testid': 'line-chart' }, children),
+      LineChart: ({ children }: unknown) => React.createElement('div', { 'data-testid': 'line-chart' }, children),
       Line: () => React.createElement('div', { 'data-testid': 'line' }),
       Area: () => React.createElement('div', { 'data-testid': 'area' }),
-      AreaChart: ({ children }: any) => React.createElement('div', { 'data-testid': 'area-chart' }, children),
-      RadialBarChart: ({ children }: any) => React.createElement('div', { 'data-testid': 'radial-bar-chart' }, children),
+      AreaChart: ({ children }: unknown) => React.createElement('div', { 'data-testid': 'area-chart' }, children),
+      RadialBarChart: ({ children }: unknown) => React.createElement('div', { 'data-testid': 'radial-bar-chart' }, children),
       RadialBar: () => React.createElement('div', { 'data-testid': 'radial-bar' }),
       PolarGrid: () => React.createElement('div', { 'data-testid': 'polar-grid' }),
       PolarAngleAxis: () => React.createElement('div', { 'data-testid': 'polar-angle-axis' }),
@@ -268,7 +268,7 @@ export const cleanupAfterTest = () => {
 };
 
 // Helper pour mock les réponses API - Amélioré
-export const mockApiResponse = (url: string, response: any, status = 200) => {
+export const mockApiResponse = (url: string, response: unknown, status = 200) => {
   const mockFetch = jest.fn().mockImplementation((requestUrl) => {
     if (requestUrl.includes(url)) {
       return Promise.resolve({
@@ -296,7 +296,7 @@ export const mockApiResponse = (url: string, response: any, status = 200) => {
 };
 
 // Helper pour mock plusieurs endpoints
-export const mockMultipleApiResponses = (endpoints: Record<string, { response: any; status?: number }>) => {
+export const mockMultipleApiResponses = (endpoints: Record<string, { response: unknown; status?: number }>) => {
   const mockFetch = jest.fn().mockImplementation((requestUrl) => {
     for (const [url, config] of Object.entries(endpoints)) {
       if (requestUrl.includes(url)) {

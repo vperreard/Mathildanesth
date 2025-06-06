@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -65,8 +66,8 @@ export default function PlanningValidationPage() {
             setAssignments(data.attributions || []);
             setValidationResult(data.validation || null);
             setUsers(data.users || []);
-        } catch (error) {
-            console.error('Erreur lors du chargement du planning:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement du planning:', { error: error });
             toast({
                 title: "Erreur",
                 description: "Impossible de charger le planning",
@@ -78,7 +79,7 @@ export default function PlanningValidationPage() {
     };
 
     // Gérer le drag & drop
-    const handleDragEnd = (result: any) => {
+    const handleDragEnd = (result: unknown) => {
         if (!result.destination) return;
 
         const { draggableId, source, destination } = result;
@@ -114,8 +115,8 @@ export default function PlanningValidationPage() {
             
             const result = await response.json();
             setValidationResult(result);
-        } catch (error) {
-            console.error('Erreur de validation:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur de validation:', { error: error });
         }
     };
 
@@ -148,7 +149,7 @@ export default function PlanningValidationPage() {
                 });
                 router.push('/planning');
             }
-        } catch (error) {
+        } catch (error: unknown) {
             toast({
                 title: "Erreur",
                 description: "Impossible d'approuver le planning",
@@ -179,7 +180,7 @@ export default function PlanningValidationPage() {
             a.href = url;
             a.download = `planning-${format(selectedMonth, 'yyyy-MM')}.pdf`;
             a.click();
-        } catch (error) {
+        } catch (error: unknown) {
             toast({
                 title: "Erreur",
                 description: "Impossible d'exporter le planning",

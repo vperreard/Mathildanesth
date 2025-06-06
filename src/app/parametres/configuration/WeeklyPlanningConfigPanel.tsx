@@ -470,7 +470,7 @@ const WeeklyPlanningConfigPanel: React.FC = () => {
 
             // Réinitialiser le message après 3 secondes
             setTimeout(() => setSaveMessage(''), 3000);
-        } catch (error) {
+        } catch (error: unknown) {
             setSaveMessage('Erreur lors de l\'enregistrement. Veuillez réessayer.');
         } finally {
             setIsSaving(false);

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 // GET /api/chirurgiens/[surgeonId]/sites - Récupérer les sites d'un chirurgien
 export async function GET(
@@ -60,8 +61,8 @@ export async function GET(
         timestamp: new Date().toISOString(),
       },
     });
-  } catch (error) {
-    console.error('[SURGEON_SITES_GET_ERROR]:', error);
+  } catch (error: unknown) {
+    logger.error('[SURGEON_SITES_GET_ERROR]:', { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors de la récupération des sites' },
       { status: 500 }
@@ -149,8 +150,8 @@ export async function PUT(
         timestamp: new Date().toISOString(),
       },
     });
-  } catch (error) {
-    console.error('[SURGEON_SITES_PUT_ERROR]:', error);
+  } catch (error: unknown) {
+    logger.error('[SURGEON_SITES_PUT_ERROR]:', { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors de la mise à jour des sites' },
       { status: 500 }
@@ -205,8 +206,8 @@ export async function POST(
         specialties: updatedSurgeon.specialties,
       },
     });
-  } catch (error) {
-    console.error('[SURGEON_SITES_POST_ERROR]:', error);
+  } catch (error: unknown) {
+    logger.error('[SURGEON_SITES_POST_ERROR]:', { error: error });
     return NextResponse.json(
       { error: "Erreur serveur lors de l'ajout des sites" },
       { status: 500 }
@@ -257,8 +258,8 @@ export async function DELETE(
         sites: updatedSurgeon.sites,
       },
     });
-  } catch (error) {
-    console.error('[SURGEON_SITES_DELETE_ERROR]:', error);
+  } catch (error: unknown) {
+    logger.error('[SURGEON_SITES_DELETE_ERROR]:', { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors de la suppression des sites' },
       { status: 500 }

@@ -153,7 +153,7 @@ export class EnhancedLeaveService {
             await cacheService.cacheData(cacheKey, result, 'LIST');
 
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error(`Erreur lors de la récupération des congés`, { filters, error });
             throw error;
         }
@@ -187,7 +187,7 @@ export class EnhancedLeaveService {
             await cacheService.cacheData(cacheKey, leave, 'DETAIL');
 
             return leave as unknown as Leave;
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error(`Erreur lors de la récupération du congé ${leaveId}`, { error });
             throw error;
         }
@@ -257,7 +257,7 @@ export class EnhancedLeaveService {
             }
 
             return result as unknown as Leave;
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error(`Erreur lors de l'enregistrement du congé`, { leaveId: leave.id, error });
             throw error;
         }
@@ -304,7 +304,7 @@ export class EnhancedLeaveService {
             });
 
             return updatedLeave as unknown as Leave;
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error(`Erreur lors de la mise à jour du statut du congé`, { leaveId, newStatus, error });
             throw error;
         }
@@ -334,7 +334,7 @@ export class EnhancedLeaveService {
             await cacheService.invalidateCache(LeaveEvent.DELETED, { leave });
 
             return true;
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error(`Erreur lors de la suppression du congé`, { leaveId, error });
             throw error;
         }
@@ -385,7 +385,7 @@ export class EnhancedLeaveService {
             await cacheService.cacheData(cacheKey, leaves, 'USER_LEAVES');
 
             return leaves as unknown as Leave[];
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error(`Erreur lors de la récupération des congés utilisateur`, { userId, year, error });
             throw error;
         }
@@ -434,7 +434,7 @@ export class EnhancedLeaveService {
             await cacheService.cacheData(cacheKey, conflicts, 'CONFLICTS');
 
             return conflicts as unknown as Leave[];
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error(`Erreur lors de la vérification des conflits`, { startDate, endDate, userId, error });
             throw error;
         }

@@ -1,4 +1,4 @@
-// Logger utility for Winston integration
+import { logger as appLogger } from '../lib/logger';
 
 // Do not import winston statically here
 
@@ -27,9 +27,9 @@ async function initializeLogger() {
         loggerInstance.add(new transports.File({ filename: 'logs/error.log', level: 'error' }));
         loggerInstance.add(new transports.File({ filename: 'logs/combined.log' }));
 
-        console.info('Winston logger initialized on server.');
-      } catch (error) {
-        console.error('Failed to initialize Winston logger:', error);
+        appLogger.info('Winston logger initialized on server.');
+      } catch (error: unknown) {
+        appLogger.error('Failed to initialize Winston logger:', error);
         // Fallback to console logging if Winston fails
         loggerInstance = console;
       }
@@ -37,7 +37,7 @@ async function initializeLogger() {
   } else {
     // On the client, use a simple console logger mock
     if (!loggerInstance) {
-      console.info('Initializing console logger for client.');
+      appLogger.info('Initializing console logger for client.');
       loggerInstance = {
         info: console.info,
         warn: console.warn,
@@ -68,10 +68,10 @@ export async function getLogger() {
 /*
 // Example of a synchronous proxy (use with caution):
 const loggerProxy = {
-    info: async (...args: any[]) => (await getLogger()).info(...args),
-    warn: async (...args: any[]) => (await getLogger()).warn(...args),
-    error: async (...args: any[]) => (await getLogger()).error(...args),
-    debug: async (...args: any[]) => (await getLogger()).debug(...args),
+    info: async (...args: unknown[]) => (await getLogger()).info(...args),
+    warn: async (...args: unknown[]) => (await getLogger()).warn(...args),
+    error: async (...args: unknown[]) => (await getLogger()).error(...args),
+    debug: async (...args: unknown[]) => (await getLogger()).debug(...args),
     // Add other needed methods
 };
 export { loggerProxy as logger };
@@ -87,22 +87,22 @@ export { loggerProxy as logger };
 
 // Export a synchronous logger for compatibility
 export const logger = {
-  info: (...args: any[]) => {
+  info: (...args: unknown[]): void => {
     getLogger()
       .then(l => l.info(...args))
       .catch(console.error);
   },
-  warn: (...args: any[]) => {
+  warn: (...args: unknown[]): void => {
     getLogger()
       .then(l => l.warn(...args))
       .catch(console.error);
   },
-  error: (...args: any[]) => {
+  error: (...args: unknown[]): void => {
     getLogger()
       .then(l => l.error(...args))
       .catch(console.error);
   },
-  debug: (...args: any[]) => {
+  debug: (...args: unknown[]): void => {
     getLogger()
       .then(l => l.debug(...args))
       .catch(console.error);

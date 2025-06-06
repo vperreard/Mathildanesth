@@ -9,7 +9,7 @@ import { useNotification } from '@/components/ui/notification';
 
 interface FormWithIndicatorsProps {
     title?: string;
-    onSave?: (data: any) => Promise<void>;
+    onSave?: (data: unknown) => Promise<void>;
 }
 
 export const FormWithIndicators: React.FC<FormWithIndicatorsProps> = ({
@@ -135,7 +135,7 @@ export const FormWithIndicators: React.FC<FormWithIndicatorsProps> = ({
                 message: 'Vos données ont été enregistrées avec succès.'
             });
 
-        } catch (error) {
+        } catch (error: unknown) {
             showNotification({
                 type: 'error',
                 title: 'Erreur de sauvegarde',

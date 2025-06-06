@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-// import { getSession } from 'next-auth/react'; // Commenté car nous utilisons les headers
+import { logger } from "@/lib/logger";
+// // getSession remplacé - utiliser getServerSession côté serveur ou useAuth côté client; // Commenté car nous utilisons les headers
 import { headers as nextHeaders } from 'next/headers'; // Renommer pour éviter conflit potentiel
 // import { getCurrentUser } from '@/lib/auth/session'; // Supposons une fonction pour obtenir l'utilisateur côté serveur
 // Chemin relatif corrigé pour pointer vers config/seed-config.js à la racine
@@ -33,12 +34,12 @@ async function readConfigFile(): Promise<FatigueConfig> {
     try {
         const data = await fs.readFile(configFilePath, 'utf-8');
         return JSON.parse(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (error.code === 'ENOENT') {
-            console.warn('fatigue-settings.json not found, returning default seed config.');
+            logger.warn('fatigue-settings.json not found, returning default seed config.');
             return defaultFatigueSeedConfig; // Utiliser le fallback codé en dur
         }
-        console.error("Error reading fatigue config file:", error);
+        logger.error("Error reading fatigue config file:", { error: error });
         throw new Error('Could not read fatigue configuration.');
     }
 }
@@ -47,8 +48,8 @@ async function readConfigFile(): Promise<FatigueConfig> {
 async function writeConfigFile(config: FatigueConfig): Promise<void> {
     try {
         await fs.writeFile(configFilePath, JSON.stringify(config, null, 2), 'utf-8');
-    } catch (error) {
-        console.error("Error writing fatigue config file:", error);
+    } catch (error: unknown) {
+        logger.error("Error writing fatigue config file:", { error: error });
         throw new Error('Could not save fatigue configuration.');
     }
 }
@@ -58,7 +59,7 @@ const checkAdminRole = (): boolean => {
     const headersList = nextHeaders();
     // const userRoleString = headersList.get('x-user-role'); // Ligne problématique commentée
     // return !!userRoleString && ['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(userRoleString);
-    console.warn("[SECURITY] checkAdminRole est désactivé et retourne toujours true. À RÉPARER IMPÉRATIVEMENT.")
+    logger.warn("[SECURITY] checkAdminRole est désactivé et retourne toujours true. À RÉPARER IMPÉRATIVEMENT.")
     return true; // ATTENTION: À remplacer par une vraie vérification
 };
 
@@ -71,7 +72,7 @@ export async function GET(request: Request) {
     try {
         const config = await readConfigFile();
         return NextResponse.json(config);
-    } catch (error: any) {
+    } catch (error: unknown) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
@@ -95,7 +96,7 @@ export async function PUT(request: Request) {
 
         await writeConfigFile(newConfig);
         return NextResponse.json({ message: 'Configuration saved successfully' });
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (error instanceof SyntaxError) {
             return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
         }

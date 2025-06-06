@@ -1,4 +1,5 @@
 import { setupServer } from 'msw/node';
+import { logger } from "../../lib/logger";
 import { http, HttpResponse } from 'msw';
 
 // Handlers basiques pour les tests
@@ -149,7 +150,7 @@ const handlers = [
 
   // Final fallback
   http.get('*', ({ request }) => {
-    console.warn(`Truly unhandled request: ${request.method} ${request.url}`);
+    logger.warn(`Truly unhandled request: ${request.method} ${request.url}`);
     return HttpResponse.json({ error: 'Not found' }, { status: 404 });
   }),
 ];

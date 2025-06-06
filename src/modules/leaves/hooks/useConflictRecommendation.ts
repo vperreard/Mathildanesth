@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { useTranslation } from 'next-i18next';
 import {
     LeaveConflict,
@@ -140,8 +141,8 @@ export const useConflictRecommendation = ({
                 setAutomatedResolutionsCount(result.automatedResolutionsCount);
                 setManualResolutionsCount(result.manualResolutionsCount);
                 setHighestPriorityConflicts(result.highestPriorityConflicts);
-            } catch (error) {
-                console.error('Erreur lors de l\'analyse des recommandations:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors de l\'analyse des recommandations:', { error: error });
                 // En cas d'erreur, mettre à jour avec les conflits sans recommandations
                 setConflictsWithRecommendations(conflictDetection.conflicts.map(conflict => ({
                     ...conflict
@@ -209,7 +210,7 @@ export const useConflictRecommendation = ({
         const conflict = conflictsWithRecommendations.find(c => c.id === conflictId);
 
         if (!conflict || !conflict.recommendation) {
-            console.error(`Aucune recommandation trouvée pour le conflit ${conflictId}`);
+            logger.error(`Aucune recommandation trouvée pour le conflit ${conflictId}`);
             return null;
         }
 
@@ -263,8 +264,8 @@ export const useConflictRecommendation = ({
             conflictDetection.resolveConflict(conflictId);
 
             return resolution;
-        } catch (error) {
-            console.error(`Erreur lors de l'application de la stratégie pour le conflit ${conflictId}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de l'application de la stratégie pour le conflit ${conflictId}:`, { error: error });
             return null;
         }
     }, [conflictsWithRecommendations, userId, eventBus, t]);
@@ -356,8 +357,8 @@ export const useConflictRecommendation = ({
             if (onRecommendationsGenerated) {
                 onRecommendationsGenerated(result);
             }
-        } catch (error) {
-            console.error('Erreur lors de la génération des recommandations:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la génération des recommandations:', { error: error });
             setRecommendationsError(error instanceof Error ? error : new Error(String(error)));
         } finally {
             setRecommendationsLoading(false);
@@ -368,7 +369,7 @@ export const useConflictRecommendation = ({
     const applyResolution = useCallback(async (resolution: ConflictResolution): Promise<boolean> => {
         try {
             // Dans une implémentation réelle, envoyer la résolution au backend
-            console.log('Applying resolution:', resolution);
+            logger.info('Applying resolution:', resolution);
 
             // Mettre à jour l'état local pour refléter la résolution
             setConflictsWithRecommendations(prevConflicts =>
@@ -395,8 +396,8 @@ export const useConflictRecommendation = ({
             );
 
             return true;
-        } catch (error) {
-            console.error('Erreur lors de l\'application de la résolution:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'application de la résolution:', { error: error });
             return false;
         }
     }, []);

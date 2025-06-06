@@ -3,7 +3,7 @@ jest.mock('axios');
 jest.mock('next-auth/react');
 
 import axios from 'axios';
-import { getSession } from 'next-auth/react';
+// getSession remplacé - utiliser getServerSession côté serveur ou useAuth côté client;
 
 // Helper to access axios mock
 const mockedAxios = axios as jest.Mocked<typeof axios>;

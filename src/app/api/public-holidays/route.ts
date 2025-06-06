@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 // Importer depuis le service existant
 import { publicHolidayService } from '@/modules/leaves/services/publicHolidayService';
 import { PublicHoliday } from '@/modules/leaves/types/public-holiday'; // Assurez-vous que ce type est correct
@@ -34,8 +35,8 @@ export async function GET(request: NextRequest) {
         // L'API renvoie maintenant les jours fériés calculés
         return NextResponse.json({ holidays });
 
-    } catch (error: any) {
-        console.error(`Erreur API [GET /api/jours-feries?year=${year}]:`, error);
+    } catch (error: unknown) {
+        logger.error(`Erreur API [GET /api/jours-feries?year=${year}]:`, { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des jours fériés.', details: error.message },
             { status: 500 }

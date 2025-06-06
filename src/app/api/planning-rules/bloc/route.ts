@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import {
     getAllSupervisorRules,
     createSupervisorRule,
@@ -23,8 +24,8 @@ export async function GET(request: Request) {
 
         const rules = await getAllSupervisorRules(sectorId || undefined);
         return NextResponse.json(rules);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des règles de supervision:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des règles de supervision:', { error: error });
         return NextResponse.json({ error: 'Erreur lors de la récupération des règles de supervision' }, { status: 500 });
     }
 }
@@ -46,8 +47,8 @@ export async function POST(request: Request) {
 
         const rule = await createSupervisorRule(result.data);
         return NextResponse.json(rule, { status: 201 });
-    } catch (error) {
-        console.error('Erreur lors de la création d\'une règle de supervision:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création d\'une règle de supervision:', { error: error });
 
         if (error instanceof ZodError) {
             return NextResponse.json({
@@ -81,8 +82,8 @@ export async function PUT(request: Request) {
 
         const rule = await updateSupervisorRule(body.id, result.data);
         return NextResponse.json(rule);
-    } catch (error) {
-        console.error('Erreur lors de la mise à jour d\'une règle de supervision:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la mise à jour d\'une règle de supervision:', { error: error });
 
         if (error instanceof ZodError) {
             return NextResponse.json({
@@ -112,8 +113,8 @@ export async function DELETE(request: Request) {
 
         await deleteSupervisorRule(id);
         return new NextResponse(null, { status: 204 });
-    } catch (error) {
-        console.error('Erreur lors de la suppression d\'une règle de supervision:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la suppression d\'une règle de supervision:', { error: error });
         return NextResponse.json({ error: 'Erreur lors de la suppression d\'une règle de supervision' }, { status: 500 });
     }
 } 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { LeaveType } from '@/modules/leaves/types/leave';
 
@@ -133,8 +134,8 @@ export async function POST(request: NextRequest) {
             requiresApproval: transferRule.requiresApproval,
             message: `Le transfert générera ${resultingDays} jours de ${toType}`
         });
-    } catch (error) {
-        console.error("Erreur lors de la simulation du transfert de quota:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la simulation du transfert de quota:", { error: error });
         return NextResponse.json(
             { error: "Erreur serveur lors de la simulation du transfert" },
             { status: 500 }

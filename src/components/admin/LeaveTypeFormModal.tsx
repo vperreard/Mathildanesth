@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 // Importer les types nécessaires
 import { LeaveTypeSetting, ProfessionalRole, Role } from '@prisma/client';
 import { JsonValue } from 'type-fest';
@@ -308,7 +309,7 @@ const LeaveTypeFormModal: React.FC<LeaveTypeFormModalProps> = ({
         const apiUrl = isEditing ? `/api/admin/leave-types/${initialData?.id}` : '/api/admin/leave-types';
         const method = isEditing ? 'PUT' : 'POST';
 
-        let bodyToSend: any;
+        let bodyToSend: unknown;
         if (isEditing) {
             bodyToSend = {
                 label: formData.label,
@@ -345,8 +346,8 @@ const LeaveTypeFormModal: React.FC<LeaveTypeFormModalProps> = ({
             alert(`Type de congé ${isEditing ? 'mis à jour' : 'créé'} avec succès !`);
             onSuccess();
 
-        } catch (err: any) {
-            console.error("Erreur lors de la soumission:", err);
+        } catch (err: unknown) {
+            logger.error("Erreur lors de la soumission:", err);
             setError(err.message || `Une erreur est survenue.`);
         } finally {
             setIsSubmitting(false);

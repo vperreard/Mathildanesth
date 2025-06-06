@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
@@ -44,13 +45,13 @@ export async function PUT(
     }
 
     if (!affectationModeleId || isNaN(parseInt(affectationModeleId))) {
-      console.warn('PUT /api/affectation-modeles/[id]: Invalid affectationModeleId');
+      logger.warn('PUT /api/affectation-modeles/[id]: Invalid affectationModeleId');
       return NextResponse.json({ error: "ID de l'affectation template invalide" }, { status: 400 });
     }
     const idToUpdate = parseInt(affectationModeleId);
 
     const body = await request.json();
-    console.log(`PUT /api/affectation-modeles/${idToUpdate} - Received data:`, body);
+    logger.info(`PUT /api/affectation-modeles/${idToUpdate} - Received data:`, body);
 
     const {
       activityTypeId,
@@ -67,7 +68,7 @@ export async function PUT(
     // Logique de mise à jour pour personnelRequis (deleteMany + createMany or upsert)
     // C'est plus simple de supprimer les anciens et de recréer les nouveaux pour les besoins de personnel.
     const personnelRequisCreateData =
-      personnelRequis?.map((pr: any) => ({
+      personnelRequis?.map((pr: unknown) => ({
         roleGenerique: pr.roleGenerique,
         nombreRequis: pr.nombreRequis !== undefined ? parseInt(pr.nombreRequis) : 1,
         notes: pr.notes || undefined,
@@ -147,17 +148,17 @@ export async function PUT(
       });
     });
 
-    console.log(
+    logger.info(
       `PUT /api/affectation-modeles/${idToUpdate}: AffectationModele updated successfully:`,
       updatedAffectationModele
     );
-    console.log('--- PUT /api/affectation-modeles/[affectationModeleId] END ---\n');
+    logger.info('--- PUT /api/affectation-modeles/[affectationModeleId] END ---\n');
     return NextResponse.json(updatedAffectationModele);
-  } catch (error) {
-    console.error(`Error during PUT /api/affectation-modeles:`, error);
+  } catch (error: unknown) {
+    logger.error(`Error during PUT /api/affectation-modeles:`, { error: error });
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2025') {
-        console.error(
+        logger.error(
           'Prisma Error P2025 (update): Record to update not found or related record not found.',
           error.meta
         );
@@ -169,7 +170,7 @@ export async function PUT(
         );
       }
     }
-    console.log('--- PUT /api/affectation-modeles/[affectationModeleId] END (with error) ---\n');
+    logger.info('--- PUT /api/affectation-modeles/[affectationModeleId] END (with error) ---\n');
     return NextResponse.json(
       { error: "Erreur lors de la mise à jour de l'affectation template" },
       { status: 500 }
@@ -216,8 +217,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
-    console.log(`[API DELETE /affectation-modeles/${affectationModeleId}] Début du traitement.`);
-    console.log('\n--- DELETE /api/affectation-modeles/[affectationModeleId] START ---');
+    logger.info(`[API DELETE /affectation-modeles/${affectationModeleId}] Début du traitement.`);
+    logger.info('\n--- DELETE /api/affectation-modeles/[affectationModeleId] START ---');
 
     // Logger l'action de suppression
     const auditService = new AuditService();
@@ -233,32 +234,32 @@ export async function DELETE(
     });
 
     if (!affectationModeleId || isNaN(parseInt(affectationModeleId))) {
-      console.warn('DELETE /api/affectation-modeles/[id]: Invalid affectationModeleId');
+      logger.warn('DELETE /api/affectation-modeles/[id]: Invalid affectationModeleId');
       return NextResponse.json({ error: "ID de l'affectation template invalide" }, { status: 400 });
     }
     const idToDelete = parseInt(affectationModeleId);
 
-    console.log(`DELETE /api/affectation-modeles/${idToDelete}: Attempting to delete...`);
+    logger.info(`DELETE /api/affectation-modeles/${idToDelete}: Attempting to delete...`);
 
     // La suppression en cascade devrait s'occuper des PersonnelRequisModele grâce à onDelete: Cascade dans le schéma
     await prisma.affectationModele.delete({
       where: { id: idToDelete },
     });
 
-    console.log(
+    logger.info(
       `DELETE /api/affectation-modeles/${idToDelete}: AffectationModele deleted successfully.`
     );
-    console.log('--- DELETE /api/affectation-modeles/[affectationModeleId] END ---\n');
+    logger.info('--- DELETE /api/affectation-modeles/[affectationModeleId] END ---\n');
     return NextResponse.json(
       { message: 'Affectation template supprimée avec succès' },
       { status: 200 }
     ); // ou 204 No Content
-  } catch (error: any) {
-    console.error(
+  } catch (error: unknown) {
+    logger.error(
       `DELETE /api/affectation-modeles/${affectationModeleId}: Error - ${error.message}`,
       { stack: error.stack }
     );
-    console.log('--- DELETE /api/affectation-modeles/[affectationModeleId] END (with error) ---\n');
+    logger.info('--- DELETE /api/affectation-modeles/[affectationModeleId] END (with error) ---\n');
     return NextResponse.json(
       { error: "Erreur lors de la suppression de l'affectation template", details: error.message },
       { status: 500 }

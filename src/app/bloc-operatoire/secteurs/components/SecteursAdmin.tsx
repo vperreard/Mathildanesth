@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
+import { logger } from "../../../../lib/logger";
 import { apiClient } from '@/utils/apiClient';
 import {
   DndContext,
@@ -145,7 +146,7 @@ DroppableNonAssigneesZone.displayName = 'DroppableNonAssigneesZone';
 
 // Composant pour un secteur draggable (dans la hiérarchie des sites)
 const SortableSecteurItem = memo(
-  ({ secteur, isDragMode, onEdit, onDelete, countRooms, getSiteName }: any) => {
+  ({ secteur, isDragMode, onEdit, onDelete, countRooms, getSiteName }: unknown) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
       id: `secteur-${secteur.id}`,
     });
@@ -211,7 +212,7 @@ const SortableSecteurItem = memo(
 SortableSecteurItem.displayName = 'SortableSecteurItem';
 
 // Composant pour une salle draggable et droppable (pour réorganisation interne)
-const DraggableSalleItem = memo(({ salle, isDragMode }: any) => {
+const DraggableSalleItem = memo(({ salle, isDragMode }: unknown) => {
   const {
     attributes,
     listeners,
@@ -333,7 +334,7 @@ export default function SecteursAdmin() {
   );
 
   // Collision detection personnalisée pour gérer les trois cas : secteurs, salles ET sites
-  const customCollisionDetection = useCallback((args: any) => {
+  const customCollisionDetection = useCallback((args: unknown) => {
     const { active, droppableContainers } = args;
     
     // Throttling pour éviter les détections excessives
@@ -355,11 +356,11 @@ export default function SecteursAdmin() {
       }
 
       // Séparer les collisions par type
-      const secteurCollisions = allCollisions.filter((collision: any) =>
+      const secteurCollisions = allCollisions.filter((collision: unknown) =>
         collision.id.toString().startsWith('secteur-')
       );
       const salleCollisions = allCollisions.filter(
-        (collision: any) =>
+        (collision: unknown) =>
           collision.id.toString().startsWith('salle-') && collision.id !== active.id
       );
 
@@ -374,20 +375,20 @@ export default function SecteursAdmin() {
 
         // Si même secteur → réorganisation interne
         if (activeSalle?.secteurId === targetSalle?.secteurId) {
-          console.log('🔄 Drop salle-à-salle (même secteur) détecté:', salleCollisions[0].id);
+          logger.info('🔄 Drop salle-à-salle (même secteur) détecté:', salleCollisions[0].id);
           lastCollisionResult.current = salleCollisions;
           return salleCollisions;
         }
         // Si secteurs différents → changement de secteur AVEC position précise
         else {
-          console.log('🏥 Drop cross-secteur sur salle détecté:', salleCollisions[0].id);
+          logger.info('🏥 Drop cross-secteur sur salle détecté:', salleCollisions[0].id);
           lastCollisionResult.current = salleCollisions;
           return salleCollisions;
         }
       }
       // Sinon, drop sur zone de secteur vide (à la fin)
       else if (secteurCollisions.length > 0) {
-        console.log('🏥 Drop salle-à-secteur (zone vide) détecté:', secteurCollisions[0].id);
+        logger.info('🏥 Drop salle-à-secteur (zone vide) détecté:', secteurCollisions[0].id);
         lastCollisionResult.current = secteurCollisions;
         return secteurCollisions;
       }
@@ -411,11 +412,11 @@ export default function SecteursAdmin() {
       const activeSecteur = secteurs.find(s => s.id === activeSecteurId);
 
       // Séparer les collisions par type
-      const siteCollisions = allCollisions.filter((collision: any) =>
+      const siteCollisions = allCollisions.filter((collision: unknown) =>
         collision.id.toString().startsWith('site-')
       );
       const secteurCollisions = allCollisions.filter(
-        (collision: any) =>
+        (collision: unknown) =>
           collision.id.toString().startsWith('secteur-') && collision.id !== active.id
       );
 
@@ -428,7 +429,7 @@ export default function SecteursAdmin() {
         if (activeSecteur?.siteId === targetSecteur?.siteId) {
           const collisionKey = `secteur-${secteurCollisions[0].id}`;
           if (lastLoggedCollision.current !== collisionKey) {
-            console.log('🔄 Drop secteur-à-secteur (même site) détecté:', secteurCollisions[0].id);
+            logger.info('🔄 Drop secteur-à-secteur (même site) détecté:', secteurCollisions[0].id);
             lastLoggedCollision.current = collisionKey;
           }
           lastCollisionResult.current = secteurCollisions;
@@ -440,7 +441,7 @@ export default function SecteursAdmin() {
       if (siteCollisions.length > 0) {
         const collisionKey = `site-${siteCollisions[0].id}`;
         if (lastLoggedCollision.current !== collisionKey) {
-          console.log('🏢 Drop secteur-à-site détecté:', siteCollisions[0].id);
+          logger.info('🏢 Drop secteur-à-site détecté:', siteCollisions[0].id);
           lastLoggedCollision.current = collisionKey;
         }
         lastCollisionResult.current = siteCollisions;
@@ -465,7 +466,7 @@ export default function SecteursAdmin() {
   // Fonction helper pour faire des appels API authentifiés (utilise apiClient)
   const makeAuthenticatedRequest = async (
     url: string,
-    options: { method?: string; body?: any } = {}
+    options: { method?: string; body?: unknown } = {}
   ) => {
     const response = await apiClient({
       url,
@@ -479,31 +480,31 @@ export default function SecteursAdmin() {
   const loadData = async () => {
     setIsLoading(true);
     setError(null);
-    console.log('🔄 Début du chargement des données...');
+    logger.info('🔄 Début du chargement des données...');
 
     try {
-      console.log('📡 Appel API operating-sectors...');
+      logger.info('📡 Appel API operating-sectors...');
       const secteursResponse = await makeAuthenticatedRequest('/api/operating-sectors');
-      console.log('✅ Secteurs reçus:', secteursResponse);
+      logger.info('✅ Secteurs reçus:', secteursResponse);
 
-      console.log('📡 Appel API operating-rooms...');
+      logger.info('📡 Appel API operating-rooms...');
       const sallesResponse = await makeAuthenticatedRequest('/api/operating-rooms');
-      console.log('✅ Salles reçues:', sallesResponse);
+      logger.info('✅ Salles reçues:', sallesResponse);
 
-      console.log('📡 Appel API sites...');
+      logger.info('📡 Appel API sites...');
       const sitesResponse = await makeAuthenticatedRequest('/api/sites');
-      console.log('✅ Sites reçus:', sitesResponse);
+      logger.info('✅ Sites reçus:', sitesResponse);
 
       const [secteursData, sallesData] = [secteursResponse, sallesResponse];
 
       // Mapper les secteurs
-      const mappedSecteurs = secteursData.map((sector: any) => ({
+      const mappedSecteurs = secteursData.map((sector: unknown) => ({
         id: sector.id,
         nom: sector.name,
         description: sector.description,
         couleur: sector.colorCode,
         specialites: sector.specialites || [],
-        salles: sector.rooms?.map((room: any) => room.id) || [],
+        salles: sector.rooms?.map((room: unknown) => room.id) || [],
         estActif: sector.isActive,
         requiresSpecificSkills: sector.requiresSpecificSkills || false,
         supervisionSpeciale: sector.supervisionSpeciale || false,
@@ -512,7 +513,7 @@ export default function SecteursAdmin() {
         displayOrder: sector.displayOrder || 0,
       }));
 
-      const mappedSalles = sallesData.map((room: any) => ({
+      const mappedSalles = sallesData.map((room: unknown) => ({
         id: room.id,
         numero: room.numero || room.number,
         nom: room.nom || room.name,
@@ -521,17 +522,17 @@ export default function SecteursAdmin() {
         displayOrder: room.displayOrder || 0,
       }));
 
-      console.log('📊 Secteurs mappés:', mappedSecteurs);
-      console.log('🏥 Salles mappées:', mappedSalles);
-      console.log('🏢 Sites:', sitesResponse);
+      logger.info('📊 Secteurs mappés:', mappedSecteurs);
+      logger.info('🏥 Salles mappées:', mappedSalles);
+      logger.info('🏢 Sites:', sitesResponse);
 
       setSecteurs(mappedSecteurs);
       setSalles(mappedSalles);
       setSites(sitesResponse);
 
-      console.log('✅ Données chargées avec succès !');
-    } catch (err) {
-      console.error('❌ Erreur de chargement:', err);
+      logger.info('✅ Données chargées avec succès !');
+    } catch (err: unknown) {
+      logger.error('❌ Erreur de chargement:', { error: err });
       setError(
         `Erreur lors du chargement des données: ${err instanceof Error ? err.message : 'Erreur inconnue'}`
       );
@@ -602,7 +603,7 @@ export default function SecteursAdmin() {
         title: 'Secteur supprimé',
         description: `Le secteur ${currentSecteur.nom} a été supprimé avec succès.`,
       });
-    } catch (err) {
+    } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue';
       toast({
         title: 'Erreur',
@@ -704,7 +705,7 @@ export default function SecteursAdmin() {
       }
 
       setShowDialog(false);
-    } catch (err) {
+    } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue';
       toast({
         title: 'Erreur',
@@ -735,7 +736,7 @@ export default function SecteursAdmin() {
     // Reset le log de collision pour un nouveau drag
     lastLoggedCollision.current = '';
 
-    console.log('DragStart - Active:', active.id);
+    logger.info('DragStart - Active:', active.id);
 
     // Déterminer le type d'élément (secteur ou salle)
     const id = active.id as string;
@@ -753,7 +754,7 @@ export default function SecteursAdmin() {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    console.log('DragEnd - Active:', active.id, 'Over:', over?.id);
+    logger.info('DragEnd - Active:', active.id, 'Over:', over?.id);
 
     if (!over || !isDragMode) {
       setActiveId(null);
@@ -841,8 +842,8 @@ export default function SecteursAdmin() {
         title: 'Secteur déplacé',
         description: `Le secteur a été déplacé vers ${newSiteId ? getSiteName(newSiteId) : 'les non-assignés'}.`,
       });
-    } catch (error) {
-      console.error('Erreur lors du déplacement du secteur:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors du déplacement du secteur:', { error: error });
       toast({
         title: 'Erreur',
         description: 'Impossible de déplacer le secteur.',
@@ -907,11 +908,11 @@ export default function SecteursAdmin() {
           "L'ordre des secteurs a été mis à jour pour améliorer la présentation des plannings.",
       });
 
-      console.log(
+      logger.info(
         `Réorganisation interne: secteur ${activeSecteurId} déplacé à la position du secteur ${targetSecteurId}`
       );
-    } catch (error) {
-      console.error('Erreur lors de la réorganisation des secteurs:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la réorganisation des secteurs:', { error: error });
       // Recharger les données en cas d'erreur
       loadData();
       toast({
@@ -949,14 +950,14 @@ export default function SecteursAdmin() {
         displayOrder: nouveauDisplayOrder,
       };
 
-      console.log(`Déplacement salle ${salleId} vers secteur ${newSecteurId}:`, updateData);
+      logger.info(`Déplacement salle ${salleId} vers secteur ${newSecteurId}:`, updateData);
 
       const response = await makeAuthenticatedRequest(`/api/operating-rooms/${salleId}`, {
         method: 'PUT',
         body: updateData,
       });
 
-      console.log('Réponse API:', response);
+      logger.info('Réponse API:', response);
 
       // Mettre à jour l'état local avec la donnée de l'API si possible
       const updatedSecteurId = newSecteurId ? parseInt(newSecteurId) : null;
@@ -972,14 +973,14 @@ export default function SecteursAdmin() {
         )
       );
 
-      console.log('État local mis à jour:', { salleId, newSecteurId, updatedSecteurId });
+      logger.info('État local mis à jour:', { salleId, newSecteurId, updatedSecteurId });
 
       toast({
         title: 'Salle déplacée',
         description: `La salle a été déplacée vers ${newSecteurId ? 'le secteur sélectionné' : 'les non-assignées'}.`,
       });
-    } catch (error) {
-      console.error('Erreur lors du déplacement de la salle:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors du déplacement de la salle:', { error: error });
 
       // Afficher l'erreur détaillée dans le toast
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
@@ -1044,9 +1045,9 @@ export default function SecteursAdmin() {
         },
       });
 
-      console.log('Réorganisation interne réussie');
-    } catch (error) {
-      console.error('Erreur lors de la réorganisation:', error);
+      logger.info('Réorganisation interne réussie');
+    } catch (error: unknown) {
+      logger.error('Erreur lors de la réorganisation:', { error: error });
       // Recharger les données en cas d'erreur
       loadData();
     }
@@ -1115,11 +1116,11 @@ export default function SecteursAdmin() {
         description: `La salle a été déplacée et positionnée précisément.`,
       });
 
-      console.log(
+      logger.info(
         `Cross-secteur avec position: salle ${activeSalleId} → secteur ${newSecteurId} à la position ${targetIndex}`
       );
-    } catch (error) {
-      console.error('Erreur lors du déplacement cross-secteur:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur lors du déplacement cross-secteur:', { error: error });
       toast({
         title: 'Erreur',
         description: 'Impossible de déplacer la salle à cette position.',

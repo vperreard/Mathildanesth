@@ -1,3 +1,5 @@
+import { logger } from "../lib/logger";
+
 // Service de notifications temporairement désactivé pour éviter les erreurs WebSocket
 
 export interface Notification {
@@ -5,7 +7,7 @@ export interface Notification {
     type: 'info' | 'success' | 'warning' | 'error';
     title: string;
     message: string;
-    data?: any;
+    data?: unknown;
     createdAt: Date;
 }
 
@@ -13,7 +15,7 @@ class NotificationService {
     private static instance: NotificationService;
 
     private constructor() {
-        console.log('NotificationService: Complètement désactivé (version temp)');
+        logger.info('NotificationService: Complètement désactivé (version temp)');
     }
 
     public static getInstance(): NotificationService {
@@ -24,20 +26,20 @@ class NotificationService {
     }
 
     public subscribe(type: string, callback: (notification: Notification) => void): () => void {
-        console.log('NotificationService.subscribe: Désactivé');
+        logger.info('NotificationService.subscribe: Désactivé');
         return () => {}; // Fonction vide pour le unsubscribe
     }
 
     public unsubscribe(type: string, callback: (notification: Notification) => void): void {
-        console.log('NotificationService.unsubscribe: Désactivé');
+        logger.info('NotificationService.unsubscribe: Désactivé');
     }
 
     public sendNotification(notification: Omit<Notification, 'id' | 'createdAt'>): void {
-        console.log('NotificationService.sendNotification: Désactivé -', notification.title);
+        logger.info('NotificationService.sendNotification: Désactivé -', notification.title);
     }
 
     public resetForTesting(): void {
-        console.log('NotificationService.resetForTesting: Désactivé');
+        logger.info('NotificationService.resetForTesting: Désactivé');
     }
 }
 

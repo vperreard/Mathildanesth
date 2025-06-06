@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { logger } from "../lib/logger";
 import {
     format,
     isAfter,
@@ -82,7 +83,7 @@ export interface DateValidationOptions {
 export interface DateValidationError {
     type: DateValidationErrorType;
     message: string;
-    details?: any; // informations supplémentaires sur l'erreur
+    details?: unknown; // informations supplémentaires sur l'erreur
 }
 
 /**
@@ -133,7 +134,7 @@ export interface DateValidationContext {
     departmentId?: string;
     usedDays?: number;
     remainingDays?: number;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 /**
@@ -145,8 +146,8 @@ export function formatDate(date: Date, dateFormat: string = 'dd/MM/yyyy'): strin
             throw new Error('Date invalide');
         }
         return format(date, dateFormat, { locale: fr });
-    } catch (error) {
-        console.error('Erreur lors du formatage de la date:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors du formatage de la date:', { error: error });
         return '';
     }
 }
@@ -320,7 +321,7 @@ export function useDateValidation(options: DateValidationOptions = {}) {
     /**
      * Définit une erreur de validation pour un champ spécifique.
      */
-    const setError = useCallback((fieldName: string, type: DateValidationErrorType, message: string, details?: any) => {
+    const setError = useCallback((fieldName: string, type: DateValidationErrorType, message: string, details?: unknown) => {
         setErrors((prevErrors) => ({
             ...prevErrors,
             [fieldName]: { type, message, details },
@@ -455,8 +456,8 @@ export function useDateValidation(options: DateValidationOptions = {}) {
                     setError(fieldName, errorType, errorMessage);
                     return false;
                 }
-            } catch (customError) {
-                console.error('Erreur dans la validation personnalisée:', customError);
+            } catch (customError: unknown) {
+                logger.error('Erreur dans la validation personnalisée:', customError);
                 setError(fieldName, DateValidationErrorType.OTHER, 'Erreur lors de la validation personnalisée');
                 return false;
             }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { logger } from "../../../../lib/logger";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, RefreshCw, DownloadIcon, BarChart4Icon, Network } from 'lucide-react';
 import Button from '@/components/ui/button';
@@ -309,8 +310,8 @@ export default function AdvancedVisualizationsPage() {
                 // Traiter les données pour les visualisations
                 const processedData = processResultData(data);
                 setResultData(processedData);
-            } catch (err) {
-                console.error('Erreur:', err);
+            } catch (err: unknown) {
+                logger.error('Erreur:', { error: err });
                 setError(err instanceof Error ? err.message : 'Erreur inconnue');
                 toast.error('Erreur lors du chargement des données');
 

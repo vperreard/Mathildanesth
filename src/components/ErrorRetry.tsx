@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import { useErrorHandler } from '../hooks/useErrorHandler';
 import ErrorDisplay from './ErrorDisplay';
 
@@ -22,7 +23,7 @@ interface ErrorRetryProps<T = any> {
  *   maxRetries={3}
  *   retryDelay={1000}
  *   onSuccess={(data) => setData(data)}
- *   onFinalFailure={(error) => console.error('Échec final:', error)}
+ *   onFinalFailure={(error) => logger.error('Échec final:', { error: error })}
  * >
  *   <DataDisplay data={data} />
  * </ErrorRetry>
@@ -56,7 +57,7 @@ const ErrorRetry = <T = any>({
             if (onSuccess) {
                 onSuccess(actionResult);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error(String(err));
 
             if (retryCount < maxRetries) {

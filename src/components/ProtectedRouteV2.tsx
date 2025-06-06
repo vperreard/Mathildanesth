@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, ReactNode, useState } from 'react';
+import { logger } from "../lib/logger";
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { Role } from '@/types/user';
@@ -22,11 +23,11 @@ const ProtectedRouteV2: React.FC<ProtectedRouteProps> = ({ children, allowedRole
             setHasCheckedAuth(true);
             
             if (!user) {
-                console.log('ProtectedRouteV2: No user, redirecting to login');
+                logger.info('ProtectedRouteV2: No user, redirecting to login');
                 router.replace('/auth/connexion');
                 setIsAuthorized(false);
             } else if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-                console.log(`ProtectedRouteV2: Unauthorized role (${user.role})`);
+                logger.info(`ProtectedRouteV2: Unauthorized role (${user.role})`);
                 router.replace('/');
                 setIsAuthorized(false);
             } else {

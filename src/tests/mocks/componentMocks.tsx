@@ -1,11 +1,11 @@
 import React, { FC, ReactNode } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 // Mock pour FullCalendar
-export const MockFullCalendar = ({ events, initialView, eventClick, dateClick }: any) => (
+export const MockFullCalendar = ({ events, initialView, eventClick, dateClick }: unknown) => (
     <div data-testid="fullcalendar" data-view={initialView}>
         <div data-testid="event-container">
-            {events?.map((event: any, index: number) => (
+            {events?.map((event: unknown, index: number) => (
                 <div
                     key={index}
                     data-testid={`event-${event.id}`}
@@ -38,7 +38,7 @@ export const MockFullCalendar = ({ events, initialView, eventClick, dateClick }:
 );
 
 // Mock pour LeaveDetailModal
-export const MockLeaveDetailModal = ({ leaveId, onClose }: any) => (
+export const MockLeaveDetailModal = ({ leaveId, onClose }: unknown) => (
     <div data-testid="leave-detail-modal">
         <span>Leave ID: {leaveId}</span>
         <button onClick={onClose}>Fermer</button>
@@ -46,9 +46,9 @@ export const MockLeaveDetailModal = ({ leaveId, onClose }: any) => (
 );
 
 // Mock pour BaseCalendar
-export const MockBaseCalendar = (props: any) => (
+export const MockBaseCalendar = (props: unknown) => (
     <div data-testid="base-calendar">
-        {props.events?.map((event: any) => (
+        {props.events?.map((event: unknown) => (
             <div key={event.id} data-testid={`calendar-event-${event.id}`}>
                 {event.title}
             </div>
@@ -71,7 +71,7 @@ export const MockBlocPlanning = () => (
 );
 
 // Mock pour BlocPlanningDay
-export const MockBlocPlanningDay = ({ planning }: any) => (
+export const MockBlocPlanningDay = ({ planning }: unknown) => (
     <div data-testid="bloc-planning-day">
         <h3>Planification journalière</h3>
         <div>Planning: {planning ? 'Disponible' : 'Non disponible'}</div>
@@ -80,7 +80,7 @@ export const MockBlocPlanningDay = ({ planning }: any) => (
             <div>
                 <h4>Salles ({planning.salles.length})</h4>
                 <ul>
-                    {planning.salles.map((salle: any) => (
+                    {planning.salles.map((salle: unknown) => (
                         <li key={salle.id}>
                             Salle ID: {salle.salleId},
                             Superviseurs: {salle.superviseurs.length}
@@ -111,29 +111,29 @@ export const MockVariationConfigPanel = () => (
 export const createFramerMotionMock = () => {
     return {
         motion: {
-            div: (props: any) => {
+            div: (props: unknown) => {
                 const { children, ...rest } = props;
                 return <div {...rest}>{children}</div>;
             },
-            button: (props: any) => {
+            button: (props: unknown) => {
                 const { children, ...rest } = props;
                 return <button {...rest}>{children}</button>;
             },
-            span: (props: any) => {
+            span: (props: unknown) => {
                 const { children, ...rest } = props;
                 return <span {...rest}>{children}</span>;
             }
         },
-        AnimatePresence: ({ children }: any) => <>{children}</>
+        AnimatePresence: ({ children }: unknown) => <>{children}</>
     };
 };
 
 // Mock pour le calendrier
-export const MockCalendar = ({ events, onEventClick, view }: any) => (
+export const MockCalendar = ({ events, onEventClick, view }: unknown) => (
     <div data-testid="calendar">
         <div>Vue: {view}</div>
         <div className="events-list">
-            {events?.map((event: any) => (
+            {events?.map((event: unknown) => (
                 <div
                     key={event.id}
                     className="event"
@@ -147,7 +147,7 @@ export const MockCalendar = ({ events, onEventClick, view }: any) => (
 );
 
 // Mock pour la modal de détails de congés
-export const MockLeaveDetailsModal = ({ leave, onClose }: any) => (
+export const MockLeaveDetailsModal = ({ leave, onClose }: unknown) => (
     <div data-testid="leave-details-modal">
         <h2>Détails du congé</h2>
         <div>ID: {leave?.id}</div>
@@ -160,7 +160,7 @@ export const MockLeaveDetailsModal = ({ leave, onClose }: any) => (
 );
 
 // Mock pour les formulaires de demande de congés
-export const MockLeaveRequestForm = ({ onSubmit }: any) => (
+export const MockLeaveRequestForm = ({ onSubmit }: unknown) => (
     <form
         data-testid="leave-request-form"
         onSubmit={(e) => {
@@ -178,11 +178,11 @@ export const MockLeaveRequestForm = ({ onSubmit }: any) => (
 );
 
 // Mock pour la gestion des quotas
-export const MockQuotaManagement = ({ quotas }: any) => (
+export const MockQuotaManagement = ({ quotas }: unknown) => (
     <div data-testid="quota-management">
         <h2>Gestion des quotas</h2>
         <ul>
-            {quotas?.map((quota: any) => (
+            {quotas?.map((quota: unknown) => (
                 <li key={quota.id}>
                     Type: {quota.type}, Disponible: {quota.amount - quota.used} / {quota.amount}
                 </li>
@@ -192,7 +192,7 @@ export const MockQuotaManagement = ({ quotas }: any) => (
 );
 
 // Mock pour le tableau des congés
-export const MockLeaveTable = ({ leaves, onApprove, onReject }: any) => (
+export const MockLeaveTable = ({ leaves, onApprove, onReject }: unknown) => (
     <table data-testid="leave-table">
         <thead>
             <tr>
@@ -205,7 +205,7 @@ export const MockLeaveTable = ({ leaves, onApprove, onReject }: any) => (
             </tr>
         </thead>
         <tbody>
-            {leaves?.map((leave: any) => (
+            {leaves?.map((leave: unknown) => (
                 <tr key={leave.id}>
                     <td>{leave.userName}</td>
                     <td>{leave.startDate}</td>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { Rule, RuleType, RuleEvaluationResult } from '@/modules/dynamicRules/types/rule';
 import { Attribution } from '@/types/attribution';
 import { User } from '@/types/user';
@@ -200,8 +201,8 @@ export function usePlanningRules({
             setQualityScore(optimizationResult.score);
             setStatus('success');
 
-        } catch (err) {
-            console.error('Erreur lors de la génération du planning:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors de la génération du planning:', { error: err });
             setError(err instanceof Error ? err : new Error('Erreur inconnue'));
             setStatus('error');
         }

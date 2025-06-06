@@ -4,10 +4,10 @@ export interface Widget {
     id: string;
     type: WidgetType;
     title: string;
-    data: any;
+    data: unknown;
     position: { x: number; y: number };
     size: { width: number; height: number };
-    config?: Record<string, any>;
+    config?: Record<string, unknown>;
 }
 
 export interface StatWidgetData {
@@ -30,7 +30,7 @@ export interface ChartWidgetData {
             fill?: boolean;
         }[];
     };
-    options?: Record<string, any>;
+    options?: Record<string, unknown>;
 }
 
 export interface ListWidgetData {

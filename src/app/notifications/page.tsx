@@ -24,7 +24,7 @@ export default function NotificationsPage() {
         try {
             const date = new Date(dateString);
             return formatDistanceToNow(date, { addSuffix: true, locale: fr });
-        } catch (err) {
+        } catch (err: unknown) {
             return 'Date inconnue';
         }
     };

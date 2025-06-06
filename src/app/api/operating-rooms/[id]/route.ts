@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { checkUserRole } from '@/lib/auth-server-utils';
 import type { UserRole } from '@/lib/auth-client-utils';
@@ -28,8 +29,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return new NextResponse(JSON.stringify({ message: 'Salle non trouvée' }), { status: 404 });
     }
     return NextResponse.json(room);
-  } catch (error) {
-    console.error(`Erreur GET /api/operating-rooms/${id}:`, error);
+  } catch (error: unknown) {
+    logger.error(`Erreur GET /api/operating-rooms/${id}:`, { error: error });
     return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), {
       status: 500,
     });
@@ -43,7 +44,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const authCheck = await checkUserRole(ALLOWED_ROLES);
 
     if (!authCheck.hasRequiredRole) {
-      console.log("Vérification d'autorisation échouée:", authCheck.error);
+      logger.info("Vérification d'autorisation échouée:", authCheck.error);
       return NextResponse.json(
         { error: authCheck.error || 'Authentification requise' },
         { status: 401 }
@@ -70,7 +71,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     // Récupérer le corps de la requête
     const body = await request.json();
-    console.log(`PUT /api/operating-rooms/${id} - Body reçu:`, body);
+    logger.info(`PUT /api/operating-rooms/${id} - Body reçu:`, body);
 
     // Extraire les données validées (compatible avec SallesAdmin)
     const { name, number, operatingSectorId, isActive } = body;
@@ -104,7 +105,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     });
 
     if (!sectorEntity) {
-      console.error(`Secteur non trouvé: ID=${operatingSectorId}`);
+      logger.error(`Secteur non trouvé: ID=${operatingSectorId}`);
       return NextResponse.json(
         { error: 'Secteur introuvable. Veuillez sélectionner un secteur valide.' },
         { status: 400 }
@@ -123,11 +124,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       include: { operatingSector: true },
     });
 
-    console.log(`Salle ${roomId} mise à jour avec succès:`, updatedRoom);
+    logger.info(`Salle ${roomId} mise à jour avec succès:`, updatedRoom);
     return NextResponse.json(updatedRoom);
-  } catch (error) {
+  } catch (error: unknown) {
     const { id } = await params;
-    console.error(`Erreur PUT /api/operating-rooms/${id}:`, error);
+    logger.error(`Erreur PUT /api/operating-rooms/${id}:`, { error: error });
     return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
   }
 }
@@ -139,7 +140,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const authCheck = await checkUserRole(ALLOWED_ROLES);
 
     if (!authCheck.hasRequiredRole) {
-      console.log("Vérification d'autorisation échouée:", authCheck.error);
+      logger.info("Vérification d'autorisation échouée:", authCheck.error);
       return NextResponse.json(
         { error: authCheck.error || 'Authentification requise' },
         { status: 401 }
@@ -190,15 +191,15 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       });
 
       return new NextResponse(null, { status: 204 });
-    } catch (error) {
-      console.error(`Erreur DELETE /api/operating-rooms/${id}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Erreur DELETE /api/operating-rooms/${id}:`, { error: error });
       return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), {
         status: 500,
       });
     }
-  } catch (error) {
+  } catch (error: unknown) {
     const { id } = await params;
-    console.error(`Erreur DELETE /api/operating-rooms/${id}:`, error);
+    logger.error(`Erreur DELETE /api/operating-rooms/${id}:`, { error: error });
     return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
   }
 }

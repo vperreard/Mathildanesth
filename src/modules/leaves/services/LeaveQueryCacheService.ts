@@ -1,4 +1,5 @@
 import { redis } from '@/lib/redis';
+import { logger } from "../../../lib/logger";
 import { LeaveFilters, LeaveType, LeaveStatus } from '../types/leave';
 import { LeaveEvent, CacheInvalidationStrategy } from '../types/cache';
 import { format } from 'date-fns';
@@ -54,9 +55,9 @@ export class LeaveQueryCacheService {
     private async checkRedisAvailability(): Promise<void> {
         try {
             this.isRedisAvailable = await redis.ping();
-            console.log(`Redis disponibilité: ${this.isRedisAvailable ? 'OK' : 'NON DISPONIBLE'}`);
-        } catch (error) {
-            console.error('Redis n\'est pas disponible:', error);
+            logger.info(`Redis disponibilité: ${this.isRedisAvailable ? 'OK' : 'NON DISPONIBLE'}`);
+        } catch (error: unknown) {
+            logger.error('Redis n\'est pas disponible:', { error: error });
             this.isRedisAvailable = false;
         }
     }
@@ -113,7 +114,7 @@ export class LeaveQueryCacheService {
     /**
      * Génère une clé pour le cache des statistiques
      */
-    public generateStatsKey(filters: Record<string, any> = {}): string {
+    public generateStatsKey(filters: Record<string, unknown> = {}): string {
         // Créer une clé basée sur les filtres des statistiques
         const filterParts = Object.entries(filters)
             .map(([key, value]) => `${key}:${value}`)
@@ -132,7 +133,7 @@ export class LeaveQueryCacheService {
         if (!this.isRedisAvailable) {
             await this.checkRedisAvailability();
             if (!this.isRedisAvailable) {
-                console.warn(`Cache désactivé: Redis n'est pas disponible`);
+                logger.warn(`Cache désactivé: Redis n'est pas disponible`);
                 return;
             }
         }
@@ -140,9 +141,9 @@ export class LeaveQueryCacheService {
         try {
             const ttl = this.TTL[type];
             await redis.set(key, JSON.stringify(data), 'EX', ttl);
-            console.log(`Cache mis à jour: ${key} (TTL: ${ttl}s)`);
-        } catch (error) {
-            console.error(`Erreur lors de la mise en cache (${key}):`, error);
+            logger.info(`Cache mis à jour: ${key} (TTL: ${ttl}s)`);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la mise en cache (${key}):`, { error: error });
             this.isRedisAvailable = false;
             // Ne pas faire échouer l'opération en cas d'erreur de cache
         }
@@ -157,7 +158,7 @@ export class LeaveQueryCacheService {
         if (!this.isRedisAvailable) {
             await this.checkRedisAvailability();
             if (!this.isRedisAvailable) {
-                console.warn(`Cache désactivé: Redis n'est pas disponible`);
+                logger.warn(`Cache désactivé: Redis n'est pas disponible`);
                 return null;
             }
         }
@@ -167,8 +168,8 @@ export class LeaveQueryCacheService {
             if (!cachedData) return null;
 
             return JSON.parse(cachedData) as T;
-        } catch (error) {
-            console.error(`Erreur lors de la récupération du cache (${key}):`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la récupération du cache (${key}):`, { error: error });
             this.isRedisAvailable = false;
             return null;
         }
@@ -179,12 +180,12 @@ export class LeaveQueryCacheService {
      * @param event Événement déclenchant l'invalidation
      * @param data Données associées à l'événement
      */
-    public async invalidateCache(event: LeaveEvent, data: any): Promise<void> {
+    public async invalidateCache(event: LeaveEvent, data: unknown): Promise<void> {
         // Vérifier d'abord si Redis est disponible
         if (!this.isRedisAvailable) {
             await this.checkRedisAvailability();
             if (!this.isRedisAvailable) {
-                console.warn(`Invalidation du cache ignorée: Redis n'est pas disponible`);
+                logger.warn(`Invalidation du cache ignorée: Redis n'est pas disponible`);
                 return;
             }
         }
@@ -216,8 +217,8 @@ export class LeaveQueryCacheService {
                     // Invalidation complète en cas d'événement inconnu
                     await this.invalidateAll();
             }
-        } catch (error) {
-            console.error(`Erreur lors de l'invalidation du cache:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de l'invalidation du cache:`, { error: error });
             this.isRedisAvailable = false;
         }
     }
@@ -225,7 +226,7 @@ export class LeaveQueryCacheService {
     /**
      * Stratégie d'invalidation lors de la création d'un congé
      */
-    private async invalidateOnCreate(data: { leave: any }): Promise<void> {
+    private async invalidateOnCreate(data: { leave: unknown }): Promise<void> {
         const { leave } = data;
 
         // Invalider les listes qui pourraient contenir ce congé
@@ -249,7 +250,7 @@ export class LeaveQueryCacheService {
     /**
      * Stratégie d'invalidation lors de la mise à jour d'un congé
      */
-    private async invalidateOnUpdate(data: { before: any, after: any }): Promise<void> {
+    private async invalidateOnUpdate(data: { before: unknown, after: unknown }): Promise<void> {
         const { before, after } = data;
 
         // Invalider le détail du congé
@@ -293,7 +294,7 @@ export class LeaveQueryCacheService {
     /**
      * Stratégie d'invalidation lors de la suppression d'un congé
      */
-    private async invalidateOnDelete(data: { leave: any }): Promise<void> {
+    private async invalidateOnDelete(data: { leave: unknown }): Promise<void> {
         const { leave } = data;
 
         // Invalider le détail du congé
@@ -322,7 +323,7 @@ export class LeaveQueryCacheService {
     /**
      * Stratégie d'invalidation lors du changement de statut d'un congé
      */
-    private async invalidateOnStatusChange(data: { leave: any, oldStatus: LeaveStatus, newStatus: LeaveStatus }): Promise<void> {
+    private async invalidateOnStatusChange(data: { leave: unknown, oldStatus: LeaveStatus, newStatus: LeaveStatus }): Promise<void> {
         const { leave, oldStatus, newStatus } = data;
 
         // Invalider le détail du congé
@@ -405,7 +406,7 @@ export class LeaveQueryCacheService {
             deletedCount += deleted;
         }
 
-        console.log(`Cache entièrement invalidé: ${deletedCount} clés supprimées`);
+        logger.info(`Cache entièrement invalidé: ${deletedCount} clés supprimées`);
         return deletedCount;
     }
 
@@ -416,7 +417,7 @@ export class LeaveQueryCacheService {
     public async preloadCache(): Promise<void> {
         // Cette méthode peut être utilisée pour précharger les données
         // fréquemment accédées dans le cache au démarrage de l'application
-        console.log('Préchauffage du cache des congés...');
+        logger.info('Préchauffage du cache des congés...');
 
         // Exemples de données à préchauffer:
         // - Listes de congés actuels

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '@/lib/prisma';
 import { getAuthTokenServer, checkUserRole } from '@/lib/auth-server-utils';
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
                 const headersList = await headers();
                 const devUserRole = headersList.get('x-user-role');
                 if (devUserRole && ALLOWED_ROLES_TRAMES.includes(devUserRole as AuthUserRole)) {
-                    console.log('[DEV MODE] Authentification par en-tête pour GET /api/trameModeles après échec du token');
+                    logger.info('[DEV MODE] Authentification par en-tête pour GET /api/trameModeles après échec du token');
                 } else {
                     return NextResponse.json({ error: authError || 'Non autorisé' }, { status: 401 });
                 }
@@ -50,8 +51,8 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(trameModeles);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des trames:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des trames:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des trameModeles' },
             { status: 500 }
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
                 const headersList = await headers();
                 const devUserRole = headersList.get('x-user-role');
                 if (devUserRole && ALLOWED_ROLES_TRAMES.includes(devUserRole as AuthUserRole)) {
-                    console.log('[DEV MODE] Authentification par en-tête pour POST /api/trameModeles après échec du token');
+                    logger.info('[DEV MODE] Authentification par en-tête pour POST /api/trameModeles après échec du token');
                 } else {
                     return NextResponse.json({ error: authError || 'Non autorisé' }, { status: 401 });
                 }
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
             startDate: startDate,
             ...(endDate && { endDate: endDate }), // Inclure seulement si endDate est valide
             periods: {
-                create: body.periods.map((period: any) => {
+                create: body.periods.map((period: unknown) => {
                     const periodId = uuidv4();
                     return {
                         id: periodId,
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
                         isActive: period.isActive,
                         // isLocked: period.isLocked, // isLocked n'est pas sur TramePeriod d'après le schéma récent
                         attributions: {
-                            create: period.attributions.map((attribution: any) => {
+                            create: period.attributions.map((attribution: unknown) => {
                                 const assignmentId = uuidv4();
                                 return {
                                     id: assignmentId,
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
                                     duration: attribution.duration,
                                     isActive: attribution.isActive,
                                     posts: {
-                                        create: attribution.posts.map((post: any) => {
+                                        create: attribution.posts.map((post: unknown) => {
                                             const postId = uuidv4();
                                             return {
                                                 id: postId,
@@ -178,8 +179,8 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(trameModele, { status: 201 });
-    } catch (error) {
-        console.error('Erreur lors de la création de la trameModele:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création de la trameModele:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la création de la trameModele' },
             { status: 500 }

@@ -174,11 +174,11 @@ export class RuleVersioningService {
   }
 
   private extractChanges(
-    differences: any,
+    differences: unknown,
     path: string,
     changes: RuleChange[],
-    oldObj: any,
-    newObj: any
+    oldObj: unknown,
+    newObj: unknown
   ): void {
     for (const key in differences) {
       const currentPath = path ? `${path}.${key}` : key;
@@ -215,7 +215,7 @@ export class RuleVersioningService {
     }
   }
 
-  private getValueAtPath(obj: any, path: string): any {
+  private getValueAtPath(obj: unknown, path: string): any {
     const parts = path.split('.');
     let current = obj;
 
@@ -234,7 +234,7 @@ export class RuleVersioningService {
     const changes: RuleChange[] = [];
 
     // Mark all fields as added
-    const addFieldAsChange = (obj: any, path: string = '') => {
+    const addFieldAsChange = (obj: unknown, path: string = '') => {
       for (const key in obj) {
         const currentPath = path ? `${path}.${key}` : key;
         const value = obj[key];

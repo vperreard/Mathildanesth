@@ -57,7 +57,7 @@ export default function PlanningValidationPanel({
             } else if (newStatus === BlocPlanningStatus.REJECTED) {
                 setShowRejectDialog(false);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Une erreur est survenue');
         } finally {
             setIsLoading(false);

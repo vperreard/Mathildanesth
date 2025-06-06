@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { calendarCache } from '../services/calendrierCache';
 import { calendarService } from '../services/calendrierService';
 import { AnyCalendarEvent, CalendarFilters } from '../types/event';
@@ -45,9 +46,9 @@ export function useCalendarCache(
 
             setLoading(false);
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error('Une erreur est survenue');
-            console.error('Erreur lors de la récupération des événements:', error);
+            logger.error('Erreur lors de la récupération des événements:', { error: error });
             setError(error);
             setEvents([]);
             setLoading(false);
@@ -91,9 +92,9 @@ export function useCalendarCache(
                 if (enabled) {
                     calendarCache.cacheEvents(apiData, filtersKey, { ttl });
                 }
-            } catch (err) {
+            } catch (err: unknown) {
                 const error = err instanceof Error ? err : new Error('Une erreur est survenue');
-                console.error('Erreur lors de la récupération des événements:', error);
+                logger.error('Erreur lors de la récupération des événements:', { error: error });
                 setError(error);
                 setEvents([]);
             } finally {

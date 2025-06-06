@@ -28,7 +28,7 @@ export function useScheduleRules(props: UseScheduleRulesProps = {}) {
             const fetchedRules = await ruleService.getAllRules();
             setRules(fetchedRules);
             return fetchedRules;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors du chargement des règles'));
             return [];
         } finally {
@@ -45,7 +45,7 @@ export function useScheduleRules(props: UseScheduleRulesProps = {}) {
             const newRule = await ruleService.createRule(ruleData);
             setRules(prevRules => [...prevRules, newRule]);
             return newRule;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la création de la règle'));
             throw err;
         } finally {
@@ -64,7 +64,7 @@ export function useScheduleRules(props: UseScheduleRulesProps = {}) {
                 rule.id === id ? updatedRule : rule
             ));
             return updatedRule;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la mise à jour de la règle'));
             throw err;
         } finally {
@@ -81,7 +81,7 @@ export function useScheduleRules(props: UseScheduleRulesProps = {}) {
             await ruleService.deleteRule(id);
             setRules(prevRules => prevRules.filter(rule => rule.id !== id));
             return true;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la suppression de la règle'));
             throw err;
         } finally {
@@ -97,7 +97,7 @@ export function useScheduleRules(props: UseScheduleRulesProps = {}) {
         try {
             const results = await ruleService.evaluateRules(context);
             return results;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de l\'évaluation des règles'));
             return [];
         } finally {
@@ -133,7 +133,7 @@ export function useScheduleRules(props: UseScheduleRulesProps = {}) {
                 criticalViolations,
                 allResults
             };
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la validation du planning'));
             throw err;
         }

@@ -78,7 +78,7 @@ export class TrameAffectationPrisma {
     /**
      * Trouve une trame par critères
      */
-    static async findOne(where: any): Promise<TrameAffectationPrisma | null> {
+    static async findOne(where: unknown): Promise<TrameAffectationPrisma | null> {
         let trame = null;
         
         if (where.id) {
@@ -119,7 +119,7 @@ export class TrameAffectationPrisma {
         }
         
         if (options.order) {
-            queryOptions.orderBy = options.order.map((orderItem: any) => {
+            queryOptions.orderBy = options.order.map((orderItem: unknown) => {
                 if (Array.isArray(orderItem)) {
                     return { [orderItem[0]]: orderItem[1].toLowerCase() };
                 }
@@ -134,7 +134,7 @@ export class TrameAffectationPrisma {
     /**
      * Crée une nouvelle trame
      */
-    static async create(data: any): Promise<TrameAffectationPrisma> {
+    static async create(data: unknown): Promise<TrameAffectationPrisma> {
         const created = await prisma.trameAffectation.create({
             data: {
                 userId: data.userId,
@@ -152,7 +152,7 @@ export class TrameAffectationPrisma {
     /**
      * Met à jour des trames
      */
-    static async update(data: any, options: any): Promise<[number, TrameAffectationPrisma[]]> {
+    static async update(data: unknown, options: unknown): Promise<[number, TrameAffectationPrisma[]]> {
         if (!options.where) {
             throw new Error('Critères de mise à jour requis');
         }
@@ -185,7 +185,7 @@ export class TrameAffectationPrisma {
     /**
      * Supprime des trames
      */
-    static async destroy(options: any): Promise<number> {
+    static async destroy(options: unknown): Promise<number> {
         if (!options.where) {
             throw new Error('Critères de suppression requis');
         }

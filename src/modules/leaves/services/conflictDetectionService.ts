@@ -7,6 +7,7 @@
  */
 
 import { LeaveRequest, LeaveStatus, LeaveDuration } from '../types/leave';
+import { logger } from "../../../lib/logger";
 import {
     ConflictType,
     ConflictSeverity,
@@ -86,10 +87,10 @@ export class ConflictDetectionService {
                     ...this.rules, // Conserver les règles par défaut
                     ...storedRules // Surcharger avec les règles configurées
                 };
-                console.log('Règles de conflit chargées depuis la configuration');
+                logger.info('Règles de conflit chargées depuis la configuration');
             }
-        } catch (error) {
-            console.error('Erreur lors du chargement des règles de conflit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du chargement des règles de conflit:', { error: error });
             // Continuer avec les règles par défaut
         }
     }
@@ -110,7 +111,7 @@ export class ConflictDetectionService {
         // Sauvegarder les nouvelles règles dans la configuration
         this.configService.setConfigValue('leaveConflictRules', this.rules)
             .catch(error => {
-                console.error('Erreur lors de la sauvegarde des règles de conflit:', error);
+                logger.error('Erreur lors de la sauvegarde des règles de conflit:', { error: error });
             });
     }
 
@@ -845,8 +846,8 @@ export const validateConflictRules = (rules: ConflictRules): boolean => {
         }
 
         return true;
-    } catch (error) {
-        console.error('Erreur lors de la validation des règles:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la validation des règles:', { error: error });
         return false;
     }
 };
@@ -867,7 +868,7 @@ export const resolveConflict = async (
         description: string;
         newStartDate?: string;
         newEndDate?: string;
-        metadata?: Record<string, any>;
+        metadata?: Record<string, unknown>;
     }>;
 }> => {
     const solutions: Array<{
@@ -875,7 +876,7 @@ export const resolveConflict = async (
         description: string;
         newStartDate?: string;
         newEndDate?: string;
-        metadata?: Record<string, any>;
+        metadata?: Record<string, unknown>;
     }> = [];
 
     switch (conflict.type) {

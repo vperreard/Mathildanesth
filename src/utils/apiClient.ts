@@ -2,6 +2,7 @@
  * Client API centralisé avec axios
  */
 import axios from 'axios';
+import { logger } from "../lib/logger";
 import { getToken, clearTokenAndRedirect } from './auth';
 
 // Création d'une instance axios avec configuration de base
@@ -47,7 +48,7 @@ apiClient.interceptors.response.use(
 
         // Gestion des erreurs serveur (500)
         if (error.response && error.response.status >= 500) {
-            console.error('Erreur serveur:', error);
+            logger.error('Erreur serveur:', { error: error });
             return Promise.reject(new Error('Une erreur serveur est survenue. Veuillez réessayer ultérieurement.'));
         }
 

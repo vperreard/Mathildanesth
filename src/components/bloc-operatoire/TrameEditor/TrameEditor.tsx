@@ -158,9 +158,9 @@ const ToolBar: React.FC<{
 
 // Composant pour le panel d'informations
 const InfoPanel: React.FC<{
-    trameModele: any;
+    trameModele: unknown;
     selectedAffectations: EditorAffectation[];
-    conflicts: any[];
+    conflicts: unknown[];
     totalAffectations: number;
 }> = ({ trameModele, selectedAffectations, conflicts, totalAffectations }) => (
     <motion.div
@@ -253,7 +253,7 @@ const TrameEditor: React.FC<TrameEditorProps> = ({
     });
 
     // Gestionnaires d'événements
-    const handleAffectationMove = useCallback((affectationId: number, target: any) => {
+    const handleAffectationMove = useCallback((affectationId: number, target: unknown) => {
         // Sauvegarder l'état actuel pour l'undo
         pushToHistory(state.affectations);
         actions.moveAffectation(affectationId, target);
@@ -284,7 +284,7 @@ const TrameEditor: React.FC<TrameEditorProps> = ({
             await actions.saveChanges();
             onSave?.(state.affectations);
             toast.success('Modifications sauvegardées');
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error('Erreur lors de la sauvegarde');
         }
     }, [readOnly, actions, onSave, state.affectations]);

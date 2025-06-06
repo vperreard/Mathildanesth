@@ -17,7 +17,7 @@ interface RuleDebuggerProps {
     /**
      * Contexte initial
      */
-    initialContext?: Record<string, any>;
+    initialContext?: Record<string, unknown>;
 
     /**
      * Callback appelé lorsqu'une règle est modifiée
@@ -46,7 +46,7 @@ export const RuleDebugger: React.FC<RuleDebuggerProps> = ({
     readOnly = false
 }) => {
     // État pour le contexte d'évaluation
-    const [context, setContext] = useState<Record<string, any>>(initialContext);
+    const [context, setContext] = useState<Record<string, unknown>>(initialContext);
 
     // État pour le texte JSON du contexte
     const [contextText, setContextText] = useState<string>(JSON.stringify(initialContext, null, 2));
@@ -107,7 +107,7 @@ export const RuleDebugger: React.FC<RuleDebuggerProps> = ({
             const parsedContext = JSON.parse(contextText);
             setContext(parsedContext);
             setContextError(null);
-        } catch (err: any) {
+        } catch (err: unknown) {
             setContextError(`Erreur de parsing JSON: ${err.message}`);
         }
     };
@@ -335,7 +335,7 @@ export const RuleDebugger: React.FC<RuleDebuggerProps> = ({
                                     <div className="validation-section">
                                         <h4>Erreurs ({validationResult.errors.length})</h4>
                                         <ul className="validation-list">
-                                            {validationResult.errors.map((error: any, index: number) => (
+                                            {validationResult.errors.map((error: unknown, index: number) => (
                                                 <li key={index} className="validation-error">
                                                     <span className="validation-code">{error.code}</span>
                                                     <span className="validation-message">{error.message}</span>
@@ -353,7 +353,7 @@ export const RuleDebugger: React.FC<RuleDebuggerProps> = ({
                                     <div className="validation-section">
                                         <h4>Avertissements ({validationResult.warnings.length})</h4>
                                         <ul className="validation-list">
-                                            {validationResult.warnings.map((warning: any, index: number) => (
+                                            {validationResult.warnings.map((warning: unknown, index: number) => (
                                                 <li key={index} className="validation-warning">
                                                     <span className="validation-code">{warning.code}</span>
                                                     <span className="validation-message">{warning.message}</span>
@@ -391,7 +391,7 @@ export const RuleDebugger: React.FC<RuleDebuggerProps> = ({
                                                 >
                                                     {rules.find(r => r.id === ruleId)?.name || ruleId}
                                                 </button>
-                                            )).reduce((prev: any, curr: any) => [prev, ', ', curr])}
+                                            )).reduce((prev: unknown, curr: unknown) => [prev, ', ', curr])}
                                         </div>
                                     </div>
                                 ))}

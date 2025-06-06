@@ -1,5 +1,6 @@
 import { IntegrationEvent, IntegrationEventType } from './EventBusService';
 
+import { logger } from "../../../lib/logger";
 /**
  * Métriques sur un type d'événement spécifique
  */
@@ -74,7 +75,7 @@ export class EventBusProfiler {
      * Constructeur privé (Singleton)
      */
     private constructor() {
-        console.debug('[EventBusProfiler] Initialized');
+        logger.debug('[EventBusProfiler] Initialized');
     }
 
     /**
@@ -87,7 +88,7 @@ export class EventBusProfiler {
         };
         this.isEnabled = this.config.enabled;
 
-        console.debug('[EventBusProfiler] Configuration updated:', this.config);
+        logger.debug('[EventBusProfiler] Configuration updated:', this.config);
     }
 
     /**
@@ -96,7 +97,7 @@ export class EventBusProfiler {
     public setEnabled(enabled: boolean): void {
         this.isEnabled = enabled;
         this.config.enabled = enabled;
-        console.debug(`[EventBusProfiler] Profiling ${enabled ? 'enabled' : 'disabled'}`);
+        logger.debug(`[EventBusProfiler] Profiling ${enabled ? 'enabled' : 'disabled'}`);
     }
 
     /**
@@ -173,7 +174,7 @@ export class EventBusProfiler {
 
             // Journaliser les événements lents
             if (this.config.logSlowEvents && handlingTime > this.config.slowEventThreshold) {
-                console.warn(`[EventBusProfiler] Slow event detected: ${eventType} took ${handlingTime.toFixed(2)}ms to process`);
+                logger.warn(`[EventBusProfiler] Slow event detected: ${eventType} took ${handlingTime.toFixed(2)}ms to process`);
             }
         }
     }
@@ -279,7 +280,7 @@ export class EventBusProfiler {
     public resetMetrics(): void {
         this.eventMetrics.clear();
         this.subscriberMetrics.clear();
-        console.debug('[EventBusProfiler] Metrics reset');
+        logger.debug('[EventBusProfiler] Metrics reset');
     }
 
     /**

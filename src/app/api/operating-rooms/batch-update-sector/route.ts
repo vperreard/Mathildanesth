@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { headers } from 'next/headers';
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
         if (process.env.NODE_ENV === 'development' && userRole === 'ADMIN_TOTAL') {
-            console.log('[DEV MODE] Authentification par en-tête pour POST /api/operating-rooms/batch-update-sector');
+            logger.info('[DEV MODE] Authentification par en-tête pour POST /api/operating-rooms/batch-update-sector');
         }
 
         const body = await request.json();
@@ -32,11 +33,11 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ message: 'Aucune salle à mettre à jour.' }, { status: 200 });
         }
 
-        console.log(`[API] Début de la mise à jour groupée des secteurs pour ${rooms.length} salles. Données reçues:`, rooms);
+        logger.info(`[API] Début de la mise à jour groupée des secteurs pour ${rooms.length} salles. Données reçues:`, rooms);
 
         const updatePromises = rooms.map(async (roomUpdate) => {
             if (typeof roomUpdate.id !== 'number' || (typeof roomUpdate.sectorId !== 'number' && roomUpdate.sectorId !== null)) {
-                console.warn('[API] Mise à jour de salle ignorée - données invalides:', roomUpdate);
+                logger.warn('[API] Mise à jour de salle ignorée - données invalides:', roomUpdate);
                 // Retourner une promesse résolue pour ne pas bloquer Promise.all
                 // Ou envisager de retourner une erreur spécifique pour cette salle
                 return { id: roomUpdate.id, status: 'skipped', error: 'Invalid data format' };
@@ -46,10 +47,10 @@ export async function POST(request: NextRequest) {
                     where: { id: roomUpdate.id },
                     data: { sectorId: roomUpdate.sectorId },
                 });
-                console.log(`[API] Salle ID ${updatedRoom.id} mise à jour avec sectorId: ${updatedRoom.sectorId}`);
+                logger.info(`[API] Salle ID ${updatedRoom.id} mise à jour avec sectorId: ${updatedRoom.sectorId}`);
                 return { id: updatedRoom.id, status: 'success' };
-            } catch (error) {
-                console.error(`[API] Erreur lors de la mise à jour de la salle ID ${roomUpdate.id}:`, error);
+            } catch (error: unknown) {
+                logger.error(`[API] Erreur lors de la mise à jour de la salle ID ${roomUpdate.id}:`, { error: error });
                 // Retourner une promesse résolue avec un statut d'erreur pour cette salle spécifique
                 return { id: roomUpdate.id, status: 'error', error: (error as Error).message };
             }
@@ -61,12 +62,12 @@ export async function POST(request: NextRequest) {
         const failedUpdates = results.filter(r => r.status === 'error');
         const skippedUpdates = results.filter(r => r.status === 'skipped');
 
-        console.log(`[API] Mise à jour groupée terminée. ${successfulUpdates} salles mises à jour avec succès.`);
+        logger.info(`[API] Mise à jour groupée terminée. ${successfulUpdates} salles mises à jour avec succès.`);
         if (failedUpdates.length > 0) {
-            console.warn(`[API] ${failedUpdates.length} salles n\'ont pas pu être mises à jour:`, failedUpdates);
+            logger.warn(`[API] ${failedUpdates.length} salles n\'ont pas pu être mises à jour:`, failedUpdates);
         }
         if (skippedUpdates.length > 0) {
-            console.warn(`[API] ${skippedUpdates.length} mises à jour de salles ignorées (données invalides):`, skippedUpdates);
+            logger.warn(`[API] ${skippedUpdates.length} mises à jour de salles ignorées (données invalides):`, skippedUpdates);
         }
 
         if (failedUpdates.length > 0) {
@@ -86,8 +87,8 @@ export async function POST(request: NextRequest) {
             details: results
         }, { status: 200 });
 
-    } catch (error) {
-        console.error('[API] Erreur majeure lors de la mise à jour groupée des secteurs des salles:', error);
+    } catch (error: unknown) {
+        logger.error('[API] Erreur majeure lors de la mise à jour groupée des secteurs des salles:', { error: error });
         return NextResponse.json(
             { error: 'Erreur majeure lors de la mise à jour groupée des secteurs des salles', details: (error as Error).message },
             { status: 500 }
@@ -118,7 +119,7 @@ export async function PUT(request: NextRequest) {
         });
 
         return NextResponse.json(updatedRooms);
-    } catch (error) {
+    } catch (error: unknown) {
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour des salles' },
             { status: 500 }

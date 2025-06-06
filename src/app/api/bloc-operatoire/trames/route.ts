@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { prisma } from '@/lib/prisma';
 
 
@@ -61,8 +62,8 @@ export async function GET(request: Request) {
         });
 
         return NextResponse.json(trameModeles);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des trames:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des trames:', { error: error });
         return NextResponse.json({ error: 'Erreur lors de la récupération des trameModeles' }, { status: 500 });
     }
 }
@@ -98,8 +99,8 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json(newTrame, { status: 201 });
-    } catch (error) {
-        console.error('Erreur lors de la création de la trameModele:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création de la trameModele:', { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la création de la trameModele',
             details: error instanceof Error ? error.message : 'Erreur inconnue'

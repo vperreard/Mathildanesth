@@ -25,7 +25,7 @@ export interface ScheduleContext {
         type: string;
         locationId?: number;
     }[];
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export class ScheduleRuleService {
@@ -308,11 +308,11 @@ export class ScheduleRuleService {
     /**
      * Évalue une condition individuelle
      */
-    private evaluateCondition(condition: any, context: ScheduleContext): boolean {
+    private evaluateCondition(condition: unknown, context: ScheduleContext): boolean {
         const { field, operator, value, valueEnd } = condition;
 
         // Obtenir la valeur du contexte pour le champ spécifié
-        let contextValue: any;
+        let contextValue: unknown;
 
         switch (field) {
             case 'USER_ID':
@@ -418,7 +418,7 @@ export class ScheduleRuleService {
     /**
      * Mappage d'une règle de la base de données vers le template ScheduleRule
      */
-    private mapDatabaseRuleToScheduleRule(dbRule: any): ScheduleRule {
+    private mapDatabaseRuleToScheduleRule(dbRule: unknown): ScheduleRule {
         const config = dbRule.configuration as any;
 
         return {

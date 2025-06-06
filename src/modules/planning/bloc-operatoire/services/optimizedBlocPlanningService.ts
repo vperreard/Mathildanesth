@@ -441,19 +441,19 @@ export class OptimizedBlocPlanningService {
 
     private processTrameAffectations(
         planningId: string,
-        trames: any[],
+        trames: unknown[],
         dayOfWeek: DayOfWeek,
         weekType: WeekType,
         currentDate: Date,
         absencesByUser: Map<number, any[]>,
         absencesBySurgeon: Map<number, any[]>,
-        assignmentsToCreate: any[],
-        staffAssignmentsToCreate: any[]
+        assignmentsToCreate: unknown[],
+        staffAssignmentsToCreate: unknown[]
     ) {
         const roomPeriodAssignments = new Map<string, any>();
 
         trameModeles.forEach(trameModele => {
-            trameModele.affectations.forEach((aff: any) => {
+            trameModele.affectations.forEach((aff: unknown) => {
                 if (aff.jourSemaine !== dayOfWeek || 
                     (aff.typeSemaine !== WeekType.ALL && aff.typeSemaine !== weekType)) {
                     return;

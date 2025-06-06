@@ -62,7 +62,7 @@ const generateDemoData = () => {
 // Mock du moteur de règles pour la démo
 const createMockRuleEngine = () => {
     const mockRuleEngine = {
-        evaluate: async (context: any) => {
+        evaluate: async (context: unknown) => {
             // Simuler un délai de traitement
             await new Promise(resolve => setTimeout(resolve, 500));
 

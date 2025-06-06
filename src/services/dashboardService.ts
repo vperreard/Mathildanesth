@@ -12,7 +12,7 @@ export interface DashboardData {
     layout: 'grid' | 'free';
 }
 
-const buildErrorDetails = (error: any, context?: Record<string, any>): Omit<ErrorDetails, 'timestamp' | 'retry'> => {
+const buildErrorDetails = (error: unknown, context?: Record<string, unknown>): Omit<ErrorDetails, 'timestamp' | 'retry'> => {
     const status = error?.response?.status;
     const severity: ErrorSeverity = status && status >= 500 ? 'critical' : 'error';
     return {
@@ -39,7 +39,7 @@ export const dashboardService = {
                 layout: dashboard.layout as 'grid' | 'free',
                 widgets: JSON.parse(dashboard.widgets as string)
             } : null;
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildErrorDetails(error, { userId });
             logError(operationKey, { ...errorDetails, timestamp: new Date() });
             throw error;
@@ -60,7 +60,7 @@ export const dashboardService = {
                 layout: dashboard.layout as 'grid' | 'free',
                 widgets: JSON.parse(dashboard.widgets as string)
             };
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildErrorDetails(error, { userId: data.userId });
             logError(operationKey, { ...errorDetails, timestamp: new Date() });
             throw error;
@@ -82,7 +82,7 @@ export const dashboardService = {
                 layout: dashboard.layout as 'grid' | 'free',
                 widgets: JSON.parse(dashboard.widgets as string)
             };
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildErrorDetails(error, { dashboardId: id });
             logError(operationKey, { ...errorDetails, timestamp: new Date() });
             throw error;
@@ -95,7 +95,7 @@ export const dashboardService = {
             await prisma.dashboard.delete({
                 where: { id }
             });
-        } catch (error) {
+        } catch (error: unknown) {
             const errorDetails = buildErrorDetails(error, { dashboardId: id });
             logError(operationKey, { ...errorDetails, timestamp: new Date() });
             throw error;

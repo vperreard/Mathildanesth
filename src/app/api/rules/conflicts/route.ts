@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { RuleConflict, RuleSeverity } from '../../../../modules/rules/types/rule';
 
@@ -37,8 +38,8 @@ export async function GET(request: NextRequest) {
         }));
 
         return NextResponse.json(serializedConflicts);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des conflits:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des conflits:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des conflits' },
             { status: 500 }
@@ -93,8 +94,8 @@ export async function POST(request: NextRequest) {
         };
 
         return NextResponse.json(serializedConflict, { status: 201 });
-    } catch (error) {
-        console.error('Erreur lors de la création du conflit:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création du conflit:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la création du conflit' },
             { status: 500 }

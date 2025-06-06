@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { useProfiler, ProfilerReport, MetricType } from '../';
 import Button from '@/components/ui/button';
 
@@ -50,7 +51,7 @@ export const ProfilerExample: React.FC = () => {
     const handleHeavyOperation = () => {
         // Utiliser la fonction profilée
         const result = profiledHeavyCalculation(count);
-        console.log('Résultat du calcul:', result);
+        logger.info('Résultat du calcul:', result);
         setCount(count + 1);
     };
 
@@ -76,7 +77,7 @@ export const ProfilerExample: React.FC = () => {
 
                 endMeasure();
 
-                console.log('Opération périodique:', result);
+                logger.info('Opération périodique:', result);
             }, 2000);
 
             return () => clearInterval(interval);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { prisma } from '@/lib/prisma';
 import { RuleV2 } from '@/modules/dynamicRules/v2/types/ruleV2.types';
 import { RuleVersioningService } from '@/modules/dynamicRules/v2/services/RuleVersioningService';
@@ -113,8 +114,8 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error) {
-    console.error('Error fetching rules:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching rules:', { error: error });
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Paramètres invalides', details: error.errors },
@@ -192,8 +193,8 @@ export async function POST(request: NextRequest) {
         : 'Règle créée avec succès'
     }, { status: 201 });
 
-  } catch (error) {
-    console.error('Error creating rule:', error);
+  } catch (error: unknown) {
+    logger.error('Error creating rule:', { error: error });
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },
@@ -255,8 +256,8 @@ export async function PUT(request: NextRequest) {
       count: result.count
     });
 
-  } catch (error) {
-    console.error('Error bulk updating rules:', error);
+  } catch (error: unknown) {
+    logger.error('Error bulk updating rules:', { error: error });
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },
@@ -314,8 +315,8 @@ export async function DELETE(request: NextRequest) {
       count: result.count
     });
 
-  } catch (error) {
-    console.error('Error archiving rules:', error);
+  } catch (error: unknown) {
+    logger.error('Error archiving rules:', { error: error });
     return NextResponse.json(
       { error: 'Erreur lors de l\'archivage des règles' },
       { status: 500 }

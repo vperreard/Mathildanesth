@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { logger } from "../../../lib/logger";
 import { User } from '@/types/user';
 import { eventBus, IntegrationEventType } from '../../integration/services/EventBusService';
 
@@ -59,7 +60,7 @@ export interface AuditEntry {
     targetType?: string;      // Type de l'objet cible
     description: string;      // Description détaillée de l'action
     severity: AuditSeverity;  // Niveau de criticité
-    metadata?: Record<string, any>; // Métadonnées supplémentaires
+    metadata?: Record<string, unknown>; // Métadonnées supplémentaires
     ipAddress?: string;       // Adresse IP de l'utilisateur
     userAgent?: string;       // User-Agent du navigateur
 }
@@ -139,14 +140,14 @@ export class AuditService {
         eventBus.subscribe(IntegrationEventType.AUDIT_ACTION, this.handleGenericAuditEvent.bind(this));
 
         if (this.debug) {
-            console.debug('[AuditService] Event subscriptions initialized');
+            logger.debug('[AuditService] Event subscriptions initialized');
         }
     }
 
     /**
      * Gérer un événement de congé
      */
-    private async handleLeaveEvent(event: any): Promise<void> {
+    private async handleLeaveEvent(event: unknown): Promise<void> {
         try {
             const { type, payload, userId } = event;
 
@@ -169,15 +170,15 @@ export class AuditService {
                     endDate: payload.endDate
                 }
             });
-        } catch (error) {
-            console.error(`[AuditService] Error handling leave event:`, error);
+        } catch (error: unknown) {
+            logger.error(`[AuditService] Error handling leave event:`, { error: error });
         }
     }
 
     /**
      * Gérer un événement de quota
      */
-    private async handleQuotaEvent(event: any): Promise<void> {
+    private async handleQuotaEvent(event: unknown): Promise<void> {
         try {
             const { type, payload, userId } = event;
 
@@ -199,22 +200,22 @@ export class AuditService {
                     reason: payload.reason
                 }
             });
-        } catch (error) {
-            console.error(`[AuditService] Error handling quota event:`, error);
+        } catch (error: unknown) {
+            logger.error(`[AuditService] Error handling quota event:`, { error: error });
         }
     }
 
     /**
      * Gérer un événement d'audit générique
      */
-    private async handleGenericAuditEvent(event: any): Promise<void> {
+    private async handleGenericAuditEvent(event: unknown): Promise<void> {
         try {
             const { payload } = event;
 
             // Le payload contient directement les données d'audit
             await this.createAuditEntry(payload);
-        } catch (error) {
-            console.error(`[AuditService] Error handling generic audit event:`, error);
+        } catch (error: unknown) {
+            logger.error(`[AuditService] Error handling generic audit event:`, { error: error });
         }
     }
 
@@ -270,7 +271,7 @@ export class AuditService {
     /**
      * Générer une description pour une action sur un congé
      */
-    private generateLeaveActionDescription(type: IntegrationEventType, payload: any): string {
+    private generateLeaveActionDescription(type: IntegrationEventType, payload: unknown): string {
         const actionVerb = type.split('_')[1]?.toLowerCase() || 'modifié';
         return `Congé ${actionVerb} - Type: ${payload.type}, Statut: ${payload.status}, Période: ${new Date(payload.startDate).toLocaleDateString()} au ${new Date(payload.endDate).toLocaleDateString()}`;
     }
@@ -278,7 +279,7 @@ export class AuditService {
     /**
      * Générer une description pour une action sur un quota
      */
-    private generateQuotaActionDescription(type: IntegrationEventType, payload: any): string {
+    private generateQuotaActionDescription(type: IntegrationEventType, payload: unknown): string {
         switch (type) {
             case IntegrationEventType.QUOTA_UPDATED:
                 return `Quota mis à jour - Type: ${payload.leaveType}, Quantité: ${payload.amount}`;
@@ -309,12 +310,12 @@ export class AuditService {
             });
 
             if (this.debug) {
-                console.debug(`[AuditService] Created audit entry: ${response.data.id}`, response.data);
+                logger.debug(`[AuditService] Created audit entry: ${response.data.id}`, response.data);
             }
 
             return response.data;
-        } catch (error) {
-            console.error('[AuditService] Error creating audit entry:', error);
+        } catch (error: unknown) {
+            logger.error('[AuditService] Error creating audit entry:', { error: error });
             throw error;
         }
     }
@@ -330,8 +331,8 @@ export class AuditService {
             });
 
             return response.data;
-        } catch (error) {
-            console.error('[AuditService] Error searching audit entries:', error);
+        } catch (error: unknown) {
+            logger.error('[AuditService] Error searching audit entries:', { error: error });
             throw error;
         }
     }
@@ -346,8 +347,8 @@ export class AuditService {
             });
 
             return response.data;
-        } catch (error) {
-            console.error(`[AuditService] Error fetching audit entry ${id}:`, error);
+        } catch (error: unknown) {
+            logger.error(`[AuditService] Error fetching audit entry ${id}:`, { error: error });
             throw error;
         }
     }
@@ -355,7 +356,7 @@ export class AuditService {
     /**
      * Enregistrer une action d'accès au système
      */
-    public async logSystemAccess(userId: string, section: string, action: string, metadata: Record<string, any> = {}): Promise<void> {
+    public async logSystemAccess(userId: string, section: string, action: string, metadata: Record<string, unknown> = {}): Promise<void> {
         await this.createAuditEntry({
             actionType: AuditActionType.SYSTEM_ACCESS,
             userId,
@@ -404,7 +405,7 @@ export class AuditService {
     /**
      * Enregistrer une exportation de données
      */
-    public async logDataExport(userId: string, dataType: string, exportFormat: string, filters: Record<string, any> = {}): Promise<void> {
+    public async logDataExport(userId: string, dataType: string, exportFormat: string, filters: Record<string, unknown> = {}): Promise<void> {
         await this.createAuditEntry({
             actionType: AuditActionType.EXPORT_DATA,
             userId,
@@ -422,7 +423,7 @@ export class AuditService {
     /**
      * Enregistrer un changement de configuration
      */
-    public async logConfigurationChange(userId: string, configKey: string, oldValue: any, newValue: any): Promise<void> {
+    public async logConfigurationChange(userId: string, configKey: string, oldValue: unknown, newValue: unknown): Promise<void> {
         await this.createAuditEntry({
             actionType: AuditActionType.CONFIGURATION_CHANGED,
             userId,

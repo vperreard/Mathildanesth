@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { logger } from "./logger";
 import NodeCache from 'node-cache';
 
 // Configuration du cache
@@ -55,7 +56,7 @@ if (isServer && prisma.$use) {
         // Invalider le cache pour ce template lors des mutations
         if (params.model) {
             const keys = cache.keys().filter((key) => key.startsWith(`${params.model}:`));
-            console.log(`[PrismaCache] Invalidating ${keys.length} keys for model ${params.model}`);
+            logger.info(`[PrismaCache] Invalidating ${keys.length} keys for model ${params.model}`);
             keys.forEach((key) => cache.del(key));
         }
         return next(params);
@@ -73,12 +74,12 @@ if (isServer && prisma.$use) {
         // Vérifier si les données sont dans le cache
         const cachedData = cache.get(cacheKey);
         if (cachedData) {
-            console.log(`[PrismaCache] Cache hit: ${cacheKey}`);
+            logger.info(`[PrismaCache] Cache hit: ${cacheKey}`);
             return cachedData;
         }
 
         // Si pas dans le cache, exécuter la requête
-        console.log(`[PrismaCache] Cache miss: ${cacheKey}`);
+        logger.info(`[PrismaCache] Cache miss: ${cacheKey}`);
         const result = await next(params);
 
         // Stocker le résultat dans le cache
@@ -104,20 +105,20 @@ if (isServer && prisma.$use) {
 
     // Invalider tout le cache
     invalidateAll: () => {
-        console.log('[PrismaCache] Invalidating entire cache');
+        logger.info('[PrismaCache] Invalidating entire cache');
         cache.flushAll();
     },
 
     // Invalider le cache pour un template spécifique
     invalidateModel: (modelName: string) => {
         const keys = cache.keys().filter((key) => key.startsWith(`${modelName}:`));
-        console.log(`[PrismaCache] Invalidating ${keys.length} keys for model ${modelName}`);
+        logger.info(`[PrismaCache] Invalidating ${keys.length} keys for model ${modelName}`);
         keys.forEach((key) => cache.del(key));
     },
 
     // Invalider une clé spécifique
     invalidateKey: (key: string) => {
-        console.log(`[PrismaCache] Invalidating specific key: ${key}`);
+        logger.info(`[PrismaCache] Invalidating specific key: ${key}`);
         cache.del(key);
     }
 };

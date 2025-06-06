@@ -8,7 +8,7 @@ import { TextEncoder, TextDecoder } from 'util';
 
 // Capture des logs d'erreur console pour les tests
 const originalConsoleError = console.error;
-console.error = (...args: any[]) => {
+console.error = (...args: unknown[]) => {
     // Ignorer certaines erreurs propres à React dans l'environnement de test
     if (
         typeof args[0] === 'string' &&

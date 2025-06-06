@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { prisma } from '@/lib/prisma';
 
 interface SearchResult {
@@ -10,7 +11,7 @@ interface SearchResult {
   subtitle?: string;
   description?: string;
   score: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Simple fuzzy search implementation
@@ -220,8 +221,8 @@ export async function GET(req: NextRequest) {
       query,
       timestamp: new Date().toISOString(),
     });
-  } catch (error) {
-    console.error('Search error:', error);
+  } catch (error: unknown) {
+    logger.error('Search error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to perform search' },
       { status: 500 }

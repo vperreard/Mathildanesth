@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { logger } from "../../../../lib/logger";
 import Link from 'next/link';
 import { ArrowLeftIcon, BarChart2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -278,7 +279,7 @@ export default function VisualizationsPage() {
                         height={500}
                         showLabels={true}
                         onCellClick={(x, y, value) => {
-                            console.log(`Clicked: ${y} - ${x} (${value})`);
+                            logger.info(`Clicked: ${y} - ${x} (${value})`);
                         }}
                     />
                 </TabsContent>
@@ -290,10 +291,10 @@ export default function VisualizationsPage() {
                         height={600}
                         width={1000}
                         onNodeClick={(node) => {
-                            console.log(`Node clicked: ${node.name}`);
+                            logger.info(`Node clicked: ${node.name}`);
                         }}
                         onLinkClick={(link) => {
-                            console.log(`Link clicked: ${link.source.name} → ${link.target.name}`);
+                            logger.info(`Link clicked: ${link.source.name} → ${link.target.name}`);
                         }}
                     />
                 </TabsContent>

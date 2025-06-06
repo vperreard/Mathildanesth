@@ -20,12 +20,12 @@ import { RuleTemplate } from '../types/ruleV2.types';
 import { useQuery } from '@tanstack/react-query';
 
 interface RuleTemplatesProps {
-  onSelectTemplate: (template: RuleTemplate, parameters?: Record<string, any>) => void;
+  onSelectTemplate: (template: RuleTemplate, parameters?: Record<string, unknown>) => void;
 }
 
 export const RuleTemplates: React.FC<RuleTemplatesProps> = ({ onSelectTemplate }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<RuleTemplate | null>(null);
-  const [parameters, setParameters] = useState<Record<string, any>>({});
+  const [parameters, setParameters] = useState<Record<string, unknown>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
@@ -74,7 +74,7 @@ export const RuleTemplates: React.FC<RuleTemplatesProps> = ({ onSelectTemplate }
     );
   }) || [];
 
-  const handleParameterChange = (paramName: string, value: any) => {
+  const handleParameterChange = (paramName: string, value: unknown) => {
     setParameters(prev => ({ ...prev, [paramName]: value }));
   };
 

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { logger } from "../../../lib/logger";
 import { PlusCircleIcon } from '@heroicons/react/24/outline';
 import { IncompatibilitesTable, DisplayPersonnelIncompatibility } from '@/components/admin/incompatibilites/IncompatibilitesTable';
 import { getPersonnelIncompatibilities } from '@/services/admin/personnelIncompatibilityService';
@@ -13,8 +14,8 @@ async function fetchIncompatibilitiesData(): Promise<{ data: DisplayPersonnelInc
     try {
         const incompatibilities = await getPersonnelIncompatibilities();
         return { data: incompatibilities };
-    } catch (error: any) {
-        console.error("Failed to fetch incompatibilities:", error);
+    } catch (error: unknown) {
+        logger.error("Failed to fetch incompatibilities:", { error: error });
         return { data: [], error: error.message || "Une erreur est survenue lors de la récupération des données." };
     }
 }

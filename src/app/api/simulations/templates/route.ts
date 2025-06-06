@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
 
@@ -49,8 +50,8 @@ export async function GET(req: Request) {
         });
 
         return NextResponse.json(templates);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des templates de simulation:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des templates de simulation:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }
@@ -96,8 +97,8 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(template, { status: 201 });
-    } catch (error) {
-        console.error('Erreur lors de la création du template de simulation:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création du template de simulation:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }

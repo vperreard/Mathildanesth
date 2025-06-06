@@ -150,7 +150,7 @@ export class PlanningSimulator {
     /**
      * Fonction utilitaire pour fusionner profondément des objets
      */
-    private deepMerge(target: any, source: any): any {
+    private deepMerge(target: unknown, source: unknown): any {
         if (source === null || typeof source !== 'object') return source;
         if (target === null || typeof target !== 'object') return target;
 
@@ -241,8 +241,8 @@ export class PlanningSimulator {
     compareSimulations(simulationId1: string, simulationId2: string): {
         metrics1: SimulationMetrics | null,
         metrics2: SimulationMetrics | null,
-        parameterDifferences: Record<string, { value1: any, value2: any }>,
-        ruleDifferences: Record<string, { value1: any, value2: any }>,
+        parameterDifferences: Record<string, { value1: unknown, value2: unknown }>,
+        ruleDifferences: Record<string, { value1: unknown, value2: unknown }>,
     } {
         const sim1 = this.simulations.get(simulationId1);
         const sim2 = this.simulations.get(simulationId2);
@@ -250,8 +250,8 @@ export class PlanningSimulator {
         const metrics1 = sim1 ? this.calculateMetrics(simulationId1) : null;
         const metrics2 = sim2 ? this.calculateMetrics(simulationId2) : null;
 
-        const parameterDifferences: Record<string, { value1: any, value2: any }> = {};
-        const ruleDifferences: Record<string, { value1: any, value2: any }> = {};
+        const parameterDifferences: Record<string, { value1: unknown, value2: unknown }> = {};
+        const ruleDifferences: Record<string, { value1: unknown, value2: unknown }> = {};
 
         // Compare les paramètres si les deux simulations existent
         if (sim1 && sim2) {
@@ -284,9 +284,9 @@ export class PlanningSimulator {
      * Trouve récursivement les différences entre deux objets
      */
     private findObjectDifferences(
-        obj1: any,
-        obj2: any,
-        differences: Record<string, { value1: any, value2: any }>,
+        obj1: unknown,
+        obj2: unknown,
+        differences: Record<string, { value1: unknown, value2: unknown }>,
         path: string
     ): void {
         // Pour chaque clé dans le premier objet

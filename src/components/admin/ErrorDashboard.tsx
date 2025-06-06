@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -9,7 +10,7 @@ interface ErrorLog {
     code?: string;
     severity: 'info' | 'warning' | 'error' | 'critical';
     timestamp: string;
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
     resolved: boolean;
     userAgent?: string;
     url?: string;
@@ -53,8 +54,8 @@ const ErrorDashboard: React.FC = () => {
                 const data = await response.json();
                 setErrors(data.errors);
                 setStats(data.stats);
-            } catch (error) {
-                console.error('Erreur lors du chargement des erreurs:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors du chargement des erreurs:', { error: error });
             } finally {
                 setLoading(false);
             }
@@ -124,8 +125,8 @@ const ErrorDashboard: React.FC = () => {
                     resolvedCount: stats.resolvedCount + 1
                 });
             }
-        } catch (error) {
-            console.error('Erreur lors de la résolution:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la résolution:', { error: error });
         }
     };
 
@@ -149,7 +150,7 @@ const ErrorDashboard: React.FC = () => {
     const formatDate = (dateString: string) => {
         try {
             return format(new Date(dateString), 'dd MMM yyyy HH:mm:ss', { locale: fr });
-        } catch (e) {
+        } catch (e: unknown) {
             return dateString;
         }
     };

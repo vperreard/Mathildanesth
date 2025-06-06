@@ -1,7 +1,9 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useAuth } from '../useAuth';
-import { signIn, signOut } from 'next-auth/react';
+
+// signIn - utiliser les méthodes du hook useAuth
+// signOut - utiliser les méthodes du hook useAuth;
 import { useRouter } from 'next/navigation';
 
 // Mock next-auth/react

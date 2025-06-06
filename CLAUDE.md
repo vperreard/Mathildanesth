@@ -21,21 +21,55 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚡ Command Execution Strategy
 
-**NOTE**: Claude Code requires user authorization for each command execution (security limitation).
+**REALITY CHECK**: Claude Code ALWAYS requires user authorization for Bash commands (security feature, cannot be bypassed).
 
-### Recommended Workflow for Autonomy:
+### 🎯 MANDATORY COMMANDS FOR AUTONOMY:
 
-1. **Use Batch Scripts**: `./scripts/claude-auto.sh` for common tasks
-2. **Combine Commands**: `npm run verify` instead of multiple separate commands
-3. **Watch Mode**: `npm test -- --watch` for continuous testing
-4. **Single Authorization**: Group related commands in one execution
+**ALWAYS USE THESE** (single authorization, multiple actions):
+- `npm run verify` ✅ **PRIMARY CHOICE** (lint + test + build)
+- `npm run verify:quick` ✅ **FOR SPEED** (test:fast + lint)  
+- `npm run verify:pre-commit` ✅ **BEFORE COMMITS** (lint + test)
+- `./scripts/claude-auto.sh check` ✅ **WITH COLORS** (same as verify)
+- `./scripts/claude-auto.sh quick` ✅ **QUICK WITH COLORS** (test:fast + lint)
 
-### Available Automation:
+**NEVER USE THESE** (require multiple authorizations = workflow killer):
+- ❌ `npm test` alone
+- ❌ `npm run lint` alone  
+- ❌ `npm run build` alone
+- ❌ `npm run test:fast` alone
+- ❌ Any individual command when combined versions exist
+- ❌ Sequential separate commands
 
-- `./scripts/claude-auto.sh test` - Run all tests
-- `./scripts/claude-auto.sh check` - Full verification (lint + test + build)
-- `./scripts/claude-auto.sh dev` - Start development environment
-- `./scripts/claude-auto.sh audit` - Run tech debt audit
+**RULE**: If a combined version exists, ALWAYS use it. Individual commands break autonomy.
+
+### 🚀 AUTONOMOUS WORKFLOW COMMANDS:
+
+**NPM Combined Scripts (Recommended)**:
+```bash
+npm run verify              # ✅ lint + test + build (MAIN COMMAND)
+npm run verify:quick        # ✅ test:fast + lint (SPEED)
+npm run verify:pre-commit   # ✅ lint + test (COMMITS)
+```
+
+**Batch Scripts with Colors**:
+```bash
+./scripts/claude-auto.sh check    # ✅ Full verification with status colors
+./scripts/claude-auto.sh quick    # ✅ Quick verification with colors
+./scripts/claude-auto.sh test     # ✅ All tests only
+./scripts/claude-auto.sh dev      # ✅ Start dev server
+./scripts/claude-auto.sh watch    # ✅ Test watch mode
+./scripts/claude-auto.sh audit    # ✅ Tech debt audit
+```
+
+**Development Commands (Individual, use sparingly)**:
+```bash
+npm run dev                 # ✅ Start development server
+npm run etape              # ✅ Project status checkpoint  
+npm run db:seed            # ✅ Database seeding
+npx prisma studio          # ✅ Database GUI
+```
+
+**STRATEGY**: Always prefer combined commands to minimize authorization prompts.
 
 **EXCEPTION**: Only ask before `git commit`, `git push`, `npm publish`, or destructive operations
 
@@ -110,13 +144,20 @@ Mathildanesth is a medical planning application for anesthesia teams (MARs and I
 
 ## Essential Commands
 
-### Development
+### Development (AUTONOMY-OPTIMIZED)
 
 ```bash
+# 🚀 COMBINED COMMANDS (USE THESE FOR AUTONOMY)
+npm run verify              # ✅ lint + test + build (MAIN COMMAND)
+npm run verify:quick        # ✅ test:fast + lint (QUICK VERIFICATION)
+npm run verify:pre-commit   # ✅ lint + test (BEFORE COMMITS)
+
+# 🎨 COLORED BATCH SCRIPTS  
+./scripts/claude-auto.sh check    # ✅ Full verification with colors
+./scripts/claude-auto.sh quick    # ✅ Quick verification with colors
+
+# 📊 INDIVIDUAL COMMANDS (use sparingly to maintain autonomy)
 npm run dev              # Start development server
-npm run build           # Production build
-npm start               # Start production server
-npm run lint            # Run ESLint
 npm run etape           # Project status checkpoint (custom audit tool)
 ```
 
@@ -332,14 +373,18 @@ npm run test:critical                    # Test all critical modules
      - Critical modules (auth, leaves, planning): 80% minimum
      - Other modules: 70% minimum
    - **Performance targets (NEW)**:
-     - All tests must run in < 30 seconds (`npm run test:bulletproof`)
+     - All tests must run in < 30 seconds (`npm run verify:quick`)
      - Individual test files < 5 seconds timeout
-     - Use `npm run test:fast` for rapid development feedback
+     - Use `npm run verify:quick` for rapid development feedback
+   - **CRITICAL - Command Usage**:
+     - ✅ USE: `npm run verify` or `npm run verify:quick` 
+     - ❌ NEVER: `npm test` alone (breaks autonomy)
+     - ✅ USE: `./scripts/claude-auto.sh check` for colored output
    - **Claude Workers for broken tests**:
      - Run `npm run claude:workers` to generate autonomous repair prompts
      - Deploy specialized Claude instances for parallel test fixing
      - Validate with `npm run test:validate` after repairs
-   - **Run tests before ANY commit**: `npm test` must pass
+   - **Run tests before ANY commit**: `npm run verify:pre-commit` must pass
 7. **Documentation**:
    - Update relevant docs in `/docs/` structure
    - **Add new TODOs or tasks to [ROADMAP.md](docs/04_roadmap/ROADMAP.md)** - DO NOT create new todo files

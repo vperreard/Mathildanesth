@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions'; // Chemin direct vers vos authOptions
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim'; // Chemin direct vers vos authOptions
 import { Role } from '@prisma/client'; // Importer Role si ce n'est pas déjà fait
 
 export function handleApiError(

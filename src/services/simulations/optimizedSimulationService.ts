@@ -6,6 +6,7 @@
  */
 
 import { PrismaClient, SimulationStatus } from '@prisma/client';
+import { logger } from "../../lib/logger";
 import { simulationCache } from './simulationCacheService';
 import { simulationNotificationService } from './notificationService';
 import * as workerpool from 'workerpool';
@@ -128,7 +129,7 @@ export enum OptimizationStrategy {
 }
 
 interface SimulationCache {
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 // Cache en mémoire pour les résultats intermédiaires
@@ -222,8 +223,8 @@ export class OptimizedSimulationService {
             }
 
             return simulationResultId;
-        } catch (error) {
-            console.error('Erreur lors de l\'exécution de la simulation optimisée:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'exécution de la simulation optimisée:', { error: error });
 
             // Mettre à jour le statut en cas d'erreur
             await this.updateSimulationStatus(
@@ -265,7 +266,7 @@ export class OptimizedSimulationService {
     }
 
     // Stratégie utilisant uniquement le cache
-    private async runCacheOnlySimulation(params: SimulationParams): Promise<any> {
+    private async runCacheOnlySimulation(params: SimulationParams): Promise<unknown> {
         const cacheKey = simulationCache.generateCacheKey(params.scenarioId, params);
         const cachedResult = simulationCache.get(cacheKey);
 
@@ -280,7 +281,7 @@ export class OptimizedSimulationService {
     private async runParallelSimulation(
         params: SimulationParams,
         updateProgress: (progress: number, message?: string) => Promise<void>
-    ): Promise<any> {
+    ): Promise<unknown> {
         const pool = getWorkerPool();
 
         // Diviser la période en sous-périodes
@@ -352,7 +353,7 @@ export class OptimizedSimulationService {
         params: SimulationParams,
         resultId: string,
         updateProgress: (progress: number, message?: string) => Promise<void>
-    ): Promise<any> {
+    ): Promise<unknown> {
         // Vérifier s'il y a un résultat précédent pour ce scénario
         await updateProgress(10, "Recherche de résultats précédents");
 
@@ -415,7 +416,7 @@ export class OptimizedSimulationService {
     private async runDefaultSimulation(
         params: SimulationParams,
         updateProgress: (progress: number, message?: string) => Promise<void>
-    ): Promise<any> {
+    ): Promise<unknown> {
         await updateProgress(10, "Initialisation de la simulation");
 
         return await simulationCache.getOrCompute(
@@ -499,7 +500,7 @@ export class OptimizedSimulationService {
     // Sauvegarder les résultats de la simulation
     private async saveSimulationResult(
         resultId: string,
-        resultData: any,
+        resultData: unknown,
         executionTime: number
     ): Promise<void> {
         // Calculer les statistiques à partir des résultats
@@ -525,7 +526,7 @@ export class OptimizedSimulationService {
     }
 
     // Combiner les résultats des sous-périodes
-    private combineResults(results: any[]): any {
+    private combineResults(results: unknown[]): any {
         if (results.length === 0) return {};
 
         // Extraire la première et la dernière période pour la période globale
@@ -585,15 +586,15 @@ export class OptimizedSimulationService {
     }
 
     // Combiner les distributions de postes
-    private combineShiftDistributions(distributions: any[]): any[] {
+    private combineShiftDistributions(distributions: unknown[]): unknown[] {
         if (distributions.length === 0) return [];
 
         // Créer un dictionnaire pour agréger les données par utilisateur
-        const userShifts: Record<string, any> = {};
+        const userShifts: Record<string, unknown> = {};
 
         // Parcourir toutes les distributions
         distributions.forEach(distribution => {
-            distribution.forEach((userShift: any) => {
+            distribution.forEach((userShift: unknown) => {
                 const { userName } = userShift;
 
                 if (!userShifts[userName]) {

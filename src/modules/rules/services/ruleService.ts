@@ -1,4 +1,5 @@
 import { Rule, RuleType, RuleScope, RuleSeverity } from '../types/rule';
+import { logger } from "../../../lib/logger";
 import { defaultRules } from '../seeds/defaultRules';
 
 /**
@@ -21,10 +22,10 @@ export class RuleService {
                 for (const rule of defaultRules) {
                     await this.createRule(rule);
                 }
-                console.log('Règles par défaut initialisées avec succès');
+                logger.info('Règles par défaut initialisées avec succès');
             }
-        } catch (error) {
-            console.error('Erreur lors de l\'initialisation des règles par défaut:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'initialisation des règles par défaut:', { error: error });
             throw error;
         }
     }
@@ -39,8 +40,8 @@ export class RuleService {
                 throw new Error(`Erreur lors de la récupération des règles: ${response.statusText}`);
             }
             return await response.json();
-        } catch (error) {
-            console.error('Erreur dans getAllRules:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getAllRules:', { error: error });
             throw error;
         }
     }
@@ -55,8 +56,8 @@ export class RuleService {
                 throw new Error(`Erreur lors de la récupération des règles: ${response.statusText}`);
             }
             return await response.json();
-        } catch (error) {
-            console.error(`Erreur dans getRulesByType pour ${type}:`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur dans getRulesByType pour ${type}:`, { error: error });
             throw error;
         }
     }
@@ -79,8 +80,8 @@ export class RuleService {
             }
 
             return await response.json();
-        } catch (error) {
-            console.error('Erreur dans createRule:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans createRule:', { error: error });
             throw error;
         }
     }
@@ -103,8 +104,8 @@ export class RuleService {
             }
 
             return await response.json();
-        } catch (error) {
-            console.error('Erreur dans updateRule:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans updateRule:', { error: error });
             throw error;
         }
     }
@@ -121,8 +122,8 @@ export class RuleService {
             if (!response.ok) {
                 throw new Error(`Erreur lors de la suppression de la règle: ${response.statusText}`);
             }
-        } catch (error) {
-            console.error('Erreur dans deleteRule:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans deleteRule:', { error: error });
             throw error;
         }
     }
@@ -134,8 +135,8 @@ export class RuleService {
         try {
             const rules = await this.getAllRules();
             return JSON.stringify(rules, null, 2);
-        } catch (error) {
-            console.error('Erreur dans exportRules:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans exportRules:', { error: error });
             throw error;
         }
     }
@@ -166,8 +167,8 @@ export class RuleService {
                     await this.createRule(rule);
                 }
             }
-        } catch (error) {
-            console.error('Erreur dans importRules:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans importRules:', { error: error });
             throw error;
         }
     }
@@ -188,8 +189,8 @@ export class RuleService {
             }
 
             return await response.json();
-        } catch (error) {
-            console.error('Erreur dans getRuleById:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getRuleById:', { error: error });
             throw error;
         }
     }
@@ -222,8 +223,8 @@ export class RuleService {
             };
 
             return await this.updateRule(updatedRule);
-        } catch (error) {
-            console.error('Erreur dans resetRuleToDefault:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans resetRuleToDefault:', { error: error });
             throw error;
         }
     }

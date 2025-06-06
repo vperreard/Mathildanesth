@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { checkUserRole } from '@/lib/auth-server-utils';
@@ -26,10 +27,10 @@ export async function POST(
     const userRole = authCheck.user?.role || '';
 
     const { trameModeleId } = await params;
-    console.log(
+    logger.info(
       `[API POST /trameModele-modeles/${trameModeleId}/affectations] Début du traitement.`
     );
-    console.log('\n--- POST /api/trameModele-modeles/[trameModeleId]/affectations START ---');
+    logger.info('\n--- POST /api/trameModele-modeles/[trameModeleId]/affectations START ---');
 
     // 🔐 Vérification de rôle admin pour modifications de trameModeles (fait via withAuth)
     // Logger l'action de création
@@ -46,7 +47,7 @@ export async function POST(
     });
 
     if (!trameModeleId || isNaN(parseInt(trameModeleId))) {
-      console.warn(
+      logger.warn(
         'POST /api/trameModele-modeles/[trameModeleId]/affectations: Invalid trameModeleId'
       );
       return NextResponse.json(
@@ -57,7 +58,7 @@ export async function POST(
     const trameId = parseInt(trameModeleId);
 
     const body = await request.json();
-    console.log(
+    logger.info(
       'POST /api/trameModele-modeles/[trameModeleId]/affectations - Received data:',
       body
     );
@@ -76,14 +77,14 @@ export async function POST(
     } = body;
 
     // Log for debugging personnelRequis structure
-    console.log(
+    logger.info(
       'POST /api/trameModele-modeles/[trameModeleId]/affectations - personnelRequis structure:',
       JSON.stringify(personnelRequis, null, 2)
     );
 
     // Validations de base
     if (!activityTypeId || !jourSemaine || !periode || !typeSemaine) {
-      console.warn('POST .../affectations: Validation failed - Champs requis manquants');
+      logger.warn('POST .../affectations: Validation failed - Champs requis manquants');
       return NextResponse.json(
         {
           error:
@@ -96,7 +97,7 @@ export async function POST(
     // Vérifier l'existence du TrameModele parent
     const parentTrame = await prisma.trameModele.findUnique({ where: { id: trameId } });
     if (!parentTrame) {
-      console.warn(`POST .../affectations: TrameModele with id ${trameId} not found.`);
+      logger.warn(`POST .../affectations: TrameModele with id ${trameId} not found.`);
       return NextResponse.json(
         { error: 'Modèle de trameModele parent non trouvé' },
         { status: 404 }
@@ -122,7 +123,7 @@ export async function POST(
           Array.isArray(personnelRequis) &&
           personnelRequis.length > 0 && {
             personnelRequis: {
-              create: personnelRequis.map((pr: any) => ({
+              create: personnelRequis.map((pr: unknown) => ({
                 roleGenerique: pr.roleGenerique,
                 nombreRequis: pr.nombreRequis || 1,
                 notes: pr.notes,
@@ -133,7 +134,7 @@ export async function POST(
           }),
       };
 
-      console.log(
+      logger.info(
         'POST .../affectations: Structure finale de createData:',
         JSON.stringify(createData, null, 2)
       );
@@ -147,33 +148,30 @@ export async function POST(
         },
       });
 
-      console.log(
+      logger.info(
         'POST .../affectations: AffectationModele created successfully:',
         newAffectationModele
       );
-      console.log('--- POST /api/trameModele-modeles/[trameModeleId]/affectations END ---\n');
+      logger.info('--- POST /api/trameModele-modeles/[trameModeleId]/affectations END ---\n');
       return NextResponse.json(newAffectationModele, { status: 201 });
-    } catch (prismaError) {
-      console.error('Erreur Prisma détaillée:', prismaError);
+    } catch (prismaError: unknown) {
+      logger.error('Erreur Prisma détaillée:', prismaError);
       throw prismaError; // Relancer pour la gestion globale des erreurs
     }
-  } catch (error) {
-    console.error(
-      'Error during POST /api/trameModele-modeles/[trameModeleId]/affectations:',
-      error
-    );
+  } catch (error: unknown) {
+    logger.error('Error during POST /api/trameModele-modeles/[trameModeleId]/affectations:', { error: error });
 
     // Afficher plus d'informations sur l'erreur
     if (error instanceof Error) {
-      console.error("Message d'erreur:", error.message);
-      console.error('Stack trace:', error.stack);
+      logger.error("Message d'erreur:", error.message);
+      logger.error('Stack trace:', error.stack);
     }
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Gérer les erreurs Prisma spécifiques (ex: contrainte unique, clé étrangère non trouvée)
       if (error.code === 'P2025') {
         // Foreign key constraint failed
-        console.error(
+        logger.error(
           'Prisma Error P2025: An operation failed because it depends on one or more records that were required but not found.',
           error.meta
         );
@@ -188,7 +186,7 @@ export async function POST(
       // Ajouter d'autres codes d'erreur Prisma courants
       if (error.code === 'P2002') {
         // Unique constraint failed
-        console.error('Prisma Error P2002: Unique constraint failed', error.meta);
+        logger.error('Prisma Error P2002: Unique constraint failed', error.meta);
         return NextResponse.json(
           { error: `Contrainte d'unicité non respectée: ${error.meta?.target}` },
           { status: 400 }
@@ -202,7 +200,7 @@ export async function POST(
       );
     }
 
-    console.log(
+    logger.info(
       '--- POST /api/trameModele-modeles/[trameModeleId]/affectations END (with error) ---\n'
     );
     return NextResponse.json(
@@ -231,14 +229,14 @@ export async function GET(
 
     const userId = authCheck.user?.id || 0;
     const { trameModeleId } = await params;
-    console.log(
+    logger.info(
       `[API GET /trameModele-modeles/${trameModeleId}/affectations] Début du traitement.`
     );
 
-    console.log('\n--- GET /api/trameModele-modeles/[trameModeleId]/affectations START ---');
+    logger.info('\n--- GET /api/trameModele-modeles/[trameModeleId]/affectations START ---');
 
     if (!trameModeleId || isNaN(parseInt(trameModeleId))) {
-      console.warn(
+      logger.warn(
         'GET /api/trameModele-modeles/[trameModeleId]/affectations: Invalid trameModeleId'
       );
       return NextResponse.json(
@@ -248,12 +246,12 @@ export async function GET(
     }
     const trameId = parseInt(trameModeleId);
 
-    console.log(`GET .../affectations: Retrieving affectations for trameModeleId ${trameId}...`);
+    logger.info(`GET .../affectations: Retrieving affectations for trameModeleId ${trameId}...`);
 
     // Vérifier l'existence du TrameModele parent
     const parentTrame = await prisma.trameModele.findUnique({ where: { id: trameId } });
     if (!parentTrame) {
-      console.warn(`GET .../affectations: TrameModele with id ${trameId} not found.`);
+      logger.warn(`GET .../affectations: TrameModele with id ${trameId} not found.`);
       return NextResponse.json(
         { error: 'Modèle de trameModele parent non trouvé' },
         { status: 404 }
@@ -282,13 +280,13 @@ export async function GET(
       ],
     });
 
-    console.log(
+    logger.info(
       `GET .../affectations: ${affectations.length} affectations retrieved successfully.`
     );
-    console.log('--- GET /api/trameModele-modeles/[trameModeleId]/affectations END ---\n');
+    logger.info('--- GET /api/trameModele-modeles/[trameModeleId]/affectations END ---\n');
     return NextResponse.json(affectations);
-  } catch (error: any) {
-    console.error(
+  } catch (error: unknown) {
+    logger.error(
       `Erreur lors de la récupération des affectations pour la trameModele ${trameModeleId}:`,
       error
     );

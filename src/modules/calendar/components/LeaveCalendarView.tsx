@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { BaseCalendar } from './BaseCalendar';
 import { LeaveEvent, CalendarEventType, CalendarSettings } from '../types/event';
 import { useLeaveData } from '../../conges/hooks/useLeaveData';
@@ -77,8 +78,8 @@ export const LeaveCalendarView: React.FC<LeaveCalendarViewProps> = ({
 
                 // Récupérer les congés selon les paramètres
                 await fetchLeaves(leaveParams);
-            } catch (error) {
-                console.error('Erreur lors du chargement des congés pour le calendrier:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors du chargement des congés pour le calendrier:', { error: error });
             }
         };
 

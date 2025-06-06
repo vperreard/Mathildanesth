@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '../../../../lib/prisma';
 import { verifyAuthToken, getAuthTokenServer } from '../../../../lib/auth-server-utils';
 import { startOfWeek, endOfWeek, addDays, format } from 'date-fns';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 // Types pour le planning médical
 type ShiftType = 'GARDE_24H' | 'ASTREINTE' | 'VACATION' | 'BLOC' | 'CONSULTATION' | 'REPOS' | 'CONGE';
@@ -180,8 +183,8 @@ async function handler(req: NextRequest) {
 
         return response;
 
-    } catch (error) {
-        console.error('Erreur lors du chargement du planning semaine', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors du chargement du planning semaine', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors du chargement du planning' },
             { status: 500 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { logger } from "@/lib/logger";
 export async function GET(req: NextRequest) {
     try {
         // Pour l'instant, retourner des stats simulées
@@ -20,8 +21,8 @@ export async function GET(req: NextRequest) {
         };
 
         return NextResponse.json(stats);
-    } catch (error) {
-        console.error('Failed to fetch cache stats:', error);
+    } catch (error: unknown) {
+        logger.error('Failed to fetch cache stats:', { error: error });
         return NextResponse.json(
             { error: 'Failed to fetch cache stats' },
             { status: 500 }

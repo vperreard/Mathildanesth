@@ -1,4 +1,5 @@
 import { RuleV2, RuleSimulation, SimulationUser, SimulationViolation, SimulationMetrics } from '../types/ruleV2.types';
+import { logger } from "../../../../lib/logger";
 import { RuleEngineV2 } from './RuleEngineV2';
 import { prisma } from '@/lib/prisma';
 import { addDays, eachDayOfInterval, isWeekend, format } from 'date-fns';
@@ -103,8 +104,8 @@ export class RuleSimulator {
       );
 
       simulation.status = 'completed';
-    } catch (error) {
-      console.error('Simulation error:', error);
+    } catch (error: unknown) {
+      logger.error('Simulation error:', { error: error });
       simulation.status = 'failed';
     }
 
@@ -149,7 +150,7 @@ export class RuleSimulator {
 
   private calculateViolationSeverity(
     rule: Partial<RuleV2>,
-    result: any
+    result: unknown
   ): string {
     // Based on rule priority and action types
     if (rule.priority && rule.priority >= 20) return 'critical';

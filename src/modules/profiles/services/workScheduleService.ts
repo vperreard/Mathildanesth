@@ -6,6 +6,7 @@ import {
     MonthType,
     WeeklyWorkingDays
 } from '../types/workSchedule';
+import { logger } from "../../../lib/logger";
 import { addDays, getWeek, getMonth, getDay, isWithinInterval } from 'date-fns';
 
 /**
@@ -207,8 +208,8 @@ export const fetchUserWorkSchedules = async (userId: string): Promise<WorkSchedu
         }
 
         return await response.json();
-    } catch (error) {
-        console.error('Erreur dans fetchUserWorkSchedules:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur dans fetchUserWorkSchedules:', { error: error });
         throw error;
     }
 };
@@ -238,8 +239,8 @@ export const saveWorkSchedule = async (planningMedical: Partial<WorkSchedule>): 
         }
 
         return await response.json();
-    } catch (error) {
-        console.error('Erreur dans saveWorkSchedule:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur dans saveWorkSchedule:', { error: error });
         throw error;
     }
 };
@@ -258,8 +259,8 @@ export const deleteWorkSchedule = async (scheduleId: string): Promise<void> => {
         if (!response.ok) {
             throw new Error(`Erreur lors de la suppression du planning de travail: ${response.statusText}`);
         }
-    } catch (error) {
-        console.error('Erreur dans deleteWorkSchedule:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur dans deleteWorkSchedule:', { error: error });
         throw error;
     }
 }; 

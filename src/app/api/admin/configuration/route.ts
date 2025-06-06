@@ -28,7 +28,7 @@ export async function PUT(request: Request) {
             ...updatedConfig
         };
         return NextResponse.json({ message: 'Configuration mise à jour avec succès' });
-    } catch (error: any) {
+    } catch (error: unknown) {
         return NextResponse.json({ error: error.message || 'Erreur lors de la mise à jour' }, { status: 500 });
     }
 }

@@ -1,4 +1,5 @@
 import { Leave, LeaveStatus } from '../../conges/types/leave';
+import { logger } from "../../../lib/logger";
 import { CalendarEventType, LeaveEvent } from '../../calendrier/types/event';
 import { CalendarService } from '../../calendrier/services/calendrierService';
 import { PlanningService } from '../../planning/services/planningService';
@@ -37,7 +38,7 @@ export class LeaveToPlanningService {
         );
 
         if (this.debug) {
-            console.debug('[LeaveToPlanningService] Event subscriptions initialized');
+            logger.debug('[LeaveToPlanningService] Event subscriptions initialized');
         }
     }
 
@@ -62,10 +63,10 @@ export class LeaveToPlanningService {
             }
 
             if (this.debug) {
-                console.debug(`[LeaveToPlanningService] Handled event: ${event.type} for leave ${leave.id}`);
+                logger.debug(`[LeaveToPlanningService] Handled event: ${event.type} for leave ${leave.id}`);
             }
-        } catch (error) {
-            console.error(`[LeaveToPlanningService] Error handling event ${event.type}:`, error);
+        } catch (error: unknown) {
+            logger.error(`[LeaveToPlanningService] Error handling event ${event.type}:`, { error: error });
         }
     }
 
@@ -222,7 +223,7 @@ export class LeaveToPlanningService {
         this.subscriptions.forEach(unsubscribe => unsubscribe());
 
         if (this.debug) {
-            console.debug('[LeaveToPlanningService] Disposed and unsubscribed from events');
+            logger.debug('[LeaveToPlanningService] Disposed and unsubscribed from events');
         }
     }
 } 

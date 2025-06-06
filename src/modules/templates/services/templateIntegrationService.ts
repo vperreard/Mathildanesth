@@ -1,4 +1,5 @@
 import { PlanningTemplate, AffectationConfiguration } from '../types/template';
+import { logger } from "../../../lib/logger";
 import { templateService } from './templateService';
 
 /**
@@ -14,8 +15,8 @@ export const templateIntegrationService = {
     async exportTemplateToJSON(templateId: string): Promise<Blob> {
         try {
             return await templateService.exportTemplateAsJSON(templateId);
-        } catch (error) {
-            console.error('Erreur lors de l\'exportation de la tableau de service:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'exportation de la tableau de service:', { error: error });
             throw error;
         }
     },
@@ -54,8 +55,8 @@ export const templateIntegrationService = {
 
             // Libérer l'URL
             setTimeout(() => URL.revokeObjectURL(url), 100);
-        } catch (error) {
-            console.error('Erreur lors du téléchargement de la tableau de service:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du téléchargement de la tableau de service:', { error: error });
             throw error;
         }
     },
@@ -68,8 +69,8 @@ export const templateIntegrationService = {
     async importTemplateFromJSON(file: File): Promise<PlanningTemplate> {
         try {
             return await templateService.importTemplateFromJSON(file);
-        } catch (error) {
-            console.error('Erreur lors de l\'importation de la tableau de service:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'importation de la tableau de service:', { error: error });
             throw error;
         }
     },
@@ -91,8 +92,8 @@ export const templateIntegrationService = {
             }
 
             return duplicatedTemplate;
-        } catch (error) {
-            console.error('Erreur lors de la duplication de la tableau de service:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la duplication de la tableau de service:', { error: error });
             throw error;
         }
     },
@@ -113,15 +114,15 @@ export const templateIntegrationService = {
 
             // Cette fonction est une simulation, dans un cas réel,
             // elle communiquerait avec le module de planning
-            console.log(`Application de la trameModele ${modèle.nom} du ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}`);
+            logger.info(`Application de la trameModele ${modèle.nom} du ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}`);
 
             // Simuler un délai réseau
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             // Retourner un ID fictif de planning généré
             return `planning_${Date.now()}`;
-        } catch (error) {
-            console.error('Erreur lors de l\'application de la trameModele au planning:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'application de la trameModele au planning:', { error: error });
             throw error;
         }
     },
@@ -132,8 +133,8 @@ export const templateIntegrationService = {
      * @param configB Deuxième configuration
      * @returns Objet avec les différences
      */
-    compareConfigurations(configA: AffectationConfiguration, configB: AffectationConfiguration): Record<string, any> {
-        const differences: Record<string, any> = {};
+    compareConfigurations(configA: AffectationConfiguration, configB: AffectationConfiguration): Record<string, unknown> {
+        const differences: Record<string, unknown> = {};
 
         // Comparer les champs simples
         for (const key of ['nom', 'heureDebut', 'heureFin', 'priorite', 'couleur', 'notes', 'emplacementPhysique'] as const) {
@@ -155,10 +156,10 @@ export const templateIntegrationService = {
             };
         } else {
             // Comparer chaque poste individuellement
-            const posteDiffs: Record<string, any> = {};
+            const posteDiffs: Record<string, unknown> = {};
             configA.postes.forEach((posteA, index) => {
                 const posteB = configB.postes[index];
-                const posteChanges: Record<string, any> = {};
+                const posteChanges: Record<string, unknown> = {};
 
                 for (const key of ['nom', 'quantite', 'status', 'competencesRequises'] as const) {
                     if (posteA[key] !== posteB[key]) {
@@ -195,7 +196,7 @@ export const templateIntegrationService = {
         try {
             // Cette fonction est une simulation, dans un cas réel,
             // elle vérifierait réellement la compatibilité avec le module de planning
-            console.log(`Vérification de la compatibilité de la trameModele ${templateId} avec le planning ${planningId}`);
+            logger.info(`Vérification de la compatibilité de la trameModele ${templateId} avec le planning ${planningId}`);
 
             // Simuler un délai réseau
             await new Promise(resolve => setTimeout(resolve, 800));
@@ -211,8 +212,8 @@ export const templateIntegrationService = {
                     }
                 ]
             };
-        } catch (error) {
-            console.error('Erreur lors de la vérification de compatibilité:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la vérification de compatibilité:', { error: error });
             throw error;
         }
     }

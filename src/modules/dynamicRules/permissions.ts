@@ -142,9 +142,9 @@ export function requireRulePermission(permission: string) {
  * Filtre les règles en fonction des permissions de l'utilisateur
  */
 export function filterRulesForUser(
-    rules: any[],
+    rules: unknown[],
     context: AuthContext
-): any[] {
+): unknown[] {
     // Admin total voit tout
     if (context.role === 'ADMIN_TOTAL') {
         return rules;

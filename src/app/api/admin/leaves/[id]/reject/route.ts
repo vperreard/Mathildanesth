@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { LeaveStatus, NotificationType } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-utils';
@@ -23,7 +24,7 @@ export async function POST(
         try {
             const body = await request.json();
             comment = body.comment || null;
-        } catch (e) {
+        } catch (e: unknown) {
             // Ignorer l'erreur si le corps n'est pas un JSON valide
         }
 
@@ -124,8 +125,8 @@ export async function POST(
             }
         });
 
-    } catch (error) {
-        console.error('[API /api/admin/conges/reject] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API /api/admin/conges/reject] Erreur:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors du rejet de la demande de congé' },
             { status: 500 }

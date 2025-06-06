@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import { format } from 'date-fns';
 import { publicHolidayService } from '@/modules/leaves/services/publicHolidayService';
 import { holidayCalendarService } from '../services/holidayService';
@@ -37,10 +38,10 @@ export function usePublicHolidays() {
                 holidays: publicHolidays,
                 events
             };
-        } catch (err) {
+        } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error('Erreur inconnue');
             setError(error);
-            console.error('Erreur lors du chargement des jours fériés:', error);
+            logger.error('Erreur lors du chargement des jours fériés:', { error: error });
             return {
                 holidays: [],
                 events: []
@@ -56,8 +57,8 @@ export function usePublicHolidays() {
     const isHoliday = useCallback(async (date: Date): Promise<boolean> => {
         try {
             return await holidayCalendarService.isHoliday(date);
-        } catch (err) {
-            console.error('Erreur lors de la vérification du jour férié:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors de la vérification du jour férié:', { error: err });
             return false;
         }
     }, []);
@@ -82,8 +83,8 @@ export function usePublicHolidays() {
 
             const result = await loadHolidays(startDate, endDate);
             return result.holidays;
-        } catch (err) {
-            console.error(`Erreur lors du chargement des jours fériés pour l'année ${year}:`, err);
+        } catch (err: unknown) {
+            logger.error(`Erreur lors du chargement des jours fériés pour l'année ${year}:`, err);
             return [];
         } finally {
             setLoading(false);

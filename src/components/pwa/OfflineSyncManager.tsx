@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "../../lib/logger";
 import { cn } from '@/lib/utils';
 import { 
   Wifi,
@@ -18,7 +19,7 @@ interface OfflineAction {
   id: string;
   type: 'leave_request' | 'schedule_change' | 'notification_read' | 'profile_update';
   action: string;
-  data: any;
+  data: unknown;
   timestamp: Date;
   retryCount: number;
   status: 'pending' | 'syncing' | 'synced' | 'failed';
@@ -62,14 +63,14 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
     try {
       const stored = localStorage.getItem('mathildanesth_offline_actions');
       if (stored) {
-        const actions = JSON.parse(stored).map((action: any) => ({
+        const actions = JSON.parse(stored).map((action: unknown) => ({
           ...action,
           timestamp: new Date(action.timestamp)
         }));
         setOfflineActions(actions);
       }
-    } catch (error) {
-      console.error('Erreur chargement actions offline:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur chargement actions offline:', { error: error });
     }
   };
 
@@ -77,8 +78,8 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
     try {
       localStorage.setItem('mathildanesth_offline_actions', JSON.stringify(actions));
       setOfflineActions(actions);
-    } catch (error) {
-      console.error('Erreur sauvegarde actions offline:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur sauvegarde actions offline:', { error: error });
     }
   };
 
@@ -116,8 +117,8 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
           // Marquer comme synchronisé
           updateActionStatus(action.id, 'synced');
           
-        } catch (error) {
-          console.error(`Erreur sync action ${action.id}:`, error);
+        } catch (error: unknown) {
+          logger.error(`Erreur sync action ${action.id}:`, { error: error });
           
           // Incrémenter compteur retry
           const updatedActions = offlineActions.map(a => 
@@ -132,8 +133,8 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
       setLastSync(new Date());
       showNotification('Synchronisation terminée', 'success');
       
-    } catch (error) {
-      console.error('Erreur synchronisation globale:', error);
+    } catch (error: unknown) {
+      logger.error('Erreur synchronisation globale:', { error: error });
       showNotification('Erreur de synchronisation', 'error');
     } finally {
       setSyncInProgress(false);
@@ -193,7 +194,7 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
 
   const showNotification = (message: string, type: 'info' | 'success' | 'error') => {
     // Intégration avec le système de notifications
-    console.log(`[${type.toUpperCase()}] ${message}`);
+    logger.info(`[${type.toUpperCase()}] ${message}`);
   };
 
   const getActionIcon = (type: string) => {
@@ -384,7 +385,7 @@ export function useOfflineSync() {
     };
   }, []);
   
-  const queueOfflineAction = (action: any) => {
+  const queueOfflineAction = (action: unknown) => {
     // Ajouter à la queue d'actions hors ligne
     const offlineActions = JSON.parse(
       localStorage.getItem('mathildanesth_offline_actions') || '[]'

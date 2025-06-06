@@ -57,7 +57,7 @@ export const LeaveDetailModal: React.FC<LeaveDetailModalProps> = ({
 
                 setLeave(fakeLeave);
                 setLoading(false);
-            } catch (err) {
+            } catch (err: unknown) {
                 setError('Erreur lors du chargement des détails du congé.');
                 setLoading(false);
             }
@@ -74,7 +74,7 @@ export const LeaveDetailModal: React.FC<LeaveDetailModalProps> = ({
         try {
             await onStatusChange(leaveId, newStatus);
             setLeave(prev => prev ? { ...prev, status: newStatus } : null);
-        } catch (err) {
+        } catch (err: unknown) {
             setError('Erreur lors de la modification du statut.');
         } finally {
             setProcessingAction(false);
@@ -90,7 +90,7 @@ export const LeaveDetailModal: React.FC<LeaveDetailModalProps> = ({
             try {
                 await onDelete(leaveId);
                 onClose(); // Fermer le modal après suppression
-            } catch (err) {
+            } catch (err: unknown) {
                 setError('Erreur lors de la suppression du congé.');
                 setProcessingAction(false);
             }

@@ -152,7 +152,7 @@ export class BusinessRulesValidator {
         valid: errors.length === 0,
         errors
       };
-    } catch (error) {
+    } catch (error: unknown) {
       errors.push('Erreur lors de la validation du congé');
       return { valid: false, errors };
     }
@@ -279,7 +279,7 @@ export class BusinessRulesValidator {
         valid: errors.length === 0,
         errors
       };
-    } catch (error) {
+    } catch (error: unknown) {
       errors.push('Erreur lors de la validation de l\'garde/vacation');
       return { valid: false, errors };
     }
@@ -390,7 +390,7 @@ export class BusinessRulesValidator {
         valid: errors.length === 0,
         errors: errors.slice(0, 10) // Limiter à 10 erreurs pour la lisibilité
       };
-    } catch (error) {
+    } catch (error: unknown) {
       errors.push('Erreur lors de la validation de la génération du planning');
       return { valid: false, errors };
     }

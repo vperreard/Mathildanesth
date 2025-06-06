@@ -1,5 +1,6 @@
 import { isWeekend } from 'date-fns';
 
+import { logger } from "../../../lib/logger";
 /**
  * Calcule le nombre de jours de congé décomptés entre deux dates.
  * Exclut par défaut les week-ends et peut exclure une liste de jours fériés fournis.
@@ -46,7 +47,7 @@ export function calculateCountedDays(
         const sameDate = sDate.getTime() === eDate.getTime();
 
         if (!sameDate) {
-            console.warn("Option demi-journée spécifiée mais dates différentes. Option ignorée.");
+            logger.warn("Option demi-journée spécifiée mais dates différentes. Option ignorée.");
             // Utiliser la logique des jours complets
         } else {
             const dayStr = `${sDate.getFullYear()}-${String(sDate.getMonth() + 1).padStart(2, '0')}-${String(sDate.getDate()).padStart(2, '0')}`;

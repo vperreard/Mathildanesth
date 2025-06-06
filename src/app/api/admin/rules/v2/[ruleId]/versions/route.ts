@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { RuleVersioningService } from '@/modules/dynamicRules/v2/services/RuleVersioningService';
 import { z } from 'zod';
 
@@ -36,8 +37,8 @@ export async function GET(
       versions,
       ruleId: params.ruleId,
     });
-  } catch (error) {
-    console.error('Error fetching version history:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching version history:', { error: error });
     return NextResponse.json(
       { error: "Erreur lors de la récupération de l'historique" },
       { status: 500 }
@@ -103,8 +104,8 @@ export async function POST(
     } else {
       return NextResponse.json({ error: 'Action non reconnue' }, { status: 400 });
     }
-  } catch (error) {
-    console.error('Error in version action:', error);
+  } catch (error: unknown) {
+    logger.error('Error in version action:', { error: error });
     return NextResponse.json(
       { error: "Erreur lors de l'opération sur les versions" },
       { status: 500 }

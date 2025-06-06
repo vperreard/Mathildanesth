@@ -1,3 +1,5 @@
+import { logger } from "../lib/logger";
+
 /**
  * Types d'actions enregistrées dans l'audit
  */
@@ -140,15 +142,15 @@ export class AuditService {
         };
 
         if (this.isDebugMode) {
-            console.debug('[AuditService] Action enregistrée:', completeEntry);
+            logger.debug('[AuditService] Action enregistrée:', completeEntry);
         }
 
         try {
             // Dans un environnement de production, nous enverrions à l'API
             await this.sendToAuditAPI(completeEntry);
             return completeEntry;
-        } catch (error) {
-            console.error('Erreur lors de l\'enregistrement de l\'audit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'enregistrement de l\'audit:', { error: error });
             // En cas d'erreur, nous essayons de stocker localement pour synchronisation ultérieure
             this.storeLocally(completeEntry);
             return completeEntry;
@@ -200,8 +202,8 @@ export class AuditService {
                 throw new Error(`Erreur lors de la récupération de l'audit: ${response.statusText}`);
             }
             return await response.json();
-        } catch (error) {
-            console.error('Erreur dans getAuditHistory:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getAuditHistory:', { error: error });
             return [];
         }
     }
@@ -249,8 +251,8 @@ export class AuditService {
                 throw new Error(`Erreur lors de la récupération de l'audit: ${response.statusText}`);
             }
             return await response.json();
-        } catch (error) {
-            console.error('Erreur dans getUserAuditHistory:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans getUserAuditHistory:', { error: error });
             return [];
         }
     }
@@ -278,8 +280,8 @@ export class AuditService {
             if (!response.ok) {
                 throw new Error(`Erreur lors de l'enregistrement de l'audit: ${response.statusText}`);
             }
-        } catch (error) {
-            console.error('Erreur dans sendToAuditAPI:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans sendToAuditAPI:', { error: error });
             throw error;
         }
     }
@@ -305,10 +307,10 @@ export class AuditService {
             localStorage.setItem('pendingAuditEntries', JSON.stringify(trimmedEntries));
 
             if (this.isDebugMode) {
-                console.debug(`[AuditService] Entrée stockée localement. ${trimmedEntries.length} entrées en attente.`);
+                logger.debug(`[AuditService] Entrée stockée localement. ${trimmedEntries.length} entrées en attente.`);
             }
-        } catch (error) {
-            console.error('Erreur lors du stockage local de l\'audit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors du stockage local de l\'audit:', { error: error });
         }
     }
 
@@ -347,8 +349,8 @@ export class AuditService {
                     } else {
                         break; // Arrêter si une synchronisation échoue
                     }
-                } catch (error) {
-                    console.error('Erreur lors de la synchronisation du lot:', error);
+                } catch (error: unknown) {
+                    logger.error('Erreur lors de la synchronisation du lot:', { error: error });
                     break;
                 }
             }
@@ -359,13 +361,13 @@ export class AuditService {
                 localStorage.setItem('pendingAuditEntries', JSON.stringify(remainingEntries));
 
                 if (this.isDebugMode) {
-                    console.debug(`[AuditService] ${syncedCount} entrées synchronisées. ${remainingEntries.length} entrées restantes.`);
+                    logger.debug(`[AuditService] ${syncedCount} entrées synchronisées. ${remainingEntries.length} entrées restantes.`);
                 }
             }
 
             return syncedCount;
-        } catch (error) {
-            console.error('Erreur lors de la synchronisation des entrées d\'audit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la synchronisation des entrées d\'audit:', { error: error });
             return 0;
         }
     }

@@ -80,7 +80,7 @@ export interface RuleCondition {
     id: string;
     field: string;            // Champ sur lequel porte la condition
     operator: ConditionOperator; // Opérateur de comparaison
-    value: any;               // Valeur de comparaison
+    value: unknown;               // Valeur de comparaison
     valueType?: string;       // Type de la valeur (pour validation)
     description?: string;     // Description de la condition
     isCustomLogic?: boolean;  // Si true, utilise une fonction personnalisée
@@ -94,11 +94,11 @@ export interface RuleAction {
     id: string;
     type: ActionType;         // Type d'action
     target?: string;          // Cible de l'action (champ, utilisateur, etc.)
-    value?: any;              // Valeur pour l'action
+    value?: unknown;              // Valeur pour l'action
     message?: string;         // Message associé à l'action
     severity?: string;        // Sévérité (pour les notifications)
     functionName?: string;    // Nom de la fonction à exécuter
-    parameters?: Record<string, any>; // Paramètres pour la fonction
+    parameters?: Record<string, unknown>; // Paramètres pour la fonction
     description?: string;     // Description de l'action
 }
 
@@ -106,7 +106,7 @@ export interface RuleAction {
  * Interface pour un contexte d'évaluation de règle
  */
 export interface RuleContext {
-    [key: string]: any;       // Données contextuelles pour évaluer les règles
+    [key: string]: unknown;       // Données contextuelles pour évaluer les règles
 }
 
 /**
@@ -119,7 +119,7 @@ export interface RuleEvaluationResult {
     actions: RuleAction[];    // Actions exécutées
     message?: string;         // Message explicatif
     timestamp: number;        // Timestamp de l'évaluation
-    contextSnapshot?: any;    // Snapshot du contexte au moment de l'évaluation
+    contextSnapshot?: unknown;    // Snapshot du contexte au moment de l'évaluation
 }
 
 /**
@@ -175,7 +175,7 @@ export interface RuleMetadata {
     validFrom?: Date;
     validTo?: Date;
     isTestRule?: boolean;
-    testResults?: any[];
+    testResults?: unknown[];
 }
 
 /**

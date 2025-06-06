@@ -102,7 +102,7 @@ export interface QuotaValidationResult {
     valid: boolean;
     message: string;
     validationCode: QuotaValidationCode;
-    details?: Record<string, any>;
+    details?: Record<string, unknown>;
 }
 
 interface SimulationResult {
@@ -189,7 +189,7 @@ const QuotaTransferService = {
         try {
             const response = await apiClient.post('/api/conges/quota-transfers/execute', transferRequest);
             return response.data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
                 error: error.response?.data?.message || 'Erreur lors du transfert de jours'
@@ -206,7 +206,7 @@ const QuotaTransferService = {
         try {
             const response = await apiClient.post('/api/conges/quota-transfers/simulate', transferRequest);
             return response.data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
                 error: error.response?.data?.message || 'Erreur lors de la simulation du transfert'
@@ -282,7 +282,7 @@ const QuotaTransferService = {
             }
 
             return { isValid: true };
-        } catch (error) {
+        } catch (error: unknown) {
             return {
                 isValid: false,
                 message: "Impossible de valider le transfert. Veuillez réessayer."

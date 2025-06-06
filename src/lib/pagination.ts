@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 
+import { logger } from "./logger";
 // Types pour la pagination
 export interface PaginationParams {
     page?: number;
@@ -7,7 +8,7 @@ export interface PaginationParams {
     search?: string;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
-    filters?: Record<string, any>;
+    filters?: Record<string, unknown>;
 }
 
 export interface PaginationResult<T> {
@@ -32,7 +33,7 @@ export interface PaginationOptions {
     limit: number;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
-    filters?: Record<string, any>;
+    filters?: Record<string, unknown>;
     search?: string;
     searchFields?: string[];
 }
@@ -114,7 +115,7 @@ export class OptimizedPaginator<T> {
         }
 
         if (cleaned > 0) {
-            console.log(`[Pagination] Cache nettoyé: ${cleaned} entrées supprimées`);
+            logger.info(`[Pagination] Cache nettoyé: ${cleaned} entrées supprimées`);
         }
     }
 
@@ -186,7 +187,7 @@ export class OptimizedPaginator<T> {
      */
     async paginate(
         options: PaginationOptions,
-        include?: any,
+        include?: unknown,
         customTTL?: number
     ): Promise<PaginationResult<T>> {
         const startTime = performance.now();
@@ -252,13 +253,13 @@ export class OptimizedPaginator<T> {
 
             // Log des requêtes lentes
             if (queryTime > 1000) {
-                console.warn(`[Pagination] Requête lente détectée: ${queryTime.toFixed(2)}ms pour ${this.model}`);
+                logger.warn(`[Pagination] Requête lente détectée: ${queryTime.toFixed(2)}ms pour ${this.model}`);
             }
 
             return result;
 
-        } catch (error) {
-            console.error(`[Pagination] Erreur lors de la requête ${this.model}:`, error);
+        } catch (error: unknown) {
+            logger.error(`[Pagination] Erreur lors de la requête ${this.model}:`, { error: error });
             throw error;
         }
     }
@@ -267,7 +268,7 @@ export class OptimizedPaginator<T> {
      * Compte rapide avec cache
      */
     async count(
-        filters?: Record<string, any>,
+        filters?: Record<string, unknown>,
         customTTL?: number
     ): Promise<{ count: number; performance: { queryTime: number; cacheHit: boolean } }> {
         const startTime = performance.now();
@@ -303,8 +304,8 @@ export class OptimizedPaginator<T> {
 
             return result;
 
-        } catch (error) {
-            console.error(`[Pagination] Erreur lors du comptage ${this.model}:`, error);
+        } catch (error: unknown) {
+            logger.error(`[Pagination] Erreur lors du comptage ${this.model}:`, { error: error });
             throw error;
         }
     }
@@ -344,7 +345,7 @@ export class OptimizedPaginator<T> {
             });
 
             const suggestions = results
-                .map((item: any) => item[field])
+                .map((item: unknown) => item[field])
                 .filter((value: string) => value && value.toLowerCase().includes(query.toLowerCase()));
 
             // Cache court
@@ -352,8 +353,8 @@ export class OptimizedPaginator<T> {
 
             return suggestions;
 
-        } catch (error) {
-            console.error(`[Pagination] Erreur lors des suggestions ${this.model}:`, error);
+        } catch (error: unknown) {
+            logger.error(`[Pagination] Erreur lors des suggestions ${this.model}:`, { error: error });
             return [];
         }
     }
@@ -424,7 +425,7 @@ export function createPaginator<T>(
 export function createPaginationResponse<T>(
     result: PaginationResult<T>,
     baseUrl: string,
-    queryParams: Record<string, any> = {}
+    queryParams: Record<string, unknown> = {}
 ) {
     const { pagination } = result;
 

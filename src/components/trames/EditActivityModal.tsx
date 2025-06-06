@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { logger } from "../../lib/logger";
 import Button from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -68,13 +69,13 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
             const response = await fetch('http://localhost:3000/api/specialties', { credentials: 'include' });
             if (!response.ok) {
                 let errorMsg = `Erreur API (${response.status})`;
-                try { const errorData = await response.json(); errorMsg = errorData.message || errorMsg; } catch (e) { /* no json */ }
+                try { const errorData = await response.json(); errorMsg = errorData.message || errorMsg; } catch (e: unknown) { /* no json */ }
                 throw new Error(errorMsg);
             }
             const data: ApiSpecialty[] = await response.json();
             setAvailableSpecialties(data);
-        } catch (error: any) {
-            console.error("Erreur lors du chargement des spécialités:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors du chargement des spécialités:", { error: error });
             setErrorSpecialties(error.message || "Impossible de charger les spécialités.");
         } finally {
             setIsLoadingSpecialties(false);
@@ -218,8 +219,8 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
             setTimeout(() => {
                 onClose();
             }, 0);
-        } catch (error) {
-            console.error("Erreur lors de la sauvegarde de l'activité:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la sauvegarde de l'activité:", { error: error });
             toast.error("Une erreur est survenue lors de la sauvegarde de l'activité.");
         }
     }, [typeActivite, salleId, isFullDay, jour, periode, targetActivityRowKey, onSave, onClose,

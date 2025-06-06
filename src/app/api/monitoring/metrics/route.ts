@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { prisma } from '@/lib/prisma';
 import { performanceMonitor } from '@/lib/monitoring';
@@ -6,7 +7,7 @@ import { performanceMonitor as serviceMonitor } from '@/services/PerformanceMoni
 
 
 // Stockage en mémoire des métriques (à remplacer par Redis en production)
-const metricsStore: any[] = [];
+const metricsStore: unknown[] = [];
 const MAX_METRICS = 10000;
 
 export async function POST(req: NextRequest) {
@@ -55,8 +56,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error storing metric:', error);
+  } catch (error: unknown) {
+    logger.error('Error storing metric:', { error: error });
     return NextResponse.json(
       { error: 'Failed to store metric' },
       { status: 500 }
@@ -110,7 +111,7 @@ export async function GET(req: NextRequest) {
       byType: {} as Record<string, number>,
       byOperation: {} as Record<string, number>,
       averageDuration: 0,
-      slowestOperations: [] as any[]
+      slowestOperations: [] as unknown[]
     };
 
     // Grouper par type
@@ -139,8 +140,8 @@ export async function GET(req: NextRequest) {
       metrics: results,
       stats
     });
-  } catch (error) {
-    console.error('Error fetching metrics:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching metrics:', { error: error });
     return NextResponse.json(
       { error: 'Failed to fetch metrics' },
       { status: 500 }
@@ -256,8 +257,8 @@ function getDashboardMetrics() {
       recentMetrics: performanceMonitor.getRecentMetrics(undefined, 20),
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
-    console.error('Error fetching dashboard metrics:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching dashboard metrics:', { error: error });
     return NextResponse.json(
       { error: 'Failed to fetch metrics' },
       { status: 500 }

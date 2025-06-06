@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { createPaginator, createPaginationResponse } from '@/lib/pagination';
 import { User } from '@prisma/client';
@@ -38,7 +39,7 @@ async function getHandler(request: NextRequest) {
         const siteId = searchParams.get('siteId');
 
         // Construire les filtres
-        const filters: Record<string, any> = {};
+        const filters: Record<string, unknown> = {};
 
         if (role) {
             filters.role = role;
@@ -72,7 +73,7 @@ async function getHandler(request: NextRequest) {
         // Log des requêtes lentes
         const executionTime = performance.now() - startTime;
         if (executionTime > 1000) {
-            console.warn(`⚠️ Requête utilisateurs lente: ${executionTime.toFixed(2)}ms`, {
+            logger.warn(`⚠️ Requête utilisateurs lente: ${executionTime.toFixed(2)}ms`, {
                 params: paginationOptions,
                 cacheHit: result.performance.cacheHit,
             });
@@ -95,8 +96,8 @@ async function getHandler(request: NextRequest) {
             }
         });
 
-    } catch (error) {
-        console.error('[API Users] Erreur lors de la récupération des utilisateurs:', error);
+    } catch (error: unknown) {
+        logger.error('[API Users] Erreur lors de la récupération des utilisateurs:', { error: error });
 
         return NextResponse.json({
             success: false,
@@ -122,7 +123,7 @@ async function headHandler(request: NextRequest) {
         const siteId = searchParams.get('siteId');
 
         // Construire les filtres
-        const filters: Record<string, any> = {};
+        const filters: Record<string, unknown> = {};
 
         if (role) {
             filters.role = role;
@@ -150,8 +151,8 @@ async function headHandler(request: NextRequest) {
             },
         });
 
-    } catch (error) {
-        console.error('[API Users HEAD] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API Users HEAD] Erreur:', { error: error });
         return new NextResponse(null, { status: 500 });
     }
 }
@@ -188,8 +189,8 @@ async function optionsHandler(request: NextRequest) {
             }
         });
 
-    } catch (error) {
-        console.error('[API Users OPTIONS] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API Users OPTIONS] Erreur:', { error: error });
         return NextResponse.json({
             suggestions: [],
             error: 'Erreur lors de la récupération des suggestions'
@@ -286,8 +287,8 @@ async function postHandler(request: NextRequest) {
             data: newUser
         }, { status: 201 });
 
-    } catch (error) {
-        console.error('[API Users POST] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API Users POST] Erreur:', { error: error });
         return NextResponse.json({
             success: false,
             error: 'Erreur lors de la création de l\'utilisateur'
@@ -367,8 +368,8 @@ async function putHandler(request: NextRequest) {
             updatedCount: result.count
         });
 
-    } catch (error) {
-        console.error('[API Users PUT] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API Users PUT] Erreur:', { error: error });
         return NextResponse.json({
             success: false,
             error: 'Erreur lors de la mise à jour'
@@ -447,8 +448,8 @@ async function deleteHandler(request: NextRequest) {
             deletedCount: result.count
         });
 
-    } catch (error) {
-        console.error('[API Users DELETE] Erreur:', error);
+    } catch (error: unknown) {
+        logger.error('[API Users DELETE] Erreur:', { error: error });
         return NextResponse.json({
             success: false,
             error: 'Erreur lors de la suppression'

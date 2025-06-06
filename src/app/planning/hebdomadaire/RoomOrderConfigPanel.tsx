@@ -60,7 +60,7 @@ const RoomOrderConfigPanel: React.FC<RoomOrderConfigPanelProps> = ({
     }, [rooms]);
 
     // Gérer le déplacement d'une salle dans la liste
-    const handleDragEnd = (result: any) => {
+    const handleDragEnd = (result: unknown) => {
         // Ignorer si le drop n'est pas dans une zone valide
         if (!result.destination) {
             return;

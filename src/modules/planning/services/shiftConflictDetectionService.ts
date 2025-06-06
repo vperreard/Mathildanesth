@@ -2,6 +2,7 @@ import {
     ConflictDetectionService,
     ConflictCheckOptions
 } from '@/services/conflictDetection/conflictDetectionFacade';
+import { logger } from "../../../lib/logger";
 import {
     ConflictCheckResult,
     ConflictType,
@@ -58,7 +59,7 @@ export class ShiftConflictDetectionService implements ConflictDetectionService {
 
         // Vérifier que l'ID utilisateur est défini
         if (!options.userId) {
-            console.warn('ShiftConflictDetectionService: userId est requis pour la détection de conflits de gardes');
+            logger.warn('ShiftConflictDetectionService: userId est requis pour la détection de conflits de gardes');
             return this.createEmptyResult();
         }
 
@@ -85,8 +86,8 @@ export class ShiftConflictDetectionService implements ConflictDetectionService {
                 canAutoApprove: !conflicts.some(c => c.severity === ConflictSeverity.BLOQUANT),
                 requiresManagerReview: conflicts.length > 0
             };
-        } catch (error) {
-            console.error('Erreur dans ShiftConflictDetectionService:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur dans ShiftConflictDetectionService:', { error: error });
             return this.createEmptyResult();
         }
     }

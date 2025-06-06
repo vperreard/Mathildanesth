@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { useTranslation } from 'next-i18next';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -65,8 +66,8 @@ export const PriorityRulesEditor: React.FC<PriorityRulesEditorProps> = ({
             if (onSave) {
                 onSave(rules, options);
             }
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde des règles:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la sauvegarde des règles:', { error: error });
             toast({
                 title: t('conflit.regles.sauvegarde_erreur'),
                 description: String(error),
@@ -143,7 +144,7 @@ export const PriorityRulesEditor: React.FC<PriorityRulesEditorProps> = ({
     // Mettre à jour les seuils de résolution automatique
     const handleUpdateAutoResolutionThresholds = (
         field: keyof typeof rules.autoResolutionThresholds,
-        value: any
+        value: unknown
     ) => {
         setRules(prevRules => {
             const updatedRules = { ...prevRules };
@@ -167,7 +168,7 @@ export const PriorityRulesEditor: React.FC<PriorityRulesEditorProps> = ({
     };
 
     // Mettre à jour une option générale
-    const handleUpdateOption = (field: keyof RecommendationOptions, value: any) => {
+    const handleUpdateOption = (field: keyof RecommendationOptions, value: unknown) => {
         setOptions(prevOptions => ({
             ...prevOptions,
             [field]: value

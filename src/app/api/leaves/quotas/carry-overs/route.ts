@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 
 /**
@@ -58,8 +59,8 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(carryOvers);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des reports :', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des reports :', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des reports' },
             { status: 500 }
@@ -287,8 +288,8 @@ export async function POST(req: NextRequest) {
                 ? 'Demande de report créée, en attente d\'approbation'
                 : 'Report effectué avec succès'
         }, { status: 201 });
-    } catch (error) {
-        console.error('Erreur lors de la création du report :', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création du report :', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la création du report' },
             { status: 500 }

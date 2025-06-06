@@ -55,7 +55,7 @@ export interface BaseEvent {
 export interface LeaveEvent extends BaseEvent {
     leaveId: string;
     userId: string;
-    details?: any;
+    details?: unknown;
 }
 
 /**
@@ -69,7 +69,7 @@ export interface PlanningEvent extends BaseEvent {
         startDate: Date;
         endDate: Date;
     };
-    details?: any;
+    details?: unknown;
 }
 
 /**
@@ -80,7 +80,7 @@ export interface QuotaEvent extends BaseEvent {
     leaveType: string;
     amount: number;
     remainingDays?: number;
-    details?: any;
+    details?: unknown;
 }
 
 /**
@@ -89,7 +89,7 @@ export interface QuotaEvent extends BaseEvent {
 export interface AbsenceEvent extends BaseEvent {
     absenceId: string;
     userId: string;
-    details?: any;
+    details?: unknown;
 }
 
 /**
@@ -97,8 +97,8 @@ export interface AbsenceEvent extends BaseEvent {
  */
 export interface DashboardEvent extends BaseEvent {
     dashboardId?: string;
-    filter?: any;
-    details?: any;
+    filter?: unknown;
+    details?: unknown;
 }
 
 /**

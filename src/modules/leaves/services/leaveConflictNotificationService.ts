@@ -1,4 +1,5 @@
 import { LeaveConflict, ConflictType, ConflictSeverity } from '../types/conflict';
+import { logger } from "../../../lib/logger";
 import { EmailService } from '../../notifications/services/emailService';
 import { NotificationService } from '../../notifications/services/notificationService';
 import { TranslationService } from '../../i18n/services/translationService';
@@ -36,7 +37,7 @@ export class LeaveConflictNotificationService {
         locale: string = 'fr'
     ): NotificationTemplate {
         // Utiliser le service de traduction pour les messages
-        const t = (key: string, params?: Record<string, any>) =>
+        const t = (key: string, params?: Record<string, unknown>) =>
             this.translationService.translate(key, locale, params);
 
         // Informations de base pour tous les types de notifications
@@ -164,8 +165,8 @@ export class LeaveConflictNotificationService {
             }
 
             return true;
-        } catch (error) {
-            console.error('Erreur lors de l\'envoi de l\'email de notification de conflit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'envoi de l\'email de notification de conflit:', { error: error });
             return false;
         }
     }
@@ -206,8 +207,8 @@ export class LeaveConflictNotificationService {
             }
 
             return true;
-        } catch (error) {
-            console.error('Erreur lors de l\'envoi de la notification UI pour un conflit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'envoi de la notification UI pour un conflit:', { error: error });
             return false;
         }
     }
@@ -235,7 +236,7 @@ export class LeaveConflictNotificationService {
      * @param conflict Le conflit concerné
      * @returns Actions disponibles pour la notification
      */
-    private getNotificationActions(conflict: LeaveConflict): any[] {
+    private getNotificationActions(conflict: LeaveConflict): unknown[] {
         const actions = [
             {
                 label: 'Voir les détails',
@@ -273,7 +274,7 @@ export class LeaveConflictNotificationService {
         const allUserIds = [...new Set([...affectedUserIds, ...additionalUserIds])];
 
         if (allUserIds.length === 0) {
-            console.warn('Aucun utilisateur à notifier pour le conflit:', conflict.id);
+            logger.warn('Aucun utilisateur à notifier pour le conflit:', conflict.id);
             return false;
         }
 
@@ -285,8 +286,8 @@ export class LeaveConflictNotificationService {
             ]);
 
             return true;
-        } catch (error) {
-            console.error('Erreur lors de la notification du conflit:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la notification du conflit:', { error: error });
             return false;
         }
     }
@@ -311,8 +312,8 @@ export class LeaveConflictNotificationService {
             );
 
             return results.every(result => result);
-        } catch (error) {
-            console.error('Erreur lors de la notification des conflits:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la notification des conflits:', { error: error });
             return false;
         }
     }

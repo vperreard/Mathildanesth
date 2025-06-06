@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { logger } from "./logger";
 import { Prisma, NotificationType } from '@prisma/client';
 import { io } from '@/lib/socket'; // Importer l'instance io
 
@@ -70,15 +71,15 @@ export async function createNotification(args: NotificationCreationArgs) {
         if (io && notification) {
             const roomName = socketRoomForUser(args.userId);
             io.to(roomName).emit('new_notification', notification);
-            console.log(`Notification émise via WebSocket vers la salle ${roomName} pour l'utilisateur ${args.userId}`);
+            logger.info(`Notification émise via WebSocket vers la salle ${roomName} pour l'utilisateur ${args.userId}`);
         } else if (!io) {
-            console.warn("L'instance io de Socket.IO n'est pas disponible. Impossible d'émettre la notification WebSocket.");
+            logger.warn("L'instance io de Socket.IO n'est pas disponible. Impossible d'émettre la notification WebSocket.");
         }
         // Pas besoin de 'else' pour notification null, car une erreur serait levée par prisma.notification.create
 
         return notification;
-    } catch (error) {
-        console.error("Erreur détaillée lors de la création de la notification:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur détaillée lors de la création de la notification:", { error: error });
         // Gérer l'erreur (ex: la logger sans bloquer le flux principal, ou la relancer)
         // Pour l'instant, on retourne null, mais une gestion plus robuste est conseillée.
         return null;

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { logger } from "../../../lib/logger";
 import { persist } from 'zustand/middleware';
 import {
     AnyCalendarEvent,
@@ -30,7 +31,7 @@ export interface CalendarState {
 
     // Paramètres
     settings: CalendarSettings;
-    userSettings?: any;
+    userSettings?: unknown;
 
     // Cache
     lastFetched: Record<string, number>;
@@ -178,10 +179,10 @@ export const useCalendarStore = create<CalendarState>()(
                             [cacheKey]: now
                         }
                     });
-                } catch (err) {
+                } catch (err: unknown) {
                     const error = err instanceof Error ? err : new Error('Erreur inconnue');
                     set({ error, loading: false });
-                    console.error('Erreur lors du chargement des événements:', error);
+                    logger.error('Erreur lors du chargement des événements:', { error: error });
                 }
             },
 

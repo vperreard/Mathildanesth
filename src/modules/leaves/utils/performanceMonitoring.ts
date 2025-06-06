@@ -1,3 +1,5 @@
+import { logger } from "../../../lib/logger";
+
 /**
  * Utilitaire de suivi des performances pour le module de congés
  * Permet de tracer et d'analyser les performances des fonctionnalités critiques
@@ -93,7 +95,7 @@ export class PerformanceTracker {
         this.startTimes.set(name, performance.now());
 
         if (this.options.enableLogging) {
-            console.debug(`[Performance] Starting measure: ${name}`);
+            logger.debug(`[Performance] Starting measure: ${name}`);
         }
     }
 
@@ -103,7 +105,7 @@ export class PerformanceTracker {
     public endMeasure(name: string): number {
         const startTime = this.startTimes.get(name);
         if (!startTime) {
-            console.warn(`[Performance] No start time found for measure: ${name}`);
+            logger.warn(`[Performance] No start time found for measure: ${name}`);
             return 0;
         }
 
@@ -113,7 +115,7 @@ export class PerformanceTracker {
         this.recordMetric(name, duration);
 
         if (this.options.enableLogging) {
-            console.debug(`[Performance] ${name}: ${duration.toFixed(2)}ms`);
+            logger.debug(`[Performance] ${name}: ${duration.toFixed(2)}ms`);
         }
 
         return duration;
@@ -314,14 +316,14 @@ export class PerformanceTracker {
  */
 export function measurePerformance(options?: { name?: string }) {
     return function (
-        target: any,
+        target: unknown,
         propertyKey: string,
         descriptor: PropertyDescriptor
     ) {
         const originalMethod = descriptor.value;
         const metricName = options?.name || `${target.constructor.name}.${propertyKey}`;
 
-        descriptor.value = function (...args: any[]) {
+        descriptor.value = function (...args: unknown[]) {
             const tracker = PerformanceTracker.getInstance();
             tracker.startMeasure(metricName);
 
@@ -337,7 +339,7 @@ export function measurePerformance(options?: { name?: string }) {
 
                 tracker.endMeasure(metricName);
                 return result;
-            } catch (error) {
+            } catch (error: unknown) {
                 tracker.endMeasure(metricName);
                 throw error;
             }

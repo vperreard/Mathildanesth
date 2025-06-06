@@ -9,6 +9,7 @@
  */
 
 import React from 'react';
+import { logger } from "./logger";
 import { Analytics } from '@vercel/analytics/react';
 
 export interface PerformanceMetric {
@@ -16,7 +17,7 @@ export interface PerformanceMetric {
     value: number;
     unit: 'ms' | 'bytes' | 'score';
     timestamp: number;
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
 }
 
 export interface AlertThreshold {
@@ -64,7 +65,7 @@ class PerformanceMonitor {
     /**
      * Enregistre une métrique de performance
      */
-    recordMetric(name: string, value: number, unit: 'ms' | 'bytes' | 'score', context?: Record<string, any>) {
+    recordMetric(name: string, value: number, unit: 'ms' | 'bytes' | 'score', context?: Record<string, unknown>) {
         const metric: PerformanceMetric = {
             name,
             value,
@@ -206,7 +207,7 @@ class PerformanceMonitor {
 
         // Log dans la console en développement
         if (process.env.NODE_ENV === 'development') {
-            console.warn(`🚨 Performance Alert [${severity.toUpperCase()}]:`, alertData);
+            logger.warn(`🚨 Performance Alert [${severity.toUpperCase()}]:`, alertData);
         }
 
         // En production, on pourrait envoyer vers un service de monitoring
@@ -218,7 +219,7 @@ class PerformanceMonitor {
     /**
      * Envoi vers service d'alerte externe
      */
-    private async sendAlertToService(alertData: any) {
+    private async sendAlertToService(alertData: unknown) {
         try {
             // Exemple d'envoi vers une API de monitoring
             // await fetch('http://localhost:3000/api/monitoring/alerts', {
@@ -227,9 +228,9 @@ class PerformanceMonitor {
             //   body: JSON.stringify(alertData)
             // });
 
-            console.info('Alert sent to monitoring service:', alertData);
-        } catch (error) {
-            console.error('Failed to send alert:', error);
+            logger.info('Alert sent to monitoring service:', alertData);
+        } catch (error: unknown) {
+            logger.error('Failed to send alert:', { error: error });
         }
     }
 
@@ -246,8 +247,8 @@ class PerformanceMonitor {
                     ...metric.context
                 });
             }
-        } catch (error) {
-            console.debug('Analytics tracking failed:', error);
+        } catch (error: unknown) {
+            logger.debug('Analytics tracking failed:', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -306,9 +307,9 @@ class PerformanceMonitor {
     exportData(): {
         metrics: PerformanceMetric[];
         alerts: AlertThreshold[];
-        summary: Record<string, any>;
+        summary: Record<string, unknown>;
     } {
-        const summary: Record<string, any> = {};
+        const summary: Record<string, unknown> = {};
 
         // Calcul des résumés par métrique
         const metricNames = [...new Set(this.metrics.map(m => m.name))];
@@ -369,7 +370,7 @@ export async function monitoredFetch(
         });
 
         return response;
-    } catch (error) {
+    } catch (error: unknown) {
         stopMeasuring();
 
         // Enregistrement de l'erreur

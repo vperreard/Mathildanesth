@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { logger } from "../lib/logger";
 import {
     conflictDetectionFacade,
     ConflictCheckOptions,
@@ -106,10 +107,10 @@ export const useGlobalConflictDetection = ({
             // Mettre à jour l'état
             setGlobalResult(result);
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error('Erreur inconnue lors de la détection des conflits');
             setError(errorObj);
-            console.error('Erreur dans la détection des conflits:', err);
+            logger.error('Erreur dans la détection des conflits:', { error: err });
 
             // Retourner un résultat vide en cas d'erreur
             const emptyResult: GlobalConflictCheckResult = {

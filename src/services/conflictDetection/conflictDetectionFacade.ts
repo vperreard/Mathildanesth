@@ -1,4 +1,5 @@
 import { ConflictCheckResult, ConflictType, ConflictSeverity, LeaveConflict } from '@/modules/leaves/types/conflict';
+import { logger } from "../../lib/logger";
 import { checkLeaveConflicts } from '@/modules/leaves/services/leaveService';
 import { User } from '@/types/user';
 import {
@@ -16,7 +17,7 @@ export interface ConflictCheckOptions {
     userId?: string;
     teamId?: string;
     severityThreshold?: ConflictSeverity;
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
 }
 
 // Résultat global de détection de conflits
@@ -117,8 +118,8 @@ export class ConflictDetectionFacade {
                     const result = await service.checkConflicts(startDate, endDate, options);
                     sources.push(service.getServiceName());
                     return result;
-                } catch (error) {
-                    console.error(`Erreur dans le service ${service.getServiceName()}:`, error);
+                } catch (error: unknown) {
+                    logger.error(`Erreur dans le service ${service.getServiceName()}:`, { error: error });
                     return null;
                 }
             })

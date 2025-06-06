@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { RuleTemplate } from '@/modules/dynamicRules/v2/types/ruleV2.types';
 
 // Predefined templates
@@ -346,8 +347,8 @@ export async function GET(request: NextRequest) {
       total: templates.length
     });
 
-  } catch (error) {
-    console.error('Error fetching templates:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching templates:', { error: error });
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des templates' },
       { status: 500 }
@@ -403,7 +404,7 @@ export async function POST(request: NextRequest) {
     const rule = JSON.parse(JSON.stringify(template.baseRule));
     
     // Replace placeholders in all string fields
-    const replacePlaceholders = (obj: any): any => {
+    const replacePlaceholders = (obj: unknown): any => {
       if (typeof obj === 'string') {
         return obj.replace(/\{(\w+)\}/g, (match, key) => {
           return parameters[key] !== undefined ? parameters[key] : match;
@@ -431,8 +432,8 @@ export async function POST(request: NextRequest) {
       parameters
     });
 
-  } catch (error) {
-    console.error('Error creating from template:', error);
+  } catch (error: unknown) {
+    logger.error('Error creating from template:', { error: error });
     return NextResponse.json(
       { error: 'Erreur lors de la création depuis le template' },
       { status: 500 }

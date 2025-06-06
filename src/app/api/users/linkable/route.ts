@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
 
@@ -32,8 +33,8 @@ export async function GET(request: Request) {
             ],
         });
         return NextResponse.json(linkableUsers);
-    } catch (error) {
-        console.error("Erreur GET /api/utilisateurs/linkable:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur GET /api/utilisateurs/linkable:", { error: error });
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 }

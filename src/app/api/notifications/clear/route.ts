@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
 
@@ -30,8 +31,8 @@ export async function POST(req: NextRequest) {
         await prisma.$disconnect();
 
         return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error('Erreur lors de la suppression des notifications:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la suppression des notifications:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }

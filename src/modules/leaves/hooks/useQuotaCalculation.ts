@@ -39,7 +39,7 @@ export const useQuotaCalculation = (
 
             setCalculationResult(result);
             return result;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err?.message || 'Erreur lors du calcul de disponibilité';
             setError(errorMessage);
             return null;
@@ -60,7 +60,7 @@ export const useQuotaCalculation = (
                 [sourceType]: rules
             }));
             return rules;
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(err?.message || 'Erreur lors de la récupération des règles');
             return [];
         } finally {
@@ -90,7 +90,7 @@ export const useQuotaCalculation = (
             );
 
             return result;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err?.message || 'Erreur lors de la simulation';
             setError(errorMessage);
             return {
@@ -129,7 +129,7 @@ export const useQuotaCalculation = (
             );
 
             return result;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err?.message || 'Erreur lors de la demande de transfert';
             setError(errorMessage);
             return null;

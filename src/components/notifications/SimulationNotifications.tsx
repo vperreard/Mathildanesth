@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { logger } from "../../lib/logger";
 import { toast } from 'sonner';
 import { subscribeToChannel } from '../../lib/pusher';
-// import { getSession } from 'next-auth/react'; // Temporairement désactivé
+// // getSession remplacé - utiliser getServerSession côté serveur ou useAuth côté client; // Temporairement désactivé
 import { SimulationEvent } from '../../types/simulation-notifications';
 import { Bell, Clock, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { Progress } from '../ui/progress';
@@ -37,7 +38,7 @@ export function SimulationNotifications() {
     // Récupérer l'ID de l'utilisateur connecté - Temporairement désactivé
     useEffect(() => {
         // Temporairement désactivé pour éviter les erreurs getSession
-        console.log('SimulationNotifications: Temporairement désactivé');
+        logger.info('SimulationNotifications: Temporairement désactivé');
         /*
         const fetchUserId = async () => {
             const session = await getSession();
@@ -48,8 +49,8 @@ export function SimulationNotifications() {
                     if (data.id) {
                         setUserId(data.id.toString());
                     }
-                } catch (error) {
-                    console.error('Erreur lors de la récupération de l\'ID utilisateur:', error);
+                } catch (error: unknown) {
+                    logger.error('Erreur lors de la récupération de l\'ID utilisateur:', { error: error });
                 }
             }
         };
@@ -66,10 +67,10 @@ export function SimulationNotifications() {
 
         // Définir les gestionnaires d'événements
         const events = {
-            [SimulationEvent.STARTED]: (data: any) => handleNotification('started', data),
-            [SimulationEvent.PROGRESS]: (data: any) => handleNotification('progress', data),
-            [SimulationEvent.COMPLETED]: (data: any) => handleNotification('completed', data),
-            [SimulationEvent.FAILED]: (data: any) => handleNotification('failed', data),
+            [SimulationEvent.STARTED]: (data: unknown) => handleNotification('started', data),
+            [SimulationEvent.PROGRESS]: (data: unknown) => handleNotification('progress', data),
+            [SimulationEvent.COMPLETED]: (data: unknown) => handleNotification('completed', data),
+            [SimulationEvent.FAILED]: (data: unknown) => handleNotification('failed', data),
         };
 
         // S'abonner au canal
@@ -82,7 +83,7 @@ export function SimulationNotifications() {
     }, [userId]);
 
     // Gestionnaire de notification pour mettre à jour l'état
-    const handleNotification = (type: 'started' | 'progress' | 'completed' | 'failed', data: any) => {
+    const handleNotification = (type: 'started' | 'progress' | 'completed' | 'failed', data: unknown) => {
         const scenarioId = data.scenarioId;
 
         if (!scenarioId) return;

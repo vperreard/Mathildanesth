@@ -13,6 +13,7 @@
  */
 
 import React, { useState } from 'react';
+import { logger } from "../../../../lib/logger";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -49,7 +50,7 @@ type OperatingRoomFormData = {
     sector?: string;
     colorCode: string;
     isActive: boolean;
-    supervisionRules: Record<string, any>;
+    supervisionRules: Record<string, unknown>;
 };
 
 interface AddRoomModalProps {
@@ -84,8 +85,8 @@ export function AddRoomModal({ isOpen, onClose, onSave, sectors, initialData }: 
             await onSave(data);
             form.reset();
             onClose();
-        } catch (error) {
-            console.error("Erreur lors de la sauvegarde:", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la sauvegarde:", { error: error });
         } finally {
             setIsLoading(false);
         }

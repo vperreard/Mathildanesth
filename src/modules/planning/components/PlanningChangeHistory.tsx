@@ -13,8 +13,8 @@ interface ChangeHistoryItem {
     targetType: 'attribution' | 'planning' | 'supervisor' | 'annotation';
     targetId: string;
     details: {
-        previous?: any;
-        current?: any;
+        previous?: unknown;
+        current?: unknown;
         roomName?: string;
         surgeonName?: string;
         status?: string;
@@ -76,7 +76,7 @@ export default function PlanningChangeHistory({ planningId, onLoadHistory }: Pla
             }
 
             setTotal(result.total);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Impossible de charger l'historique");
         } finally {
             setIsLoading(false);

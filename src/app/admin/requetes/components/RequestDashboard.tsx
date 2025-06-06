@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import {
     Clock, CheckCircle, XCircle, AlarmClock,
     CheckCheck, Search, Filter, RefreshCw, UserCircle
@@ -85,7 +86,7 @@ export default function RequestDashboard() {
                 const requestsPromise = fetch('http://localhost:3000/api/demandes').then(async res => {
                     if (!res.ok) {
                         let errorMsg = `Erreur ${res.status} lors du chargement des requêtes.`;
-                        try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e) { /*ignore*/ }
+                        try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e: unknown) { /*ignore*/ }
                         throw new Error(errorMsg);
                     }
                     return res.json();
@@ -94,7 +95,7 @@ export default function RequestDashboard() {
                 const typesPromise = fetch('http://localhost:3000/api/request-types?includeInactive=true').then(async res => {
                     if (!res.ok) {
                         let errorMsg = `Erreur ${res.status} lors du chargement des types de requêtes.`;
-                        try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e) { /*ignore*/ }
+                        try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e: unknown) { /*ignore*/ }
                         throw new Error(errorMsg);
                     }
                     return res.json();
@@ -103,7 +104,7 @@ export default function RequestDashboard() {
                 const usersPromise = fetch('http://localhost:3000/api/utilisateurs').then(async res => {
                     if (!res.ok) {
                         let errorMsg = `Erreur ${res.status} lors du chargement des utilisateurs.`;
-                        try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e) { /*ignore*/ }
+                        try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e: unknown) { /*ignore*/ }
                         throw new Error(errorMsg);
                     }
                     return res.json();
@@ -120,7 +121,7 @@ export default function RequestDashboard() {
                 if (requestsResult.status === 'fulfilled') {
                     setRequests(requestsResult.value);
                 } else {
-                    console.error('Erreur chargement requêtes:', requestsResult.reason);
+                    logger.error('Erreur chargement requêtes:', requestsResult.reason);
                     combinedErrorMessages += requestsResult.reason.message + '\n';
                     setRequests([]);
                 }
@@ -128,7 +129,7 @@ export default function RequestDashboard() {
                 if (typesResult.status === 'fulfilled') {
                     setRequestTypes(typesResult.value);
                 } else {
-                    console.error('Erreur chargement types:', typesResult.reason);
+                    logger.error('Erreur chargement types:', typesResult.reason);
                     combinedErrorMessages += typesResult.reason.message + '\n';
                     setRequestTypes([]);
                 }
@@ -136,7 +137,7 @@ export default function RequestDashboard() {
                 if (usersResult.status === 'fulfilled') {
                     setUsers(usersResult.value || []);
                 } else {
-                    console.error('Erreur chargement utilisateurs:', usersResult.reason);
+                    logger.error('Erreur chargement utilisateurs:', usersResult.reason);
                     combinedErrorMessages += usersResult.reason.message + '\n';
                     setUsers([]);
                 }
@@ -145,10 +146,10 @@ export default function RequestDashboard() {
                     setError(combinedErrorMessages.trim());
                 }
 
-            } catch (err) { // Should not be reached if all promises handle their errors
+            } catch (err: unknown) { // Should not be reached if all promises handle their errors
                 const errorMessage = err instanceof Error ? err.message : 'Une erreur inattendue est survenue.';
                 setError(errorMessage);
-                console.error('Erreur inattendue fetchData:', err);
+                logger.error('Erreur inattendue fetchData:', { error: err });
                 setRequests([]);
                 setRequestTypes([]);
                 setUsers([]);
@@ -248,7 +249,7 @@ export default function RequestDashboard() {
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.error || `Erreur ${response.status}: ${response.statusText}`;
-                } catch (parseError) {
+                } catch (parseError: unknown) {
                     errorMessage = `Erreur ${response.status}: ${response.statusText}. La réponse du serveur n\'est pas au format JSON.`;
                 }
                 throw new Error(errorMessage);
@@ -263,9 +264,9 @@ export default function RequestDashboard() {
 
             closeModal();
 
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            console.error('Erreur lors de la mise à jour de la requête:', err);
+            logger.error('Erreur lors de la mise à jour de la requête:', { error: err });
         }
     };
 
@@ -280,16 +281,16 @@ export default function RequestDashboard() {
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.error || `Erreur ${response.status}: ${response.statusText}`;
-                } catch (parseError) {
+                } catch (parseError: unknown) {
                     errorMessage = `Erreur ${response.status}: ${response.statusText}. La réponse du serveur n\'est pas au format JSON.`;
                 }
                 throw new Error(errorMessage);
             }
             const data = await response.json();
             setRequests(data);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            console.error('Erreur lors du rafraîchissement des données:', err);
+            logger.error('Erreur lors du rafraîchissement des données:', { error: err });
         } finally {
             setIsLoading(false);
         }

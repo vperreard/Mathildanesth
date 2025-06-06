@@ -6,7 +6,7 @@ export class PrismaCacheService {
     /**
      * Génère une clé de cache unique basée sur la requête
      */
-    static generateCacheKey(model: string, operation: string, params: any): string {
+    static generateCacheKey(model: string, operation: string, params: unknown): string {
         const paramsStr = JSON.stringify(params, Object.keys(params).sort());
         const hash = createHash('md5').update(paramsStr).digest('hex');
         return `${CachePrefixes.QUERY_RESULT}${model}:${operation}:${hash}`;
@@ -18,7 +18,7 @@ export class PrismaCacheService {
     static async cacheQueryResult<T>(
         model: string, 
         operation: string, 
-        params: any, 
+        params: unknown, 
         result: T, 
         ttl?: number
     ): Promise<void> {
@@ -28,8 +28,8 @@ export class PrismaCacheService {
             
             await redis.setex(key, cacheTTL, JSON.stringify(result));
             logger.debug(`Query result cached: ${model}.${operation}`);
-        } catch (error) {
-            logger.error('Failed to cache query result:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to cache query result:', { error: error });
         }
     }
 
@@ -39,7 +39,7 @@ export class PrismaCacheService {
     static async getCachedQueryResult<T>(
         model: string, 
         operation: string, 
-        params: any
+        params: unknown
     ): Promise<T | null> {
         try {
             const key = this.generateCacheKey(model, operation, params);
@@ -49,8 +49,8 @@ export class PrismaCacheService {
             
             logger.debug(`Query result found in cache: ${model}.${operation}`);
             return JSON.parse(cached) as T;
-        } catch (error) {
-            logger.error('Failed to get cached query result:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to get cached query result:', { error: error });
             return null;
         }
     }
@@ -67,8 +67,8 @@ export class PrismaCacheService {
                 await redis.del(...keys);
                 logger.debug(`Cache invalidated for model: ${model} (${keys.length} keys)`);
             }
-        } catch (error) {
-            logger.error('Failed to invalidate model cache:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to invalidate model cache:', { error: error });
         }
     }
 
@@ -78,7 +78,7 @@ export class PrismaCacheService {
     static async cachePlanningData(
         siteId: string, 
         date: string, 
-        data: any, 
+        data: unknown, 
         ttl?: number
     ): Promise<void> {
         try {
@@ -87,8 +87,8 @@ export class PrismaCacheService {
             
             await redis.setex(key, cacheTTL, JSON.stringify(data));
             logger.debug(`Planning data cached for site ${siteId} on ${date}`);
-        } catch (error) {
-            logger.error('Failed to cache planning data:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to cache planning data:', { error: error });
         }
     }
 
@@ -107,8 +107,8 @@ export class PrismaCacheService {
             
             logger.debug(`Planning data found in cache for site ${siteId} on ${date}`);
             return JSON.parse(cached);
-        } catch (error) {
-            logger.error('Failed to get cached planning data:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to get cached planning data:', { error: error });
             return null;
         }
     }
@@ -116,13 +116,13 @@ export class PrismaCacheService {
     /**
      * Cache les données de secteur
      */
-    static async cacheSectorData(sectorId: string, data: any): Promise<void> {
+    static async cacheSectorData(sectorId: string, data: unknown): Promise<void> {
         try {
             const key = `${CachePrefixes.SECTOR_DATA}${sectorId}`;
             await redis.setex(key, CacheTTL.SECTOR_DATA, JSON.stringify(data));
             logger.debug(`Sector data cached for sector ${sectorId}`);
-        } catch (error) {
-            logger.error('Failed to cache sector data:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to cache sector data:', { error: error });
         }
     }
 
@@ -138,8 +138,8 @@ export class PrismaCacheService {
             
             logger.debug(`Sector data found in cache for sector ${sectorId}`);
             return JSON.parse(cached);
-        } catch (error) {
-            logger.error('Failed to get cached sector data:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to get cached sector data:', { error: error });
             return null;
         }
     }
@@ -147,13 +147,13 @@ export class PrismaCacheService {
     /**
      * Cache les données de salle
      */
-    static async cacheRoomData(roomId: string, data: any): Promise<void> {
+    static async cacheRoomData(roomId: string, data: unknown): Promise<void> {
         try {
             const key = `${CachePrefixes.ROOM_DATA}${roomId}`;
             await redis.setex(key, CacheTTL.ROOM_DATA, JSON.stringify(data));
             logger.debug(`Room data cached for room ${roomId}`);
-        } catch (error) {
-            logger.error('Failed to cache room data:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to cache room data:', { error: error });
         }
     }
 
@@ -169,8 +169,8 @@ export class PrismaCacheService {
             
             logger.debug(`Room data found in cache for room ${roomId}`);
             return JSON.parse(cached);
-        } catch (error) {
-            logger.error('Failed to get cached room data:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to get cached room data:', { error: error });
             return null;
         }
     }
@@ -178,13 +178,13 @@ export class PrismaCacheService {
     /**
      * Cache le solde de congés d'un utilisateur
      */
-    static async cacheLeaveBalance(userId: string, year: number, balance: any): Promise<void> {
+    static async cacheLeaveBalance(userId: string, year: number, balance: unknown): Promise<void> {
         try {
             const key = `${CachePrefixes.LEAVE_BALANCE}${userId}:${year}`;
             await redis.setex(key, CacheTTL.LEAVE_BALANCE, JSON.stringify(balance));
             logger.debug(`Leave balance cached for user ${userId} year ${year}`);
-        } catch (error) {
-            logger.error('Failed to cache leave balance:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to cache leave balance:', { error: error });
         }
     }
 
@@ -200,8 +200,8 @@ export class PrismaCacheService {
             
             logger.debug(`Leave balance found in cache for user ${userId} year ${year}`);
             return JSON.parse(cached);
-        } catch (error) {
-            logger.error('Failed to get cached leave balance:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to get cached leave balance:', { error: error });
             return null;
         }
     }
@@ -218,8 +218,8 @@ export class PrismaCacheService {
                 await redis.del(...keys);
                 logger.debug(`Leave balance cache invalidated for user ${userId}`);
             }
-        } catch (error) {
-            logger.error('Failed to invalidate leave balance cache:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to invalidate leave balance cache:', { error: error });
         }
     }
 
@@ -249,8 +249,8 @@ export class PrismaCacheService {
                 rooms: roomKeys?.length || 0,
                 leaveBalances: balanceKeys?.length || 0,
             };
-        } catch (error) {
-            logger.error('Failed to get Prisma cache stats:', error);
+        } catch (error: unknown) {
+            logger.error('Failed to get Prisma cache stats:', { error: error });
             return { queries: 0, planning: 0, sectors: 0, rooms: 0, leaveBalances: 0 };
         }
     }

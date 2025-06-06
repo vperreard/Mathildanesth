@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 // import { prisma } from '@/lib/prisma'; // Utiliser l'instance partagée
 import { prisma } from '@/lib/prisma'; // Importation nommée
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions'; // Ajustez le chemin si nécessaire
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim'; // Ajustez le chemin si nécessaire
 import { createNotification } from '@/lib/notifications'; // Ajouté
 import { NotificationType } from '@prisma/client'; // Ajouté
 import { emitNewContextualMessage } from '@/lib/socket'; // Ajout pour WebSockets
@@ -93,8 +94,8 @@ async function verifyContextPermissions(
     }
 
     return false;
-  } catch (error) {
-    console.error('Erreur lors de la vérification des permissions contextuelles:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la vérification des permissions contextuelles:', { error: error });
     return false;
   }
 }
@@ -278,7 +279,7 @@ export async function POST(req: NextRequest) {
 
     // Ici, après la création en BDD, émettre l'événement WebSocket
     return NextResponse.json(message, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AuthenticationError) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -286,7 +287,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    console.error('Erreur lors de la création du message contextuel:', error);
+    logger.error('Erreur lors de la création du message contextuel:', { error: error });
     if (error instanceof SyntaxError && req.bodyUsed && (await req.text().catch(() => '')) === '') {
       return NextResponse.json(
         { error: 'Le corps de la requête est vide ou malformé.' },
@@ -391,8 +392,8 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(messages);
-  } catch (error) {
-    console.error('Erreur lors de la récupération des messages contextuels:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération des messages contextuels:', { error: error });
     return NextResponse.json(
       {
         error: 'Erreur interne du serveur',
@@ -439,8 +440,8 @@ export async function createNotification(args: NotificationCreationArgs) {
         // TODO: Ici, après la création en BDD, émettre l'événement WebSocket
         // Exemple: global.io.to(socketRoomForUser(args.userId)).emit('new_notification', notification);
         return notification;
-    } catch (error) {
-        console.error("Erreur lors de la création de la notification en BDD:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur lors de la création de la notification en BDD:", { error: error });
         // Gérer l'erreur (ex: la logger sans bloquer le flux principal)
         return null;
     }

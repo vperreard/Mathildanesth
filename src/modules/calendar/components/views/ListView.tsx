@@ -2,10 +2,10 @@ import React from 'react';
 import { CalendarViewType } from '../../types/event';
 
 interface ListViewProps {
-    events: any[];
+    events: unknown[];
     startDate: Date;
     endDate: Date;
-    onEventClick?: (event: any) => void;
+    onEventClick?: (event: unknown) => void;
 }
 
 const ListView: React.FC<ListViewProps> = ({ events, startDate, endDate, onEventClick }) => {

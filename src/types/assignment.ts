@@ -94,15 +94,15 @@ export interface Assignment {
     /** Type d'activité (garde, consultation, etc.) */
     activityType?: ActivityType;
     /** Utilisateur assigné */
-    user?: any; // Type User à définir selon le contexte
+    user?: unknown; // Type User à définir selon le contexte
     /** Chirurgien assigné */
-    surgeon?: any; // Type Surgeon à définir selon le contexte
+    surgeon?: unknown; // Type Surgeon à définir selon le contexte
     /** Spécialité */
-    specialty?: any; // Type Specialty à définir selon le contexte
+    specialty?: unknown; // Type Specialty à définir selon le contexte
     /** Site */
-    site?: any; // Type Site à définir selon le contexte
+    site?: unknown; // Type Site à définir selon le contexte
     /** Salle d'opération */
-    operatingRoom?: any; // Type OperatingRoom à définir selon le contexte
+    operatingRoom?: unknown; // Type OperatingRoom à définir selon le contexte
 }
 
 /**

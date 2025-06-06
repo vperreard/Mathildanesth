@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from "../lib/logger";
 import { toast } from 'react-toastify';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/migration-shim-client';
 import { createAuthHeaders } from '@/lib/auth-helpers';
 
 export interface NotificationPreferences {
@@ -80,10 +81,10 @@ export function useNotificationPreferences() {
             const data = await response.json();
             setPreferences(data);
             return data;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err.message || 'Erreur inconnue';
             setError(errorMessage);
-            console.error('Erreur lors de la récupération des préférences de notifications:', errorMessage);
+            logger.error('Erreur lors de la récupération des préférences de notifications:', errorMessage);
             return null;
         } finally {
             setIsLoading(false);
@@ -124,7 +125,7 @@ export function useNotificationPreferences() {
             setPreferences(updatedData);
             toast.success('Préférences de notifications mises à jour');
             return true;
-        } catch (err: any) {
+        } catch (err: unknown) {
             const errorMessage = err.message || 'Erreur inconnue';
             setError(errorMessage);
             toast.error(`Erreur: ${errorMessage}`);

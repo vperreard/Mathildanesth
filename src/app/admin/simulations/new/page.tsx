@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon, Loader2, Save, PlusCircle, XCircle } from 'lucide-react';
@@ -22,7 +23,7 @@ interface SimulationRule {
     description: string;
     enabled: boolean;
     priority: number;
-    parameters: Record<string, any>;
+    parameters: Record<string, unknown>;
 }
 
 interface SimulationTemplate {
@@ -45,7 +46,7 @@ export default function NewSimulationPage() {
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
     const [selectedSite, setSelectedSite] = useState<string>('');
     const [sites, setSites] = useState<{ id: string, name: string }[]>([]);
-    const [parameters, setParameters] = useState<Record<string, any>>({
+    const [parameters, setParameters] = useState<Record<string, unknown>>({
         maxShiftsPerWeek: 5,
         minRestBetweenShifts: 11,
         enforceSkillRequirements: true,
@@ -97,8 +98,8 @@ export default function NewSimulationPage() {
                     const sitesData = await sitesResponse.json();
                     setSites(sitesData.data);
                 }
-            } catch (error) {
-                console.error('Erreur lors du chargement des données initiales:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors du chargement des données initiales:', { error: error });
                 toast.error('Erreur lors du chargement des données initiales');
             } finally {
                 setIsLoading(false);
@@ -120,7 +121,7 @@ export default function NewSimulationPage() {
     };
 
     // Met à jour un paramètre
-    const updateParameter = (key: string, value: any) => {
+    const updateParameter = (key: string, value: unknown) => {
         setParameters(prev => ({ ...prev, [key]: value }));
     };
 
@@ -177,8 +178,8 @@ export default function NewSimulationPage() {
 
             // Rediriger vers la page du scénario créé
             router.push(`/admin/simulations/scenarios/${result.data.id}`);
-        } catch (error) {
-            console.error('Erreur lors de la création du scénario:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la création du scénario:', { error: error });
             toast.error(error instanceof Error ? error.message : 'Erreur lors de la création du scénario');
         } finally {
             setIsSaving(false);

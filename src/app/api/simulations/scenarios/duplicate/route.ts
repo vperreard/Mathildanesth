@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
@@ -54,17 +55,17 @@ export async function POST(req: Request) {
 
     // Préparer les données pour le nouveau scénario
     // Convertir parametersJson si c'est une chaîne
-    let parametersJson: Record<string, any>;
+    let parametersJson: Record<string, unknown>;
 
     if (typeof sourceScenario.parametersJson === 'string') {
       try {
         parametersJson = JSON.parse(sourceScenario.parametersJson);
-      } catch (e) {
+      } catch (e: unknown) {
         parametersJson = {}; // Fallback si la conversion échoue
       }
     } else {
       // Si parametersJson est déjà un objet
-      parametersJson = sourceScenario.parametersJson as Record<string, any>;
+      parametersJson = sourceScenario.parametersJson as Record<string, unknown>;
     }
 
     // Si l'utilisateur veut modifier les dates et a fourni de nouvelles dates
@@ -92,8 +93,8 @@ export async function POST(req: Request) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('Erreur lors de la duplication du scénario de simulation:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la duplication du scénario de simulation:', { error: error });
     return NextResponse.json(
       {
         success: false,

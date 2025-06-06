@@ -31,7 +31,7 @@ export const mockApiError = (message = 'Une erreur est survenue', status = 500, 
     );
 
 // Tester les propriétés d'un objet
-export const expectObjectToHaveProperties = (obj: Record<string, any>, properties: string[]) => {
+export const expectObjectToHaveProperties = (obj: Record<string, unknown>, properties: string[]) => {
     properties.forEach(prop => {
         expect(obj).toHaveProperty(prop);
     });

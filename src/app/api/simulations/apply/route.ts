@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { applySimulationService } from '@/services/simulations/applySimulationService';
 
 /**
@@ -82,8 +83,8 @@ export async function POST(request: NextRequest) {
         conflicts: result.conflicts.length,
       },
     });
-  } catch (error) {
-    console.error("Erreur lors de l'application de la simulation:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de l'application de la simulation:", { error: error });
     return NextResponse.json(
       {
         success: false,
@@ -114,13 +115,13 @@ async function checkUserRightsForSimulationApply(userId: number): Promise<boolea
 
     // Si l'utilisateur a des rôles définis, vérifier s'il a un rôle autorisé
     if (user.roles && Array.isArray(user.roles)) {
-      return user.roles.some((role: any) => allowedRoles.includes(role.name || role.role || ''));
+      return user.roles.some((role: unknown) => allowedRoles.includes(role.name || role.role || ''));
     }
 
     // Si pas de système de rôles clair, vérifiez le champ isAdmin ou équivalent
     return user.isAdmin === true;
-  } catch (error) {
-    console.error('Erreur lors de la vérification des droits:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la vérification des droits:', { error: error });
     return false;
   }
 }

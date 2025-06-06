@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { QuotaTransferReportOptions, QuotaTransferReportResult } from '@/modules/leaves/types/quota';
 import { formatDate } from '@/utils/dateUtils';
 import { format, parse, parseISO, isWithinInterval, startOfMonth, endOfMonth } from 'date-fns';
@@ -247,8 +248,8 @@ export async function POST(req: NextRequest) {
         };
 
         return NextResponse.json(result);
-    } catch (error) {
-        console.error('Erreur lors de la génération du rapport de transferts :', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la génération du rapport de transferts :', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la génération du rapport de transferts' },
             { status: 500 }

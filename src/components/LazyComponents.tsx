@@ -1,6 +1,7 @@
 'use client';
 
 import { lazy, Suspense } from 'react';
+import { logger } from "../lib/logger";
 import { LoadingSpinner } from './ui/loading-spinner';
 
 // Lazy load des composants volumineux identifiés dans l'audit
@@ -22,29 +23,32 @@ export const LazyPrefetcher = lazy(() =>
     }))
 );
 
-export const LazyPlanningCalendar = lazy(() => 
-    import('./calendar/PlanningCalendar').then(module => ({
-        default: module.PlanningCalendar || module.default
-    }))
-);
+// TODO: Create PlanningCalendar component
+// export const LazyPlanningCalendar = lazy(() => 
+//     import('./calendar/PlanningCalendar').then(module => ({
+//         default: module.PlanningCalendar || module.default
+//     }))
+// );
 
 export const LazyBlocPlanningCalendar = lazy(() => 
-    import('./bloc-operatoire/components/BlocPlanningCalendar').then(module => ({
+    import('../modules/planning/bloc-operatoire/components/BlocPlanningCalendar').then(module => ({
         default: module.BlocPlanningCalendar || module.default
     }))
 );
 
-export const LazyUserManagement = lazy(() => 
-    import('./admin/UserManagement').then(module => ({
-        default: module.UserManagement || module.default
-    }))
-);
+// TODO: Create UserManagement component
+// export const LazyUserManagement = lazy(() => 
+//     import('./admin/UserManagement').then(module => ({
+//         default: module.UserManagement || module.default
+//     }))
+// );
 
-export const LazyLeaveManagement = lazy(() => 
-    import('./leaves/LeaveManagement').then(module => ({
-        default: module.LeaveManagement || module.default
-    }))
-);
+// TODO: Create LeaveManagement component
+// export const LazyLeaveManagement = lazy(() => 
+//     import('./leaves/LeaveManagement').then(module => ({
+//         default: module.LeaveManagement || module.default
+//     }))
+// );
 
 export const LazyPerformanceDashboard = lazy(() => 
     import('./PerformanceDashboard').then(module => ({
@@ -76,7 +80,7 @@ export const LazyWrapper: React.FC<LazyWrapperProps> = ({
 };
 
 // HOC pour lazy loading avec error boundary
-export function withLazyLoading<T extends Record<string, any>>(
+export function withLazyLoading<T extends Record<string, unknown>>(
     Component: React.ComponentType<T>,
     fallback?: React.ReactNode
 ) {
@@ -113,9 +117,9 @@ export const dynamicImport = async function<T>(
         try {
             const module = await importFn();
             return module.default;
-        } catch (error) {
+        } catch (error: unknown) {
             if (i === retries - 1) {
-                console.error('Failed to load component after retries:', error);
+                logger.error('Failed to load component after retries:', { error: error });
                 throw error;
             }
             // Wait before retry

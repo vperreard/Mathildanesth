@@ -1,28 +1,24 @@
-import { 
-  Calendar, 
-  Clock, 
-  Users, 
-  MessageCircle, 
-  User, 
-  HelpCircle,
+import {
+  Calendar,
+  Clock,
+  Users,
+  MessageCircle,
+  User,
   BarChart3,
   UserCheck,
   FileText,
   Settings,
-  Stethoscope,
   Building2,
   ClipboardList,
   Activity,
   AlertTriangle,
-  Home,
-  ChevronRight
 } from 'lucide-react';
 
 // Configuration de navigation médicale simplifiée
 export interface NavigationItem {
   href: string;
   label: string;
-  icon?: any;
+  icon?: unknown;
   description?: string;
   roles?: string[];
   badge?: string;
@@ -30,7 +26,7 @@ export interface NavigationItem {
 
 export interface NavigationGroup {
   name: string;
-  icon?: any;
+  icon?: unknown;
   items: NavigationItem[];
   roles?: string[];
 }
@@ -41,38 +37,38 @@ export const userNavigation: NavigationItem[] = [
     href: '/',
     label: '🏠 Accueil',
     icon: Activity,
-    description: 'Tableau de bord personnel'
+    description: 'Tableau de bord personnel',
   },
   {
     href: '/planning',
     label: '📅 Mon Planning',
     icon: Calendar,
-    description: 'Mes gardes, vacations et équipe'
+    description: 'Mes gardes, vacations et équipe',
   },
   {
     href: '/conges',
     label: '🌴 Mes Congés',
     icon: Clock,
-    description: 'Demandes, soldes et historique'
+    description: 'Demandes, soldes et historique',
   },
   {
     href: '/demandes',
     label: '📋 Mes Demandes',
     icon: FileText,
-    description: 'Toutes vos demandes unifiées'
+    description: 'Toutes vos demandes unifiées',
   },
   {
     href: '/notifications',
     label: '🔔 Notifications',
     icon: MessageCircle,
-    description: 'Messages et alertes'
+    description: 'Messages et alertes',
   },
   {
     href: '/profil',
     label: '👤 Mon Profil',
     icon: User,
-    description: 'Paramètres et préférences'
-  }
+    description: 'Paramètres et préférences',
+  },
 ];
 
 // NAVIGATION ADMIN SIMPLIFIÉE - 4 CATÉGORIES MAXIMUM
@@ -83,23 +79,23 @@ export const adminNavigation: NavigationGroup[] = [
     items: [
       {
         href: '/admin/command-center',
-        label: 'Vue d\'ensemble',
+        label: "Vue d'ensemble",
         icon: Activity,
-        description: 'Dashboard unifié avec métriques temps réel'
+        description: 'Dashboard unifié avec métriques temps réel',
       },
       {
         href: '/admin/urgences',
         label: 'Mode Urgence',
         icon: AlertTriangle,
-        description: 'Remplacements express et alertes'
+        description: 'Remplacements express et alertes',
       },
       {
         href: '/admin/analytics',
         label: 'Analytics',
         icon: BarChart3,
-        description: 'Tendances et prédictions'
-      }
-    ]
+        description: 'Tendances et prédictions',
+      },
+    ],
   },
   {
     name: '👥 Gestion',
@@ -109,45 +105,45 @@ export const adminNavigation: NavigationGroup[] = [
         href: '/utilisateurs',
         label: 'Personnel',
         icon: Users,
-        description: 'MARs, IADEs, chirurgiens'
+        description: 'MARs, IADEs, chirurgiens',
       },
       {
         href: '/parametres/chirurgiens',
         label: 'Chirurgiens',
         icon: Users,
-        description: 'Gestion des chirurgiens'
+        description: 'Gestion des chirurgiens',
       },
       {
         href: '/parametres/specialites',
         label: 'Spécialités',
         icon: ClipboardList,
-        description: 'Gestion des spécialités'
+        description: 'Gestion des spécialités',
       },
       {
         href: '/bloc-operatoire',
         label: 'Bloc Opératoire',
         icon: Building2,
-        description: 'Salles, secteurs, planning'
+        description: 'Salles, secteurs, planning',
       },
       {
         href: '/admin/demandes',
         label: 'Demandes',
         icon: FileText,
-        description: 'Gestion unifiée des demandes'
+        description: 'Gestion unifiée des demandes',
       },
       {
         href: '/admin/conges',
         label: 'Congés',
         icon: UserCheck,
-        description: 'Validation et quotas'
+        description: 'Validation et quotas',
       },
       {
         href: '/admin/planning-generator',
         label: 'Assistant Planning',
         icon: ClipboardList,
-        description: 'Génération intelligente'
-      }
-    ]
+        description: 'Génération intelligente',
+      },
+    ],
   },
   {
     name: '📈 Rapports',
@@ -157,21 +153,21 @@ export const adminNavigation: NavigationGroup[] = [
         href: '/admin/rapports',
         label: 'Analyses',
         icon: FileText,
-        description: 'Rapports congés et planning'
+        description: 'Rapports congés et planning',
       },
       {
         href: '/admin/exports',
         label: 'Exports',
         icon: FileText,
-        description: 'CSV, Excel, PDF'
+        description: 'CSV, Excel, PDF',
       },
       {
         href: '/admin/kpi',
         label: 'Indicateurs',
         icon: BarChart3,
-        description: 'KPI et métriques'
-      }
-    ]
+        description: 'KPI et métriques',
+      },
+    ],
   },
   {
     name: '⚙️ Configuration',
@@ -181,43 +177,40 @@ export const adminNavigation: NavigationGroup[] = [
         href: '/admin/planning-rules',
         label: 'Règles Métier',
         icon: Settings,
-        description: 'Contraintes et validation'
+        description: 'Contraintes et validation',
       },
       {
         href: '/admin/templates-medicaux',
         label: 'Templates Médicaux',
         icon: ClipboardList,
-        description: 'Modèles par spécialité'
+        description: 'Modèles par spécialité',
       },
       {
         href: '/admin/configuration',
         label: 'Système',
         icon: Settings,
-        description: 'Configuration générale'
-      }
-    ]
-  }
+        description: 'Configuration générale',
+      },
+    ],
+  },
 ];
 
 // Navigation par rôle
 export const getNavigationByRole = (userRole: string): NavigationItem[] => {
   const baseNavigation = [...userNavigation];
-  
+
   switch (userRole) {
     case 'ADMIN_TOTAL':
-      return [
-        ...baseNavigation,
-        ...adminNavigation.flatMap(group => group.items)
-      ];
-    
+      return [...baseNavigation, ...adminNavigation.flatMap(group => group.items)];
+
     case 'ADMIN_PARTIEL':
       return [
         ...baseNavigation,
         ...adminNavigation
           .filter(group => ['Tableaux de Bord', 'Gestion des Équipes'].includes(group.name))
-          .flatMap(group => group.items)
+          .flatMap(group => group.items),
       ];
-    
+
     case 'MAR':
     case 'IADE':
       return [
@@ -226,10 +219,10 @@ export const getNavigationByRole = (userRole: string): NavigationItem[] => {
           href: '/planning/equipe',
           label: 'Planning Équipe',
           icon: Users,
-          description: 'Voir le planning de l\'équipe'
-        }
+          description: "Voir le planning de l'équipe",
+        },
       ];
-    
+
     default:
       return baseNavigation;
   }
@@ -241,13 +234,13 @@ export const getQuickLinks = (userRole: string): NavigationItem[] => {
     {
       href: '/planning/semaine',
       label: 'Planning Semaine',
-      icon: Calendar
+      icon: Calendar,
     },
     {
       href: '/demandes/nouvelle',
       label: 'Nouvelle Demande',
-      icon: FileText
-    }
+      icon: FileText,
+    },
   ];
 
   switch (userRole) {
@@ -259,45 +252,45 @@ export const getQuickLinks = (userRole: string): NavigationItem[] => {
           href: '/admin/conges/validation',
           label: 'Validation Urgente',
           icon: UserCheck,
-          badge: 'urgent'
+          badge: 'urgent',
         },
         {
           href: '/planning/generation',
           label: 'Générer Planning',
-          icon: ClipboardList
-        }
+          icon: ClipboardList,
+        },
       ];
-    
+
     case 'MAR':
       return [
         ...commonLinks,
         {
           href: '/planning/gardes',
           label: 'Mes Gardes',
-          icon: Activity
+          icon: Activity,
         },
         {
           href: '/planning/echanges',
           label: 'Échanges Gardes',
-          icon: Users
-        }
+          icon: Users,
+        },
       ];
-    
+
     case 'IADE':
       return [
         ...commonLinks,
         {
           href: '/planning/vacations',
           label: 'Mes Vacations',
-          icon: Clock
+          icon: Clock,
         },
         {
           href: '/formation',
           label: 'Formations',
-          icon: FileText
-        }
+          icon: FileText,
+        },
       ];
-    
+
     default:
       return commonLinks;
   }
@@ -306,79 +299,77 @@ export const getQuickLinks = (userRole: string): NavigationItem[] => {
 // Terminologie médicale - mapping pour les remplacements
 export const medicalTerminology = {
   // Ancien → Nouveau
-  'TrameModeles': 'TrameModeles',
-  'trameModeles': 'trameModeles',
-  'TrameModele': 'TrameModele',
-  'trameModele': 'trameModele',
-  
-  'Affectations': 'Affectations',
-  'affectations': 'affectations',
-  'Affectation': 'Affectation',
-  'affectation': 'affectation',
-  
-  'Créneaux': 'Créneaux',
-  'slots': 'slots',
-  'Créneau': 'Créneau',
-  'slot': 'slot',
-  
+  TrameModeles: 'TrameModeles',
+  trameModeles: 'trameModeles',
+  TrameModele: 'TrameModele',
+  trameModele: 'trameModele',
+
+  Affectations: 'Affectations',
+  affectations: 'affectations',
+  Affectation: 'Affectation',
+  affectation: 'affectation',
+
+  Créneaux: 'Créneaux',
+  slots: 'slots',
+  Créneau: 'Créneau',
+  slot: 'slot',
+
   'Organisateur de planning': 'Organisateur de planning',
   'organisateur de planning': 'organisateur de planning',
-  'Organisateur': 'Organisateur',
-  'organisateur': 'organisateur',
-  
-  'Modèles': 'Modèles',
-  'templates': 'templates',
-  'Modèle': 'Modèle',
-  'template': 'template',
-  
-  'Attributions': 'Attributions',
-  'attributions': 'attributions',
-  'Attribution': 'Attribution',
-  'attribution': 'attribution',
-  
-  'PlanningMedical': 'PlanningMedical',
-  'planningMedical': 'planningMedical',
-  'Planification': 'Planification',
-  'planification': 'planification'
+  Organisateur: 'Organisateur',
+  organisateur: 'organisateur',
+
+  Modèles: 'Modèles',
+  templates: 'templates',
+  Modèle: 'Modèle',
+  template: 'template',
+
+  Attributions: 'Attributions',
+  attributions: 'attributions',
+  Attribution: 'Attribution',
+  attribution: 'attribution',
+
+  PlanningMedical: 'PlanningMedical',
+  planningMedical: 'planningMedical',
+  Planification: 'Planification',
+  planification: 'planification',
 };
 
 // Breadcrumbs contextuels
 export interface BreadcrumbItem {
   label: string;
   href?: string;
-  icon?: any;
+  icon?: unknown;
 }
 
-export const getBreadcrumbs = (pathname: string, userRole: string): BreadcrumbItem[] => {
+export const getBreadcrumbs = (pathname: string): BreadcrumbItem[] => {
   const segments = pathname.split('/').filter(Boolean);
-  const breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Accueil', href: '/', icon: Activity }
-  ];
+  const breadcrumbs: BreadcrumbItem[] = [{ label: 'Accueil', href: '/', icon: Activity }];
 
   // Mapping des segments vers terminologie médicale
   const segmentMapping: Record<string, string> = {
-    'planning': 'Mon Planning',
-    'conges': 'Mes Congés',
-    'demandes': 'Mes Demandes',
-    'admin': 'Administration',
-    'parametres': 'Configuration',
-    'utilisateurs': 'Personnel Médical',
-    'chirurgiens': 'Chirurgiens',
+    planning: 'Mon Planning',
+    conges: 'Mes Congés',
+    demandes: 'Mes Demandes',
+    admin: 'Administration',
+    parametres: 'Configuration',
+    utilisateurs: 'Personnel Médical',
+    chirurgiens: 'Chirurgiens',
     'bloc-operatoire': 'Bloc Opératoire',
-    'trameModeles': 'Tableaux de Service',
-    'affectations': 'Affectations',
-    'rapports': 'Rapports',
-    'dashboard': 'Tableau de Bord'
+    trameModeles: 'Tableaux de Service',
+    affectations: 'Affectations',
+    rapports: 'Rapports',
+    dashboard: 'Tableau de Bord',
   };
 
   let currentPath = '';
   segments.forEach((segment, index) => {
     currentPath += `/${segment}`;
     const label = segmentMapping[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
-    
+
     breadcrumbs.push({
       label,
-      href: index === segments.length - 1 ? undefined : currentPath
+      href: index === segments.length - 1 ? undefined : currentPath,
     });
   });
 
@@ -421,5 +412,5 @@ export default {
   getBreadcrumbs,
   hasAccess,
   mobileNavigationItems,
-  medicalTerminology
+  medicalTerminology,
 };

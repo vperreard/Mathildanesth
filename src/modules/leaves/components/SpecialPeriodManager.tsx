@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     SpecialPeriodRule,
     SpecialPeriodRuleType,
@@ -70,8 +71,8 @@ export const SpecialPeriodManager: React.FC<SpecialPeriodManagerProps> = ({
                 setSelectedPeriodId(periods[0].id);
                 setFormData(periods[0]);
             }
-        } catch (err) {
-            console.error('Erreur lors du chargement des périodes spéciales :', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors du chargement des périodes spéciales :', { error: err });
             setError(`Erreur: ${(err as Error).message}`);
         } finally {
             setLoading(false);
@@ -142,7 +143,7 @@ export const SpecialPeriodManager: React.FC<SpecialPeriodManagerProps> = ({
     };
 
     // Modifier une règle de priorité
-    const handlePriorityRuleChange = (ruleId: string, field: keyof PriorityRule, value: any) => {
+    const handlePriorityRuleChange = (ruleId: string, field: keyof PriorityRule, value: unknown) => {
         setFormData(prev => ({
             ...prev,
             priorityRules: prev.priorityRules?.map(rule =>
@@ -189,8 +190,8 @@ export const SpecialPeriodManager: React.FC<SpecialPeriodManagerProps> = ({
             if (onSaveComplete) {
                 onSaveComplete();
             }
-        } catch (err) {
-            console.error('Erreur lors de l\'enregistrement de la période :', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors de l\'enregistrement de la période :', err);
             setError(`Erreur: ${(err as Error).message}`);
         } finally {
             setSaving(false);

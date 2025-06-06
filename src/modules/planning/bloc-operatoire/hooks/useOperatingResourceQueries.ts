@@ -16,7 +16,7 @@ const QUERY_KEYS = {
 export const operatingSectorKeys = {
     all: ['operatingSectors'] as const,
     lists: () => [...operatingSectorKeys.all, 'list'] as const,
-    list: (params: Record<string, any> = {}) => [...operatingSectorKeys.lists(), params] as const,
+    list: (params: Record<string, unknown> = {}) => [...operatingSectorKeys.lists(), params] as const,
     details: () => [...operatingSectorKeys.all, 'detail'] as const,
     detail: (id: string) => [...operatingSectorKeys.details(), id] as const,
 };
@@ -24,7 +24,7 @@ export const operatingSectorKeys = {
 export const operatingRoomKeys = {
     all: ['operatingRooms'] as const,
     lists: () => [...operatingRoomKeys.all, 'list'] as const,
-    list: (params: Record<string, any> = {}) => [...operatingRoomKeys.lists(), params] as const,
+    list: (params: Record<string, unknown> = {}) => [...operatingRoomKeys.lists(), params] as const,
     details: () => [...operatingRoomKeys.all, 'detail'] as const,
     detail: (id: string) => [...operatingRoomKeys.details(), id] as const,
 };

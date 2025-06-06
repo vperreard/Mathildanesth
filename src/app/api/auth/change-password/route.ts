@@ -1,32 +1,35 @@
 import { prisma } from '@/lib/prisma'; // Import nommé
 import { NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import bcrypt from 'bcrypt';
 import { headers } from 'next/headers'; // Pour récupérer l'ID utilisateur depuis le middleware
-import { verifyToken } from '@/lib/auth'; // Alias path
+import { verifyToken } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim'; // Alias path
 
 // const prisma = prisma; // Supprimé
 
 export async function PUT(request: Request) {
-    console.log("--- Requête PUT /api/auth/change-password reçue ---");
+    logger.info("--- Requête PUT /api/auth/change-password reçue ---");
     const requestHeaders = headers();
     const userIdString = requestHeaders.get('x-user-id');
-    console.log(`Header x-user-id reçu: ${userIdString}`);
+    logger.info(`Header x-user-id reçu: ${userIdString}`);
 
     if (!userIdString) {
-        console.log("Accès refusé: Header x-user-id manquant.");
+        logger.info("Accès refusé: Header x-user-id manquant.");
         return NextResponse.json({ error: 'Non authentifié ou ID utilisateur manquant' }, { status: 401 });
     }
 
     const userId = parseInt(userIdString, 10);
     if (isNaN(userId)) {
-        console.log(`Erreur: ID utilisateur invalide après parsing: ${userIdString}`);
+        logger.info(`Erreur: ID utilisateur invalide après parsing: ${userIdString}`);
         return NextResponse.json({ error: 'ID utilisateur invalide' }, { status: 400 });
     }
-    console.log(`ID utilisateur parsé: ${userId}`);
+    logger.info(`ID utilisateur parsé: ${userId}`);
 
     try {
         const { currentPassword, newPassword } = await request.json();
-        console.log(`Tentative de changement pour userId: ${userId}`);
+        logger.info(`Tentative de changement pour userId: ${userId}`);
 
         if (!currentPassword || !newPassword) {
             return NextResponse.json({ error: 'Mot de passe actuel et nouveau requis' }, { status: 400 });
@@ -41,17 +44,17 @@ export async function PUT(request: Request) {
         });
 
         if (!user) {
-            console.log(`Erreur: Utilisateur non trouvé pour ID: ${userId}`);
+            logger.info(`Erreur: Utilisateur non trouvé pour ID: ${userId}`);
             return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
         }
-        console.log(`Utilisateur trouvé: ${user.login} (ID: ${user.id})`);
+        logger.info(`Utilisateur trouvé: ${user.login} (ID: ${user.id})`);
 
         // Vérifier le mot de passe actuel
-        console.log("Comparaison du mot de passe actuel...");
+        logger.info("Comparaison du mot de passe actuel...");
         const passwordMatch = await bcrypt.compare(currentPassword, user.password);
-        console.log(`Résultat bcrypt.compare: ${passwordMatch}`); // Log crucial
+        logger.info(`Résultat bcrypt.compare: ${passwordMatch}`); // Log crucial
         if (!passwordMatch) {
-            console.log(`Accès refusé: Mot de passe actuel incorrect pour userId: ${userId}`);
+            logger.info(`Accès refusé: Mot de passe actuel incorrect pour userId: ${userId}`);
             return NextResponse.json({ error: 'Mot de passe actuel incorrect' }, { status: 401 }); // 401 Unauthorized est plus approprié que 403 ici
         }
 
@@ -70,8 +73,8 @@ export async function PUT(request: Request) {
 
         return NextResponse.json({ message: 'Mot de passe mis à jour avec succès' });
 
-    } catch (error) {
-        console.error("Erreur PUT /api/auth/change-password:", error);
+    } catch (error: unknown) {
+        logger.error("Erreur PUT /api/auth/change-password:", { error: error });
         return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
     }
 } 

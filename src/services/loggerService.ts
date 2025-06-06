@@ -23,42 +23,42 @@ export interface ILoggerService {
      * @param message Message à journaliser
      * @param context Données additionnelles (optionnel)
      */
-    log(level: LogLevel, message: string, context?: any): void;
+    log(level: LogLevel, message: string, context?: unknown): void;
 
     /**
      * Enregistre un message de debug
      * @param message Message à journaliser
      * @param context Données additionnelles (optionnel)
      */
-    debug(message: string, context?: any): void;
+    debug(message: string, context?: unknown): void;
 
     /**
      * Enregistre un message d'information
      * @param message Message à journaliser
      * @param context Données additionnelles (optionnel)
      */
-    info(message: string, context?: any): void;
+    info(message: string, context?: unknown): void;
 
     /**
      * Enregistre un avertissement
      * @param message Message à journaliser
      * @param context Données additionnelles (optionnel)
      */
-    warn(message: string, context?: any): void;
+    warn(message: string, context?: unknown): void;
 
     /**
      * Enregistre une erreur
      * @param message Message à journaliser
      * @param context Données additionnelles (optionnel)
      */
-    error(message: string, context?: any): void;
+    error(message: string, context?: unknown): void;
 
     /**
      * Enregistre une erreur critique
      * @param message Message à journaliser
      * @param context Données additionnelles (optionnel)
      */
-    critical(message: string, context?: any): void;
+    critical(message: string, context?: unknown): void;
 }
 
 /**
@@ -117,27 +117,27 @@ export class LoggerService implements ILoggerService {
     /**
      * Méthodes de journalisation par niveau
      */
-    public error(message: string, meta?: any): void {
+    public error(message: string, meta?: unknown): void {
         this.logger.error(message, { ...meta, timestamp: new Date().toISOString() });
     }
 
-    public warn(message: string, meta?: any): void {
+    public warn(message: string, meta?: unknown): void {
         this.logger.warn(message, { ...meta, timestamp: new Date().toISOString() });
     }
 
-    public info(message: string, meta?: any): void {
+    public info(message: string, meta?: unknown): void {
         this.logger.info(message, { ...meta, timestamp: new Date().toISOString() });
     }
 
-    public debug(message: string, meta?: any): void {
+    public debug(message: string, meta?: unknown): void {
         this.logger.debug(message, { ...meta, timestamp: new Date().toISOString() });
     }
 
-    public trace(message: string, meta?: any): void {
+    public trace(message: string, meta?: unknown): void {
         this.logger.verbose(message, { ...meta, timestamp: new Date().toISOString() });
     }
 
-    public log(level: LogLevel, message: string, context?: any): void {
+    public log(level: LogLevel, message: string, context?: unknown): void {
         switch (level) {
             case LogLevel.ERROR:
                 this.error(message, context);
@@ -157,7 +157,7 @@ export class LoggerService implements ILoggerService {
         }
     }
 
-    public critical(message: string, context?: any): void {
+    public critical(message: string, context?: unknown): void {
         this.error(`CRITICAL: ${message}`, context);
     }
 }
@@ -166,23 +166,23 @@ export class LoggerService implements ILoggerService {
 const defaultLogger = new LoggerService();
 
 // Export standalone functions for backwards compatibility
-export const log = (level: LogLevel, message: string, context?: any): void => {
+export const log = (level: LogLevel, message: string, context?: unknown): void => {
     defaultLogger.log(level, message, context);
 };
 
-export const logError = (message: string, context?: any): void => {
+export const logError = (message: string, context?: unknown): void => {
     defaultLogger.error(message, context);
 };
 
-export const logWarning = (message: string, context?: any): void => {
+export const logWarning = (message: string, context?: unknown): void => {
     defaultLogger.warn(message, context);
 };
 
-export const logInfo = (message: string, context?: any): void => {
+export const logInfo = (message: string, context?: unknown): void => {
     defaultLogger.info(message, context);
 };
 
-export const logDebug = (message: string, context?: any): void => {
+export const logDebug = (message: string, context?: unknown): void => {
     defaultLogger.debug(message, context);
 };
 
@@ -200,19 +200,19 @@ export class Logger {
         return `[${this.context}] ${message}`;
     }
 
-    public error(message: string, ...args: any[]): void {
+    public error(message: string, ...args: unknown[]): void {
         this.service.error(this.formatMessage(message), ...args);
     }
 
-    public warn(message: string, ...args: any[]): void {
+    public warn(message: string, ...args: unknown[]): void {
         this.service.warn(this.formatMessage(message), ...args);
     }
 
-    public info(message: string, ...args: any[]): void {
+    public info(message: string, ...args: unknown[]): void {
         this.service.info(this.formatMessage(message), ...args);
     }
 
-    public debug(message: string, ...args: any[]): void {
+    public debug(message: string, ...args: unknown[]): void {
         this.service.debug(this.formatMessage(message), ...args);
     }
 }

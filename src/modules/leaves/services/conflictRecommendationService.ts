@@ -4,6 +4,7 @@ import {
     ConflictSeverity,
     ConflictResolution
 } from '../types/conflict';
+import { logger } from "../../../lib/logger";
 import {
     ConflictRecommendation,
     ConflictAnalysisResult,
@@ -71,20 +72,20 @@ export class ConflictRecommendationService {
         leaveRequest: Partial<LeaveRequest>,
         user?: User
     ): ConflictAnalysisResult {
-        console.log('[Service Debug] analyzeConflicts - conflicts.length:', conflicts.length);
+        logger.info('[Service Debug] analyzeConflicts - conflicts.length:', conflicts.length);
         if (!conflicts || conflicts.length === 0) {
-            console.log('[Service Debug] Aucun conflit, appel de createEmptyAnalysisResult');
+            logger.info('[Service Debug] Aucun conflit, appel de createEmptyAnalysisResult');
             const emptyResult = this.createEmptyAnalysisResult();
-            console.log('[Service Debug] emptyResult:', JSON.stringify(emptyResult));
+            logger.info('[Service Debug] emptyResult:', JSON.stringify(emptyResult));
             return emptyResult;
         }
 
         try {
-            console.log('[Service Debug] analyzeConflicts - generating recommendations...');
+            logger.info('[Service Debug] analyzeConflicts - generating recommendations...');
             const recommendations: ConflictRecommendation[] = conflicts.map(
                 conflict => this.analyzeConflict(conflict, leaveRequest, user)
             );
-            console.log('[Service Debug] analyzeConflicts - generated recommendations:', JSON.stringify(recommendations));
+            logger.info('[Service Debug] analyzeConflicts - generated recommendations:', JSON.stringify(recommendations));
 
             // Compter les résolutions automatiques et manuelles
             const automatedResolutionsCount = recommendations.filter(r => r.automaticResolution).length;
@@ -108,7 +109,7 @@ export class ConflictRecommendationService {
                 priorityDistribution,
                 highestPriorityConflicts
             };
-        } catch (error) {
+        } catch (error: unknown) {
             // Construire un objet ErrorDetails avant d'appeler logError
             const errorDetails: ErrorDetails = {
                 message: error instanceof Error ? error.message : 'Erreur inconnue lors de l\'analyse des conflits',
@@ -119,9 +120,9 @@ export class ConflictRecommendationService {
             };
             logError('Erreur lors de l\'analyse des conflits', errorDetails);
             // Retourner un résultat vide en cas d'erreur
-            console.log('[Service Debug] Erreur, appel de createEmptyAnalysisResult dans catch');
+            logger.info('[Service Debug] Erreur, appel de createEmptyAnalysisResult dans catch');
             const errorEmptyResult = this.createEmptyAnalysisResult();
-            console.log('[Service Debug] errorEmptyResult:', JSON.stringify(errorEmptyResult));
+            logger.info('[Service Debug] errorEmptyResult:', JSON.stringify(errorEmptyResult));
             return errorEmptyResult;
         }
     }
@@ -392,7 +393,7 @@ export class ConflictRecommendationService {
      */
     private canResolveAutomatically(
         conflict: LeaveConflict,
-        strategies: any[],
+        strategies: unknown[],
         rules?: ConflictResolutionRules
     ): boolean {
         const effectiveRules = rules || this.options.rules;
@@ -430,7 +431,7 @@ export class ConflictRecommendationService {
      */
     private generateExplanation(
         conflict: LeaveConflict,
-        strategies: any[],
+        strategies: unknown[],
         automaticResolution: boolean,
         priority: ConflictPriority,
         rules?: ConflictResolutionRules
@@ -566,14 +567,14 @@ export class ConflictRecommendationService {
             priorityDistribution: {} as Record<ConflictPriority, number>,
             highestPriorityConflicts: []
         };
-        // console.log('[Service Debug] createEmptyAnalysisResult retourne:', JSON.stringify(result)); // Log déjà ajouté plus haut
+        // logger.info('[Service Debug] createEmptyAnalysisResult retourne:', JSON.stringify(result)); // Log déjà ajouté plus haut
         return result;
     }
 
     /**
      * Apprendre des résolutions passées
      */
-    private learnFromResolution(event: any): void {
+    private learnFromResolution(event: unknown): void {
         try {
             const { conflictId, recommendation, automatic } = event.data;
 
@@ -590,7 +591,7 @@ export class ConflictRecommendationService {
                 const oldestKey = Array.from(this.resolutionHistory.keys())[0];
                 this.resolutionHistory.delete(oldestKey);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             logError('Erreur lors de l\'apprentissage des résolutions passées', error);
         }
     }

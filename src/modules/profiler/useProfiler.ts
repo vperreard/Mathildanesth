@@ -53,11 +53,11 @@ export function useProfiler(componentName: string) {
     }, []);
 
     // Mesurer une fonction
-    const measureFunction = useCallback(<T extends (...args: any[]) => any>(
+    const measureFunction = useCallback(<T extends (...args: unknown[]) => any>(
         func: T,
         name: string,
         type: MetricType = MetricType.COMPONENT_RENDER,
-        metadata?: Record<string, any>
+        metadata?: Record<string, unknown>
     ) => {
         return profilerService.wrapFunction(func, type, `${componentName}.${name}`, metadata);
     }, [componentName]);
@@ -66,7 +66,7 @@ export function useProfiler(componentName: string) {
     const measure = useCallback((
         name: string,
         type: MetricType = MetricType.COMPONENT_RENDER,
-        metadata?: Record<string, any>
+        metadata?: Record<string, unknown>
     ) => {
         const metricId = profilerService.startMetric(type, `${componentName}.${name}`, metadata);
 

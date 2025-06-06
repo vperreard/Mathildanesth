@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 import { LeaveStatus, LeaveType as PrismaLeaveType } from '@prisma/client';
 import { withAuth, SecurityChecks } from '@/middleware/authorization';
-import { auth } from '@/lib/auth';
-import { verifyAuthToken } from '@/lib/auth-server-utils';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { BusinessRulesValidator } from '@/services/businessRulesValidator';
 import { withSensitiveRateLimit } from '@/lib/rateLimit';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
@@ -50,79 +51,29 @@ const mapCodeToLeaveType = (code: string): PrismaLeaveType => {
 /**
  * GET /api/conges?userId=123
  * Récupère les congés d'un utilisateur.
- *
- * @description Endpoint sécurisé pour récupérer la liste des congés d'un utilisateur.
- * Applique des règles de sécurité strictes : un utilisateur ne peut voir que ses propres congés,
- * sauf s'il est administrateur. Inclut les informations complètes de l'utilisateur pour chaque congé.
- *
- * @param {NextRequest} request - Requête HTTP avec token JWT dans l'en-tête Authorization
- * @param {string} request.url - URL contenant le paramètre userId en query string
- *
- * @returns {NextResponse<LeaveWithUserFrontend[]>} Liste des congés avec informations utilisateur
- *
- * @throws {400} Si le paramètre userId est manquant
- * @throws {401} Si le token d'authentification est manquant ou invalide
- * @throws {403} Si l'utilisateur n'a pas les permissions pour voir ces congés
- * @throws {500} En cas d'erreur serveur
- *
- * @example
- * // Requête
- * GET /api/conges?userId=123
- * Headers: { Authorization: 'Bearer eyJhbGc...' }
- *
- * // Réponse
- * [
- *   {
- *     id: "leave-1",
- *     startDate: "2025-06-10",
- *     endDate: "2025-06-20",
- *     status: "APPROVED",
- *     type: "ANNUAL",
- *     user: { id: 123, nom: "Martin", prenom: "Jean", ... }
- *   }
- * ]
- *
- * @security
- * - Authentification JWT requise
- * - Vérification des permissions (utilisateur = ses congés, admin = tous)
- * - Audit trail de tous les accès
- * - Protection contre les injections via Prisma
  */
 async function getHandler(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
-    console.log(`[API /api/conges] Requête GET reçue pour userId: ${userId}`);
+    logger.info(`[API /api/conges] Requête GET reçue pour userId: ${userId}`);
 
     if (!userId) {
       return NextResponse.json({ error: 'Le paramètre userId est manquant' }, { status: 400 });
     }
 
-    // Vérifier les permissions de l'utilisateur
-    const authHeader = request.headers.get('authorization');
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
-
-    if (!token) {
-      logger.warn("Tentative d'accès sans token", { path: '/api/conges', userId });
+    // Vérifier l'authentification avec le shim
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      logger.warn("Tentative d'accès sans authentification", { path: '/api/conges', userId });
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const authResult = await verifyAuthToken(token);
-    if (!authResult.authenticated) {
-      logger.warn('Token invalide', { path: '/api/conges', userId });
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    // Récupérer l'utilisateur authentifié
-    const authenticatedUser = await prisma.user.findUnique({
-      where: { id: authResult.userId },
-      select: { id: true, role: true },
-    });
-
-    if (!authenticatedUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 403 });
-    }
+    const authenticatedUser = {
+      id: session.user.id,
+      role: session.user.role,
+    };
 
     // Vérifier les permissions : l'utilisateur peut voir ses propres congés ou être admin
     const targetUserId = parseInt(userId, 10);
@@ -176,7 +127,7 @@ async function getHandler(request: NextRequest) {
     });
 
     // Fonction adaptateur pour uniformiser les champs nom/prenom
-    const adaptUserFields = (user: any) => {
+    const adaptUserFields = (user: unknown) => {
       if (!user) return null;
 
       return {
@@ -192,7 +143,7 @@ async function getHandler(request: NextRequest) {
     const formattedLeaves: LeaveWithUserFrontend[] = leaves
       .map(leave => {
         if (!leave.user) {
-          console.error(`Utilisateur non trouvé pour le congé ID: ${leave.id}`);
+          logger.error(`Utilisateur non trouvé pour le congé ID: ${leave.id}`);
           return null; // Marquer pour filtrage
         }
 
@@ -230,8 +181,8 @@ async function getHandler(request: NextRequest) {
       .filter((leave): leave is LeaveWithUserFrontend => leave !== null); // Filtrer les nulls
 
     return NextResponse.json(formattedLeaves);
-  } catch (error) {
-    console.error(`[API /api/conges] Erreur lors de la récupération des congés:`, error);
+  } catch (error: unknown) {
+    logger.error(`[API /api/conges] Erreur lors de la récupération des congés:`, { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors de la récupération des congés.' },
       { status: 500 }
@@ -261,7 +212,7 @@ async function postHandler(request: NextRequest) {
     }
 
     const body = await request.json();
-    console.log('[API /conges POST] Corps de la requête reçu:', JSON.stringify(body, null, 2));
+    logger.info('[API /conges POST] Corps de la requête reçu:', JSON.stringify(body, null, 2));
 
     const { userId, startDate, endDate, typeCode, reason } = body;
 
@@ -302,7 +253,7 @@ async function postHandler(request: NextRequest) {
       details: { typeCode, startDate, endDate },
     });
 
-    console.log('[API /conges POST] Valeurs extraites:', {
+    logger.info('[API /conges POST] Valeurs extraites:', {
       userId,
       startDate,
       endDate,
@@ -316,7 +267,7 @@ async function postHandler(request: NextRequest) {
 
     // --- Validation des données ---
     if (!userId || !startDate || !endDate || !typeCode) {
-      console.log('[API /conges POST] Validation échouée:', {
+      logger.info('[API /conges POST] Validation échouée:', {
         hasUserId: !!userId,
         hasStartDate: !!startDate,
         hasEndDate: !!endDate,
@@ -402,7 +353,7 @@ async function postHandler(request: NextRequest) {
         },
       });
 
-      console.log(
+      logger.info(
         '[API /conges POST] Données utilisateur récupérées:',
         JSON.stringify(
           {
@@ -416,7 +367,7 @@ async function postHandler(request: NextRequest) {
       );
 
       // Adapter les données utilisateur pour s'assurer de la cohérence firstName/lastName
-      const adaptUserFields = (user: any) => {
+      const adaptUserFields = (user: unknown) => {
         if (!user) return null;
 
         return {
@@ -430,7 +381,7 @@ async function postHandler(request: NextRequest) {
 
       // S'assurer que les valeurs de nom et prénom ne sont jamais undefined
       const adaptedUser = adaptUserFields(newLeave.user);
-      console.log('[API /conges POST] Utilisateur adapté:', JSON.stringify(adaptedUser, null, 2));
+      logger.info('[API /conges POST] Utilisateur adapté:', JSON.stringify(adaptedUser, null, 2));
 
       const firstName = adaptedUser?.prenom || adaptedUser?.firstName || '(Prénom non défini)';
       const lastName = adaptedUser?.nom || adaptedUser?.lastName || '(Nom non défini)';
@@ -481,13 +432,13 @@ async function postHandler(request: NextRequest) {
         }
       );
 
-      console.log(
+      logger.info(
         '[API /conges POST] Congé créé avec succès:',
         JSON.stringify(formattedLeave, null, 2)
       );
       return NextResponse.json(formattedLeave, { status: 201 }); // 201 Created
-    } catch (error) {
-      console.error('[API /conges POST] Erreur lors de la création du congé:', error);
+    } catch (error: unknown) {
+      logger.error('[API /conges POST] Erreur lors de la création du congé:', { error: error });
 
       // Log d'audit pour l'échec
       await auditService.logAction({
@@ -508,8 +459,8 @@ async function postHandler(request: NextRequest) {
         { status: 500 }
       );
     }
-  } catch (error) {
-    console.error('[API /conges POST] Erreur générale:', error);
+  } catch (error: unknown) {
+    logger.error('[API /conges POST] Erreur générale:', { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors de la création de la demande de congé.' },
       { status: 500 }

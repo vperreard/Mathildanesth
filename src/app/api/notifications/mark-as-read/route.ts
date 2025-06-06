@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { emitNotificationsReadUpdate } from '@/lib/socket';
 
 interface MarkAsReadRequest {
@@ -89,8 +90,8 @@ export async function POST(req: NextRequest) {
       markedAsRead: updatedCount,
       remainingUnread: remainingUnreadCount,
     });
-  } catch (error) {
-    console.error('Erreur lors du marquage des notifications comme lues:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors du marquage des notifications comme lues:', { error: error });
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(

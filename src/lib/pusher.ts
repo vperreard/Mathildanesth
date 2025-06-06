@@ -1,4 +1,5 @@
 import Pusher from 'pusher';
+import { logger } from "./logger";
 import PusherClient from 'pusher-js';
 
 // Check if Pusher is configured
@@ -56,14 +57,14 @@ export const EVENTS = {
  * @param events Événements et leurs gestionnaires
  * @returns Une fonction pour se désabonner
  */
-export const subscribeToChannel = (channelName: string, events: Record<string, (data: any) => void>) => {
+export const subscribeToChannel = (channelName: string, events: Record<string, (data: unknown) => void>) => {
     if (!channelName) {
-        console.error('Nom de canal requis pour s\'abonner');
+        logger.error('Nom de canal requis pour s\'abonner');
         return () => { };
     }
 
     if (!pusherClient) {
-        console.log('Pusher non configuré, WebSocket désactivé');
+        logger.info('Pusher non configuré, WebSocket désactivé');
         return () => { };
     }
 
@@ -82,8 +83,8 @@ export const subscribeToChannel = (channelName: string, events: Record<string, (
             });
             pusherClient.unsubscribe(channelName);
         };
-    } catch (error) {
-        console.error('Erreur lors de l\'abonnement au canal Pusher:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de l\'abonnement au canal Pusher:', { error: error });
         return () => { };
     }
 };
@@ -97,22 +98,22 @@ export const subscribeToChannel = (channelName: string, events: Record<string, (
 export const triggerEvent = async (
     channelName: string,
     eventName: string,
-    data: any
+    data: unknown
 ) => {
     if (!channelName || !eventName) {
-        console.error('Nom de canal et d\'événement requis pour déclencher un événement');
+        logger.error('Nom de canal et d\'événement requis pour déclencher un événement');
         return;
     }
 
     if (!pusherServer) {
-        console.log('Pusher serveur non configuré, événement ignoré');
+        logger.info('Pusher serveur non configuré, événement ignoré');
         return;
     }
 
     try {
         await pusherServer.trigger(channelName, eventName, data);
-    } catch (error) {
-        console.error('Erreur lors du déclenchement de l\'événement Pusher:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors du déclenchement de l\'événement Pusher:', { error: error });
     }
 };
 
@@ -123,9 +124,9 @@ export const triggerEvent = async (
  * @param userData Données utilisateur pour l'authentification
  * @returns Données d'authentification
  */
-export const authorizeChannel = (socketId: string, channel: string, userData: any) => {
+export const authorizeChannel = (socketId: string, channel: string, userData: unknown) => {
     if (!pusherServer) {
-        console.log('Pusher serveur non configuré, autorisation ignorée');
+        logger.info('Pusher serveur non configuré, autorisation ignorée');
         return null;
     }
     return pusherServer.authorizeChannel(socketId, channel, userData);

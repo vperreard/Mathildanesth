@@ -106,8 +106,8 @@ const postHandler = withAuth({
             data: updatedLeave
         });
 
-    } catch (error) {
-        logger.error('Error approving leave', error);
+    } catch (error: unknown) {
+        logger.error('Error approving leave', { error: error });
         
         // Log d'audit pour l'échec
         await auditService.logAction({

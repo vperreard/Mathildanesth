@@ -89,7 +89,7 @@ export default function PlanningAnnotation({
             setAnnotationType('general');
             setSelectedTarget(null);
             setIsAddDialogOpen(false);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur lors de l\'ajout du commentaire');
         } finally {
             setIsLoading(false);
@@ -104,7 +104,7 @@ export default function PlanningAnnotation({
         try {
             await onUpdateAnnotation(editAnnotation.id, editAnnotation.content);
             setEditAnnotation(null);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur lors de la mise à jour du commentaire');
         } finally {
             setIsLoading(false);
@@ -117,7 +117,7 @@ export default function PlanningAnnotation({
         try {
             await onDeleteAnnotation(id);
             setDeleteConfirmation(null);
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur lors de la suppression du commentaire');
         } finally {
             setIsLoading(false);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../../lib/logger";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { GripVertical } from 'lucide-react';
@@ -39,7 +40,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
     };
 
     const handleDragEnd = (result: DropResult) => {
-        console.log("Drag End Result:", result);
+        logger.info("Drag End Result:", result);
         const { destination, source, draggableId, type } = result;
 
         if (!destination) return;

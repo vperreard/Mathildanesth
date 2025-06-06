@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     WorkSchedule,
     WeeklyWorkingDays
@@ -66,9 +67,9 @@ export const useWorkSchedule = ({
                     setCurrentSchedule(activeSchedule);
                 }
             }
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur inconnue'));
-            console.error('Erreur dans useWorkSchedule:', err);
+            logger.error('Erreur dans useWorkSchedule:', { error: err });
         } finally {
             setLoading(false);
         }
@@ -122,9 +123,9 @@ export const useWorkSchedule = ({
             setCurrentSchedule(savedSchedule);
 
             return savedSchedule;
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de l\'enregistrement'));
-            console.error('Erreur dans saveSchedule:', err);
+            logger.error('Erreur dans saveSchedule:', { error: err });
             throw err;
         } finally {
             setLoading(false);
@@ -146,9 +147,9 @@ export const useWorkSchedule = ({
             if (currentSchedule && currentSchedule.id === scheduleId) {
                 setCurrentSchedule(null);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la suppression'));
-            console.error('Erreur dans removeSchedule:', err);
+            logger.error('Erreur dans removeSchedule:', { error: err });
             throw err;
         } finally {
             setLoading(false);

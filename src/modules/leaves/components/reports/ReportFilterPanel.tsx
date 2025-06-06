@@ -76,7 +76,7 @@ export function ReportFilterPanel({ currentFilters, onApplyFilters, onResetFilte
     /**
      * Met à jour un filtre
      */
-    const updateFilter = (key: string, value: any) => {
+    const updateFilter = (key: string, value: unknown) => {
         setFilters(prev => ({
             ...prev,
             [key]: value

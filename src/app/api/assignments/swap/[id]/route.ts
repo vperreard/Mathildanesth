@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { PrismaClient, AssignmentSwapStatus } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/assignment-notification-utils';
 
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 /**
  * GET /api/affectations/echange/[id]
@@ -14,7 +17,7 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params;
-    console.log(`\n--- GET /api/affectations/echange/${id} START ---`);
+    logger.info(`\n--- GET /api/affectations/echange/${id} START ---`);
 
     // Authentification
     const token = request.cookies.get('token')?.value ||
@@ -22,13 +25,13 @@ export async function GET(
             request.headers.get('Authorization')?.substring(7) : null);
 
     if (!token) {
-        console.error(`GET /api/affectations/echange/${id}: Token manquant`);
+        logger.error(`GET /api/affectations/echange/${id}: Token manquant`);
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const authResult = await verifyAuthToken(token);
     if (!authResult.authenticated) {
-        console.error(`GET /api/affectations/echange/${id}: Token invalide`);
+        logger.error(`GET /api/affectations/echange/${id}: Token invalide`);
         return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
     }
 
@@ -70,7 +73,7 @@ export async function GET(
 
         // Vérifier que la demande existe
         if (!swapRequest) {
-            console.warn(`GET /api/affectations/echange/${id}: Demande introuvable`);
+            logger.warn(`GET /api/affectations/echange/${id}: Demande introuvable`);
             return NextResponse.json({ error: 'Demande d\'échange introuvable' }, { status: 404 });
         }
 
@@ -80,17 +83,17 @@ export async function GET(
         const isInvolved = swapRequest.initiatorUserId === userId || swapRequest.targetUserId === userId;
 
         if (!isAdmin && !isInvolved) {
-            console.warn(`GET /api/affectations/echange/${id}: Accès non autorisé pour l'utilisateur ${userId}`);
+            logger.warn(`GET /api/affectations/echange/${id}: Accès non autorisé pour l'utilisateur ${userId}`);
             return NextResponse.json({ error: 'Vous n\'êtes pas autorisé à voir cette demande d\'échange' }, { status: 403 });
         }
 
-        console.log(`GET /api/affectations/echange/${id}: Demande récupérée avec succès`);
-        console.log(`--- GET /api/affectations/echange/${id} END ---\n`);
+        logger.info(`GET /api/affectations/echange/${id}: Demande récupérée avec succès`);
+        logger.info(`--- GET /api/affectations/echange/${id} END ---\n`);
 
         return NextResponse.json(swapRequest);
 
-    } catch (error: any) {
-        console.error(`GET /api/affectations/echange/${id}: Erreur serveur`, error);
+    } catch (error: unknown) {
+        logger.error(`GET /api/affectations/echange/${id}: Erreur serveur`, { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la récupération de la demande d\'échange',
             details: error.message
@@ -107,7 +110,7 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params;
-    console.log(`\n--- PUT /api/affectations/echange/${id} START ---`);
+    logger.info(`\n--- PUT /api/affectations/echange/${id} START ---`);
 
     // Authentification
     const token = request.cookies.get('token')?.value ||
@@ -115,13 +118,13 @@ export async function PUT(
             request.headers.get('Authorization')?.substring(7) : null);
 
     if (!token) {
-        console.error(`PUT /api/affectations/echange/${id}: Token manquant`);
+        logger.error(`PUT /api/affectations/echange/${id}: Token manquant`);
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const authResult = await verifyAuthToken(token);
     if (!authResult.authenticated) {
-        console.error(`PUT /api/affectations/echange/${id}: Token invalide`);
+        logger.error(`PUT /api/affectations/echange/${id}: Token invalide`);
         return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
     }
 
@@ -134,7 +137,7 @@ export async function PUT(
 
         // Validation des données
         if (!status || !Object.values(AssignmentSwapStatus).includes(status)) {
-            console.warn(`PUT /api/affectations/echange/${id}: Statut invalide - ${status}`);
+            logger.warn(`PUT /api/affectations/echange/${id}: Statut invalide - ${status}`);
             return NextResponse.json({
                 error: 'Le statut fourni est invalide'
             }, { status: 400 });
@@ -151,7 +154,7 @@ export async function PUT(
 
         // Vérifier que la demande existe
         if (!currentSwapRequest) {
-            console.warn(`PUT /api/affectations/echange/${id}: Demande introuvable`);
+            logger.warn(`PUT /api/affectations/echange/${id}: Demande introuvable`);
             return NextResponse.json({ error: 'Demande d\'échange introuvable' }, { status: 404 });
         }
 
@@ -201,7 +204,7 @@ export async function PUT(
 
         // Si l'action n'est pas autorisée
         if (!authorized) {
-            console.warn(`PUT /api/affectations/echange/${id}: Transition non autorisée de ${currentSwapRequest.status} à ${status} par l'utilisateur ${userId}`);
+            logger.warn(`PUT /api/affectations/echange/${id}: Transition non autorisée de ${currentSwapRequest.status} à ${status} par l'utilisateur ${userId}`);
             return NextResponse.json({
                 error: 'Vous n\'êtes pas autorisé à effectuer cette action sur la demande d\'échange'
             }, { status: 403 });
@@ -290,19 +293,19 @@ export async function PUT(
             };
         });
 
-        console.log(`PUT /api/affectations/echange/${id}: Demande mise à jour avec statut ${status}`);
+        logger.info(`PUT /api/affectations/echange/${id}: Demande mise à jour avec statut ${status}`);
         if (result.notification) {
-            console.log(`PUT /api/affectations/echange/${id}: Notification envoyée: ${result.notification.id}`);
+            logger.info(`PUT /api/affectations/echange/${id}: Notification envoyée: ${result.notification.id}`);
         }
         if (result.swappedAssignments) {
-            console.log(`PUT /api/affectations/echange/${id}: Affectations échangées avec succès`);
+            logger.info(`PUT /api/affectations/echange/${id}: Affectations échangées avec succès`);
         }
-        console.log(`--- PUT /api/affectations/echange/${id} END ---\n`);
+        logger.info(`--- PUT /api/affectations/echange/${id} END ---\n`);
 
         return NextResponse.json(result.swapRequest);
 
-    } catch (error: any) {
-        console.error(`PUT /api/affectations/echange/${id}: Erreur serveur`, error);
+    } catch (error: unknown) {
+        logger.error(`PUT /api/affectations/echange/${id}: Erreur serveur`, { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la mise à jour de la demande d\'échange',
             details: error.message
@@ -319,7 +322,7 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params;
-    console.log(`\n--- DELETE /api/affectations/echange/${id} START ---`);
+    logger.info(`\n--- DELETE /api/affectations/echange/${id} START ---`);
 
     // Authentification
     const token = request.cookies.get('token')?.value ||
@@ -327,13 +330,13 @@ export async function DELETE(
             request.headers.get('Authorization')?.substring(7) : null);
 
     if (!token) {
-        console.error(`DELETE /api/affectations/echange/${id}: Token manquant`);
+        logger.error(`DELETE /api/affectations/echange/${id}: Token manquant`);
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const authResult = await verifyAuthToken(token);
     if (!authResult.authenticated) {
-        console.error(`DELETE /api/affectations/echange/${id}: Token invalide`);
+        logger.error(`DELETE /api/affectations/echange/${id}: Token invalide`);
         return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
     }
 
@@ -348,7 +351,7 @@ export async function DELETE(
 
         // Vérifier que la demande existe
         if (!swapRequest) {
-            console.warn(`DELETE /api/affectations/echange/${id}: Demande introuvable`);
+            logger.warn(`DELETE /api/affectations/echange/${id}: Demande introuvable`);
             return NextResponse.json({ error: 'Demande d\'échange introuvable' }, { status: 404 });
         }
 
@@ -356,7 +359,7 @@ export async function DELETE(
         const isInitiator = swapRequest.initiatorUserId === userId;
 
         if (!isAdmin && !isInitiator) {
-            console.warn(`DELETE /api/affectations/echange/${id}: Utilisateur ${userId} non autorisé à supprimer`);
+            logger.warn(`DELETE /api/affectations/echange/${id}: Utilisateur ${userId} non autorisé à supprimer`);
             return NextResponse.json({
                 error: 'Vous n\'êtes pas autorisé à supprimer cette demande d\'échange'
             }, { status: 403 });
@@ -372,7 +375,7 @@ export async function DELETE(
         const isExpired = swapRequest.expiresAt ? new Date() > swapRequest.expiresAt : false;
 
         if (!isAdmin && !deletableStatuses.includes(swapRequest.status) && !isExpired) {
-            console.warn(`DELETE /api/affectations/echange/${id}: Statut ${swapRequest.status} non supprimable`);
+            logger.warn(`DELETE /api/affectations/echange/${id}: Statut ${swapRequest.status} non supprimable`);
             return NextResponse.json({
                 error: 'Impossible de supprimer une demande d\'échange active. Vous devez d\'abord l\'annuler.'
             }, { status: 400 });
@@ -383,15 +386,15 @@ export async function DELETE(
             where: { id }
         });
 
-        console.log(`DELETE /api/affectations/echange/${id}: Demande supprimée avec succès`);
-        console.log(`--- DELETE /api/affectations/echange/${id} END ---\n`);
+        logger.info(`DELETE /api/affectations/echange/${id}: Demande supprimée avec succès`);
+        logger.info(`--- DELETE /api/affectations/echange/${id} END ---\n`);
 
         return NextResponse.json({
             message: 'Demande d\'échange supprimée avec succès'
         });
 
-    } catch (error: any) {
-        console.error(`DELETE /api/affectations/echange/${id}: Erreur serveur`, error);
+    } catch (error: unknown) {
+        logger.error(`DELETE /api/affectations/echange/${id}: Erreur serveur`, { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la suppression de la demande d\'échange',
             details: error.message

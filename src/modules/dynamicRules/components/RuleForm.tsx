@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import {
     Rule,
     RuleCondition,
@@ -113,7 +114,7 @@ const RuleForm: React.FC<RuleFormProps> = ({ rule, allRules = [], onSave, onCanc
 
     useEffect(() => {
         if (formData.enabled && allRules.length > 0) {
-            console.warn("Détection de conflits non implémentée dans le formulaire.");
+            logger.warn("Détection de conflits non implémentée dans le formulaire.");
         }
     }, [formData, allRules, rule]);
 
@@ -149,7 +150,7 @@ const RuleForm: React.FC<RuleFormProps> = ({ rule, allRules = [], onSave, onCanc
         setFormData(prev => ({ ...prev, conditions: [...prev.conditions, newCondition] }));
     };
 
-    const updateCondition = (index: number, field: keyof RuleCondition, value: any) => {
+    const updateCondition = (index: number, field: keyof RuleCondition, value: unknown) => {
         setFormData(prev => ({
             ...prev,
             conditions: prev.conditions.map((cond, i) => i === index ? { ...cond, [field]: value } : cond)
@@ -169,7 +170,7 @@ const RuleForm: React.FC<RuleFormProps> = ({ rule, allRules = [], onSave, onCanc
         setFormData(prev => ({ ...prev, actions: [...prev.actions, newAction] }));
     };
 
-    const updateAction = (index: number, field: keyof RuleAction | 'paramValue', value: any) => {
+    const updateAction = (index: number, field: keyof RuleAction | 'paramValue', value: unknown) => {
         setFormData(prev => ({
             ...prev,
             actions: prev.actions.map((act, i) => {
@@ -178,12 +179,12 @@ const RuleForm: React.FC<RuleFormProps> = ({ rule, allRules = [], onSave, onCanc
                         try {
                             const parsedParams = JSON.parse(value || '{}');
                             return { ...act, parameters: parsedParams };
-                        } catch (err) {
-                            console.error("Erreur parsing JSON pour les paramètres d'action:", err);
+                        } catch (err: unknown) {
+                            logger.error("Erreur parsing JSON pour les paramètres d'action:", err);
                             return act;
                         }
                     } else if (field === 'paramValue') {
-                        console.warn("Mise à jour de paramètre spécifique non implémentée");
+                        logger.warn("Mise à jour de paramètre spécifique non implémentée");
                         return act;
                     } else {
                         return { ...act, [field]: value };
@@ -218,7 +219,7 @@ const RuleForm: React.FC<RuleFormProps> = ({ rule, allRules = [], onSave, onCanc
             actions: formData.actions || [],
         };
 
-        console.log('Sauvegarde de la règle:', finalRule);
+        logger.info('Sauvegarde de la règle:', finalRule);
         onSave(finalRule);
     };
 

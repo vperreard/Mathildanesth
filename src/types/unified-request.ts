@@ -60,8 +60,8 @@ export interface UnifiedRequest {
     halfDay?: boolean;
     
     // Pour SCHEDULE_CHANGE
-    currentSchedule?: any;
-    requestedSchedule?: any;
+    currentSchedule?: unknown;
+    requestedSchedule?: unknown;
     reason?: string;
     
     // Pour EMERGENCY_REPLACEMENT
@@ -71,7 +71,7 @@ export interface UnifiedRequest {
     room?: string;
     
     // Données additionnelles flexibles
-    [key: string]: any;
+    [key: string]: unknown;
   };
   
   // Workflow et traçabilité
@@ -115,7 +115,7 @@ export interface RequestWorkflowStep {
 export interface WorkflowCondition {
   field: string;
   operator: 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains';
-  value: any;
+  value: unknown;
 }
 
 export interface RequestNotification {

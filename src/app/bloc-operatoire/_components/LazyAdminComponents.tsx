@@ -72,7 +72,7 @@ export const LazyReglesSupervisionAdmin = () => (
   </LazyAdminWrapper>
 );
 
-export const LazyOperatingRoomForm = (props: any) => (
+export const LazyOperatingRoomForm = (props: unknown) => (
   <LazyAdminWrapper>
     <OperatingRoomForm {...props} />
   </LazyAdminWrapper>

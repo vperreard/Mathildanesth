@@ -717,7 +717,7 @@ export class RuleConflictDetectionService {
                 // Si l'opérateur est IN, vérifier l'intersection des tableaux
                 if (
                     (cond1.operator === ComparisonOperator.IN && cond2.operator === ComparisonOperator.IN) &&
-                    this.arraysIntersect(cond1.value as any[], cond2.value as any[])
+                    this.arraysIntersect(cond1.value as unknown[], cond2.value as unknown[])
                 ) {
                     return true;
                 }
@@ -756,7 +756,7 @@ export class RuleConflictDetectionService {
 
                 if (
                     (cond1.operator === ComparisonOperator.IN && cond2.operator === ComparisonOperator.IN) &&
-                    this.arraysIntersect(cond1.value as any[], cond2.value as any[])
+                    this.arraysIntersect(cond1.value as unknown[], cond2.value as unknown[])
                 ) {
                     return true;
                 }

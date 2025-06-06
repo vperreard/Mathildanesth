@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { Rule } from '@/modules/rules/types/rule';
 import { connectToDatabase } from '@/lib/mongodb';
 import { v4 as uuidv4 } from 'uuid';
@@ -17,8 +18,8 @@ export async function GET(req: NextRequest) {
         const rules = await collection.find(query).toArray();
 
         return NextResponse.json(rules);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des règles:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la récupération des règles:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des règles' },
             { status: 500 }
@@ -59,8 +60,8 @@ export async function POST(req: NextRequest) {
         await collection.insertOne(newRule);
 
         return NextResponse.json(newRule, { status: 201 });
-    } catch (error) {
-        console.error('Erreur lors de la création de la règle:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur lors de la création de la règle:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la création de la règle' },
             { status: 500 }

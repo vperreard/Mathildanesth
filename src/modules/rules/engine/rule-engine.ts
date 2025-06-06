@@ -35,7 +35,7 @@ export interface RuleSolver {
 export interface Resolution {
     type: 'SUGGEST_CHANGE' | 'OVERRIDE' | 'REJECT';
     message: string;
-    suggestedChanges?: any;
+    suggestedChanges?: unknown;
 }
 
 /**

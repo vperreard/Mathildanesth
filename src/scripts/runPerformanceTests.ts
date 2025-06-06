@@ -33,7 +33,7 @@ const checkServerAvailability = async (url: string): Promise<boolean> => {
     try {
         const response = await fetch(url, { method: 'HEAD' });
         return response.ok;
-    } catch (error) {
+    } catch (error: unknown) {
         return false;
     }
 };
@@ -105,7 +105,7 @@ async function runPerformanceTest() {
                 status: response.status
             });
 
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error(`Erreur lors de l'exécution du scénario ${scenario.name}`, {
                 error: error instanceof Error ? error.message : 'Unknown error',
                 url: `${serverUrl}${scenario.url}`

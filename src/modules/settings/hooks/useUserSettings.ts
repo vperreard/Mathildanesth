@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from "../../../lib/logger";
 import { UserCalendarSettings } from '../../calendrier/types/event';
 
 interface UseUserSettingsReturn {
@@ -52,8 +53,8 @@ export function useUserSettings(userId?: string): UseUserSettingsReturn {
                     try {
                         const parsedSettings = JSON.parse(storedSettings);
                         setSettings(prev => ({ ...prev, ...parsedSettings }));
-                    } catch (e) {
-                        console.error("Erreur lors du parsing des préférences utilisateur", e);
+                    } catch (e: unknown) {
+                        logger.error("Erreur lors du parsing des préférences utilisateur", e);
                     }
                 }
 
@@ -61,7 +62,7 @@ export function useUserSettings(userId?: string): UseUserSettingsReturn {
                 await new Promise(resolve => setTimeout(resolve, 100));
 
                 setLoading(false);
-            } catch (err) {
+            } catch (err: unknown) {
                 setError(err instanceof Error ? err : new Error('Erreur lors du chargement des préférences'));
                 setLoading(false);
             }
@@ -86,7 +87,7 @@ export function useUserSettings(userId?: string): UseUserSettingsReturn {
             await new Promise(resolve => setTimeout(resolve, 100));
 
             return Promise.resolve();
-        } catch (err) {
+        } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la sauvegarde des préférences'));
             return Promise.reject(err);
         }

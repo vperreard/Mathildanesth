@@ -2,7 +2,9 @@
 
 import React, { useCallback, useMemo, memo } from 'react';
 import { VariableSizeGrid as Grid } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
+// TODO: Install react-virtualized-auto-sizer or use alternative
+// // TODO: Install react-virtualized-auto-sizer or use alternative
+// import AutoSizer from 'react-virtualized-auto-sizer';
 import { Attribution } from '@/types/attribution';
 import { User } from '@/types/user';
 import { format, startOfWeek, addDays, isSameDay } from 'date-fns';

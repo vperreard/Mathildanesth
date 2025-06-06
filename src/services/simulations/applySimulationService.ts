@@ -1,4 +1,5 @@
 import { PrismaClient, SimulationStatus, Attribution, Leave } from '@prisma/client';
+import { logger } from "../../lib/logger";
 import { simulationNotificationService } from './notificationService';
 
 import { prisma } from "@/lib/prisma";
@@ -27,7 +28,7 @@ export interface ApplySimulationResult {
     assignmentsCreated: number;
     assignmentsUpdated: number;
     leavesCreated: number;
-    conflicts: any[];
+    conflicts: unknown[];
     date: string;
     message?: string;
     error?: string;
@@ -117,8 +118,8 @@ export class ApplySimulationService {
             );
 
             return result;
-        } catch (error) {
-            console.error('Erreur lors de l\'application de la simulation:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de l\'application de la simulation:', { error: error });
 
             const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
 
@@ -162,7 +163,7 @@ export class ApplySimulationService {
      * Extrait les gardes/vacations à partir des résultats de simulation
      */
     private async extractAssignmentsFromSimulation(
-        resultData: any,
+        resultData: unknown,
         scenarioId: string
     ): Promise<Partial<Attribution>[]> {
         // Vérifier si les données de simulation contiennent des gardes/vacations
@@ -172,7 +173,7 @@ export class ApplySimulationService {
         }
 
         // Conversion des gardes/vacations simulées en gardes/vacations réelles
-        return resultData.attributions.map((simAssignment: any) => {
+        return resultData.attributions.map((simAssignment: unknown) => {
             return {
                 userId: simAssignment.userId,
                 date: new Date(simAssignment.date),
@@ -191,7 +192,7 @@ export class ApplySimulationService {
      * Méthode alternative d'extraction des gardes/vacations
      * pour les formats de données différents
      */
-    private extractAssignmentsAlternative(resultData: any, scenarioId: string): Partial<Attribution>[] {
+    private extractAssignmentsAlternative(resultData: unknown, scenarioId: string): Partial<Attribution>[] {
         const attributions: Partial<Attribution>[] = [];
 
         // Extraire à partir de la distribution des postes si disponible
@@ -200,7 +201,7 @@ export class ApplySimulationService {
             const days = resultData.simulatedPeriod.totalDays || 7;
 
             // Pour chaque utilisateur dans la distribution
-            resultData.shiftDistribution.forEach((userShift: any) => {
+            resultData.shiftDistribution.forEach((userShift: unknown) => {
                 if (!userShift.userName) return;
 
                 // Trouver l'ID utilisateur à partir du nom (simplification - dans un cas réel, il faudrait une requête DB)
@@ -249,7 +250,7 @@ export class ApplySimulationService {
     /**
      * Extrait les congés à partir des résultats de simulation
      */
-    private async extractLeavesFromSimulation(resultData: any): Promise<Partial<Leave>[]> {
+    private async extractLeavesFromSimulation(resultData: unknown): Promise<Partial<Leave>[]> {
         // Si les données ne contiennent pas de détails sur les congés
         if (!resultData.leaveRequests || !resultData.leaveRequests.approved) {
             return [];
@@ -269,7 +270,7 @@ export class ApplySimulationService {
         assignmentsCount: number,
         leavesCount: number,
         notes?: string
-    ): Promise<any> {
+    ): Promise<unknown> {
         return await prisma.auditLog.create({
             data: {
                 userId: parseInt(userId),
@@ -291,11 +292,11 @@ export class ApplySimulationService {
     private async createAssignments(attributions: Partial<Attribution>[]): Promise<{
         created: number;
         updated: number;
-        conflicts: any[];
+        conflicts: unknown[];
     }> {
         let created = 0;
         let updated = 0;
-        const conflicts: any[] = [];
+        const conflicts: unknown[] = [];
 
         for (const attribution of attributions) {
             try {
@@ -325,8 +326,8 @@ export class ApplySimulationService {
                     });
                     created++;
                 }
-            } catch (error) {
-                console.error('Erreur lors de la création d\'une affectation:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors de la création d\'une affectation:', { error: error });
                 conflicts.push({
                     type: 'ASSIGNMENT_CREATION_ERROR',
                     attribution,
@@ -343,10 +344,10 @@ export class ApplySimulationService {
      */
     private async createLeaves(leaves: Partial<Leave>[]): Promise<{
         created: number;
-        conflicts: any[];
+        conflicts: unknown[];
     }> {
         let created = 0;
-        const conflicts: any[] = [];
+        const conflicts: unknown[] = [];
 
         for (const leave of leaves) {
             try {
@@ -355,8 +356,8 @@ export class ApplySimulationService {
                     data: leave as any
                 });
                 created++;
-            } catch (error) {
-                console.error('Erreur lors de la création d\'un congé:', error);
+            } catch (error: unknown) {
+                logger.error('Erreur lors de la création d\'un congé:', { error: error });
                 conflicts.push({
                     type: 'LEAVE_CREATION_ERROR',
                     leave,
@@ -398,8 +399,8 @@ export class ApplySimulationService {
             });
 
             // Vous pourriez également utiliser Pusher ou un autre mécanisme pour les notifications temps réel
-        } catch (error) {
-            console.error('Erreur lors de la notification d\'application de simulation:', error);
+        } catch (error: unknown) {
+            logger.error('Erreur lors de la notification d\'application de simulation:', { error: error });
         }
     }
 
@@ -431,8 +432,8 @@ export class ApplySimulationService {
                     data: { error }
                 }
             });
-        } catch (err) {
-            console.error('Erreur lors de la notification d\'erreur d\'application de simulation:', err);
+        } catch (err: unknown) {
+            logger.error('Erreur lors de la notification d\'erreur d\'application de simulation:', err);
         }
     }
 }

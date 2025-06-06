@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
 import { checkUserRole } from '@/lib/auth-server-utils';
 
@@ -36,8 +37,8 @@ export async function GET(
         }
 
         return NextResponse.json({ sites: user.sites });
-    } catch (error) {
-        console.error('Erreur GET /api/utilisateurs/[id]/sites:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur GET /api/utilisateurs/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }
@@ -92,8 +93,8 @@ export async function PUT(
             message: 'Sites mis à jour avec succès',
             user: updatedUser 
         });
-    } catch (error) {
-        console.error('Erreur PUT /api/utilisateurs/[id]/sites:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur PUT /api/utilisateurs/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }
@@ -137,8 +138,8 @@ export async function POST(
             message: 'Sites ajoutés avec succès',
             user: updatedUser 
         });
-    } catch (error) {
-        console.error('Erreur POST /api/utilisateurs/[id]/sites:', error);
+    } catch (error: unknown) {
+        logger.error('Erreur POST /api/utilisateurs/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }

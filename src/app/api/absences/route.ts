@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { z } from 'zod';
 import { LeaveType, LeaveStatus } from '@prisma/client';
 
@@ -35,8 +36,8 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(absences);
-  } catch (error) {
-    console.error('Erreur lors de la récupération des absences:', error);
+  } catch (error: unknown) {
+    logger.error('Erreur lors de la récupération des absences:', { error: error });
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -106,8 +107,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(absence, { status: 201 });
-  } catch (error) {
-    console.error("Erreur lors de la création de l'absence:", error);
+  } catch (error: unknown) {
+    logger.error("Erreur lors de la création de l'absence:", { error: error });
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }

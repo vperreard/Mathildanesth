@@ -21,8 +21,8 @@ interface Attribution {
     id?: number;
     roomId: number;
     supervisorId: number;
-    day: any;
-    period: any;
+    day: unknown;
+    period: unknown;
     activityType: string;
     conflicts: string[];
     isValid: boolean;

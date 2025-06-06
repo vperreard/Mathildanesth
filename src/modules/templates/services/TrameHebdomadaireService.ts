@@ -1,4 +1,5 @@
 import { TypeSemaine, JourSemaine, PeriodeJour } from "@/app/parametres/trameModeles/EditeurTramesHebdomadaires";
+import { logger } from "../../../lib/logger";
 import { RecurrenceTypeTrame, TypeSemaineTrame } from '@prisma/client';
 import { getClientAuthToken } from '@/lib/auth-client-utils';
 
@@ -50,9 +51,9 @@ export class TrameHebdomadaireService {
     private static API_BASE_URL = '/api/trameModele-modeles';
 
     private static getAuthHeaders(): HeadersInit {
-        console.log('[TrameHebdomadaireService] Entrée dans getAuthHeaders');
+        logger.info('[TrameHebdomadaireService] Entrée dans getAuthHeaders');
         const token = getClientAuthToken();
-        console.log('[TrameHebdomadaireService] Token récupéré par getClientAuthToken:', token);
+        logger.info('[TrameHebdomadaireService] Token récupéré par getClientAuthToken:', token);
         // Si on est en train de créer une session ou d'envoyer un form, on laisse credentials mettre le cookie
         // Sinon, on ajoute explicitement le token dans le header Authorization
         const headers: HeadersInit = {
@@ -61,9 +62,9 @@ export class TrameHebdomadaireService {
 
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
-            console.log('[TrameHebdomadaireService] Authorization header ajouté:', headers['Authorization']);
+            logger.info('[TrameHebdomadaireService] Authorization header ajouté:', headers['Authorization']);
         } else {
-            console.warn('[TrameHebdomadaireService] Aucun token trouvé dans localStorage');
+            logger.warn('[TrameHebdomadaireService] Aucun token trouvé dans localStorage');
         }
 
         return headers;
@@ -75,7 +76,7 @@ export class TrameHebdomadaireService {
     static async getAllTrames(): Promise<TrameHebdomadaireDTO[]> {
         try {
             const headers = this.getAuthHeaders();
-            console.log('[TrameHebdomadaireService] Appel à getAllTrames avec headers:', JSON.stringify(headers));
+            logger.info('[TrameHebdomadaireService] Appel à getAllTrames avec headers:', JSON.stringify(headers));
             const response = await fetch(`${this.API_BASE_URL}`, {
                 method: 'GET',
                 headers,
@@ -85,30 +86,30 @@ export class TrameHebdomadaireService {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    console.error('Erreur 401 (Non autorisé) pour getAllTrames. Vérifiez le token.');
+                    logger.error('Erreur 401 (Non autorisé) pour getAllTrames. Vérifiez le token.');
                 } else {
-                    console.warn(`Erreur API (${response.status}) lors de la récupération des trameModeles modèles. Retour d'un tableau vide.`);
+                    logger.warn(`Erreur API (${response.status}) lors de la récupération des trameModeles modèles. Retour d'un tableau vide.`);
                 }
                 return [];
             }
             const data = await response.json();
-            console.log('[TrameHebdomadaireService] Données brutes de /api/trameModele-modeles (getAllTrames):', JSON.stringify(data)); // LOG AJOUTÉ
+            logger.info('[TrameHebdomadaireService] Données brutes de /api/trameModele-modeles (getAllTrames):', JSON.stringify(data)); // LOG AJOUTÉ
 
             if (!Array.isArray(data)) {
-                console.error('Erreur: Les données reçues pour getAllTrames ne sont pas un tableau.', data);
+                logger.error('Erreur: Les données reçues pour getAllTrames ne sont pas un tableau.', data);
                 return [];
             }
 
             // Vérifier si les trameModeles ont des gardes/vacations
             const trameSample = data.length > 0 ? data[0] : null;
             if (trameSample) {
-                console.log(`[TrameHebdomadaireService] Premier élément a des gardes/vacations? ${trameSample.affectations !== undefined}`);
-                console.log(`[TrameHebdomadaireService] Premier élément - propriétés disponibles: ${Object.keys(trameSample).join(', ')}`);
+                logger.info(`[TrameHebdomadaireService] Premier élément a des gardes/vacations? ${trameSample.affectations !== undefined}`);
+                logger.info(`[TrameHebdomadaireService] Premier élément - propriétés disponibles: ${Object.keys(trameSample).join(', ')}`);
             }
 
             return data;
-        } catch (error) {
-            console.error("[TrameHebdomadaireService] Erreur lors de la récupération des trameModeles modèles (service catch getAllTrames):", error);
+        } catch (error: unknown) {
+            logger.error("[TrameHebdomadaireService] Erreur lors de la récupération des trameModeles modèles (service catch getAllTrames):", { error: error });
             return [];
         }
     }
@@ -127,18 +128,18 @@ export class TrameHebdomadaireService {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    console.error(`Erreur 401 (Non autorisé) pour getTrameById ${id}. Vérifiez le token.`);
+                    logger.error(`Erreur 401 (Non autorisé) pour getTrameById ${id}. Vérifiez le token.`);
                 } else if (response.status === 404) {
-                    console.warn(`Tableau de service modèle ${id} non trouvée (404).`);
+                    logger.warn(`Tableau de service modèle ${id} non trouvée (404).`);
                 } else {
-                    console.warn(`Erreur API (${response.status}) lors de la récupération de la trameModele modèle ${id}.`);
+                    logger.warn(`Erreur API (${response.status}) lors de la récupération de la trameModele modèle ${id}.`);
                 }
                 return null;
             }
             // On pourrait ajouter une validation de la structure de l'objet ici si nécessaire
             return await response.json();
-        } catch (error) {
-            console.error(`Erreur lors de la récupération de la trameModele modèle ${id} (service):`, error);
+        } catch (error: unknown) {
+            logger.error(`Erreur lors de la récupération de la trameModele modèle ${id} (service):`, { error: error });
             return null;
         }
     }
@@ -146,8 +147,8 @@ export class TrameHebdomadaireService {
     /**
      * Crée une nouvelle trameModele modèle
      */
-    static async createTrame(trameClientData: Omit<TrameHebdomadaireDTO, 'id' | 'gardes/vacations'>): Promise<any> {
-        console.log('[TrameHebdomadaireService] Entrée dans createTrame avec données:', trameClientData);
+    static async createTrame(trameClientData: Omit<TrameHebdomadaireDTO, 'id' | 'gardes/vacations'>): Promise<unknown> {
+        logger.info('[TrameHebdomadaireService] Entrée dans createTrame avec données:', trameClientData);
         let typeSemaineApi: TypeSemaineTrame;
         switch (trameClientData.typeSemaine) {
             case TypeSemaine.PAIRE:
@@ -175,8 +176,8 @@ export class TrameHebdomadaireService {
 
         try {
             const headers = this.getAuthHeaders();
-            console.log('[TrameHebdomadaireService] Création de trameModele avec payload:', JSON.stringify(payload));
-            console.log('[TrameHebdomadaireService] Headers pour createTrame:', JSON.stringify(headers));
+            logger.info('[TrameHebdomadaireService] Création de trameModele avec payload:', JSON.stringify(payload));
+            logger.info('[TrameHebdomadaireService] Headers pour createTrame:', JSON.stringify(headers));
 
             const response = await fetch(`${this.API_BASE_URL}`, {
                 method: 'POST',
@@ -188,12 +189,12 @@ export class TrameHebdomadaireService {
 
             if (!response.ok) {
                 const statusText = response.statusText;
-                console.error(`[TrameHebdomadaireService] Erreur ${response.status} (${statusText}) lors de la création`);
+                logger.error(`[TrameHebdomadaireService] Erreur ${response.status} (${statusText}) lors de la création`);
 
                 let errorBody;
                 try {
                     errorBody = await response.json();
-                } catch (e) {
+                } catch (e: unknown) {
                     errorBody = {
                         message: 'Réponse non JSON de l\'API ou erreur de parsing.',
                         details: statusText
@@ -201,22 +202,22 @@ export class TrameHebdomadaireService {
                 }
 
                 if (response.status === 409) {
-                    console.error('[TrameHebdomadaireService] Erreur API création trameModele modèle (409 Conflict):', errorBody);
+                    logger.error('[TrameHebdomadaireService] Erreur API création trameModele modèle (409 Conflict):', errorBody);
                     throw new Error(errorBody.message || 'Un modèle de trameModele avec ce nom existe déjà.');
                 } else if (response.status === 401) {
-                    console.error('[TrameHebdomadaireService] Erreur API création trameModele modèle (401 Unauthorized):', errorBody);
+                    logger.error('[TrameHebdomadaireService] Erreur API création trameModele modèle (401 Unauthorized):', errorBody);
                     throw new Error(errorBody.message || 'Action non autorisée. Vérifiez vos permissions ou reconnectez-vous.');
                 }
 
-                console.error('[TrameHebdomadaireService] Erreur API création trameModele modèle:', response.status, errorBody);
+                logger.error('[TrameHebdomadaireService] Erreur API création trameModele modèle:', response.status, errorBody);
                 throw new Error(`Erreur lors de la création de la trameModele modèle: ${response.status} - ${errorBody.message || statusText}`);
             }
 
             const result = await response.json();
-            console.log('[TrameHebdomadaireService] Tableau de service créée avec succès:', result);
+            logger.info('[TrameHebdomadaireService] Tableau de service créée avec succès:', result);
             return result;
-        } catch (error) {
-            console.error("Erreur lors de la création de la trameModele modèle (service catch):", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la création de la trameModele modèle (service catch):", { error: error });
             // Rethrow l'erreur pour qu'elle soit traitée par le composant appelant
             // Si l'erreur est déjà une instance de Error avec un message pertinent, la relancer telle quelle.
             // Sinon, encapsuler dans une nouvelle Error.
@@ -262,7 +263,7 @@ export class TrameHebdomadaireService {
 
         try {
             const headers = this.getAuthHeaders();
-            console.log('[TrameHebdomadaireService] Mise à jour de trameModele avec payload:', JSON.stringify(updatePayload));
+            logger.info('[TrameHebdomadaireService] Mise à jour de trameModele avec payload:', JSON.stringify(updatePayload));
 
             const response = await fetch(`${this.API_BASE_URL}/${id}`, {
                 method: 'PUT',
@@ -273,27 +274,27 @@ export class TrameHebdomadaireService {
 
             if (!response.ok) {
                 const statusText = response.statusText;
-                console.error(`[TrameHebdomadaireService] Erreur ${response.status} (${statusText}) lors de la mise à jour`);
+                logger.error(`[TrameHebdomadaireService] Erreur ${response.status} (${statusText}) lors de la mise à jour`);
 
                 let errorBody;
                 try {
                     errorBody = await response.json();
-                } catch (e) {
+                } catch (e: unknown) {
                     errorBody = {
                         message: 'Réponse non JSON de l\'API ou erreur de parsing.',
                         details: statusText
                     };
                 }
 
-                console.error('[TrameHebdomadaireService] Erreur API mise à jour trameModele modèle:', response.status, errorBody);
+                logger.error('[TrameHebdomadaireService] Erreur API mise à jour trameModele modèle:', response.status, errorBody);
                 throw new Error(`Erreur lors de la mise à jour de la trameModele modèle: ${response.status} - ${errorBody.message || statusText}`);
             }
 
             const result = await response.json();
-            console.log('[TrameHebdomadaireService] Tableau de service mise à jour avec succès:', result);
+            logger.info('[TrameHebdomadaireService] Tableau de service mise à jour avec succès:', result);
             return result;
-        } catch (error) {
-            console.error("Erreur lors de la mise à jour de la trameModele modèle (service catch):", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la mise à jour de la trameModele modèle (service catch):", { error: error });
             if (error instanceof Error) {
                 throw error;
             }
@@ -307,7 +308,7 @@ export class TrameHebdomadaireService {
     static async deleteTrame(id: string): Promise<boolean> {
         try {
             const headers = this.getAuthHeaders();
-            console.log('[TrameHebdomadaireService] Suppression de la trameModele modèle:', id);
+            logger.info('[TrameHebdomadaireService] Suppression de la trameModele modèle:', id);
 
             const response = await fetch(`${this.API_BASE_URL}/${id}`, {
                 method: 'DELETE',
@@ -317,34 +318,34 @@ export class TrameHebdomadaireService {
 
             if (!response.ok) {
                 const statusText = response.statusText;
-                console.error(`[TrameHebdomadaireService] Erreur ${response.status} (${statusText}) lors de la suppression`);
+                logger.error(`[TrameHebdomadaireService] Erreur ${response.status} (${statusText}) lors de la suppression`);
 
                 let errorBody;
                 try {
                     errorBody = await response.json();
-                } catch (e) {
+                } catch (e: unknown) {
                     errorBody = {
                         message: 'Réponse non JSON de l\'API ou erreur de parsing.',
                         details: statusText
                     };
                 }
 
-                console.error('[TrameHebdomadaireService] Erreur API suppression trameModele modèle:', response.status, errorBody);
+                logger.error('[TrameHebdomadaireService] Erreur API suppression trameModele modèle:', response.status, errorBody);
                 throw new Error(`Erreur lors de la suppression de la trameModele modèle: ${response.status} - ${errorBody.message || statusText}`);
             }
 
             // Si la réponse est un JSON, on peut la lire, sinon on retourne simplement true
             try {
                 const result = await response.json();
-                console.log('[TrameHebdomadaireService] Résultat de la suppression:', result);
+                logger.info('[TrameHebdomadaireService] Résultat de la suppression:', result);
                 return true;
-            } catch (e) {
+            } catch (e: unknown) {
                 // Si pas de JSON, c'est OK aussi (204 No Content)
-                console.log('[TrameHebdomadaireService] Tableau de service supprimée avec succès (pas de corps de réponse)');
+                logger.info('[TrameHebdomadaireService] Tableau de service supprimée avec succès (pas de corps de réponse)');
                 return true;
             }
-        } catch (error) {
-            console.error("Erreur lors de la suppression de la trameModele modèle (service catch):", error);
+        } catch (error: unknown) {
+            logger.error("Erreur lors de la suppression de la trameModele modèle (service catch):", { error: error });
             if (error instanceof Error) {
                 throw error;
             }
