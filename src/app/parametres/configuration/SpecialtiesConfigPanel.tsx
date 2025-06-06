@@ -232,9 +232,9 @@ const SpecialtiesConfigPanel: React.FC = () => {
                         {isSubmitting ? (
                             <span className="inline-block h-4 w-4 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin"></span>
                         ) : isEditing ? (
-                            null /* <CheckIcon className="h-4 w-4 mr-2" />
+                            null /* <CheckIcon className="h-4 w-4 mr-2" */ 
                         ) : (
-                            null /* <PlusIcon className="h-4 w-4 mr-2" />
+                            null /* <PlusIcon className="h-4 w-4 mr-2" */
                         )}
                         {isEditing ? 'Enregistrer' : 'Ajouter'}
                     </button>
@@ -315,7 +315,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
                                                     title="Supprimer"
                                                     disabled={linkedSurgeons.length > 0}
                                                 >
-                                                    }
+                                                    {/* <TrashIcon className={`h-4 w-4 ${linkedSurgeons.length > 0 ? 'opacity-30 cursor-not-allowed' : ''}`} /> */}
                                                 </button>
                                             </td>
                                         </tr>
