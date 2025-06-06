@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { logger } from "../../lib/logger";
 import { Card, Row, Col, Statistic, Progress, Divider, Typography, Tooltip, Alert, Skeleton } from 'antd';
-import { CalendarOutlined, ClockCircleOutlined, WarningOutlined, InfoCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
+// import { CalendarOutlined, ClockCircleOutlined, WarningOutlined, InfoCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { LeaveType } from '@/modules/leaves/types/leave';
 import { fetchLeaveBalance } from '@/modules/leaves/services/leaveService';
 

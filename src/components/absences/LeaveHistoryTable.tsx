@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { logger } from "../../lib/logger";
 import { Table, Tag, Typography, Button, Empty, Tooltip, Skeleton } from 'antd';
-import { SwapOutlined, CalendarOutlined, InfoCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, RightOutlined } from '@ant-design/icons';
+// import { SwapOutlined, CalendarOutlined, InfoCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, RightOutlined } from '@ant-design/icons';
 import {
     fetchTransferHistory,
     fetchCarryOverHistory

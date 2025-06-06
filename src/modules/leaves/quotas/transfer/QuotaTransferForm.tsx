@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Form, Select, InputNumber, Button, Alert, Card, Typography, Divider, Space, Row, Col, Steps, Statistic, Input, Tooltip, notification } from 'antd';
-import { SwapOutlined, InfoCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+// import { SwapOutlined, InfoCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { useQuotaTransfer, TransferPreviewResult } from './useQuotaTransfer';
 import { LeaveType } from '../../types/leave';
 import { QuotaTransferRequest } from '../../types/quota';

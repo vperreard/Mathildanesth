@@ -62,30 +62,32 @@ const DraggablePoste: React.FC<DraggablePosteProps> = ({
     onDelete,
     movePoste
 }) => {
-    // Configuration du drag and drop
-    const [{ isDragging }, dragRef] = useDrag({
-        type: POSTE_TYPE,
-        item: { index },
-        collect: (monitor) => ({
-            isDragging: monitor.isDragging()
-        })
-    });
+    // Configuration du drag and drop - temporarily disabled for migration
+    // const [{ isDragging }, dragRef] = useDrag({
+    //     type: POSTE_TYPE,
+    //     item: { index },
+    //     collect: (monitor) => ({
+    //         isDragging: monitor.isDragging()
+    //     })
+    // });
+    const isDragging = false;
+    const dragRef = () => {};
 
-    // TODO: Migrate useDrop to @hello-pangea/dnd
+    // TODO: Migrate useDrop to @hello-pangea/dnd - temporarily disabled
     // const [, dropRef] = useDrop({
-        accept: POSTE_TYPE,
-        // hover: (item: { index: number }) => { 
-            if (item.index !== index) {
-                movePoste(item.index, index);
-                item.index = index;
-             }
-        }
-    });
+    //     accept: POSTE_TYPE,
+    //     hover: (item: { index: number }) => { 
+    //         if (item.index !== index) {
+    //             movePoste(item.index, index);
+    //             item.index = index;
+    //          }
+    //     }
+    // });
 
-    // Combine drag and drop refs
+    // Combine drag and drop refs - temporarily simplified
     const ref = (node: HTMLDivElement | null) => {
         dragRef(node);
-        dropRef(node);
+        // dropRef(node); // TODO: restore when useDrop is fixed
     };
 
     return (
