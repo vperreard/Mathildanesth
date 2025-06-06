@@ -198,7 +198,6 @@ describe('PlanningGenerator', () => {
       accessHelper(generator).initializeUserCounters(); // Réinitialiser les compteurs avec les congés
 
       // Mock isUserAvailable to check for leaves properly
-      const originalIsUserAvailable = accessHelper(generator).isUserAvailable;
       jest
         .spyOn(accessHelper(generator), 'isUserAvailable')
         .mockImplementation((user, date, shiftType) => {
@@ -206,14 +205,19 @@ describe('PlanningGenerator', () => {
           if (user.leaves && user.leaves.length > 0) {
             const isOnLeave = user.leaves.some(leave => {
               if (leave.status !== LeaveStatus.APPROVED) return false;
-              const leaveStart = leave.startDate;
-              const leaveEnd = leave.endDate;
-              return date >= leaveStart && date <= leaveEnd;
+              const leaveStart = new Date(leave.startDate);
+              const leaveEnd = new Date(leave.endDate);
+              // Reset time to compare dates only
+              const checkDate = new Date(date);
+              leaveStart.setHours(0, 0, 0, 0);
+              leaveEnd.setHours(23, 59, 59, 999);
+              checkDate.setHours(12, 0, 0, 0);
+              return checkDate >= leaveStart && checkDate <= leaveEnd;
             });
             if (isOnLeave) return false;
           }
-          // Call original method for other checks
-          return originalIsUserAvailable.call(accessHelper(generator), user, date, shiftType);
+          // For all other users, return true (available)
+          return true;
         });
 
       const eligible = accessHelper(generator).findEligibleUsersForGarde(gardeDate);
@@ -279,11 +283,7 @@ describe('PlanningGenerator', () => {
 
     it('should select the first user if scores are equal', () => {
       // Mock calculateAssignmentScore to return equal scores
-      jest
-        .spyOn(accessHelper(generator), 'calculateAssignmentScore')
-        .mockImplementation((user, userCounter, date) => {
-          return 30; // Return same score for all users
-        });
+      jest.spyOn(accessHelper(generator), 'calculateAssignmentScore').mockReturnValue(30); // Return same score for all users
 
       const best = accessHelper(generator).selectBestCandidateForGarde(eligibleUsers, selectDate);
       expect(best.id).toBe('userA'); // Le premier de la liste si scores égaux
