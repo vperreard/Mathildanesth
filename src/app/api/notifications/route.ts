@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
 import { Prisma, NotificationType, Role } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { createNotification } from '@/lib/notifications';
 
 export async function GET(req: NextRequest) {

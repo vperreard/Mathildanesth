@@ -1,6 +1,6 @@
 import * as jose from 'jose';
 import { logger } from "./logger";
-import type { NextAuthOptions } from 'next-auth';
+import type { NextAuthOptions } from '@/lib/auth/migration-shim';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';

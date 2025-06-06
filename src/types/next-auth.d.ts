@@ -1,6 +1,6 @@
-import { DefaultSession, User as DefaultUser } from 'next-auth';
+import { DefaultSession, User as DefaultUser } from '@/lib/auth/migration-shim';
 import { Role } from '@prisma/client';
-import { JWT as DefaultJWT } from 'next-auth/jwt';
+import { JWT as DefaultJWT } from '@/lib/auth/migration-shim';
 
 declare module 'next-auth' {
     /**

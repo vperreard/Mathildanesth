@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { BusinessRulesValidator } from '@/services/businessRulesValidator';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 // Schéma de validation pour les paramètres de requête
 const querySchema = z.object({

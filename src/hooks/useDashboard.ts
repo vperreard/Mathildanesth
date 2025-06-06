@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { logger } from "../lib/logger";
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/migration-shim';
 import { dashboardService, DashboardData } from '@/services/dashboardService';
 import { Widget } from '@/types/dashboard';
 import { useErrorHandler } from './useErrorHandler';

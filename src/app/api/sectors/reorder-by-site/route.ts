@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { Prisma, Role } from '@prisma/client';
 import { z } from 'zod';
 import { headers } from 'next/headers';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 // Schéma de validation pour les données entrantes
 const reorderPayloadSchema = z.object({
@@ -21,7 +23,8 @@ export async function POST(request: NextRequest) {
 
     // Récupérer les en-têtes directement depuis l'objet request
     const userRole = request.headers.get('x-user-role');
-    const userId = request.headers.get('x-user-id'); // Optionnel, mais peut être utile
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id; // Optionnel, mais peut être utile
 
     // Logs pour déboguer ce qu'on récupère des en-têtes
     logger.info("POST /api/sectors/reorder-by-site - Headers from middleware:");
@@ -115,7 +118,8 @@ export async function GET(request: NextRequest) {
     logger.info("🔍 GET /api/sectors/reorder-by-site - Diagnostic");
 
     const userRole = request.headers.get('x-user-role');
-    const userId = request.headers.get('x-user-id');
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
 
     return NextResponse.json({
         message: "Diagnostic des en-têtes",

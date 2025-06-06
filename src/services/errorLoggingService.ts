@@ -119,7 +119,10 @@ function setupUnloadListener() {
                         logger.warn('sendBeacon failed to queue errors on unload.');
                     }
                 } catch (error: unknown) {
-                    logger.error('Error using sendBeacon on unload:', error instanceof Error ? error : new Error(String(error)));
+                    logger.error('Error using sendBeacon on unload:', {
+                        error: error instanceof Error ? error.message : String(error),
+                        stack: error instanceof Error ? error.stack : undefined
+                    });
                 }
             }
         });

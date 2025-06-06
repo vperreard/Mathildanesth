@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
 import { PrismaClient, Prisma } from '@prisma/client';
 import { headers } from 'next/headers';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 import { prisma } from "@/lib/prisma";
 
@@ -29,15 +31,13 @@ function parseRules(rulesJson: Prisma.JsonValue): { maxRoomsPerSupervisor: numbe
 export async function GET(request: NextRequest) {
     logger.info("\n--- GET /api/sectors START (Prisma - operatingSector - JSON Rules) ---");
     try {
-        const requestHeaders = await headers();
-        const userId = requestHeaders.get('x-user-id');
-        const userRole = requestHeaders.get('x-user-role');
-        logger.info("GET /api/sectors - Reading Middleware Headers:", { userId, userRole });
-
-        if (!userId || !userRole) {
-            logger.error('GET /api/sectors: Unauthorized (Middleware headers missing)');
-            return NextResponse.json({ error: 'Non autorisé - Headers manquants' }, { status: 401 });
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            logger.error('GET /api/sectors: Unauthorized');
+            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
+        const userId = session.user.id.toString();
+        const userRole = session.user.role;
 
         logger.info(`GET /api/sectors: Auth check passed (Middleware)! User ID: ${userId}, Role: ${userRole}`);
         logger.info('GET /api/sectors: Retrieving sectors from DB using operatingSector model...');

@@ -12,6 +12,8 @@ import ical from 'ical-generator';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import * as ExcelJS from 'exceljs';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 // Fonction pour obtenir un chemin de fichier temporaire
 const getTempFilePath = (extension: string): string => {

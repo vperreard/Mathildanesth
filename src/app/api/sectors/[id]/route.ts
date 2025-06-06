@@ -4,6 +4,8 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import { headers } from 'next/headers';
 
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 // Fonction utilitaire partagée (identique à l'autre fichier)
 function parseRules(rulesJson: Prisma.JsonValue): { maxRoomsPerSupervisor: number } {

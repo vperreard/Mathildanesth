@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
 // import { prisma } from '@/lib/prisma'; // Utiliser l'instance partagée
 import { prisma } from '@/lib/prisma'; // Importation nommée
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions'; // Ajustez le chemin si nécessaire
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim'; // Ajustez le chemin si nécessaire
 import { createNotification } from '@/lib/notifications'; // Ajouté
 import { NotificationType } from '@prisma/client'; // Ajouté
 import { emitNewContextualMessage } from '@/lib/socket'; // Ajout pour WebSockets

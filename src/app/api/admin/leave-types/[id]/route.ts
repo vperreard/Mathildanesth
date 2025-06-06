@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
 import { PrismaClient, User } from '@prisma/client';
-// import { getServerSession } from 'next-auth/next'; // Ancien import
-import { getServerSession } from "next-auth"; // Nouvel import
-// import { authOptions } from '@/lib/auth'; // <--- Chemin potentiellement incorrect, commenté temporairement
+// import { getServerSession } from '@/lib/auth/migration-shim'; // Ancien import
+import { getServerSession } from '@/lib/auth/migration-shim'; // Nouvel import
+// import { authOptions } from '@/lib/auth/migration-shim'; // <--- Chemin potentiellement incorrect, commenté temporairement
 
 import { prisma } from "@/lib/prisma";
 

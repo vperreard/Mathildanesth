@@ -1,9 +1,9 @@
-import { NextAuthOptions } from 'next-auth';
+import { NextAuthOptions } from '@/lib/auth/migration-shim';
 import { logger } from "../logger";
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaClient, Role } from '@prisma/client';
 import { compare } from 'bcryptjs';
-import { JWT } from 'next-auth/jwt';
+import { JWT } from '@/lib/auth/migration-shim';
 import crypto from 'crypto';
 
 import { prisma } from '@/lib/prisma';

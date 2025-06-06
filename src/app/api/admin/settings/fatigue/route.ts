@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
-// import { getSession } from 'next-auth/react'; // Commenté car nous utilisons les headers
+// // getSession remplacé - utiliser getServerSession côté serveur ou useAuth côté client; // Commenté car nous utilisons les headers
 import { headers as nextHeaders } from 'next/headers'; // Renommer pour éviter conflit potentiel
 // import { getCurrentUser } from '@/lib/auth/session'; // Supposons une fonction pour obtenir l'utilisateur côté serveur
 // Chemin relatif corrigé pour pointer vers config/seed-config.js à la racine

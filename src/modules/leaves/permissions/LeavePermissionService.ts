@@ -7,7 +7,7 @@ import { User } from '@/types/user';
 import { logger } from "../../../lib/logger";
 import { eventBus, IntegrationEventType } from '../../integration/services/EventBusService';
 import { auditService, AuditActionType, AuditSeverity } from '../services/AuditService';
-import { getSession } from 'next-auth/react';
+// getSession remplacé - utiliser getServerSession côté serveur ou useAuth côté client;
 import { PermissionCacheService } from '../../../modules/leaves/permissions/PermissionCacheService';
 
 /**

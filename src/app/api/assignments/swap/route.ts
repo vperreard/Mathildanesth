@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
 import { PrismaClient, AssignmentSwapStatus } from '@prisma/client';
-import { verifyAuthToken } from '@/lib/auth-server-utils';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/assignment-notification-utils';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
@@ -24,13 +25,12 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    const authResult = await verifyAuthToken(token);
-    if (!authResult.authenticated) {
-        logger.error("GET /api/affectations/echange: Token invalide");
-        return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    const userId = authResult.userId;
+    const userId = session.user.id;
     const { searchParams } = new URL(request.url);
 
     try {
@@ -142,13 +142,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    const authResult = await verifyAuthToken(token);
-    if (!authResult.authenticated) {
-        logger.error("POST /api/affectations/echange: Token invalide");
-        return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    const initiatorUserId = authResult.userId;
+    const initiatorUserId = session.user.id;
 
     try {
         const body = await request.json();

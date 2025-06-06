@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { logger } from "../../../lib/logger";
 import { BlocPlanningStatus } from '@/modules/planning/bloc-operatoire/models/BlocModels';
-import { getSession } from 'next-auth/react';
+// getSession remplacé - utiliser getServerSession côté serveur ou useAuth côté client;
 import { notifyUsers } from '@/modules/notifications/services/notificationService';
 
 export interface AuditLogEntry {

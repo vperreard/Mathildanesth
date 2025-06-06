@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { Calendar, Users, ClipboardCheck, PieChart, Settings } from 'lucide-react';
 import { LeaveNotificationCenter } from './LeaveNotificationCenter';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/migration-shim';
 
 /**
  * En-tête du module de congés

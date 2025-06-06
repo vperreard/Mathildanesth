@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { logger } from "../../lib/logger";
 import { toast } from 'sonner';
 import { subscribeToChannel } from '../../lib/pusher';
-// import { getSession } from 'next-auth/react'; // Temporairement désactivé
+// // getSession remplacé - utiliser getServerSession côté serveur ou useAuth côté client; // Temporairement désactivé
 import { SimulationEvent } from '../../types/simulation-notifications';
 import { Bell, Clock, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { Progress } from '../ui/progress';

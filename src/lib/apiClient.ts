@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { logger } from "./logger";
-import { getSession } from 'next-auth/react';
+// getSession remplacé - utiliser getServerSession côté serveur ou useAuth côté client;
 
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({

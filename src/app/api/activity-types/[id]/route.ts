@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-// import { getToken } from 'next-auth/jwt'; // Mis en commentaire temporairement
+// import { getToken } from '@/lib/auth/migration-shim'; // Mis en commentaire temporairement
 import jwt from 'jsonwebtoken'; // AJOUT
 import { ActivityType, Prisma } from '@prisma/client';
 

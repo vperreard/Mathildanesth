@@ -3,7 +3,9 @@ import { NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
 import bcrypt from 'bcrypt';
 import { headers } from 'next/headers'; // Pour récupérer l'ID utilisateur depuis le middleware
-import { verifyToken } from '@/lib/auth'; // Alias path
+import { verifyToken } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim'; // Alias path
 
 // const prisma = prisma; // Supprimé
 

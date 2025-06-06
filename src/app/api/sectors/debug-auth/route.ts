@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { logger } from "@/lib/logger";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 export async function GET(request: NextRequest) {
     logger.info("🔍 Debug Auth - Requête reçue");
 
     const userRole = request.headers.get('x-user-role');
-    const userId = request.headers.get('x-user-id');
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
     const authCookie = request.cookies.get('auth_token');
 
     return NextResponse.json({

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/migration-shim';
 import { WorkSchedule, WorkFrequency, WeekType } from '../types/workSchedule';
 import { getLogger } from '@/utils/logger';
 

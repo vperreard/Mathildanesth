@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
 import { prisma } from '@/lib/prisma';
-import { verifyAuthToken } from '@/lib/auth-utils';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { headers } from 'next/headers';
 
 
@@ -13,17 +14,9 @@ interface SectorOrder {
 export async function POST(request: NextRequest) {
     try {
         // Vérifier l'authentification
-        const authResult = await verifyAuthToken();
-
-        if (!authResult.authenticated) {
-            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
-            const headersList = await headers();
-            const userRole = headersList.get('x-user-role');
-
-            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
-                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-            }
-            logger.info('[DEV MODE] Authentification par en-tête uniquement pour POST /api/sectors/reorder');
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
         // Récupérer les données

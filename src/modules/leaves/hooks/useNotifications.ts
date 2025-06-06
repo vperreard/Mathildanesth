@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { logger } from "../../../lib/logger";
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/migration-shim';
 import { leaveNotificationService } from '../services/notificationService';
 import {
     LeaveNotificationType,

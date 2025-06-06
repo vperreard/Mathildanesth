@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
 import { PrismaClient, AssignmentSwapStatus } from '@prisma/client';
-import { verifyAuthToken } from '@/lib/auth-server-utils';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/assignment-notification-utils';
 
 import { prisma } from "@/lib/prisma";
@@ -27,15 +28,14 @@ export async function PUT(
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    const authResult = await verifyAuthToken(token);
-    if (!authResult.authenticated) {
-        logger.error(`PUT /api/affectations/echange/${id}/admin: Token invalide`);
-        return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     // Vérifier que l'utilisateur est administrateur
-    const userId = authResult.userId;
-    const isAdmin = authResult.role === 'ADMIN_TOTAL' || authResult.role === 'ADMIN_PARTIEL';
+    const userId = session.user.id;
+    const isAdmin = session.user.role === 'ADMIN_TOTAL' || session.user.role === 'ADMIN_PARTIEL';
 
     if (!isAdmin) {
         logger.warn(`PUT /api/affectations/echange/${id}/admin: Utilisateur ${userId} n'est pas administrateur`);

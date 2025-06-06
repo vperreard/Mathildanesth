@@ -3,8 +3,8 @@ import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 import { LeaveStatus, LeaveType as PrismaLeaveType } from '@prisma/client';
 import { withAuth, SecurityChecks } from '@/middleware/authorization';
-import { auth } from '@/lib/auth';
-import { verifyAuthToken } from '@/lib/auth-server-utils';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { BusinessRulesValidator } from '@/services/businessRulesValidator';
 import { withSensitiveRateLimit } from '@/lib/rateLimit';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
@@ -63,30 +63,17 @@ async function getHandler(request: NextRequest) {
       return NextResponse.json({ error: 'Le paramètre userId est manquant' }, { status: 400 });
     }
 
-    // Vérifier les permissions de l'utilisateur
-    const authHeader = request.headers.get('authorization');
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
-
-    if (!token) {
-      logger.warn("Tentative d'accès sans token", { path: '/api/conges', userId });
+    // Vérifier l'authentification avec le shim
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      logger.warn("Tentative d'accès sans authentification", { path: '/api/conges', userId });
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const authResult = await verifyAuthToken(token);
-    if (!authResult.authenticated) {
-      logger.warn('Token invalide', { path: '/api/conges', userId });
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    // Récupérer l'utilisateur authentifié
-    const authenticatedUser = await prisma.user.findUnique({
-      where: { id: authResult.userId },
-      select: { id: true, role: true },
-    });
-
-    if (!authenticatedUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 403 });
-    }
+    const authenticatedUser = {
+      id: session.user.id,
+      role: session.user.role,
+    };
 
     // Vérifier les permissions : l'utilisateur peut voir ses propres congés ou être admin
     const targetUserId = parseInt(userId, 10);

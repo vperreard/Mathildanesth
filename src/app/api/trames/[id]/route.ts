@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
-import { verifyAuthToken } from '@/lib/auth-utils';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { headers } from 'next/headers';
@@ -59,14 +60,9 @@ export async function GET(
     const { id } = await params;
     try {
         // Vérifier l'authentification
-        const authResult = await verifyAuthToken();
-        if (!authResult.authenticated) {
-            const headersList = await headers();
-            const userRole = headersList.get('x-user-role');
-            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
-                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-            }
-            logger.info(`[DEV MODE] Authentification par en-tête uniquement pour GET /api/trameModeles/${id}`);
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
         const trameModele = await prisma.trameAffectation.findUnique({
@@ -93,6 +89,7 @@ export async function GET(
         if (!trameModele) {
             return NextResponse.json({ error: 'TrameModele non trouvée' }, { status: 404 });
         }
+
         return NextResponse.json(trameModele);
 
     } catch (error: unknown) {
@@ -111,14 +108,9 @@ export async function PUT(
 ) {
     const { id: trameIdToUpdate } = await Promise.resolve(params);
     try {
-        const authResult = await verifyAuthToken();
-        if (!authResult.authenticated) {
-            const headersList = await headers();
-            const userRole = headersList.get('x-user-role');
-            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
-                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-            }
-            logger.info(`[DEV MODE] Authentification par en-tête pour PUT /api/trameModeles/${trameIdToUpdate}`);
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
         const body = await parseRequestBody(request) as TramePutRequestBody | null;
@@ -358,13 +350,15 @@ export async function PUT(
         return NextResponse.json(updatedTrame);
 
     } catch (error: unknown) {
-        if (error.code === 'P2025') {
+        if ((error as any).code === 'P2025') {
             return NextResponse.json({ error: `TrameModele avec ID ${trameIdToUpdate} non trouvée.` }, { status: 404 });
         }
+
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             logger.error(`Erreur Prisma lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error.message, error.code, error.meta);
             return NextResponse.json({ error: 'Erreur base de données lors de la mise à jour.', details: error.message }, { status: 500 });
         }
+
         logger.error(`Erreur générique lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur lors de la mise à jour de la trameModele.', details: error.message || 'Erreur inconnue' },
@@ -380,14 +374,9 @@ export async function DELETE(
 ) {
     const { id } = await params;
     try {
-        const authResult = await verifyAuthToken();
-        if (!authResult.authenticated) {
-            const headersList = await headers();
-            const userRole = headersList.get('x-user-role');
-            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
-                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-            }
-            logger.info(`[DEV MODE] Authentification par en-tête uniquement pour DELETE /api/trameModeles/${id}`);
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
         const existingTrame = await prisma.trameAffectation.findUnique({ where: { id } });
@@ -402,9 +391,10 @@ export async function DELETE(
         return NextResponse.json({ message: 'TrameModele supprimée avec succès' }, { status: 200 });
 
     } catch (error: unknown) {
-        if (error.code === 'P2025') {
+        if ((error as any).code === 'P2025') {
             return NextResponse.json({ error: 'TrameModele non trouvée pour la suppression' }, { status: 404 });
         }
+
         logger.error(`Erreur lors de la suppression de la trameModele ${id}:`, error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
             { error: 'Erreur serveur lors de la suppression de la trameModele' },

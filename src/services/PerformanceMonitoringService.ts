@@ -258,7 +258,10 @@ class PerformanceMonitoringService {
         })
       });
     } catch (error: unknown) {
-      logger.error('Failed to send performance alert:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Failed to send performance alert:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
     }
   }
 

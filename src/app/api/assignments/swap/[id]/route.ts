@@ -5,6 +5,8 @@ import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/assignment-notification-utils';
 
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 
 /**
  * GET /api/affectations/echange/[id]

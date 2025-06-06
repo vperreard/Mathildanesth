@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { logger } from "../lib/logger";
 import { toast } from 'react-toastify';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/migration-shim-client';
 import { createAuthHeaders } from '@/lib/auth-helpers';
 
 export interface NotificationPreferences {

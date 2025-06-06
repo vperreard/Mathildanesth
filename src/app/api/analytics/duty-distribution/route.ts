@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
 import { analyticsService } from '@/modules/analytics/services/analyticsService';
 import { ActivityCategory, ProfessionalRole } from '@prisma/client'; // Import enums
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { getGuardDutyDistributionStats } from '@/services/analyticsService';
 
 export async function GET(request: NextRequest) {

@@ -10,8 +10,8 @@ import {
   Skill,
   Role,
 } from '@prisma/client';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { z } from 'zod';
 
 // Importer les types et services nécessaires

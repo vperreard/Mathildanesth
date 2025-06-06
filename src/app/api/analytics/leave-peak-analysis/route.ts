@@ -5,8 +5,8 @@ import {
   LeavePeakAggregationUnit,
 } from '@/modules/analytics/services/analyticsService';
 import { LeaveType } from '@prisma/client';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { getLeavePeakAnalysis } from '@/services/analyticsService';
 
 export async function GET(request: NextRequest) {

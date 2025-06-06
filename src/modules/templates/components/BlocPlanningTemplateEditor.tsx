@@ -791,7 +791,10 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
             toast.success("Tableau de service sauvegardée avec succès !");
             setIsModified(false);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la sauvegarde de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la sauvegarde de la tableau de service:', { 
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined
+            });
             setErrors({ save: 'Erreur lors de la sauvegarde de la trameModele' });
         } finally {
             setIsLoading(false);

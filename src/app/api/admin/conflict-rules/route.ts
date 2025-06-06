@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
 import { PrismaClient, User } from '@prisma/client';
-import { getServerSession } from "next-auth";
+import { getServerSession } from '@/lib/auth/migration-shim';
 
 import { prisma } from "@/lib/prisma";
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getServerSession } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim';
 import { ConflictDetector } from '@/modules/dynamicRules/v2/services/ConflictDetector';
 import { RuleV2 } from '@/modules/dynamicRules/v2/types/ruleV2.types';
 import { z } from 'zod';

@@ -20,7 +20,7 @@ import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
 import Input from "@/components/ui/input";
 import { toast as hotToast } from 'react-hot-toast';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/migration-shim-client';
 import SimpleDropdownMenu from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
