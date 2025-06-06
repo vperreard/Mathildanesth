@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { logger } from "../logger";
-import { getServerSession, Session } from '@/lib/auth/migration-shim';
-import { authOptions } from '@/lib/auth/migration-shim';
+import { getServerSession, Session } from '@/lib/auth/migration-shim-client';
+import { authOptions } from '@/lib/auth/migration-shim-client';
 import { Role } from '@prisma/client';
 
 // Utiliser directement l'enum Role de Prisma

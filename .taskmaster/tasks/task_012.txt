@@ -1,0 +1,15 @@
+# Task ID: 12
+# Title: PWA et support mobile
+# Status: pending
+# Dependencies: 9
+# Priority: low
+# Description: Transformer l'app en Progressive Web App avec support offline
+# Details:
+1. Service Worker avec stratégies cache
+2. Manifest.json complet
+3. UI mobile optimisée
+4. Sync offline
+5. Push notifications
+
+# Test Strategy:
+Tests PWA Lighthouse, tests offline, tests appareils réels

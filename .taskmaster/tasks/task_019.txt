@@ -1,0 +1,18 @@
+# Task ID: 19
+# Title: Nettoyer les dépendances redondantes
+# Status: pending
+# Dependencies: 13
+# Priority: medium
+# Description: Identifier et supprimer les packages dupliqués ou inutilisés pour réduire la taille node_modules
+# Details:
+Plusieurs dépendances semblent redondantes :
+- react-beautiful-dnd ET @hello-pangea/dnd (même fonctionnalité)
+- Multiple bibliothèques de drag-and-drop (@dnd-kit/*, react-dnd)
+- Plusieurs bibliothèques UI (MUI, Ant Design, Radix UI, Headless UI)
+- Multiples outils de dates (date-fns, react-datepicker, react-day-picker)
+- Analyser l'utilisation réelle de chaque package
+- Supprimer les packages non utilisés
+- Standardiser sur une seule bibliothèque par fonctionnalité
+
+# Test Strategy:
+

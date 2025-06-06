@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { logger } from "../lib/logger";
-import { useSession } from '@/lib/auth/migration-shim';
+import { useSession } from '@/lib/auth/migration-shim-client';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { MessageCircle, Edit2, Trash2, Send, X, MessageSquare, Reply, AlertTriangle } from 'lucide-react';

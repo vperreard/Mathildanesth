@@ -1,0 +1,19 @@
+# Task ID: 17
+# Title: Optimiser le bundle et les performances
+# Status: pending
+# Dependencies: 8
+# Priority: medium
+# Description: Utiliser les outils d'analyse existants pour réduire la taille du bundle et améliorer les performances de chargement
+# Details:
+Le projet a déjà plusieurs outils d'analyse de performance :
+- @next/bundle-analyzer pour l'analyse du bundle
+- webpack-bundle-analyzer pour les détails webpack
+- Scripts performance:analyze et performance:budget
+- lighthouse et @cypress-audit/lighthouse pour les audits
+- Analyser le bundle actuel et identifier les optimisations
+- Implémenter le code splitting et lazy loading
+- Optimiser les images avec Sharp
+- Configurer le budget de performance
+
+# Test Strategy:
+

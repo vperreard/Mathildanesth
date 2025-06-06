@@ -1,0 +1,15 @@
+# Task ID: 8
+# Title: Optimiser les performances
+# Status: pending
+# Dependencies: 6
+# Priority: medium
+# Description: Améliorer les temps de chargement et implémenter le monitoring
+# Details:
+1. Profiler et optimiser les requêtes lentes
+2. Implémenter cache Redis correctement
+3. Lazy loading des modules lourds
+4. Monitoring avec Sentry/DataDog
+5. Dashboard performances
+
+# Test Strategy:
+Lighthouse > 90, Time to Interactive < 3s, monitoring actif

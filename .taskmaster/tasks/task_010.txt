@@ -1,0 +1,15 @@
+# Task ID: 10
+# Title: Développer les tableaux de bord analytiques
+# Status: pending
+# Dependencies: 8
+# Priority: low
+# Description: Créer des dashboards avec KPIs pour chefs de service
+# Details:
+1. Définition KPIs avec utilisateurs
+2. Agrégations performantes
+3. Graphiques interactifs (D3.js/Recharts)
+4. Export PDF/Excel
+5. Scheduling rapports auto
+
+# Test Strategy:
+Tests calculs métier, tests visuels, validation utilisateurs

@@ -1,0 +1,15 @@
+# Task ID: 4
+# Title: Augmenter la couverture de tests à 30%
+# Status: pending
+# Dependencies: 2, 3
+# Priority: high
+# Description: Écrire des tests pour les modules critiques pour passer de 1.22% à 30% minimum
+# Details:
+1. Tests unitaires pour auth (JWT, sessions)
+2. Tests services planning (génération, validation)
+3. Tests API routes critiques
+4. Tests composants UI principaux
+5. Tests d'intégration leaves/planning
+
+# Test Strategy:
+Coverage > 30% sur statements, branches, functions et lines

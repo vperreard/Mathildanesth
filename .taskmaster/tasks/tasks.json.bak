@@ -1,0 +1,128 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Corriger le build cassé (URGENT)",
+      "description": "Résoudre les erreurs de build Next.js, notamment les problèmes de routes API et Edge Runtime avec Redis",
+      "status": "completed",
+      "dependencies": [],
+      "priority": "high",
+      "details": "1. ✅ Corriger src/app/api/admin/audit-logs/route.ts\n2. ✅ Migration complète de 39 routes API vers Next.js 14/15 (params asynchrones)\n3. ✅ Pattern appliqué: { params }: { params: Promise<{ id: string }> }\n4. ✅ Toutes les routes API suivent maintenant les conventions Next.js 14\n5. ✅ Build testé et fonctionnel",
+      "testStrategy": "Build doit passer sans erreur, déploiement test sur Vercel",
+      "completedDate": "2025-06-04"
+    },
+    {
+      "id": 2,
+      "title": "Corriger les tests en échec",
+      "description": "Réparer les 3 tests qui échouent dans PlanningGenerator et stabiliser la suite de tests",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "high",
+      "details": "1. Fixer findEligibleUsersForGarde (exclusion des users en congé)\n2. Corriger selectBestCandidateForGarde (sélection équitable)\n3. Résoudre problème de priorité week-end\n4. Nettoyer snapshot obsolète HeatMapChart\n5. S'assurer que tous les tests passent",
+      "testStrategy": "npm test doit passer à 100%, pas de tests skippés"
+    },
+    {
+      "id": 3,
+      "title": "Résoudre les erreurs TypeScript",
+      "description": "Corriger les 50+ erreurs de compilation TypeScript pour avoir un code propre",
+      "status": "pending",
+      "dependencies": [1],
+      "priority": "high",
+      "details": "1. Corriger les types dans les mocks Prisma\n2. Fixer les erreurs Cypress (types manquants)\n3. Remplacer tous les 'any' par des types appropriés\n4. Corriger les imports circulaires\n5. Valider avec npm run type-check",
+      "testStrategy": "npm run type-check doit passer sans erreur"
+    },
+    {
+      "id": 4,
+      "title": "Augmenter la couverture de tests à 30%",
+      "description": "Écrire des tests pour les modules critiques pour passer de 1.22% à 30% minimum",
+      "status": "pending",
+      "dependencies": [2, 3],
+      "priority": "high",
+      "details": "1. Tests unitaires pour auth (JWT, sessions)\n2. Tests services planning (génération, validation)\n3. Tests API routes critiques\n4. Tests composants UI principaux\n5. Tests d'intégration leaves/planning",
+      "testStrategy": "Coverage > 30% sur statements, branches, functions et lines"
+    },
+    {
+      "id": 5,
+      "title": "Sécuriser et nettoyer le code",
+      "description": "Corriger la vulnérabilité tar-fs, commiter les changements et nettoyer les TODOs critiques",
+      "status": "pending",
+      "dependencies": [1],
+      "priority": "medium",
+      "details": "1. ✅ npm audit fix tenté (conflit React 18)\n2. ✅ Commiter les 2 fichiers mocks Prisma\n3. ⚠️ Identifier 100 TODOs (20 critiques)\n4. ⚠️ 942 console.log identifiés (non nettoyés)\n5. ⚠️ Documentation fonctions non réalisée",
+      "testStrategy": "npm audit clean, git status clean, eslint sans warnings critiques",
+      "partiallyCompleted": true,
+      "completedItems": ["Fichiers mocks Prisma commités", "TODOs analysés"],
+      "remainingItems": ["Vulnérabilité tar-fs", "Nettoyage console.log", "Documentation"]
+    },
+    {
+      "id": 6,
+      "title": "Implémenter la génération automatique de planning",
+      "description": "Développer l'algorithme intelligent de génération de planning selon les priorités du PRD",
+      "status": "pending",
+      "dependencies": [4],
+      "priority": "high",
+      "details": "1. Algorithme respectant hiérarchie contraintes\n2. Contraintes légales non négociables\n3. Respect indisponibilités avec compteur\n4. Équité court/long terme\n5. Optimisation ratio personnel/salles\n6. Interface de configuration\n7. Mode simulation/preview",
+      "testStrategy": "Tests unitaires algo, tests d'intégration, validation métier avec équipe pilote"
+    },
+    {
+      "id": 7,
+      "title": "Créer une documentation complète",
+      "description": "Documenter l'architecture, l'API, et créer des guides utilisateurs",
+      "status": "pending",
+      "dependencies": [5],
+      "priority": "medium",
+      "details": "1. Documentation architecture technique\n2. API documentation (Swagger/OpenAPI)\n3. Guide démarrage développeur\n4. Manuel utilisateur par rôle\n5. Procédures de déploiement",
+      "testStrategy": "Revue par nouveaux développeurs, feedback utilisateurs tests"
+    },
+    {
+      "id": 8,
+      "title": "Optimiser les performances",
+      "description": "Améliorer les temps de chargement et implémenter le monitoring",
+      "status": "pending",
+      "dependencies": [6],
+      "priority": "medium",
+      "details": "1. Profiler et optimiser les requêtes lentes\n2. Implémenter cache Redis correctement\n3. Lazy loading des modules lourds\n4. Monitoring avec Sentry/DataDog\n5. Dashboard performances",
+      "testStrategy": "Lighthouse > 90, Time to Interactive < 3s, monitoring actif"
+    },
+    {
+      "id": 9,
+      "title": "Implémenter les notifications temps réel",
+      "description": "Système complet de notifications WebSocket pour événements critiques",
+      "status": "pending",
+      "dependencies": [6],
+      "priority": "medium",
+      "details": "1. Serveur WebSocket stable\n2. Notifications congés/remplacements\n3. UI notification center\n4. Préférences utilisateur\n5. Persistance offline",
+      "testStrategy": "Tests charge WebSocket, tests reconnexion, tests E2E notifications"
+    },
+    {
+      "id": 10,
+      "title": "Développer les tableaux de bord analytiques",
+      "description": "Créer des dashboards avec KPIs pour chefs de service",
+      "status": "pending",
+      "dependencies": [8],
+      "priority": "low",
+      "details": "1. Définition KPIs avec utilisateurs\n2. Agrégations performantes\n3. Graphiques interactifs (D3.js/Recharts)\n4. Export PDF/Excel\n5. Scheduling rapports auto",
+      "testStrategy": "Tests calculs métier, tests visuels, validation utilisateurs"
+    },
+    {
+      "id": 11,
+      "title": "Import/Export Excel avancé",
+      "description": "Permettre import planning IADEs et export complet des plannings",
+      "status": "pending",
+      "dependencies": [6],
+      "priority": "medium",
+      "details": "1. Parser Excel robuste\n2. Import planning IADE avec validation\n3. Gestion IADE volant et GF\n4. Export multi-formats\n5. Templates personnalisables",
+      "testStrategy": "Tests parsers avec fichiers réels, tests validation données"
+    },
+    {
+      "id": 12,
+      "title": "PWA et support mobile",
+      "description": "Transformer l'app en Progressive Web App avec support offline",
+      "status": "pending",
+      "dependencies": [9],
+      "priority": "low",
+      "details": "1. Service Worker avec stratégies cache\n2. Manifest.json complet\n3. UI mobile optimisée\n4. Sync offline\n5. Push notifications",
+      "testStrategy": "Tests PWA Lighthouse, tests offline, tests appareils réels"
+    }
+  ]
+}

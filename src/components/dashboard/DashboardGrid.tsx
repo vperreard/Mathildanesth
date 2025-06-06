@@ -1,5 +1,5 @@
 import React, { useState, Suspense, lazy } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Widget } from '@/types/dashboard';
 import { StatWidget } from './widgets/StatWidget';
 import { ListWidget } from './widgets/ListWidget';

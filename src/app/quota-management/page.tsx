@@ -1,6 +1,6 @@
-import { getServerSession } from '@/lib/auth/migration-shim';
+import { getServerSession } from '@/lib/auth/migration-shim-client';
 import { redirect } from 'next/navigation';
-import { authOptions } from '@/lib/auth/migration-shim';
+import { authOptions } from '@/lib/auth/migration-shim-client';
 import TransferQuotaForm from '@/modules/leaves/components/quotas/TransferQuotaForm';
 import QuotaTransferHistory from '@/modules/leaves/components/quotas/QuotaTransferHistory';
 import AvailableQuotaDisplay from '@/modules/leaves/components/quotas/AvailableQuotaDisplay';

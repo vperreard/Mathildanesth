@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { RuleViolation, Attribution, ResolutionOption, RuleSeverity, ValidationResult } from '@/types/attribution';
 import { Medecin } from '@/modules/rules/engine/fatigue-system';
 import { Card } from '@/components/ui/card';

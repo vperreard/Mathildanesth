@@ -1,0 +1,15 @@
+# Task ID: 11
+# Title: Import/Export Excel avancé
+# Status: pending
+# Dependencies: 6
+# Priority: medium
+# Description: Permettre import planning IADEs et export complet des plannings
+# Details:
+1. Parser Excel robuste
+2. Import planning IADE avec validation
+3. Gestion IADE volant et GF
+4. Export multi-formats
+5. Templates personnalisables
+
+# Test Strategy:
+Tests parsers avec fichiers réels, tests validation données

@@ -1,0 +1,15 @@
+# Task ID: 1
+# Title: Corriger le build cassé (URGENT)
+# Status: completed
+# Dependencies: None
+# Priority: high
+# Description: Résoudre les erreurs de build Next.js, notamment les problèmes de routes API et Edge Runtime avec Redis
+# Details:
+1. ✅ Corriger src/app/api/admin/audit-logs/route.ts
+2. ✅ Migration complète de 39 routes API vers Next.js 14/15 (params asynchrones)
+3. ✅ Pattern appliqué: { params }: { params: Promise<{ id: string }> }
+4. ✅ Toutes les routes API suivent maintenant les conventions Next.js 14
+5. ✅ Build testé et fonctionnel
+
+# Test Strategy:
+Build doit passer sans erreur, déploiement test sur Vercel

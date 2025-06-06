@@ -1,0 +1,16 @@
+# Task ID: 20
+# Title: Configurer Storybook pour les composants UI
+# Status: pending
+# Dependencies: 7
+# Priority: low
+# Description: Mettre en place Storybook v8.3.3 déjà installé pour documenter et tester les composants UI isolément
+# Details:
+Storybook est installé mais non configuré :
+- Créer des stories pour les composants principaux
+- Documenter les props et variations de chaque composant
+- Intégrer les tests visuels avec Storybook
+- Configurer le déploiement de la documentation Storybook
+- Utiliser pour standardiser l'UI et éviter les duplications
+
+# Test Strategy:
+

@@ -1,0 +1,63 @@
+# Task ID: 14
+# Title: Mettre à jour les dépendances critiques
+# Status: done
+# Dependencies: 5
+# Priority: high
+# Description: Analyser et mettre à jour les dépendances obsolètes ou avec des vulnérabilités de sécurité, et unifier le système d'authentification en supprimant next-auth pour utiliser uniquement le système JWT custom existant
+# Details:
+Plusieurs dépendances nécessitent une attention :
+- Phases 1-5 de la migration d'authentification sont terminées, next-auth a été complètement supprimé
+- @prisma/client et prisma ont été mis à jour vers v6.9.0
+- react-beautiful-dnd (abandonné) a été complètement migré vers @hello-pangea/dnd
+- L'audit de sécurité a été effectué et documenté
+- Les types TypeScript correspondants ont été mis à jour
+
+# Test Strategy:
+1. Vérifier que toutes les fonctionnalités d'authentification continuent de fonctionner après la suppression complète de next-auth
+2. S'assurer que les sessions utilisateur sont correctement gérées par le système JWT custom
+3. Tester les flux de connexion, déconnexion et récupération de session
+4. Vérifier que les mises à jour des autres dépendances n'introduisent pas de régressions
+
+# Subtasks:
+## 14.1. Analyser le plan d'unification d'authentification [done]
+### Dependencies: None
+### Description: Étudier le document AUTH_UNIFICATION_PLAN.md et identifier les étapes clés pour supprimer next-auth et consolider l'authentification avec le système JWT custom
+### Details:
+
+
+## 14.2. Migrer de NextAuth v4 vers le système JWT custom [done]
+### Dependencies: None
+### Description: Créer un shim de migration, remplacer les importations et adapter le code pour utiliser le système JWT custom existant
+### Details:
+
+
+## 14.3. Tester la migration d'authentification [done]
+### Dependencies: None
+### Description: Vérifier que toutes les fonctionnalités d'authentification fonctionnent correctement avec le système JWT custom
+### Details:
+
+
+## 14.4. Supprimer complètement next-auth (Phase 5) [done]
+### Dependencies: None
+### Description: Retirer next-auth des dépendances et supprimer tout code résiduel lié à next-auth
+### Details:
+
+
+## 14.5. Mettre à jour Prisma [done]
+### Dependencies: None
+### Description: Mettre à jour @prisma/client et prisma vers la dernière version stable et effectuer les migrations nécessaires
+### Details:
+
+
+## 14.6. Finaliser la migration de react-beautiful-dnd vers @hello-pangea/dnd [done]
+### Dependencies: None
+### Description: S'assurer que toutes les utilisations de react-beautiful-dnd sont remplacées par @hello-pangea/dnd
+### Details:
+
+
+## 14.7. Audit de sécurité [done]
+### Dependencies: None
+### Description: Exécuter npm audit et résoudre les vulnérabilités identifiées
+### Details:
+
+

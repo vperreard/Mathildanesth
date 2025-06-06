@@ -1,0 +1,15 @@
+# Task ID: 9
+# Title: Implémenter les notifications temps réel
+# Status: pending
+# Dependencies: 6
+# Priority: medium
+# Description: Système complet de notifications WebSocket pour événements critiques
+# Details:
+1. Serveur WebSocket stable
+2. Notifications congés/remplacements
+3. UI notification center
+4. Préférences utilisateur
+5. Persistance offline
+
+# Test Strategy:
+Tests charge WebSocket, tests reconnexion, tests E2E notifications

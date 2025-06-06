@@ -1,0 +1,15 @@
+# Task ID: 13
+# Title: Optimiser les scripts npm
+# Status: pending
+# Dependencies: 7
+# Priority: medium
+# Description: Réorganiser et optimiser les 179 scripts npm pour améliorer la maintenabilité. Regrouper les scripts similaires, éliminer les doublons et créer des scripts composites.
+# Details:
+Le package.json contient 179 scripts npm ce qui rend difficile la navigation et la maintenance. Il faut :
+- Regrouper les scripts par catégorie (test, build, dev, etc.)
+- Éliminer les scripts redondants (ex: plusieurs variantes de test:e2e)
+- Créer des scripts composites pour les workflows courants
+- Documenter chaque script dans un README des scripts
+
+# Test Strategy:
+
