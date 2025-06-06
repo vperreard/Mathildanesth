@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-
+// TODO: Replace @heroicons with lucide-react
 // Importer les types depuis le fichier partagé
 import {
     DisplayConfig,
@@ -253,7 +252,7 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
                     onClick={onClose}
                     className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
                 >
-                    <XMarkIcon className="w-6 h-6" />
+                    <{/* XMarkIconclassName="w-6 h-6" /> */}
                 </button>
             </div>
             */}

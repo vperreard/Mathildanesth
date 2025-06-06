@@ -6,8 +6,7 @@ import { templateService, FullActivityType } from '../services/templateService';
 import { PlanningTemplate, RoleType } from '../types/template';
 import BlocPlanningTemplateEditor, { BlocPlanningTemplateEditorHandle } from './BlocPlanningTemplateEditor';
 import { useRouter, usePathname } from 'next/navigation';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { DragDropContext } from '@hello-pangea/dnd';
 
 // Importer les composants UI nécessaires
 import Button from "@/components/ui/button";
@@ -500,7 +499,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     }
 
     return (
-        <DndProvider backend={HTML5Backend}>
+        <DragDropContext onDragEnd={() => {}}>
             <div className="container mx-auto p-6">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold">Gestion des Tableaux de service de Planning</h1>
@@ -680,7 +679,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                     />
                 )}
             </div>
-        </DndProvider>
+        </DragDropContext>
     );
 };
 

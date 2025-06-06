@@ -3,22 +3,8 @@
 import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { logger } from "../../../../lib/logger";
 import { apiClient } from '@/utils/apiClient';
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverEvent,
-  DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragOverlay,
-  closestCorners,
-  rectIntersection,
-  getFirstCollision,
-} from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { useDroppable, useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
+import { DragDropContext } from '@hello-pangea/dnd';
+// TODO: Implement proper drag and drop with @hello-pangea/dnd
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { logger } from "../lib/logger";
 import { Specialty } from '@prisma/client';
 import axios from 'axios';
-import { PlusIcon, PencilIcon, TrashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+// TODO: Replace @heroicons with lucide-react
 import {
     Button,
     Input,
@@ -188,7 +188,7 @@ export default function SpecialtyManager() {
                                     disabled={isSubmitting}
                                     isLoading={isSubmitting}
                                 >
-                                    {!isSubmitting && (isEditing ? <CheckIcon className="h-5 w-5 mr-1" /> : <PlusIcon className="h-5 w-5 mr-1" />)}
+                                    {!isSubmitting && (isEditing ? <{/* CheckIconclassName="h-5 w-5 mr-1" /> */} : <{/* PlusIconclassName="h-5 w-5 mr-1" /> */})}
                                     {isEditing ? 'Enregistrer' : 'Ajouter'}
                                 </Button>
                                 {isEditing && (
@@ -197,7 +197,7 @@ export default function SpecialtyManager() {
                                         onClick={resetForm}
                                         variant="secondary"
                                     >
-                                        <XMarkIcon className="h-5 w-5 mr-1" /> Annuler
+                                        <{/* XMarkIconclassName="h-5 w-5 mr-1" /> */} Annuler
                                     </Button>
                                 )}
                             </div>
@@ -261,14 +261,14 @@ export default function SpecialtyManager() {
                                             variant="secondary"
                                             size="sm"
                                         >
-                                            <PencilIcon className="h-4 w-4 mr-1" /> Modifier
+                                            <{/* PencilIconclassName="h-4 w-4 mr-1" /> */} Modifier
                                         </Button>
                                         <Button
                                             onClick={() => handleDeleteClick(specialty.id)}
                                             variant="danger"
                                             size="sm"
                                         >
-                                            <TrashIcon className="h-4 w-4 mr-1" /> Supprimer
+                                            <{/* TrashIconclassName="h-4 w-4 mr-1" /> */} Supprimer
                                         </Button>
                                     </div>
                                 </TableCell>

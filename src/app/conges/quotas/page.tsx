@@ -3,14 +3,13 @@
 
 import React from 'react';
 import { Tabs, Typography, Button, Row, Col, Divider } from 'antd';
-import { SwapOutlined, CalendarOutlined, HistoryOutlined, SettingOutlined } from '@ant-design/icons';
+import { ArrowLeftRight, Calendar, History, Settings, ChartBar, FileText, BarChart2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { QuotaTransferForm } from '@/modules/leaves/quotas/transfer/QuotaTransferForm';
 import { QuotaCarryOverForm } from '@/modules/leaves/quotas/carryOver/QuotaCarryOverForm';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { PageTitle } from '@/components/ui/page-title';
-import { ChartBar, ArrowLeftRight, FileText, BarChart2 } from 'lucide-react';
 import { Card as ShadcnCard, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 // Import dynamique des composants pour éviter les erreurs de compilation
@@ -173,7 +172,7 @@ export default function QuotasPage() {
 
             <Tabs activeKey={activeTab} onChange={setActiveTab}>
                 <TabPane
-                    tab={<span><HistoryOutlined /> Vue d'ensemble</span>}
+                    tab={<span><History /> Vue d'ensemble</span>}
                     key="overview"
                 >
                     <LeaveQuotaOverview
@@ -244,7 +243,7 @@ export default function QuotasPage() {
 
                 {isAdmin && (
                     <TabPane
-                        tab={<span><SettingOutlined /> Administration</span>}
+                        tab={<span><Settings /> Administration</span>}
                         key="admin"
                     >
                         <ShadcnCard title="Administration des quotas">

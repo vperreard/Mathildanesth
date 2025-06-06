@@ -5,7 +5,7 @@ import { logger } from "../lib/logger";
 import { Surgeon, Specialty, UserStatus } from '@prisma/client';
 import { User } from '@/types/user';
 import axios from 'axios';
-import { PlusIcon } from '@heroicons/react/24/outline';
+// TODO: Replace @heroicons with lucide-react
 import { motion, AnimatePresence } from 'framer-motion';
 import SiteSelector from '@/components/ui/SiteSelector';
 
@@ -293,7 +293,7 @@ export default function SurgeonForm({
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                             >
-                                <PlusIcon className="h-5 w-5" />
+                                <{/* PlusIconclassName="h-5 w-5" /> */}
                             </motion.button>
                         )}
                     </div>

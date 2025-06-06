@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { logger } from "../lib/logger";
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+// TODO: Replace @heroicons with lucide-react
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -162,7 +162,7 @@ const AdminRequestsBanner: React.FC = () => {
                                             className="flex items-center justify-center bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-800/50 text-green-700 dark:text-green-400 rounded-full p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             title="Approuver la demande"
                                         >
-                                            <CheckCircleIcon className="h-6 w-6" />
+                                            <{/* CheckCircleIconclassName="h-6 w-6" /> */}
                                         </button>
                                         <button
                                             onClick={() => handleReject(leave.id)}
@@ -170,7 +170,7 @@ const AdminRequestsBanner: React.FC = () => {
                                             className="flex items-center justify-center bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-800/50 text-red-700 dark:text-red-400 rounded-full p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             title="Rejeter la demande"
                                         >
-                                            <XCircleIcon className="h-6 w-6" />
+                                            <{/* XCircleIconclassName="h-6 w-6" /> */}
                                         </button>
                                     </div>
                                 </div>

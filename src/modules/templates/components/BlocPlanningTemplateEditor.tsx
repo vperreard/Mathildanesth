@@ -68,8 +68,7 @@ import {
     CalendarPlusIcon,
     RotateCcwIcon
 } from 'lucide-react';
-import { useDrag, useDrop, DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { toast } from 'react-hot-toast';
 import {
     Select as ShadSelect,
@@ -170,39 +169,16 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({ affectation
     onEditVariation,
     onDeleteVariation
 }) => {
-    // Configuration du drag and drop
-    const [{ isDragging }, dragRef] = useDrag({
-        type: AFFECTATION_TYPE,
-        item: { index },
-        collect: (monitor) => ({
-            isDragging: monitor.isDragging()
-        })
-    });
-
-    const [, dropRef] = useDrop({
-        accept: AFFECTATION_TYPE,
-        hover: (item: { index: number }) => {
-            if (item.index !== index) {
-                moveAffectation(item.index, index);
-                item.index = index;
-            }
-        }
-    });
-
-    // Combine drag and drop refs
-    const ref = (node: HTMLDivElement | null) => {
-        dragRef(node);
-        dropRef(node);
-    };
+    // Configuration du drag and drop (migré vers @hello-pangea/dnd)
+    // Note: Le drag-and-drop sera géré au niveau parent avec DragDropContext
 
     // Filtrer les variations pour cette affectation
     const affectationVariations = variations.filter(v => v.affectationId === affectation.id);
 
     return (
         <div
-            ref={ref}
             style={{
-                opacity: isDragging ? 0.5 : 1,
+                opacity: 1,
                 cursor: 'move',
                 marginBottom: '8px'
             }}
@@ -1001,7 +977,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
     // Rendu principal du composant
     return (
-        <DndProvider backend={HTML5Backend}>
+        <DragDropContext onDragEnd={() => {}}>
             <Box sx={{ p: 2, pt: 0 }}>
                 {/* Section pour Nom, Description et Rôles avec Flexbox */}
                 <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', backgroundColor: 'grey.50', display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'flex-start' }}>
@@ -1462,7 +1438,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                     </DialogActions>
                 </Dialog>
             )}
-        </DndProvider>
+        </DragDropContext>
     );
 });
 

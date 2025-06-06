@@ -2,16 +2,15 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { CalendarIcon, HomeIcon, UserGroupIcon, CogIcon } from '@heroicons/react/24/outline';
-
+// TODO: Replace @heroicons with lucide-react
 const navigation = [
-    { name: 'Accueil', href: '/', icon: HomeIcon },
+    { name: 'Accueil', href: '/', icon: {/* HomeIcon},
     { name: 'Absences', href: '/absences', icon: CalendarIcon },
     { name: 'Équipe', href: '/equipe', icon: UserGroupIcon },
     { name: 'Paramètres', href: '/parametres', icon: CogIcon },
 ];
 
-export const Navigation: React.FC = () => {
+export const Navigation: React.FC = () => */} {
     const router = useRouter();
 
     return (

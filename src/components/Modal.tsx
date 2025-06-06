@@ -1,9 +1,8 @@
 'use client';
 
 import React, { Fragment } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-
+// TODO: Migrate from Headless UI - import { Dialog, Transition } from '@headlessui/react';
+// TODO: Replace @heroicons with lucide-react
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -57,7 +56,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
                                         onClick={onClose}
                                     >
                                         <span className="sr-only">Close</span>
-                                        <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                                        <{/* XMarkIconclassName="h-6 w-6" aria-hidden="true" /> */}
                                     </button>
                                 </div>
                                 <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">

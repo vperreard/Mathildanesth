@@ -39,7 +39,7 @@ import {
     PosteStatus,
     SkillLevel
 } from '../types/template';
-import { useDrag, useDrop } from 'react-dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 // Type d'élément pour le drag and drop
 const POSTE_TYPE = 'poste';
@@ -71,7 +71,8 @@ const DraggablePoste: React.FC<DraggablePosteProps> = ({
         })
     });
 
-    const [, dropRef] = useDrop({
+    // TODO: Migrate useDrop to @hello-pangea/dnd
+    // const [, dropRef] = useDrop({
         accept: POSTE_TYPE,
         hover: (item: { index: number }) => {
             if (item.index !== index) {
@@ -89,12 +90,12 @@ const DraggablePoste: React.FC<DraggablePosteProps> = ({
 
     return (
         <Paper
-            ref={ref}
+            /* ref removed for migration */
             variant="outlined"
             sx={{
                 mb: 2,
                 p: 2,
-                opacity: isDragging ? 0.5 : 1,
+                opacity: 1,
                 cursor: 'move',
                 transition: 'all 0.2s ease',
                 '&:hover': { boxShadow: 1 }

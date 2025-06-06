@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { logger } from "../../lib/logger";
-import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
-
+// TODO: Replace @heroicons with lucide-react
 interface Site {
     id: string;
     name: string;
@@ -166,7 +165,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                                         }}
                                         className="hover:text-red-600 ml-1"
                                     >
-                                        <XMarkIcon className="h-3 w-3" />
+                                        <{/* XMarkIconclassName="h-3 w-3" /> */}
                                     </button>
                                 )}
                             </span>
@@ -178,10 +177,9 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                     {isLoading ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
                     ) : (
-                        <ChevronDownIcon
-                            className={`h-5 w-5 text-gray-400 transform transition-transform ${isOpen ? 'rotate-180' : ''
+                        <{/* ChevronDownIconclassName={`h-5 w-5 text-gray-400 transform transition-transform ${isOpen ? 'rotate-180' : ''
                                 }`}
-                        />
+                        /> */}
                     )}
                 </div>
             </button>

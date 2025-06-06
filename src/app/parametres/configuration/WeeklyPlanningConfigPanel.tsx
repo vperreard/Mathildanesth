@@ -3,17 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, Card, CardContent, Switch } from "@/components/ui";
 import { Save, Trash2, Plus, Filter, Eye, Layout, Type, MoveVertical } from "lucide-react";
-import {
-    CheckIcon,
-    PlusIcon,
-    TrashIcon,
-    ArrowPathIcon,
-    TagIcon,
-    BookmarkIcon,
-    StarIcon,
-    StarIcon as StarSolidIcon,
-} from '@heroicons/react/24/outline';
-
+// TODO: Replace @heroicons with lucide-react
 // Types
 type Room = {
     id: string;
@@ -659,7 +649,7 @@ const WeeklyPlanningConfigPanel: React.FC = () => {
                                                 disabled={preset.isDefault}
                                                 title="Définir comme préréglage par défaut"
                                             >
-                                                {preset.isDefault ? <StarSolidIcon className="h-4 w-4 text-yellow-500" /> : <StarIcon className="h-4 w-4" />}
+                                                {preset.isDefault ? <{/* StarSolidIconclassName="h-4 w-4 text-yellow-500" /> */} : <{/* StarIconclassName="h-4 w-4" /> */}}
                                             </button>
                                             <button
                                                 className="p-1 text-gray-400 hover:text-red-500"
@@ -670,7 +660,7 @@ const WeeklyPlanningConfigPanel: React.FC = () => {
                                                 disabled={preset.isDefault || presets.length <= 1}
                                                 title="Supprimer ce préréglage"
                                             >
-                                                <TrashIcon className="h-4 w-4" />
+                                                <{/* TrashIconclassName="h-4 w-4" /> */}
                                             </button>
                                         </div>
                                     </div>
@@ -711,7 +701,7 @@ const WeeklyPlanningConfigPanel: React.FC = () => {
                                     onClick={() => setIsCreatingPreset(true)}
                                     className="w-full"
                                 >
-                                    <PlusIcon className="h-4 w-4 mr-2" />
+                                    <{/* PlusIconclassName="h-4 w-4 mr-2" /> */}
                                     Ajouter un préréglage
                                 </Button>
                             )}

@@ -25,11 +25,8 @@ import {
     DialogFooter,
     DialogClose
 } from "@/components/ui";
-import {
-    PlusIcon,
-    PencilIcon,
-    TrashIcon
-} from '@heroicons/react/24/outline';
+// TODO: Replace with lucide-react icons
+
 import { toast } from 'react-toastify';
 
 // Type pour les rôles professionnels

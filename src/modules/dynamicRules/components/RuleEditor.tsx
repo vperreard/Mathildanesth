@@ -3,6 +3,7 @@
  * Une révision complète de la structure JSX et des types est recommandée.
  */
 
+import { DragDropContext } from '@hello-pangea/dnd';
 import React, { useState, useEffect, useRef } from 'react';
 import {
     Rule,
@@ -16,7 +17,6 @@ import {
     ConditionOperator
 } from '../types/rule';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { v4 as uuidv4 } from 'uuid';
 
 interface RuleEditorProps {

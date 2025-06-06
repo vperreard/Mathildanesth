@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Room, RoomOrderConfig } from "./types";
-import { XMarkIcon, ArrowsUpDownIcon } from "@heroicons/react/24/outline";
-
+// TODO: Replace @heroicons with lucide-react
 interface RoomOrderConfigPanelProps {
     rooms: Room[];
     onSaveRoomOrder: (orderedRoomIds: (string | number)[]) => void;
@@ -122,12 +121,12 @@ const RoomOrderConfigPanel: React.FC<RoomOrderConfigPanelProps> = ({
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
-                        <XMarkIcon className="w-6 h-6" />
+                        <{/* XMarkIconclassName="w-6 h-6" /> */}
                     </button>
                 </div>
 
                 <div className="mb-4 flex items-center text-gray-600 dark:text-gray-300">
-                    <ArrowsUpDownIcon className="h-5 w-5 mr-2" />
+                    <{/* ArrowsUpDownIconclassName="h-5 w-5 mr-2" /> */}
                     <span>Faire glisser les salles pour réorganiser leur ordre d'affichage dans le planning</span>
                 </div>
 
@@ -167,7 +166,7 @@ const RoomOrderConfigPanel: React.FC<RoomOrderConfigPanelProps> = ({
                                                         <span className="font-medium text-gray-800 dark:text-gray-200">
                                                             {room.number ? `Salle ${room.number}` : room.name}
                                                         </span>
-                                                        <ArrowsUpDownIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                                                        <{/* ArrowsUpDownIconclassName="h-5 w-5 text-gray-400 dark:text-gray-500" /> */}
                                                     </div>
                                                 )}
                                             </Draggable>

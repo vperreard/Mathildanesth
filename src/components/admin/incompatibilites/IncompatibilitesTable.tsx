@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { EyeIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+// TODO: Replace @heroicons with lucide-react
 import { Badge } from '@/components/ui/badge';
 import Button from '@/components/ui/button';
 import {
@@ -80,12 +80,12 @@ export function IncompatibilitesTable({ incompatibilities }: IncompatibilitesTab
                                 <div className="flex items-center justify-end space-x-2">
                                     {/* <Link href={`/admin/incompatibilites/${incompat.id}`} passHref>
                     <Button variant="outline" size="icon" title="Voir">
-                      <EyeIcon className="h-4 w-4" />
+                      <{/* EyeIconclassName="h-4 w-4" /> */}
                     </Button>
                   </Link> */}
                                     <Link href={`/admin/incompatibilites/${incompat.id}/edit`} passHref>
                                         <Button variant="outline" size="icon" title="Modifier">
-                                            <PencilIcon className="h-4 w-4" />
+                                            <{/* PencilIconclassName="h-4 w-4" /> */}
                                         </Button>
                                     </Link>
                                     {/* Ajouter une fonction de suppression ici si nécessaire */}
@@ -95,7 +95,7 @@ export function IncompatibilitesTable({ incompatibilities }: IncompatibilitesTab
                     title="Supprimer"
                     // onClick={() => onDelete && onDelete(incompat.id)}
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <{/* TrashIconclassName="h-4 w-4" /> */}
                   </Button> */}
                                 </div>
                             </TableCell>

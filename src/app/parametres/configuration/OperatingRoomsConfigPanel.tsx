@@ -3,14 +3,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { logger } from "../../../lib/logger";
 import axios from 'axios';
-import {
-    PlusIcon,
-    PencilIcon,
-    TrashIcon,
-    CheckIcon,
-    XMarkIcon,
-    ArrowsUpDownIcon
-} from '@heroicons/react/24/outline';
+// TODO: Replace with lucide-react icons
+
 import { AlertTriangle } from 'lucide-react';
 import {
     Button,

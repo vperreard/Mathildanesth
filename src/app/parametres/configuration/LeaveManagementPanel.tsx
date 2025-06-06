@@ -27,15 +27,8 @@ import {
     DialogFooter,
     DialogClose
 } from "@/components/ui";
-import {
-    PlusIcon,
-    PencilIcon,
-    TrashIcon,
-    CheckIcon,
-    XMarkIcon,
-    UserPlusIcon,
-    UserMinusIcon
-} from '@heroicons/react/24/outline';
+// TODO: Replace with lucide-react icons
+
 import { UserIcon } from 'lucide-react';
 import { ProfessionalRole } from '@prisma/client';
 

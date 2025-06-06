@@ -1,5 +1,6 @@
 "use client";
 
+import { DragDropContext } from '@hello-pangea/dnd';
 import React, { useState, useEffect, useCallback } from 'react';
 import { logger } from "../../../lib/logger";
 import {
@@ -25,7 +26,6 @@ import Textarea from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ActivityType, ActivityCategory, Period, Prisma } from '@prisma/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -294,19 +294,20 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
         }
     };
 
-    const [{ isDragging }, drag] = useDrag(() => ({
-        type: 'ASSIGNMENT_TYPE',
-        collect: (monitor) => ({
-            isDragging: monitor.isDragging(),
-        }),
-    }));
+    // TODO: Migrate useDrag to @hello-pangea/dnd
+    // const [{ isDragging }, drag] = useDrag(() => ({
+    //     type: 'ASSIGNMENT_TYPE',
+    //     collect: (monitor) => ({
+    //         isDragging: monitor.isDragging(),
+    //     }),
+    // }));
 
     if (isLoadingData && isAuthLoading) {
         return <div className="p-4">Chargement initial...</div>;
     }
 
     return (
-        <DndProvider backend={HTML5Backend}>
+        <DragDropContext onDragEnd={() => {}}>
             <div className="p-4 md:p-6">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-semibold text-gray-700">Configuration des Types d'Activité</h2>
@@ -672,7 +673,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                     </Dialog>
                 )}
             </div>
-        </DndProvider>
+        </DragDropContext>
     );
 };
 

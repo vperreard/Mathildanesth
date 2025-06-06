@@ -1,5 +1,6 @@
 "use client";
 
+import { DragDropContext } from '@hello-pangea/dnd';
 import React, { useState, Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -17,9 +18,6 @@ import {
     Users,
     Clock
 } from 'lucide-react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-
 // Importer les composants UI
 import Button from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -279,9 +277,9 @@ const ConfigurationPanelPage: React.FC = () => {
             {/* Main content */}
             <main className="flex-1 p-6 overflow-auto">
                 <Suspense fallback={<div>Chargement du contenu...</div>}>
-                    <DndProvider backend={HTML5Backend}>
+                    <DragDropContext onDragEnd={() => {}}>
                         {renderContent()}
-                    </DndProvider>
+                    </DragDropContext>
                 </Suspense>
             </main>
         </div>
