@@ -1,0 +1,18 @@
+# Task ID: 16
+# Title: Implémenter la stratégie de tests complète
+# Status: pending
+# Dependencies: 4
+# Priority: high
+# Description: Unifier et optimiser l'infrastructure de tests (Jest, Cypress, Puppeteer) et atteindre 80% de couverture pour les modules critiques
+# Details:
+Le projet a 3 frameworks de tests mais manque de cohérence :
+- Jest pour les tests unitaires et d'intégration
+- Cypress pour les tests E2E (14 scripts différents !)
+- Puppeteer pour les tests automatisés
+- Créer une stratégie unifiée de tests
+- Éliminer les redondances entre Cypress et Puppeteer
+- Configurer les tests bulletproof mentionnés dans les scripts
+- Implémenter le système Claude Workers pour la réparation automatique des tests
+
+# Test Strategy:
+

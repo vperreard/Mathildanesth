@@ -1,0 +1,17 @@
+# Task ID: 6
+# Title: Implémenter la génération automatique de planning
+# Status: pending
+# Dependencies: 4
+# Priority: high
+# Description: Développer l'algorithme intelligent de génération de planning selon les priorités du PRD
+# Details:
+1. Algorithme respectant hiérarchie contraintes
+2. Contraintes légales non négociables
+3. Respect indisponibilités avec compteur
+4. Équité court/long terme
+5. Optimisation ratio personnel/salles
+6. Interface de configuration
+7. Mode simulation/preview
+
+# Test Strategy:
+Tests unitaires algo, tests d'intégration, validation métier avec équipe pilote

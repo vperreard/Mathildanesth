@@ -1,0 +1,15 @@
+# Task ID: 7
+# Title: Créer une documentation complète
+# Status: pending
+# Dependencies: 5
+# Priority: medium
+# Description: Documenter l'architecture, l'API, et créer des guides utilisateurs
+# Details:
+1. Documentation architecture technique
+2. API documentation (Swagger/OpenAPI)
+3. Guide démarrage développeur
+4. Manuel utilisateur par rôle
+5. Procédures de déploiement
+
+# Test Strategy:
+Revue par nouveaux développeurs, feedback utilisateurs tests

@@ -1,0 +1,42 @@
+# Task ID: 3
+# Title: Résoudre les erreurs TypeScript
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Corriger les 50+ erreurs de compilation TypeScript pour avoir un code propre
+# Details:
+1. ✅ Corriger 2643 erreurs TypeScript via scripts automatisés
+2. ✅ Conversion any → unknown (1113 occurrences)
+3. ✅ Correction des erreurs de logger (936 occurrences)
+4. ✅ Correction des exports de types (isolatedModules)
+5. ⏳ 549 erreurs restantes (principalement syntaxe)
+6. Valider que npm run type-check passe sans erreurs
+
+# Test Strategy:
+npm run type-check doit passer sans erreur
+
+# Subtasks:
+## 1. Corriger les erreurs de logger [completed]
+### Dependencies: None
+### Description: Réparer les 936 erreurs liées aux appels logger avec Error objects
+### Details:
+Pattern appliqué: logger.error('message', error) → logger.error('message', { error: error })
+
+## 2. Convertir les types any vers unknown [completed]
+### Dependencies: None
+### Description: Remplacer 1113 occurrences de 'any' par 'unknown' pour plus de sécurité des types
+### Details:
+Conversions: Promise<any> → Promise<unknown>, Record<string, any> → Record<string, unknown>
+
+## 3. Corriger les exports de types [completed]
+### Dependencies: None
+### Description: Résoudre les erreurs isolatedModules en utilisant 'export type'
+### Details:
+Pattern: export { Type } → export type { Type }
+
+## 4. Corriger les erreurs de syntaxe restantes [pending]
+### Dependencies: 3.1, 3.2, 3.3
+### Description: Résoudre les 549 erreurs de syntaxe restantes (TS1005, TS1128, etc.)
+### Details:
+Principalement des erreurs de parenthèses et points-virgules manquants dans les logger calls
+

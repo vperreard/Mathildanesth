@@ -1,0 +1,18 @@
+# Task ID: 18
+# Title: Configurer l'internationalisation (i18n)
+# Status: pending
+# Dependencies: 7
+# Priority: low
+# Description: Implémenter le support multi-langues avec next-i18next et react-i18next déjà installés
+# Details:
+Les dépendances i18n sont installées mais non configurées :
+- next-i18next v15.4.2
+- react-i18next v15.5.1
+- i18next v25.2.0
+- Configurer les fichiers de traduction (fr, en minimum)
+- Adapter tous les textes de l'interface
+- Créer un système de changement de langue
+- Documenter le processus de traduction
+
+# Test Strategy:
+

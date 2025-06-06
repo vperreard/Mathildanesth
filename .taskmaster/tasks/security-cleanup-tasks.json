@@ -1,0 +1,39 @@
+{
+  "newTasks": [
+    {
+      "title": "Résoudre la vulnérabilité tar-fs",
+      "description": "Corriger la vulnérabilité haute sévérité tar-fs dans @cypress-audit/lighthouse",
+      "priority": "high",
+      "details": "1. Investiguer le remplacement de @cypress-audit/lighthouse par une alternative\n2. Ou migrer vers une version compatible avec React 18\n3. Ou accepter le risque si utilisé uniquement en développement\n4. 16 vulnérabilités au total (3 low, 13 high)",
+      "testStrategy": "npm audit doit montrer 0 vulnérabilité haute après correction"
+    },
+    {
+      "title": "Nettoyer les console.log",
+      "description": "Supprimer ou commenter les 942 console.log inutiles dans src/",
+      "priority": "medium",
+      "details": "1. Approche manuelle module par module\n2. Commencer par modules critiques (auth, leaves)\n3. Garder uniquement les logs d'erreur nécessaires\n4. Utiliser un logger centralisé plutôt que console.log\n5. Script de nettoyage créé mais à corriger",
+      "testStrategy": "grep -r console.log src/ doit retourner < 50 résultats"
+    },
+    {
+      "title": "Implémenter API sauvegarde affectations trames",
+      "description": "Créer l'API dédiée pour la sauvegarde des affectations dans EditeurTramesHebdomadaires",
+      "priority": "high",
+      "details": "1. Créer endpoint /api/trame-modeles/{trameId}/affectations\n2. Gérer la sauvegarde individuelle des affectations\n3. Remplacer les TODO IMPORTANT dans EditeurTramesHebdomadaires.tsx\n4. Gérer aussi la suppression d'affectations via API\n5. Ajouter validation et gestion d'erreurs",
+      "testStrategy": "Tests d'intégration pour l'API, tests E2E pour l'éditeur"
+    },
+    {
+      "title": "Documenter les services critiques",
+      "description": "Ajouter la documentation JSDoc manquante aux services critiques",
+      "priority": "medium",
+      "details": "1. Prioriser authService, leaveService, planningService\n2. Utiliser JSDoc pour toutes les fonctions exportées\n3. Inclure paramètres, retours, exceptions\n4. Ajouter exemples d'utilisation\n5. Générer documentation automatique si possible",
+      "testStrategy": "Audit de documentation, 100% des fonctions exportées documentées"
+    },
+    {
+      "title": "Compléter les calculs dans quick-replacement",
+      "description": "Implémenter les vrais calculs de moyennes et historiques dans l'API quick-replacement",
+      "priority": "medium",
+      "details": "1. Calculer workloadAverage depuis les données réelles\n2. Calculer averageResponseTime depuis l'historique\n3. Calculer reliability score depuis l'historique\n4. Implémenter vérification des compétences selon type de shift\n5. Ajouter tests unitaires pour les calculs",
+      "testStrategy": "Tests unitaires pour chaque calcul, tests d'intégration API"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+# Task ID: 2
+# Title: Corriger les tests en échec
+# Status: completed
+# Dependencies: None
+# Priority: high
+# Description: Réparer les 3 tests qui échouent dans PlanningGenerator et stabiliser la suite de tests
+# Details:
+1. ✅ Fixer findEligibleUsersForGarde (exclusion des users en congé)
+2. ✅ Corriger selectBestCandidateForGarde (sélection équitable)
+3. ✅ Résoudre problème de priorité week-end
+4. ✅ Nettoyer snapshot obsolète HeatMapChart (aucun snapshot trouvé)
+5. ✅ S'assurer que tous les tests passent
+
+# Test Strategy:
+npm test doit passer à 100%, pas de tests skippés
+
+# Subtasks:
+## 1. Corriger findEligibleUsersForGarde [completed]
+### Dependencies: None
+### Description: Réparer la fonction qui exclut les utilisateurs en congé de la sélection pour les gardes
+### Details:
+Analyser le code actuel de findEligibleUsersForGarde, identifier pourquoi les utilisateurs en congé ne sont pas correctement exclus, et implémenter la correction en suivant les bonnes pratiques d'isolation des tests
+
+## 2. Réparer selectBestCandidateForGarde [completed]
+### Dependencies: 2.1
+### Description: Corriger l'algorithme de sélection pour assurer une distribution équitable des gardes
+### Details:
+Examiner la logique de sélection actuelle, identifier les problèmes d'équité dans la distribution des gardes, et modifier l'algorithme pour garantir une répartition plus équilibrée
+
+## 3. Résoudre le problème de priorité week-end [completed]
+### Dependencies: 2.2
+### Description: Corriger la logique de priorité pour les gardes de week-end dans le PlanningGenerator
+### Details:
+Identifier pourquoi la priorité pour les gardes de week-end ne fonctionne pas correctement, et implémenter une solution qui respecte les règles métier définies
+
+## 4. Mettre à jour le snapshot HeatMapChart [completed]
+### Dependencies: None
+### Description: Nettoyer et actualiser le snapshot obsolète du composant HeatMapChart
+### Details:
+Examiner les changements récents dans le composant HeatMapChart, déterminer pourquoi le snapshot est devenu obsolète, et générer un nouveau snapshot à jour
+
+## 5. Exécuter et stabiliser la suite complète de tests [completed]
+### Dependencies: 2.1, 2.2, 2.3, 2.4
+### Description: S'assurer que tous les tests passent de manière cohérente et stable
+### Details:
+Exécuter l'ensemble des tests Jest et Cypress, identifier et corriger les problèmes d'instabilité ou d'intermittence, et documenter les modifications apportées pour éviter les régressions futures
+

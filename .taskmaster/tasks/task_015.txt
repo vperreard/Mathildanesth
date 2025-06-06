@@ -1,0 +1,17 @@
+# Task ID: 15
+# Title: Configurer l'infrastructure de monitoring
+# Status: pending
+# Dependencies: 8
+# Priority: medium
+# Description: Mettre en place le monitoring complet avec les outils déjà présents : Winston pour les logs, performance monitoring daemon, et intégration avec Vercel Analytics
+# Details:
+Le projet a déjà plusieurs outils de monitoring mais ils ne sont pas pleinement configurés :
+- Winston et winston-daily-rotate-file pour la rotation des logs
+- Scripts de monitoring performance (monitoring-daemon.js)
+- @vercel/analytics pour le tracking frontend
+- Configurer des alertes automatiques
+- Créer un dashboard unifié de monitoring
+- Intégrer avec les scripts npm existants (monitor:start, monitor:status)
+
+# Test Strategy:
+
