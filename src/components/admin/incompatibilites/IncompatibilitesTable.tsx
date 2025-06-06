@@ -78,25 +78,19 @@ export function IncompatibilitesTable({ incompatibilities }: IncompatibilitesTab
                             <TableCell>{formatDate(incompat.createdAt)}</TableCell>
                             <TableCell className="text-right">
                                 <div className="flex items-center justify-end space-x-2">
-                                    {/* <Link href={`/admin/incompatibilites/${incompat.id}`} passHref>
-                    <Button variant="outline" size="icon" title="Voir">
-                      <{/* EyeIconclassName="h-4 w-4" /> */}
-                    </Button>
-                  </Link> */}
                                     <Link href={`/admin/incompatibilites/${incompat.id}/edit`} passHref>
                                         <Button variant="outline" size="icon" title="Modifier">
-                                            <{/* PencilIconclassName="h-4 w-4" /> */}
+                                            {/* <PencilIcon className="h-4 w-4" /> */}
                                         </Button>
                                     </Link>
-                                    {/* Ajouter une fonction de suppression ici si nécessaire */}
-                                    {/* <Button 
-                    variant="destructive" 
-                    size="icon" 
-                    title="Supprimer"
-                    // onClick={() => onDelete && onDelete(incompat.id)}
-                  >
-                    <{/* TrashIconclassName="h-4 w-4" /> */}
-                  </Button> */}
+                                    <Button 
+                                        variant="outline" 
+                                        size="icon" 
+                                        title="Supprimer"
+                                        onClick={() => onDelete?.(incompat.id)}
+                                    >
+                                        {/* <TrashIcon className="h-4 w-4" /> */}
+                                    </Button>
                                 </div>
                             </TableCell>
                         </TableRow>
@@ -105,4 +99,4 @@ export function IncompatibilitesTable({ incompatibilities }: IncompatibilitesTab
             </Table>
         </div>
     );
-} 
+};

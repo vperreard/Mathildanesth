@@ -10,7 +10,7 @@ const navigation = [
     { name: 'Paramètres', href: '/parametres', icon: CogIcon },
 ];
 
-export const Navigation: React.FC = () => */} {
+export const Navigation: React.FC = () => {
     const router = useRouter();
 
     return (

@@ -245,17 +245,16 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
         // On retire les divs externes (fixed inset-0 et bg-white)
         // Le contenu est maintenant directement rendu dans le DialogContent parent
         <>
-            {/* On retire l'en-tête interne car DialogHeader est fourni par page.tsx
-            <div className="flex justify-between items-center mb-4">
+            {/* On retire l'en-tête interne car DialogHeader est fourni par page.tsx */}
+            {/* <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Configuration de l'affichage</h2>
                 <button
                     onClick={onClose}
                     className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
                 >
-                    <{/* XMarkIconclassName="w-6 h-6" /> */}
+                    <XMarkIcon className="w-6 h-6" />
                 </button>
-            </div>
-            */}
+            </div> */}
 
             {/* Système d'onglets */}
             <div className="flex border-b mb-4">

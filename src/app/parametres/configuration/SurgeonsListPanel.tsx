@@ -223,7 +223,7 @@ const SurgeonsListPanel: React.FC = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
 
                 <div className="mb-6 flex justify-between items-center">
-                    {/* Titre principal harmonisé */}
+                    }
                     <h2 className="text-2xl font-bold flex items-center space-x-3 text-gray-800">
                         <Users className="h-7 w-7 text-indigo-600" />
                         <span>Gestion des Chirurgiens</span>
@@ -238,7 +238,7 @@ const SurgeonsListPanel: React.FC = () => {
                     </button>
                 </div>
 
-                {/* Afficher le SurgeonForm ici si isModalOpen est true */}
+                }
                 {isModalOpen && (
                     <Modal isOpen={isModalOpen} onClose={handleCloseForm} title={editingSurgeon ? 'Modifier le Chirurgien' : 'Ajouter un Chirurgien'}>
                         <SurgeonForm
@@ -251,7 +251,7 @@ const SurgeonsListPanel: React.FC = () => {
                     </Modal>
                 )}
 
-                {/* Confirmation de suppression */}
+                }
                 <ConfirmationModal
                     isOpen={deleteConfirmation.isOpen}
                     onClose={closeDeleteConfirmation}
@@ -263,18 +263,18 @@ const SurgeonsListPanel: React.FC = () => {
                     isLoading={isLoadingSubmit}
                 />
 
-                {/* Liste des Chirurgiens - style ajusté pour s'intégrer au panneau */}
-                {/* Retrait de la div d'encadrement car elle est maintenant gérée par SurgeonAndSpecialtyPanel */}
-                {/* <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-4 border border-gray-100"> */}
+                }
+                }
+                }
                 {loading && <p className="text-center text-gray-600 py-4">Chargement...</p>}
                 {error && <p className="text-center text-red-600 font-medium py-4">{error}</p>}
                 {!loading && !error && (
                     <>
                         <div className="flex justify-between items-center mb-4">
-                            {/* Sous-titre harmonisé */}
+                            }
                             <h3 className="text-lg font-medium text-gray-700">Chirurgiens enregistrés ({filteredSurgeons.length})</h3>
 
-                            {/* --- Section Filtre --- */}
+                            }
                             <div className="flex items-center space-x-4">
                                 <div className="relative flex items-center space-x-2">
                                     <Filter className="h-5 w-5 text-gray-500 flex-shrink-0" />
@@ -297,9 +297,9 @@ const SurgeonsListPanel: React.FC = () => {
                                         <ChevronDown className="h-4 w-4 text-gray-500" />
                                     </div>
                                 </div>
-                                {/* --- Fin Section Filtre --- */}
+                                }
 
-                                {/* --- Nouvelle Case à cocher --- */}
+                                }
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
                                         id="showInactiveSurgeons"
@@ -311,7 +311,7 @@ const SurgeonsListPanel: React.FC = () => {
                                         Afficher les inactifs
                                     </Label>
                                 </div>
-                                {/* --- Fin Nouvelle Case à cocher --- */}
+                                }
                             </div>
                         </div>
 
@@ -322,7 +322,7 @@ const SurgeonsListPanel: React.FC = () => {
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            {/* Ajustement padding et taille texte thead */}
+                                            }
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom Complet</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spécialités</th>
@@ -333,7 +333,7 @@ const SurgeonsListPanel: React.FC = () => {
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {filteredSurgeons.map((surgeon) => (
                                             <motion.tr key={surgeon.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }} className="hover:bg-gray-50/50">
-                                                {/* Ajustement padding tbody pour cohérence */}
+                                                }
                                                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{surgeon.id}</td>
                                                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{surgeon.prenom} {surgeon.nom}</td>
                                                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
@@ -373,10 +373,4 @@ const SurgeonsListPanel: React.FC = () => {
                         )}
                     </>
                 )}
-                {/* </div> */}
-            </motion.div>
-        </div>
-    );
-};
-
-export default SurgeonsListPanel; 
+                

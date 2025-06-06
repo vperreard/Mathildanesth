@@ -56,11 +56,10 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
                                         onClick={onClose}
                                     >
                                         <span className="sr-only">Close</span>
-                                        <{/* XMarkIconclassName="h-6 w-6" aria-hidden="true" /> */}
-                                    </button>
+                                        {/* <<XMarkIcon className="h-6 w-6"  /> </button>
                                 </div>
                                 <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                                    <div className="sm:flex sm:items-start">
+                                    <div className="sm:flex sm:items-start"> */
                                         {/* Icon can be added here if needed */}
                                         <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
                                             <Dialog.Title data-testid="dialog-title" as="h3" className="text-lg font-semibold leading-6 text-gray-900">
@@ -76,7 +75,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
                                 {/* <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                                     <button type="button" ... >Action</button>
                                     <button type="button" onClick={onClose} ... >Cancel</button>
-                                </div> */}
+                                </div>
                             </Dialog.Panel>
                         </Transition.Child>
                     </div>
@@ -84,4 +83,4 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
             </Dialog>
         </Transition.Root>
     );
-} 
+}  */

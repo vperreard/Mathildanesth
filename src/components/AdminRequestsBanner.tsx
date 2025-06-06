@@ -162,7 +162,7 @@ const AdminRequestsBanner: React.FC = () => {
                                             className="flex items-center justify-center bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-800/50 text-green-700 dark:text-green-400 rounded-full p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             title="Approuver la demande"
                                         >
-                                            <{/* CheckCircleIconclassName="h-6 w-6" /> */}
+                                            {/* <<CheckCircleIcon className="h-6 w-6"  /> */}
                                         </button>
                                         <button
                                             onClick={() => handleReject(leave.id)}
@@ -170,7 +170,7 @@ const AdminRequestsBanner: React.FC = () => {
                                             className="flex items-center justify-center bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-800/50 text-red-700 dark:text-red-400 rounded-full p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             title="Rejeter la demande"
                                         >
-                                            <{/* XCircleIconclassName="h-6 w-6" /> */}
+                                            {/* <<XCircleIcon className="h-6 w-6"  /> */}
                                         </button>
                                     </div>
                                 </div>

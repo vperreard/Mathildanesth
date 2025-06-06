@@ -188,7 +188,7 @@ export default function SpecialtyManager() {
                                     disabled={isSubmitting}
                                     isLoading={isSubmitting}
                                 >
-                                    {!isSubmitting && (isEditing ? <{/* CheckIconclassName="h-5 w-5 mr-1" /> */} : <{/* PlusIconclassName="h-5 w-5 mr-1" /> */})}
+                                    {!isSubmitting && (isEditing ? {/* <<CheckIcon className="h-5 w-5 mr-1"  /> */} : {/* <<PlusIcon className="h-5 w-5 mr-1"  /> */})}
                                     {isEditing ? 'Enregistrer' : 'Ajouter'}
                                 </Button>
                                 {isEditing && (
@@ -197,7 +197,7 @@ export default function SpecialtyManager() {
                                         onClick={resetForm}
                                         variant="secondary"
                                     >
-                                        <{/* XMarkIconclassName="h-5 w-5 mr-1" /> */} Annuler
+                                        {/* <<XMarkIcon className="h-5 w-5 mr-1"  /> */} Annuler
                                     </Button>
                                 )}
                             </div>
@@ -261,14 +261,14 @@ export default function SpecialtyManager() {
                                             variant="secondary"
                                             size="sm"
                                         >
-                                            <{/* PencilIconclassName="h-4 w-4 mr-1" /> */} Modifier
+                                            {/* <<PencilIcon className="h-4 w-4 mr-1"  /> */} Modifier
                                         </Button>
                                         <Button
                                             onClick={() => handleDeleteClick(specialty.id)}
                                             variant="danger"
                                             size="sm"
                                         >
-                                            <{/* TrashIconclassName="h-4 w-4 mr-1" /> */} Supprimer
+                                            {/* <<TrashIcon className="h-4 w-4 mr-1"  /> */} Supprimer
                                         </Button>
                                     </div>
                                 </TableCell>

@@ -37,7 +37,7 @@ export default async function IncompatibilitesPage() {
                         </div>
                         <Link href="/admin/incompatibilites/nouveau" passHref>
                             <Button>
-                                <{/* PlusCircleIconclassName="mr-2 h-5 w-5" /> */}
+                                {/* <PlusCircleIcon className="mr-2 h-5 w-5" /> */}
                                 Nouvelle Incompatibilité
                             </Button>
                         </Link>
@@ -46,7 +46,7 @@ export default async function IncompatibilitesPage() {
                 <CardContent>
                     {error && (
                         <Alert variant="destructive" className="mb-4">
-                            <{/* ExclamationTriangleIconclassName="h-4 w-4" /> */}
+                            {/* <ExclamationTriangleIcon className="h-4 w-4" /> */}
                             <AlertTitle>Erreur de chargement</AlertTitle>
                             <AlertDescription>
                                 {error}

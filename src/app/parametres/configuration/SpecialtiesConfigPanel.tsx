@@ -173,8 +173,6 @@ const SpecialtiesConfigPanel: React.FC = () => {
                     </div>
                 </div>
             )}
-
-            {/* Formulaire d'ajout/modification */}
             <form onSubmit={handleSubmit} className="mb-8 p-5 border border-gray-200 rounded-md bg-gray-50">
                 <h3 className="text-lg font-medium mb-4 text-gray-700">
                     {isEditing ? 'Modifier la Spécialité' : 'Ajouter une Spécialité'}
@@ -222,7 +220,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
                             onClick={resetForm}
                             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                         >
-                            <{/* XMarkIconclassName="h-4 w-4 mr-2" /> */}
+                            
                             Annuler
                         </button>
                     )}
@@ -234,16 +232,14 @@ const SpecialtiesConfigPanel: React.FC = () => {
                         {isSubmitting ? (
                             <span className="inline-block h-4 w-4 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin"></span>
                         ) : isEditing ? (
-                            <{/* CheckIconclassName="h-4 w-4 mr-2" /> */}
+                            null /* <CheckIcon className="h-4 w-4 mr-2" />
                         ) : (
-                            <{/* PlusIconclassName="h-4 w-4 mr-2" /> */}
+                            null /* <PlusIcon className="h-4 w-4 mr-2" />
                         )}
                         {isEditing ? 'Enregistrer' : 'Ajouter'}
                     </button>
                 </div>
             </form>
-
-            {/* Liste des spécialités */}
             <div className="mt-6">
                 <h3 className="text-lg font-medium mb-4 text-gray-700">Liste des Spécialités</h3>
 
@@ -311,7 +307,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
                                                     className="text-blue-600 hover:text-blue-900 mr-3"
                                                     title="Modifier"
                                                 >
-                                                    <{/* PencilIconclassName="h-4 w-4" /> */}
+                                                    
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteClick(specialty.id)}
@@ -319,7 +315,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
                                                     title="Supprimer"
                                                     disabled={linkedSurgeons.length > 0}
                                                 >
-                                                    <{/* TrashIconclassName={`h-4 w-4 ${linkedSurgeons.length > */} 0 ? 'opacity-30 cursor-not-allowed' : ''}`} />
+                                                    }
                                                 </button>
                                             </td>
                                         </tr>

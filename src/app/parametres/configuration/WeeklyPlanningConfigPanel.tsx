@@ -649,7 +649,7 @@ const WeeklyPlanningConfigPanel: React.FC = () => {
                                                 disabled={preset.isDefault}
                                                 title="Définir comme préréglage par défaut"
                                             >
-                                                {preset.isDefault ? <{/* StarSolidIconclassName="h-4 w-4 text-yellow-500" /> */} : <{/* StarIconclassName="h-4 w-4" /> */}}
+                                                {preset.isDefault ? /* <StarSolidIcon className="h-4 w-4 text-yellow-500" /> */ null : /* <StarIcon className="h-4 w-4" /> */ null}
                                             </button>
                                             <button
                                                 className="p-1 text-gray-400 hover:text-red-500"
@@ -660,7 +660,7 @@ const WeeklyPlanningConfigPanel: React.FC = () => {
                                                 disabled={preset.isDefault || presets.length <= 1}
                                                 title="Supprimer ce préréglage"
                                             >
-                                                <{/* TrashIconclassName="h-4 w-4" /> */}
+                                                {/* <TrashIcon className="h-4 w-4" /> */}
                                             </button>
                                         </div>
                                     </div>
@@ -701,7 +701,7 @@ const WeeklyPlanningConfigPanel: React.FC = () => {
                                     onClick={() => setIsCreatingPreset(true)}
                                     className="w-full"
                                 >
-                                    <{/* PlusIconclassName="h-4 w-4 mr-2" /> */}
+                                    {/* <PlusIcon className="h-4 w-4 mr-2" /> */}
                                     Ajouter un préréglage
                                 </Button>
                             )}

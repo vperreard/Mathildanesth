@@ -165,7 +165,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                                         }}
                                         className="hover:text-red-600 ml-1"
                                     >
-                                        <{/* XMarkIconclassName="h-3 w-3" /> */}
+                                        {/* <XMarkIcon className="h-3 w-3" /> */}
                                     </button>
                                 )}
                             </span>
@@ -177,9 +177,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                     {isLoading ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
                     ) : (
-                        <{/* ChevronDownIconclassName={`h-5 w-5 text-gray-400 transform transition-transform ${isOpen ? 'rotate-180' : ''
-                                }`}
-                        /> */}
+                        {/* <ChevronDownIcon className={`h-5 w-5 text-gray-400 transform transition-transform ${isOpen ? 'rotate-180' : ''}`} /> */}
                     )}
                 </div>
             </button>

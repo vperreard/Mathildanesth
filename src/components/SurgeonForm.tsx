@@ -293,7 +293,7 @@ export default function SurgeonForm({
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                             >
-                                <{/* PlusIconclassName="h-5 w-5" /> */}
+                                {/* <<PlusIcon className="h-5 w-5"  /> */}
                             </motion.button>
                         )}
                     </div>

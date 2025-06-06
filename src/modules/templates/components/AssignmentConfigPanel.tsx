@@ -74,11 +74,11 @@ const DraggablePoste: React.FC<DraggablePosteProps> = ({
     // TODO: Migrate useDrop to @hello-pangea/dnd
     // const [, dropRef] = useDrop({
         accept: POSTE_TYPE,
-        hover: (item: { index: number }) => {
+        // hover: (item: { index: number }) => { 
             if (item.index !== index) {
                 movePoste(item.index, index);
                 item.index = index;
-            }
+             }
         }
     });
 
