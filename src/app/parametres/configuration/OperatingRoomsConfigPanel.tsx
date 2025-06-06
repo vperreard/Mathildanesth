@@ -28,7 +28,7 @@ import {
 } from "@/components/ui";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { toast } from 'react-hot-toast';
-import { DropResult } from 'react-beautiful-dnd';
+import { DropResult } from '@hello-pangea/dnd';
 import { useTheme } from '@/context/ThemeContext'; // AJOUT
 
 // Activation du mode debug

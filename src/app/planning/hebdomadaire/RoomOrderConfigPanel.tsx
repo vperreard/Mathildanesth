@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Room, RoomOrderConfig } from "./types";
 import { XMarkIcon, ArrowsUpDownIcon } from "@heroicons/react/24/outline";
 

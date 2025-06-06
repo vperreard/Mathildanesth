@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from '@/lib/auth/migration-shim';
-import { authOptions } from '@/lib/auth/migration-shim';
+import { getServerSession } from '@/lib/auth/migration-shim-client';
+import { authOptions } from '@/lib/auth/migration-shim-client';
 
 export function withAuth(handler: Function) {
     return async (request: Request, context: unknown) => {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { logger } from "../../../../lib/logger";
 import { BlocPeriod, BlocRoomAssignment, BlocSupervisor } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 import { Card, Button } from '@/components/ui';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 interface BlocPlanningCalendarProps {
     date: Date;

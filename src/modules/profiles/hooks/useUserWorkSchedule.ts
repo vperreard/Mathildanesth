@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSession } from '@/lib/auth/migration-shim';
+import { useSession } from '@/lib/auth/migration-shim-client';
 import { WorkSchedule, WorkFrequency, WeekType } from '../types/workSchedule';
 import { getLogger } from '@/utils/logger';
 

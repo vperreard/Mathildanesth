@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { DropResult } from 'react-beautiful-dnd';
+import { DropResult } from '@hello-pangea/dnd';
 import { DragItem, DropTarget, EditorAffectation, UseDragDropOptions } from '../types';
 import { DayOfWeek, Period } from '@prisma/client';
 

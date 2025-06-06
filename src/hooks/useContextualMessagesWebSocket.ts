@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { logger } from "../lib/logger";
 import { io, Socket } from 'socket.io-client';
-import { useSession } from '@/lib/auth/migration-shim';
+import { useSession } from '@/lib/auth/migration-shim-client';
 import { getAuthToken, createAuthHeaders } from '@/lib/auth-helpers';
 
 // Interface pour les messages contextuels
