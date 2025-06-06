@@ -25,6 +25,7 @@ interface Site {
     description?: string;
     colorCode?: string;
     isActive: boolean;
+}
 
 // Type pour un chirurgien incluant les spécialités et l'utilisateur lié
 // Assurer la cohérence avec le type attendu par SurgeonForm
