@@ -151,7 +151,7 @@ export const LeaveHistoryTable: React.FC<LeaveHistoryTableProps> = ({
             dataIndex: 'transactionType',
             key: 'transactionType',
             render: (type: QuotaTransactionType) => (
-                <Tag icon={type === QuotaTransactionType.TRANSFER ? <SwapOutlined /> : <CalendarOutlined />}>
+                <Tag /* icon removed for build fix */>
                     {type === QuotaTransactionType.TRANSFER ? 'Transfert' : 'Report'}
                 </Tag>
             )
@@ -163,17 +163,17 @@ export const LeaveHistoryTable: React.FC<LeaveHistoryTableProps> = ({
                 if (record.transactionType === QuotaTransactionType.TRANSFER) {
                     return (
                         <span>
-                            {record.sourceType} <RightOutlined /> {record.targetType}
+                            {record.sourceType} → {record.targetType}
                             <br />
                             <Text type="secondary">
-                                {record.amount} jour(s) <RightOutlined /> {record.targetAmount} jour(s)
+                                {record.amount} jour(s) → {record.targetAmount} jour(s)
                             </Text>
                         </span>
                     );
                 } else {
                     return (
                         <span>
-                            {record.sourceType} ({record.fromYear} <RightOutlined /> {record.toYear})
+                            {record.sourceType} ({record.fromYear} → {record.toYear})
                             <br />
                             <Text type="secondary">
                                 {record.amount} jour(s)
@@ -208,7 +208,7 @@ export const LeaveHistoryTable: React.FC<LeaveHistoryTableProps> = ({
                     <Button
                         type="text"
                         size="small"
-                        icon={<InfoCircleOutlined />}
+                        // icon={<InfoCircleOutlined />}
                         disabled={true} // Sera activé ultérieurement
                     />
                 </Tooltip>

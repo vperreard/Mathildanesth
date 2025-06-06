@@ -133,7 +133,7 @@ export const LeaveQuotaOverview: React.FC<LeaveQuotaOverviewProps> = ({
                                     {typeLabels[type] || type}
                                     {quota.expiring > 0 && (
                                         <Tooltip title={`${quota.expiring} jour(s) expirant prochainement`}>
-                                            <WarningOutlined style={{ color: '#faad14', marginLeft: 8 }} />
+                                            <span style={{ color: '#faad14', marginLeft: 8 }}>⚠</span>
                                         </Tooltip>
                                     )}
                                 </span>
@@ -157,14 +157,14 @@ export const LeaveQuotaOverview: React.FC<LeaveQuotaOverviewProps> = ({
                                 <Col span={12}>
                                     <Tooltip title="Droits initiaux">
                                         <Text type="secondary">
-                                            <InfoCircleOutlined /> Initial: {formatDays(quota.initial)}j
+                                            ℹ Initial: {formatDays(quota.initial)}j
                                         </Text>
                                     </Tooltip>
                                 </Col>
                                 <Col span={12}>
                                     <Tooltip title="Jours utilisés">
                                         <Text type="secondary">
-                                            <ClockCircleOutlined /> Utilisé: {formatDays(quota.used)}j
+                                            🕒 Utilisé: {formatDays(quota.used)}j
                                         </Text>
                                     </Tooltip>
                                 </Col>
@@ -175,7 +175,7 @@ export const LeaveQuotaOverview: React.FC<LeaveQuotaOverviewProps> = ({
                                     <Col span={24}>
                                         <Tooltip title="Demandes en attente d'approbation">
                                             <Text type="warning">
-                                                <ClockCircleOutlined /> En attente: {formatDays(quota.pending)}j
+                                                🕒 En attente: {formatDays(quota.pending)}j
                                             </Text>
                                         </Tooltip>
                                     </Col>
@@ -187,7 +187,7 @@ export const LeaveQuotaOverview: React.FC<LeaveQuotaOverviewProps> = ({
                                     <Col span={24}>
                                         <Tooltip title="Jours transférés (entrée - sortie)">
                                             <Text type={quota.transferred > 0 ? "success" : "danger"}>
-                                                <CheckCircleOutlined /> Transférés: {formatDays(quota.transferred)}j
+                                                ✅ Transférés: {formatDays(quota.transferred)}j
                                             </Text>
                                         </Tooltip>
                                     </Col>

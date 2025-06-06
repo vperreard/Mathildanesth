@@ -228,17 +228,17 @@ export const QuotaTransferForm: React.FC<QuotaTransferFormProps> = ({
                 <Step
                     title="Sélection"
                     description="Choisir types et montant"
-                    icon={step > 0 ? <CheckCircleOutlined /> : undefined}
+                    icon={step > 0 ? <span>✅</span> : undefined}
                 />
                 <Step
                     title="Confirmation"
                     description="Vérifier et confirmer"
-                    icon={step > 1 ? <CheckCircleOutlined /> : undefined}
+                    icon={step > 1 ? <span>✅</span> : undefined}
                 />
                 <Step
                     title="Terminé"
                     description="Transfert effectué"
-                    icon={step === 2 ? <CheckCircleOutlined /> : undefined}
+                    icon={step === 2 ? <span>✅</span> : undefined}
                 />
             </Steps>
 
@@ -287,7 +287,7 @@ export const QuotaTransferForm: React.FC<QuotaTransferFormProps> = ({
                         label={<>
                             Type de congé destination
                             <Tooltip title="Type de congé vers lequel vous souhaitez transférer des jours">
-                                <QuestionCircleOutlined style={{ marginLeft: 8 }} />
+                                <span style={{ marginLeft: 8 }}>❓</span>
                             </Tooltip>
                         </>}
                         name="targetType"
@@ -310,7 +310,7 @@ export const QuotaTransferForm: React.FC<QuotaTransferFormProps> = ({
                         label={<>
                             Nombre de jours à transférer
                             <Tooltip title={`Maximum: ${maxAmount} jours`}>
-                                <InfoCircleOutlined style={{ marginLeft: 8 }} />
+                                <span style={{ marginLeft: 8 }}>ℹ️</span>
                             </Tooltip>
                         </>}
                         name="amount"
@@ -347,7 +347,7 @@ export const QuotaTransferForm: React.FC<QuotaTransferFormProps> = ({
                             }
                             type="info"
                             showIcon
-                            icon={<SwapOutlined />}
+                            icon={<span>↔️</span>}
                             style={{ marginBottom: 16 }}
                         />
                     )}
@@ -451,7 +451,7 @@ export const QuotaTransferForm: React.FC<QuotaTransferFormProps> = ({
 
             {step === 2 && (
                 <div style={{ textAlign: 'center' }}>
-                    <CheckCircleOutlined style={{ fontSize: 72, color: '#52c41a', marginBottom: 24 }} />
+                    <span style={{ fontSize: 72, color: '#52c41a', marginBottom: 24, display: 'block' }}>✅</span>
 
                     <Title level={4}>Transfert effectué avec succès</Title>
                     <Paragraph>

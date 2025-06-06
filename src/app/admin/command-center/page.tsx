@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   AlertTriangle, 
-  Users, 
+  // Users, 
   Calendar, 
   Activity,
   Clock,

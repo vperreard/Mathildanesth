@@ -342,17 +342,17 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
                 <Step
                     title="Sélection"
                     description="Choisir type et montant"
-                    icon={step > 0 ? <CheckCircleOutlined /> : undefined}
+                    icon={step > 0 ? <span>✅</span> : undefined}
                 />
                 <Step
                     title="Confirmation"
                     description="Vérifier et confirmer"
-                    icon={step > 1 ? <CheckCircleOutlined /> : undefined}
+                    icon={step > 1 ? <span>✅</span> : undefined}
                 />
                 <Step
                     title="Terminé"
                     description="Report effectué"
-                    icon={step === 2 ? <CheckCircleOutlined /> : undefined}
+                    icon={step === 2 ? <span>✅</span> : undefined}
                 />
             </Steps>
 
@@ -383,7 +383,7 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
                         <Col span={24}>
                             <Button
                                 type="primary"
-                                icon={<CalendarOutlined />}
+                                icon={<span>📅</span>}
                                 onClick={handleSimulateAll}
                                 loading={simulationLoading}
                                 style={{ marginBottom: 16 }}
@@ -426,7 +426,7 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
                         label={<>
                             Nombre de jours à reporter
                             <Tooltip title={`Maximum: ${maxAmount} jours`}>
-                                <InfoCircleOutlined style={{ marginLeft: 8 }} />
+                                <span style={{ marginLeft: 8 }}>ℹ️</span>
                             </Tooltip>
                         </>}
                         name="amount"
@@ -459,7 +459,7 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
                             }
                             type="info"
                             showIcon
-                            icon={<RightOutlined />}
+                            icon={<span>→</span>}
                             style={{ marginBottom: 16 }}
                         />
                     )}
@@ -576,7 +576,7 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
 
             {step === 2 && (
                 <div style={{ textAlign: 'center' }}>
-                    <CheckCircleOutlined style={{ fontSize: 72, color: '#52c41a', marginBottom: 24 }} />
+                    <span style={{ fontSize: 72, color: '#52c41a', marginBottom: 24, display: 'block' }}>✅</span>
 
                     <Title level={4}>Report effectué avec succès</Title>
                     {simulateAllClicked ? (

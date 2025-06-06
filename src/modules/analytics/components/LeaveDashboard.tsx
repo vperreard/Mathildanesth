@@ -319,7 +319,7 @@ const LeaveDashboard: React.FC<LeaveDashboardProps> = ({ userId, departmentId, i
                 <Col>
                     <Button
                         type="primary"
-                        icon={<DownloadOutlined />}
+                        icon={<span>⬇️</span>}
                         onClick={() => logger.info('Export')}
                     >
                         Exporter
