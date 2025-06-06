@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(validationResult);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la validation des règles:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la validation des règles:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la validation des règles' },
             { status: 500 }

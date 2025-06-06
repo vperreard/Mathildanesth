@@ -30,7 +30,7 @@ export async function getPersonnelIncompatibilities(): Promise<DisplayPersonnelI
 
         return await response.json();
     } catch (error: unknown) {
-        logger.error("Erreur lors de la récupération des incompatibilités via le service:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur lors de la récupération des incompatibilités via le service:", { error: error });
         // Propager l'erreur pour que le composant appelant puisse la gérer (ex: afficher un message à l'utilisateur)
         throw error;
     }

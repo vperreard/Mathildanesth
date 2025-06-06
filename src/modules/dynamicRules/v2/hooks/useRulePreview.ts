@@ -31,7 +31,7 @@ export const useRulePreview = () => {
       const data = await response.json();
       setPreview(data);
     } catch (err: unknown) {
-      logger.error('Preview error:', err);
+      logger.error('Preview error:', { error: err });
       setError(err.message || 'Erreur lors de la prévisualisation');
     } finally {
       setIsLoading(false);

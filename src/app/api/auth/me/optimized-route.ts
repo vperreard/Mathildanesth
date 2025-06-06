@@ -79,7 +79,7 @@ async function optimizedHandler(req: NextRequest) {
     perfLogger.end(`auth-me-${requestId}`);
     return successResponse(user);
   } catch (error: unknown) {
-    logger.error('API /auth/me optimized error:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('API /auth/me optimized error:', { error: error });
     perfLogger.end(`auth-me-${requestId}`);
     return errorResponse('Erreur serveur');
   }

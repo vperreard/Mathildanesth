@@ -97,7 +97,7 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
                 alert(`Erreur: ${result.error}`);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'envoi du message:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'envoi du message:', { error: error });
         } finally {
             setIsSubmitting(false);
         }
@@ -118,7 +118,7 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
                 alert(`Erreur: ${result.error}`);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de la modification du message:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la modification du message:', { error: error });
         } finally {
             setIsSubmitting(false);
         }
@@ -135,7 +135,7 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
                 alert(`Erreur: ${result.error}`);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de la suppression du message:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la suppression du message:', { error: error });
         }
     };
 
@@ -154,7 +154,7 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
                 alert(`Erreur: ${result.error}`);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'envoi de la réponse:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'envoi de la réponse:', { error: error });
         } finally {
             setIsSubmitting(false);
         }

@@ -38,7 +38,7 @@ export async function GET(
       ruleId: params.ruleId,
     });
   } catch (error: unknown) {
-    logger.error('Error fetching version history:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error fetching version history:', { error: error });
     return NextResponse.json(
       { error: "Erreur lors de la récupération de l'historique" },
       { status: 500 }
@@ -105,7 +105,7 @@ export async function POST(
       return NextResponse.json({ error: 'Action non reconnue' }, { status: 400 });
     }
   } catch (error: unknown) {
-    logger.error('Error in version action:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error in version action:', { error: error });
     return NextResponse.json(
       { error: "Erreur lors de l'opération sur les versions" },
       { status: 500 }

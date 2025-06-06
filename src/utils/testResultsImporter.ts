@@ -53,7 +53,7 @@ export async function importTestResults(
 
         return results;
     } catch (error: unknown) {
-        logger.error('Erreur lors de l\'importation des résultats de test:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de l\'importation des résultats de test:', { error: error });
         return [];
     }
 }
@@ -109,7 +109,7 @@ function storeTestResultsInMetrics(results: TestResult[]): void {
         // Sauvegarder les métriques mises à jour
         localStorage.setItem('performanceMetrics', JSON.stringify(metrics));
     } catch (error: unknown) {
-        logger.error('Erreur lors du stockage des résultats de test dans les métriques:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors du stockage des résultats de test dans les métriques:', { error: error });
     }
 }
 

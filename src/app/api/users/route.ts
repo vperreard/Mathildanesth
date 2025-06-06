@@ -97,7 +97,7 @@ async function getHandler(request: NextRequest) {
         });
 
     } catch (error: unknown) {
-        logger.error('[API Users] Erreur lors de la récupération des utilisateurs:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('[API Users] Erreur lors de la récupération des utilisateurs:', { error: error });
 
         return NextResponse.json({
             success: false,
@@ -152,7 +152,7 @@ async function headHandler(request: NextRequest) {
         });
 
     } catch (error: unknown) {
-        logger.error('[API Users HEAD] Erreur:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('[API Users HEAD] Erreur:', { error: error });
         return new NextResponse(null, { status: 500 });
     }
 }
@@ -190,7 +190,7 @@ async function optionsHandler(request: NextRequest) {
         });
 
     } catch (error: unknown) {
-        logger.error('[API Users OPTIONS] Erreur:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('[API Users OPTIONS] Erreur:', { error: error });
         return NextResponse.json({
             suggestions: [],
             error: 'Erreur lors de la récupération des suggestions'
@@ -288,7 +288,7 @@ async function postHandler(request: NextRequest) {
         }, { status: 201 });
 
     } catch (error: unknown) {
-        logger.error('[API Users POST] Erreur:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('[API Users POST] Erreur:', { error: error });
         return NextResponse.json({
             success: false,
             error: 'Erreur lors de la création de l\'utilisateur'
@@ -369,7 +369,7 @@ async function putHandler(request: NextRequest) {
         });
 
     } catch (error: unknown) {
-        logger.error('[API Users PUT] Erreur:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('[API Users PUT] Erreur:', { error: error });
         return NextResponse.json({
             success: false,
             error: 'Erreur lors de la mise à jour'
@@ -449,7 +449,7 @@ async function deleteHandler(request: NextRequest) {
         });
 
     } catch (error: unknown) {
-        logger.error('[API Users DELETE] Erreur:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('[API Users DELETE] Erreur:', { error: error });
         return NextResponse.json({
             success: false,
             error: 'Erreur lors de la suppression'

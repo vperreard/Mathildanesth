@@ -78,7 +78,7 @@ export function OperatingRoomList() {
             handleCloseForm();
         } catch (error: unknown) {
             toast.error(`Erreur lors de la sauvegarde de la salle: ${error instanceof Error ? error.message : String(error)}`);
-            logger.error("Erreur sauvegarde salle:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur sauvegarde salle:", { error: error });
         }
     };
 
@@ -100,7 +100,7 @@ export function OperatingRoomList() {
             closeDeleteDialog();
         } catch (error: unknown) {
             toast.error(`Erreur lors de la suppression de la salle: ${error instanceof Error ? error.message : String(error)}`);
-            logger.error("Erreur suppression salle:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur suppression salle:", { error: error });
         }
     };
 

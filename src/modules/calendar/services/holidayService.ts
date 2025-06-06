@@ -40,7 +40,7 @@ export class HolidayCalendarService {
             const holidays = await publicHolidayService.getPublicHolidaysInRange(startDate, endDate);
             return holidays.map(this.convertToCalendarEvent);
         } catch (error: unknown) {
-            logger.error('[HolidayCalendarService] Erreur lors de la récupération des jours fériés:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[HolidayCalendarService] Erreur lors de la récupération des jours fériés:', { error: error });
             return [];
         }
     }
@@ -58,7 +58,7 @@ export class HolidayCalendarService {
 
             return await publicHolidayService.isPublicHoliday(dateStr);
         } catch (error: unknown) {
-            logger.error('[HolidayCalendarService] Erreur lors de la vérification du jour férié:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[HolidayCalendarService] Erreur lors de la vérification du jour férié:', { error: error });
             return false;
         }
     }

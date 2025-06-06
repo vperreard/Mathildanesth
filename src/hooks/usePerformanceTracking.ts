@@ -164,7 +164,7 @@ export const usePerformanceTracking = (
 
                 return result;
             } catch (error: unknown) {
-                logger.error(`Data loading failed: ${loadingName}`, error instanceof Error ? error : new Error(String(error)));
+                logger.error(`Data loading failed: ${loadingName}`, { error: error });
                 throw error;
             }
         },

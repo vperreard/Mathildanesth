@@ -36,7 +36,7 @@ export async function GET(request: Request) {
         );
         return NextResponse.json(stats);
     } catch (error: unknown) {
-        logger.error("[API /api/analytics/room-utilization] Erreur lors de la récupération des statistiques:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("[API /api/analytics/room-utilization] Erreur lors de la récupération des statistiques:", { error: error });
         const errorMessage = 'Une erreur interne est survenue lors du traitement de votre demande.';
         if (error instanceof Error) {
             // Ne pas exposer les messages d'erreur internes détaillés au client en production.

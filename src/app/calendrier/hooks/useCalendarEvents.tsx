@@ -154,7 +154,7 @@ export const useCalendarEvents = ({
             dispatch({ type: 'FETCH_SUCCESS', payload: events });
         } catch (error: unknown) {
             dispatch({ type: 'FETCH_ERROR', error: error as Error });
-            logger.error('Erreur lors du chargement des événements:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des événements:', { error: error });
         }
     }, [fetchEvents, dateRange, filters]);
 

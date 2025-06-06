@@ -200,7 +200,7 @@ export const OperationForm: React.FC<OperationFormProps> = ({
                         setConflictDetails(null);
                     }
                 } catch (error: unknown) {
-                    logger.error('Erreur lors de la vérification des conflits:', error instanceof Error ? error : new Error(String(error)));
+                    logger.error('Erreur lors de la vérification des conflits:', { error: error });
                 } finally {
                     setIsValidating(false);
                 }
@@ -240,7 +240,7 @@ export const OperationForm: React.FC<OperationFormProps> = ({
                         : 'Nouvelle opération planifiée avec succès'
                 );
             } catch (error: unknown) {
-                logger.error('Erreur lors de la soumission du formulaire:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors de la soumission du formulaire:', { error: error });
                 showError('Une erreur est survenue lors de l\'enregistrement');
             } finally {
                 setIsSubmitting(false);

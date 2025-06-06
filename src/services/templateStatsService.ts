@@ -36,7 +36,7 @@ export async function fetchTemplateStats(): Promise<TemplateStats> {
 
         return await response.json() as TemplateStats;
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des statistiques:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des statistiques:', { error: error });
 
         // Retourner des données simulées en cas d'erreur
         return getMockStats();

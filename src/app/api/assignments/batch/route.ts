@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
             { status: 200 }
         );
     } catch (error: unknown) {
-        logger.error('Erreur lors du traitement des affectations par lots:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors du traitement des affectations par lots:', { error: error });
         return NextResponse.json(
             { error: 'Une erreur est survenue lors du traitement des affectations' },
             { status: 500 }

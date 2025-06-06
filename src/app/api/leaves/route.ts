@@ -182,7 +182,7 @@ async function getHandler(request: NextRequest) {
 
     return NextResponse.json(formattedLeaves);
   } catch (error: unknown) {
-    logger.error(`[API /api/conges] Erreur lors de la récupération des congés:`, error instanceof Error ? error : new Error(String(error)));
+    logger.error(`[API /api/conges] Erreur lors de la récupération des congés:`, { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors de la récupération des congés.' },
       { status: 500 }
@@ -438,7 +438,7 @@ async function postHandler(request: NextRequest) {
       );
       return NextResponse.json(formattedLeave, { status: 201 }); // 201 Created
     } catch (error: unknown) {
-      logger.error('[API /conges POST] Erreur lors de la création du congé:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('[API /conges POST] Erreur lors de la création du congé:', { error: error });
 
       // Log d'audit pour l'échec
       await auditService.logAction({
@@ -460,7 +460,7 @@ async function postHandler(request: NextRequest) {
       );
     }
   } catch (error: unknown) {
-    logger.error('[API /conges POST] Erreur générale:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('[API /conges POST] Erreur générale:', { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors de la création de la demande de congé.' },
       { status: 500 }

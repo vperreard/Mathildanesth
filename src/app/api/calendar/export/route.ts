@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
             }
         });
     } catch (error: unknown) {
-        logger.error('Erreur lors de l\'export du calendrier:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de l\'export du calendrier:', { error: error });
         
         // Log d'audit pour l'échec
         await auditService.logAction({

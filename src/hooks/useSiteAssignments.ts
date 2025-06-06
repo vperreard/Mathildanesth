@@ -39,7 +39,7 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            logger.error('Erreur fetchUserSites:', err);
+            logger.error('Erreur fetchUserSites:', { error: err });
         } finally {
             setLoading(false);
         }
@@ -58,7 +58,7 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            logger.error('Erreur updateSites:', err);
+            logger.error('Erreur updateSites:', { error: err });
             return false;
         } finally {
             setLoading(false);
@@ -78,7 +78,7 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            logger.error('Erreur addSites:', err);
+            logger.error('Erreur addSites:', { error: err });
             return false;
         } finally {
             setLoading(false);
@@ -128,7 +128,7 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            logger.error('Erreur fetchSurgeonSites:', err);
+            logger.error('Erreur fetchSurgeonSites:', { error: err });
         } finally {
             setLoading(false);
         }
@@ -147,7 +147,7 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            logger.error('Erreur updateSites:', err);
+            logger.error('Erreur updateSites:', { error: err });
             return false;
         } finally {
             setLoading(false);
@@ -167,7 +167,7 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            logger.error('Erreur addSites:', err);
+            logger.error('Erreur addSites:', { error: err });
             return false;
         } finally {
             setLoading(false);
@@ -189,7 +189,7 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
-            logger.error('Erreur removeSites:', err);
+            logger.error('Erreur removeSites:', { error: err });
             return false;
         } finally {
             setLoading(false);

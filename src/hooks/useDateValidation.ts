@@ -147,7 +147,7 @@ export function formatDate(date: Date, dateFormat: string = 'dd/MM/yyyy'): strin
         }
         return format(date, dateFormat, { locale: fr });
     } catch (error: unknown) {
-        logger.error('Erreur lors du formatage de la date:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors du formatage de la date:', { error: error });
         return '';
     }
 }

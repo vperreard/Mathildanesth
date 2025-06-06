@@ -47,7 +47,7 @@ export default function AdminRequestsHeader({
                     }
                 }
             } catch (error: unknown) {
-                logger.error("Erreur lors du chargement de la configuration:", error instanceof Error ? error : new Error(String(error)));
+                logger.error("Erreur lors du chargement de la configuration:", { error: error });
             }
         };
 

@@ -226,7 +226,7 @@ export class RuleEngineService {
             }
         } catch (error: unknown) {
             result.error = error as Error;
-            logger.error(`Erreur lors de l'évaluation de la règle ${rule.id}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de l'évaluation de la règle ${rule.id}:`, { error: error });
         }
 
         return result;
@@ -346,7 +346,7 @@ export class RuleEngineService {
                 context
             );
         } catch (error: unknown) {
-            logger.error(`Erreur lors de l'accès au champ ${condition.field}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de l'accès au champ ${condition.field}:`, { error: error });
             fieldValue = undefined;
         }
 
@@ -518,7 +518,7 @@ export class RuleEngineService {
 
             return true;
         } catch (error: unknown) {
-            logger.error(`Erreur lors de l'exécution de l'action ${action.id}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de l'exécution de l'action ${action.id}:`, { error: error });
 
             // Exécuter l'action de fallback si spécifiée
             if (action.fallbackAction) {
@@ -586,7 +586,7 @@ export class RuleEngineService {
             // eslint-disable-next-line no-eval
             return eval(evaluableFormula);
         } catch (error: unknown) {
-            logger.error(`Erreur lors de l'évaluation de la formule ${formula}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de l'évaluation de la formule ${formula}:`, { error: error });
             return null;
         }
     }

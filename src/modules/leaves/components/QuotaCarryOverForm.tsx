@@ -149,7 +149,7 @@ export const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
                 const rules = await quotaAdvancedService.getActiveCarryOverRules(userId);
                 setCarryOverRules(rules);
             } catch (err: unknown) {
-                logger.error('Erreur lors du chargement des règles de report:', err);
+                logger.error('Erreur lors du chargement des règles de report:', { error: err });
                 setError(`Impossible de charger les règles de report: ${err instanceof Error ? err.message : String(err)}`);
             } finally {
                 setLoadingRules(false);

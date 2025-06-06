@@ -201,7 +201,7 @@ export class AlertingService {
             await this.saveAlertToDatabase(alert);
 
         } catch (error: unknown) {
-            logger.error('Failed to send alert notification:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to send alert notification:', { error: error });
         }
     }
 
@@ -252,7 +252,7 @@ export class AlertingService {
                 }
             });
         } catch (error: unknown) {
-            logger.error('Failed to save alert to database:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to save alert to database:', { error: error });
         }
     }
 

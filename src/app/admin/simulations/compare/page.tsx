@@ -107,7 +107,7 @@ export default function CompareSimulationsPage() {
                 const data = await response.json();
                 setComparisonData(data);
             } catch (err: unknown) {
-                logger.error('Erreur:', err);
+                logger.error('Erreur:', { error: err });
                 setError(err instanceof Error ? err.message : 'Erreur inconnue');
 
                 // En cas d'erreur, utiliser des données de démonstration

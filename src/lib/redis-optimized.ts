@@ -88,7 +88,7 @@ class OptimizedRedisClient implements RedisClientInterface {
             });
 
             this.client.on('error', (error: unknown) => {
-                logger.error('❌ Erreur Redis:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('❌ Erreur Redis:', { error: error });
                 this.isConnected = false;
             });
 
@@ -113,7 +113,7 @@ class OptimizedRedisClient implements RedisClientInterface {
             try {
                 return await redisOp();
             } catch (error: unknown) {
-                logger.error(`Erreur Redis ${operation}:`, error instanceof Error ? error : new Error(String(error)));
+                logger.error(`Erreur Redis ${operation}:`, { error: error });
                 // Fallback vers le cache mémoire en cas d'erreur
             }
         }
@@ -306,7 +306,7 @@ class OptimizedRedisClient implements RedisClientInterface {
             try {
                 await this.client.disconnect();
             } catch (error: unknown) {
-                logger.warn('Erreur lors de la déconnexion Redis:', error instanceof Error ? error : new Error(String(error)));
+                logger.warn('Erreur lors de la déconnexion Redis:', { error: error });
             }
         }
         this.fallbackCache.clear();

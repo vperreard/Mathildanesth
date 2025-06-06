@@ -48,7 +48,7 @@ export class SyncService {
                 message: responseData.message || 'Synchronisation réussie',
             };
         } catch (error: unknown) {
-            logger.error("Erreur lors de l'appel API de synchronisation:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de l'appel API de synchronisation:", { error: error });
             return {
                 success: false,
                 message: error.message || 'Erreur réseau ou inconnue lors de la synchronisation',
@@ -90,7 +90,7 @@ export class SyncService {
                 violations: responseData.violations || [],
             };
         } catch (error: unknown) {
-            logger.error("Erreur lors de l'appel API de validation:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de l'appel API de validation:", { error: error });
             const violations: Violation[] = [
                 {
                     type: ViolationType.SCHEDULING_CONFLICT,

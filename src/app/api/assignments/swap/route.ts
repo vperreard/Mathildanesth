@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
         });
 
     } catch (error: unknown) {
-        logger.error("GET /api/affectations/echange: Erreur serveur", error instanceof Error ? error : new Error(String(error)));
+        logger.error("GET /api/affectations/echange: Erreur serveur", { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la récupération des demandes d\'échange',
             details: error.message
@@ -278,7 +278,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(result.swapRequest, { status: 201 });
 
     } catch (error: unknown) {
-        logger.error("POST /api/affectations/echange: Erreur serveur", error instanceof Error ? error : new Error(String(error)));
+        logger.error("POST /api/affectations/echange: Erreur serveur", { error: error });
         
         // Log d'audit pour l'échec
         await auditService.logAction({

@@ -48,7 +48,7 @@ const getHandler = withAuth({
 
         return NextResponse.json(user);
     } catch (error: unknown) {
-        logger.error('Error fetching user', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error fetching user', { error: error });
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -157,7 +157,7 @@ const putHandler = withAuth({
         return NextResponse.json(updatedUser);
         
     } catch (error: unknown) {
-        logger.error('Error updating user', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error updating user', { error: error });
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -210,7 +210,7 @@ const deleteHandler = withAuth({
         });
         
     } catch (error: unknown) {
-        logger.error('Error deactivating user', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error deactivating user', { error: error });
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

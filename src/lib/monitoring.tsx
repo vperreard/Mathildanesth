@@ -230,7 +230,7 @@ class PerformanceMonitor {
 
             logger.info('Alert sent to monitoring service:', alertData);
         } catch (error: unknown) {
-            logger.error('Failed to send alert:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to send alert:', { error: error });
         }
     }
 

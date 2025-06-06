@@ -131,7 +131,7 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
             const holidays = await holidayCalendarService.getHolidayEvents(startDateStr, endDateStr);
             setHolidayEvents(holidays);
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des jours fériés:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des jours fériés:', { error: error });
             setHolidayEvents([]);
         } finally {
             setHolidaysLoading(false);

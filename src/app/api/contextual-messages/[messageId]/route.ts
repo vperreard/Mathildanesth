@@ -94,7 +94,7 @@ export async function PUT(
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    logger.error('Erreur lors de la mise à jour du message contextuel:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la mise à jour du message contextuel:', { error: error });
     if (error instanceof SyntaxError) {
       return NextResponse.json({ error: 'Données JSON invalides' }, { status: 400 });
     }
@@ -173,7 +173,7 @@ export async function DELETE(
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    logger.error('Erreur lors de la suppression du message contextuel:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la suppression du message contextuel:', { error: error });
     return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
   }
 }

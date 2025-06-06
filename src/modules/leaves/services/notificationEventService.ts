@@ -114,7 +114,7 @@ export class NotificationEventService {
             const data = await response.json();
             return data.map((user: User) => user.id);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération des approbateurs:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des approbateurs:', { error: error });
             return [];
         }
     }

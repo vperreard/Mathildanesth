@@ -45,7 +45,7 @@ const UserLeaveBalance: React.FC<UserLeaveBalanceProps> = ({
                 });
                 setBalances(response.data);
             } catch (err: unknown) {
-                logger.error('Erreur lors du chargement des soldes de congés:', err);
+                logger.error('Erreur lors du chargement des soldes de congés:', { error: err });
                 setError('Impossible de charger les soldes de congés');
             } finally {
                 setIsLoading(false);

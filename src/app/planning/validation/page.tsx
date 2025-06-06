@@ -67,7 +67,7 @@ export default function PlanningValidationPage() {
             setValidationResult(data.validation || null);
             setUsers(data.users || []);
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement du planning:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement du planning:', { error: error });
             toast({
                 title: "Erreur",
                 description: "Impossible de charger le planning",
@@ -116,7 +116,7 @@ export default function PlanningValidationPage() {
             const result = await response.json();
             setValidationResult(result);
         } catch (error: unknown) {
-            logger.error('Erreur de validation:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur de validation:', { error: error });
         }
     };
 

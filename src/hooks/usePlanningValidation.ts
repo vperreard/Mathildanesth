@@ -93,7 +93,7 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
 
             return violations;
         } catch (error: unknown) {
-            logger.error('Error validating attribution:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Error validating attribution:', { error: error });
             return [];
         }
     }, [isInitializing, createRuleContext, ruleEngine]);

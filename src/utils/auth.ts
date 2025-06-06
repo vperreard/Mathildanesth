@@ -71,7 +71,7 @@ export const decodeToken = (token: string): any | null => {
         );
         return JSON.parse(jsonPayload);
     } catch (error: unknown) {
-        logger.error('Erreur de décodage du token:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur de décodage du token:', { error: error });
         return null;
     }
 };

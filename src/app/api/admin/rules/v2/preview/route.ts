@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(simulation);
 
   } catch (error: unknown) {
-    logger.error('Error in preview:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error in preview:', { error: error });
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Paramètres invalides', details: error.errors },

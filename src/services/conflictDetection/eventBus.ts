@@ -155,7 +155,7 @@ class ConflictEventBus {
                 try {
                     handler(completeEvent);
                 } catch (error: unknown) {
-                    logger.error(`Erreur dans le gestionnaire d'événement pour ${event.type}:`, error instanceof Error ? error : new Error(String(error)));
+                    logger.error(`Erreur dans le gestionnaire d'événement pour ${event.type}:`, { error: error });
                 }
             });
         }

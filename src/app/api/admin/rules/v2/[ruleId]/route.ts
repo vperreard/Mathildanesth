@@ -92,7 +92,7 @@ export async function GET(
       },
     });
   } catch (error: unknown) {
-    logger.error('Error fetching rule:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error fetching rule:', { error: error });
     return NextResponse.json(
       { error: 'Erreur lors de la récupération de la règle' },
       { status: 500 }
@@ -169,7 +169,7 @@ export async function PUT(
           : 'Règle mise à jour avec succès',
     });
   } catch (error: unknown) {
-    logger.error('Error updating rule:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error updating rule:', { error: error });
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },
@@ -229,7 +229,7 @@ export async function DELETE(
       message: 'Règle archivée avec succès',
     });
   } catch (error: unknown) {
-    logger.error('Error deleting rule:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error deleting rule:', { error: error });
     return NextResponse.json(
       { error: 'Erreur lors de la suppression de la règle' },
       { status: 500 }
@@ -295,7 +295,7 @@ export async function PATCH(
       message: 'Action effectuée avec succès',
     });
   } catch (error: unknown) {
-    logger.error('Error performing quick action:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error performing quick action:', { error: error });
     return NextResponse.json({ error: "Erreur lors de l'exécution de l'action" }, { status: 500 });
   }
 }

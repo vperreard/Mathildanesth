@@ -79,7 +79,7 @@ export async function createNotification(args: NotificationCreationArgs) {
 
         return notification;
     } catch (error: unknown) {
-        logger.error("Erreur détaillée lors de la création de la notification:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur détaillée lors de la création de la notification:", { error: error });
         // Gérer l'erreur (ex: la logger sans bloquer le flux principal, ou la relancer)
         // Pour l'instant, on retourne null, mais une gestion plus robuste est conseillée.
         return null;

@@ -141,7 +141,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json(serializedConflict);
   } catch (error: unknown) {
-    logger.error(`Erreur lors de la résolution du conflit ${params.id}:`, error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Erreur lors de la résolution du conflit ${params.id}:`, { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors de la résolution du conflit' },
       { status: 500 }

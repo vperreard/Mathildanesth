@@ -52,7 +52,7 @@ export default function PerformanceDashboardClient() {
                 setCacheStats(data);
             }
         } catch (error: unknown) {
-            logger.error('Failed to fetch cache stats:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to fetch cache stats:', { error: error });
         }
     };
 
@@ -64,7 +64,7 @@ export default function PerformanceDashboardClient() {
                 setPerformanceMetrics(data.metrics || []);
             }
         } catch (error: unknown) {
-            logger.error('Failed to fetch performance metrics:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to fetch performance metrics:', { error: error });
         }
     };
 
@@ -92,7 +92,7 @@ export default function PerformanceDashboardClient() {
                 await refreshData();
             }
         } catch (error: unknown) {
-            logger.error('Failed to clear cache:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to clear cache:', { error: error });
         }
     };
 

@@ -76,7 +76,7 @@ export async function fetchRooms(): Promise<Room[]> {
             isActive: room.isActive !== undefined ? room.isActive : true
         }));
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des salles:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des salles:', { error: error });
         // En cas d'erreur, retourner les salles mock
         return getMockRooms();
     }

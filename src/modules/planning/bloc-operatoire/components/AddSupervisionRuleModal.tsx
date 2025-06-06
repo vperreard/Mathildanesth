@@ -68,7 +68,7 @@ export default function AddSupervisionRuleModal({ isOpen, onClose, onAdd, sector
             const data = await response.json();
             setRooms(data.map((room: unknown) => ({ id: room.id, number: room.number })));
         } catch (error: unknown) {
-            logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur:', { error: error });
         }
     }
 
@@ -120,7 +120,7 @@ export default function AddSupervisionRuleModal({ isOpen, onClose, onAdd, sector
             form.reset();
             onClose();
         } catch (error: unknown) {
-            logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur:', { error: error });
             setError(error instanceof Error ? error.message : 'Une erreur est survenue');
         } finally {
             setIsLoading(false);

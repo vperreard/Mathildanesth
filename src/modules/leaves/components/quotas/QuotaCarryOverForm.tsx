@@ -160,7 +160,7 @@ const QuotaCarryOverForm: React.FC<QuotaCarryOverFormProps> = ({
 
             setSimulationResult(result);
         } catch (error: unknown) {
-            logger.error("Erreur lors de la simulation de report:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la simulation de report:", { error: error });
         } finally {
             setIsSimulating(false);
         }

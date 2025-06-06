@@ -190,7 +190,7 @@ export class EventBusService {
                 logger.debug(`[EventBus] Processed ${batchSize} events in ${processingTime.toFixed(2)}ms`);
             }
         } catch (error: unknown) {
-            logger.error('[EventBus] Error processing event queue:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[EventBus] Error processing event queue:', { error: error });
         } finally {
             this.isProcessingQueue = false;
         }
@@ -231,7 +231,7 @@ export class EventBusService {
                         const subscriberId = (handler as any).name || 'unknown-subscriber';
                         this.profiler.endSubscriberProfiling(event.type, subscriberId, 0, true);
 
-                        logger.error(`[EventBus] Error in event handler for ${event.type}:`, error instanceof Error ? error : new Error(String(error)));
+                        logger.error(`[EventBus] Error in event handler for ${event.type}:`, { error: error });
                     }
                 }
             }
@@ -249,7 +249,7 @@ export class EventBusService {
                     const subscriberId = `wildcard-${(handler as any).name || 'unknown'}`;
                     this.profiler.endSubscriberProfiling(event.type, subscriberId, 0, true);
 
-                    logger.error(`[EventBus] Error in wildcard event handler:`, error instanceof Error ? error : new Error(String(error)));
+                    logger.error(`[EventBus] Error in wildcard event handler:`, { error: error });
                 }
             }
 

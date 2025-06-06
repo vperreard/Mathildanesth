@@ -100,7 +100,7 @@ export function ApplySimulationModal({
                 router.refresh();
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'application de la simulation:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'application de la simulation:', { error: error });
             setError('Une erreur est survenue lors de la communication avec le serveur');
         } finally {
             setLoading(false);

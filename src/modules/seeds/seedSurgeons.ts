@@ -336,7 +336,7 @@ export async function seedSurgeons() {
     logger.info('Initialisation des chirurgiens terminée avec succès!');
     return true;
   } catch (error: unknown) {
-    logger.error("Erreur lors de l'initialisation des chirurgiens:", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Erreur lors de l'initialisation des chirurgiens:", { error: error });
     throw error;
   }
 }
@@ -346,7 +346,7 @@ export async function seedSurgeons() {
 //     seedSurgeons()
 //         .then(() => process.exit(0))
 //         .catch(error => {
-//             logger.error('Erreur lors du seed des chirurgiens:', error instanceof Error ? error : new Error(String(error)));
+//             logger.error('Erreur lors du seed des chirurgiens:', { error: error });
 //             process.exit(1);
 //         });
 // }

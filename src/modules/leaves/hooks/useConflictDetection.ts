@@ -124,7 +124,7 @@ export const useConflictDetection = ({
 
             return startValid && endValid && rangeValid;
         } catch (error: unknown) {
-            logger.error('useConflictDetection: validateDates - erreur lors de la validation', error instanceof Error ? error : new Error(String(error)));
+            logger.error('useConflictDetection: validateDates - erreur lors de la validation', { error: error });
             return false;
         }
     };
@@ -203,7 +203,7 @@ export const useConflictDetection = ({
                 return result;
             } catch (err: unknown) {
                 const errorObj = err instanceof Error ? err : new Error('Erreur lors de la vérification des conflits');
-                logger.error('Erreur dans checkConflicts:', err);
+                logger.error('Erreur dans checkConflicts:', { error: err });
 
                 // Réinitialiser l'état des conflits AVANT de définir l'erreur
                 resetConflicts();

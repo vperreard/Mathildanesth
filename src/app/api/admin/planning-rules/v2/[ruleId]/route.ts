@@ -87,7 +87,7 @@ export async function GET(
 
     return NextResponse.json(rule);
   } catch (error: unknown) {
-    logger.error('Error fetching rule:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error fetching rule:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -216,12 +216,12 @@ export async function PUT(
         data
       );
     } catch (error: unknown) {
-      logger.error('Failed to send rule change notification:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Failed to send rule change notification:', { error: error });
     }
 
     return NextResponse.json(updatedRule);
   } catch (error: unknown) {
-    logger.error('Error updating rule:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error updating rule:', { error: error });
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -326,12 +326,12 @@ export async function DELETE(
         user.email || `user-${user.id}`
       );
     } catch (error: unknown) {
-      logger.error('Failed to send rule change notification:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Failed to send rule change notification:', { error: error });
     }
 
     return NextResponse.json({ message: 'Rule deleted successfully' });
   } catch (error: unknown) {
-    logger.error('Error deleting rule:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error deleting rule:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

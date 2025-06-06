@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         }
 
     } catch (error: unknown) {
-        logger.error('Error fetching alerts:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error fetching alerts:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des alertes' },
             { status: 500 }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         }
 
     } catch (error: unknown) {
-        logger.error('Error processing alert action:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error processing alert action:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors du traitement de l\'action' },
             { status: 500 }

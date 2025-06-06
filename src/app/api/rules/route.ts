@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(rules);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des règles:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des règles:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des règles' },
             { status: 500 }
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(newRule, { status: 201 });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la création de la règle:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la création de la règle:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la création de la règle' },
             { status: 500 }

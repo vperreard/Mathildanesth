@@ -72,7 +72,7 @@ export class QuotaAdvancedService {
         try {
             return await fetchActiveTransferRulesForUser(userId);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération des règles de transfert:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des règles de transfert:', { error: error });
             throw error;
         }
     }
@@ -86,7 +86,7 @@ export class QuotaAdvancedService {
         try {
             return await fetchActiveCarryOverRulesForUser(userId);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération des règles de report:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des règles de report:', { error: error });
             throw error;
         }
     }
@@ -150,7 +150,7 @@ export class QuotaAdvancedService {
 
             return result;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la simulation du transfert:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la simulation du transfert:', { error: error });
             throw error;
         }
     }
@@ -230,7 +230,7 @@ export class QuotaAdvancedService {
 
             return result;
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'exécution du transfert:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'exécution du transfert:', { error: error });
             throw error;
         }
     }
@@ -322,7 +322,7 @@ export class QuotaAdvancedService {
                 message: `Vous pouvez reporter ${carryOverAmount} jour(s) sur votre quota de ${this.getLeaveTypeLabel(request.leaveType)} vers l'année ${request.toYear}.${applicableRule.expiryMonths > 0 ? ` Ces jours expireront le ${formatDate(expiryDate)}.` : ''}`
             };
         } catch (error: unknown) {
-            logger.error('Erreur lors de la simulation du report:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la simulation du report:', { error: error });
             throw error;
         }
     }
@@ -390,7 +390,7 @@ export class QuotaAdvancedService {
 
             return true;
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'exécution du report:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'exécution du report:', { error: error });
             throw error;
         }
     }
@@ -411,7 +411,7 @@ export class QuotaAdvancedService {
 
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération de l\'historique des transferts:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération de l\'historique des transferts:', { error: error });
             throw error;
         }
     }
@@ -432,7 +432,7 @@ export class QuotaAdvancedService {
 
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération de l\'historique des reports:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération de l\'historique des reports:', { error: error });
             throw error;
         }
     }
@@ -540,7 +540,7 @@ export class QuotaAdvancedService {
 
             return enhancedQuotas;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération de l\'état amélioré des quotas:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération de l\'état amélioré des quotas:', { error: error });
             throw error;
         }
     }
@@ -618,7 +618,7 @@ export class QuotaAdvancedService {
             const response = await apiClient.post('/api/conges/quotas/transfers/report', options);
             return response.data;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la génération du rapport de transferts:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la génération du rapport de transferts:', { error: error });
             throw new Error(error.response?.data?.message || 'Erreur lors de la génération du rapport');
         }
     }
@@ -640,7 +640,7 @@ export class QuotaAdvancedService {
 
             return response.data;
         } catch (error: unknown) {
-            logger.error(`Erreur lors de l'exportation du rapport au format ${format}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de l'exportation du rapport au format ${format}:`, { error: error });
             throw new Error(error.response?.data?.message || `Erreur lors de l'exportation du rapport`);
         }
     }
@@ -664,7 +664,7 @@ export class QuotaAdvancedService {
             const response = await apiClient.get(`/api/conges/quotas/statistics?${queryParams.toString()}`);
             return response.data;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération des statistiques de quotas:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des statistiques de quotas:', { error: error });
             throw new Error(error.response?.data?.message || 'Erreur lors de la récupération des statistiques');
         }
     }
@@ -678,7 +678,7 @@ export class QuotaAdvancedService {
             const response = await apiClient.get('/api/conges/quotas/carry-overs/config');
             return response.data;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération des configurations de report:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des configurations de report:', { error: error });
             throw new Error(error.response?.data?.message || 'Erreur lors de la récupération des configurations');
         }
     }
@@ -714,7 +714,7 @@ export class QuotaAdvancedService {
 
             return response.data;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la mise à jour de la configuration de report:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la mise à jour de la configuration de report:', { error: error });
             throw new Error(error.response?.data?.message || 'Erreur lors de la mise à jour de la configuration');
         }
     }
@@ -755,7 +755,7 @@ export class QuotaAdvancedService {
 
             return response.data;
         } catch (error: unknown) {
-            logger.error('Erreur lors du traitement du report annuel:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du traitement du report annuel:', { error: error });
             throw new Error(error.response?.data?.message || 'Erreur lors du traitement du report annuel');
         }
     }
@@ -782,7 +782,7 @@ export class QuotaAdvancedService {
             const response = await apiClient.get(`/api/conges/quotas/dashboard?${queryParams.toString()}`);
             return response.data;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération des données du tableau de bord:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des données du tableau de bord:', { error: error });
             throw new Error(error.response?.data?.message || 'Erreur lors de la récupération des données');
         }
     }

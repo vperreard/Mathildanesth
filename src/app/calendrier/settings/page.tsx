@@ -50,7 +50,7 @@ export default function CalendarSettingsPage() {
                     setSettings(response.data);
                 }
             } catch (error: unknown) {
-                logger.error('Erreur lors du chargement des paramètres:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors du chargement des paramètres:', { error: error });
                 toast.error('Impossible de charger les paramètres');
             } finally {
                 setIsLoading(false);
@@ -69,7 +69,7 @@ export default function CalendarSettingsPage() {
             await axios.put(`http://localhost:3000/api/utilisateurs/${user?.id}/calendrier-settings`, settings);
             toast.success('Paramètres sauvegardés avec succès');
         } catch (error: unknown) {
-            logger.error('Erreur lors de la sauvegarde des paramètres:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la sauvegarde des paramètres:', { error: error });
             toast.error('Impossible de sauvegarder les paramètres');
         } finally {
             setIsSaving(false);

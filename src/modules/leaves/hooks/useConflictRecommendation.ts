@@ -142,7 +142,7 @@ export const useConflictRecommendation = ({
                 setManualResolutionsCount(result.manualResolutionsCount);
                 setHighestPriorityConflicts(result.highestPriorityConflicts);
             } catch (error: unknown) {
-                logger.error('Erreur lors de l\'analyse des recommandations:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors de l\'analyse des recommandations:', { error: error });
                 // En cas d'erreur, mettre à jour avec les conflits sans recommandations
                 setConflictsWithRecommendations(conflictDetection.conflicts.map(conflict => ({
                     ...conflict
@@ -265,7 +265,7 @@ export const useConflictRecommendation = ({
 
             return resolution;
         } catch (error: unknown) {
-            logger.error(`Erreur lors de l'application de la stratégie pour le conflit ${conflictId}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de l'application de la stratégie pour le conflit ${conflictId}:`, { error: error });
             return null;
         }
     }, [conflictsWithRecommendations, userId, eventBus, t]);
@@ -358,7 +358,7 @@ export const useConflictRecommendation = ({
                 onRecommendationsGenerated(result);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de la génération des recommandations:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la génération des recommandations:', { error: error });
             setRecommendationsError(error instanceof Error ? error : new Error(String(error)));
         } finally {
             setRecommendationsLoading(false);
@@ -397,7 +397,7 @@ export const useConflictRecommendation = ({
 
             return true;
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'application de la résolution:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'application de la résolution:', { error: error });
             return false;
         }
     }, []);

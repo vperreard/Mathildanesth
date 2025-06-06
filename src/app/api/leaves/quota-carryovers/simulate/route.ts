@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
                 : `Le report de ${days} jours est possible`
         });
     } catch (error: unknown) {
-        logger.error("Erreur lors de la simulation du report de quota:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur lors de la simulation du report de quota:", { error: error });
         return NextResponse.json(
             { error: "Erreur serveur lors de la simulation du report" },
             { status: 500 }

@@ -316,7 +316,7 @@ export async function GET(request: NextRequest) {
         }
 
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des événements du calendrier:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des événements du calendrier:', { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la récupération des événements du calendrier',
             details: process.env.NODE_ENV === 'development' ?

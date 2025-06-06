@@ -262,7 +262,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
             fetchActivityTypes();
             toast.success("Type d'activité supprimé avec succès");
         } catch (error: unknown) {
-            logger.error('[AssignmentsConfigPanel] Error during deletion:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[AssignmentsConfigPanel] Error during deletion:', { error: error });
 
             if (error.response) {
                 logger.info('[AssignmentsConfigPanel] Error response data:', error.response.data);

@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
         });
 
     } catch (error: unknown) {
-        logger.error('Error fetching rules:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error fetching rules:', { error: error });
         
         if (error instanceof z.ZodError) {
             return NextResponse.json(
@@ -232,13 +232,13 @@ export async function POST(request: NextRequest) {
                 user.email || `user-${user.id}`
             );
         } catch (error: unknown) {
-            logger.error('Failed to send rule change notification:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to send rule change notification:', { error: error });
         }
 
         return NextResponse.json(rule, { status: 201 });
 
     } catch (error: unknown) {
-        logger.error('Error creating rule:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error creating rule:', { error: error });
         
         if (error instanceof z.ZodError) {
             return NextResponse.json(

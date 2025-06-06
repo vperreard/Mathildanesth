@@ -44,9 +44,7 @@ export function createDynamicImport<T extends ComponentType<any>>(
       } catch (error: unknown) {
         lastError = error as Error;
         logger.warn(
-          `Dynamic import attempt ${attempt}/${maxRetries} failed:`,
-          error instanceof Error ? error : new Error(String(error))
-        );
+          `Dynamic import attempt ${attempt}/${maxRetries} failed:`, { error: error });
 
         if (attempt < maxRetries) {
           // Exponential backoff
@@ -205,7 +203,7 @@ export class IntelligentPreloader {
               logger.debug(`Preloaded component: ${name}`);
               resolve();
             } catch (error: unknown) {
-              logger.warn(`Failed to preload component ${name}:`, error instanceof Error ? error : new Error(String(error)));
+              logger.warn(`Failed to preload component ${name}:`, { error: error });
               resolve(); // Ne pas bloquer sur les échecs de préchargement
             }
           });
@@ -217,7 +215,7 @@ export class IntelligentPreloader {
         logger.debug(`Preloaded component: ${name}`);
       }
     } catch (error: unknown) {
-      logger.warn(`Failed to preload component ${name}:`, error instanceof Error ? error : new Error(String(error)));
+      logger.warn(`Failed to preload component ${name}:`, { error: error });
     }
   }
 

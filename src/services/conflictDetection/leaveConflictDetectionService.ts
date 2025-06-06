@@ -88,7 +88,7 @@ export class LeaveConflictDetectionService implements ConflictDetectionService {
 
             return result;
         } catch (error: unknown) {
-            logger.error('Erreur dans LeaveConflictDetectionService:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans LeaveConflictDetectionService:', { error: error });
             return this.createEmptyResult();
         }
     }

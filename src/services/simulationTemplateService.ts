@@ -44,7 +44,7 @@ export async function fetchTemplates(): Promise<SimulationTemplate[]> {
         const response = await axios.get('http://localhost:3000/api/simulations/modèles');
         return response.data.data || [];
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des modèles:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des modèles:', { error: error });
         throw new Error('Impossible de récupérer les modèles');
     }
 }
@@ -57,7 +57,7 @@ export async function fetchTemplate(id: string): Promise<SimulationTemplate> {
         const response = await axios.get(`http://localhost:3000/api/simulations/modèles/${id}`);
         return response.data.data;
     } catch (error: unknown) {
-        logger.error(`Erreur lors de la récupération du modèle ${id}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur lors de la récupération du modèle ${id}:`, { error: error });
         throw new Error('Modèle non trouvé');
     }
 }
@@ -70,7 +70,7 @@ export async function createTemplate(templateData: Partial<SimulationTemplate>):
         const response = await axios.post('http://localhost:3000/api/simulations/modèles', templateData);
         return response.data.data;
     } catch (error: unknown) {
-        logger.error('Erreur lors de la création du modèle:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la création du modèle:', { error: error });
         throw new Error('Impossible de créer le modèle');
     }
 }
@@ -83,7 +83,7 @@ export async function updateTemplate(id: string, updates: Partial<SimulationTemp
         const response = await axios.put(`http://localhost:3000/api/simulations/modèles/${id}`, updates);
         return response.data.data;
     } catch (error: unknown) {
-        logger.error(`Erreur lors de la mise à jour du modèle ${id}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur lors de la mise à jour du modèle ${id}:`, { error: error });
         throw new Error('Impossible de mettre à jour le modèle');
     }
 }
@@ -95,7 +95,7 @@ export async function deleteTemplate(id: string): Promise<void> {
     try {
         await axios.delete(`http://localhost:3000/api/simulations/modèles/${id}`);
     } catch (error: unknown) {
-        logger.error(`Erreur lors de la suppression du modèle ${id}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur lors de la suppression du modèle ${id}:`, { error: error });
         throw new Error('Impossible de supprimer le modèle');
     }
 }
@@ -111,7 +111,7 @@ export async function duplicateTemplate(id: string, newName: string): Promise<Si
         });
         return response.data.data;
     } catch (error: unknown) {
-        logger.error(`Erreur lors de la duplication du modèle ${id}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur lors de la duplication du modèle ${id}:`, { error: error });
         throw new Error('Impossible de dupliquer le modèle');
     }
 }
@@ -150,7 +150,7 @@ export async function prepareTemplateForScenario(templateId: string) {
             baseScenarioData
         };
     } catch (error: unknown) {
-        logger.error(`Erreur lors de la préparation du scénario à partir du modèle ${templateId}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur lors de la préparation du scénario à partir du modèle ${templateId}:`, { error: error });
         throw error;
     }
 }
@@ -213,7 +213,7 @@ export async function createScenarioFromTemplate(templateId: string, customizati
 
         return await response.json();
     } catch (error: unknown) {
-        logger.error(`Erreur lors de la création du scénario à partir du modèle ${templateId}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur lors de la création du scénario à partir du modèle ${templateId}:`, { error: error });
         throw error;
     }
 } 

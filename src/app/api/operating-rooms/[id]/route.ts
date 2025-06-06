@@ -30,7 +30,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
     return NextResponse.json(room);
   } catch (error: unknown) {
-    logger.error(`Erreur GET /api/operating-rooms/${id}:`, error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Erreur GET /api/operating-rooms/${id}:`, { error: error });
     return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), {
       status: 500,
     });
@@ -128,7 +128,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json(updatedRoom);
   } catch (error: unknown) {
     const { id } = await params;
-    logger.error(`Erreur PUT /api/operating-rooms/${id}:`, error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Erreur PUT /api/operating-rooms/${id}:`, { error: error });
     return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
   }
 }
@@ -192,14 +192,14 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
       return new NextResponse(null, { status: 204 });
     } catch (error: unknown) {
-      logger.error(`Erreur DELETE /api/operating-rooms/${id}:`, error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Erreur DELETE /api/operating-rooms/${id}:`, { error: error });
       return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), {
         status: 500,
       });
     }
   } catch (error: unknown) {
     const { id } = await params;
-    logger.error(`Erreur DELETE /api/operating-rooms/${id}:`, error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Erreur DELETE /api/operating-rooms/${id}:`, { error: error });
     return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
   }
 }

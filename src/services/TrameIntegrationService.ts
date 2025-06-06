@@ -312,7 +312,7 @@ export class TrameIntegrationService {
         });
         count++;
       } catch (error: unknown) {
-        logger.error('Erreur lors de la sauvegarde de l\'affectation:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la sauvegarde de l\'affectation:', { error: error });
       }
     }
 

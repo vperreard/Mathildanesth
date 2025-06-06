@@ -94,7 +94,7 @@ export async function GET(
         return NextResponse.json(responseData);
 
     } catch (error: unknown) {
-        logger.error(`Error during GET /api/sectors/${params.id} (Prisma - JSON Rules):`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Error during GET /api/sectors/${params.id} (Prisma - JSON Rules):`, { error: error });
         logger.info(`--- GET /api/sectors/${params.id} END (Prisma - with error) ---\n`);
         return NextResponse.json({ error: 'Erreur lors de la récupération du secteur' }, { status: 500 });
     }
@@ -176,7 +176,7 @@ export async function PUT(
         return NextResponse.json(responseData);
 
     } catch (error: unknown) {
-        logger.error(`Error during PUT /api/sectors/${params.id} (Prisma - JSON Rules):`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Error during PUT /api/sectors/${params.id} (Prisma - JSON Rules):`, { error: error });
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 logger.error(`Prisma Error P2025: Record to update not found (ID: ${params.id})`);
@@ -233,7 +233,7 @@ export async function DELETE(
         return NextResponse.json({ message: 'Secteur supprimé avec succès' });
 
     } catch (error: unknown) {
-        logger.error(`Error during DELETE /api/sectors/${params.id} (Prisma - JSON Rules):`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Error during DELETE /api/sectors/${params.id} (Prisma - JSON Rules):`, { error: error });
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 logger.error(`Prisma Error P2025: Record to delete not found (ID: ${params.id})`);

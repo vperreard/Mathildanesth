@@ -119,7 +119,7 @@ export class ApplySimulationService {
 
             return result;
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'application de la simulation:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'application de la simulation:', { error: error });
 
             const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
 
@@ -327,7 +327,7 @@ export class ApplySimulationService {
                     created++;
                 }
             } catch (error: unknown) {
-                logger.error('Erreur lors de la création d\'une affectation:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors de la création d\'une affectation:', { error: error });
                 conflicts.push({
                     type: 'ASSIGNMENT_CREATION_ERROR',
                     attribution,
@@ -357,7 +357,7 @@ export class ApplySimulationService {
                 });
                 created++;
             } catch (error: unknown) {
-                logger.error('Erreur lors de la création d\'un congé:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors de la création d\'un congé:', { error: error });
                 conflicts.push({
                     type: 'LEAVE_CREATION_ERROR',
                     leave,
@@ -400,7 +400,7 @@ export class ApplySimulationService {
 
             // Vous pourriez également utiliser Pusher ou un autre mécanisme pour les notifications temps réel
         } catch (error: unknown) {
-            logger.error('Erreur lors de la notification d\'application de simulation:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la notification d\'application de simulation:', { error: error });
         }
     }
 

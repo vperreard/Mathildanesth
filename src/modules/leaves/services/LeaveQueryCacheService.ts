@@ -57,7 +57,7 @@ export class LeaveQueryCacheService {
             this.isRedisAvailable = await redis.ping();
             logger.info(`Redis disponibilité: ${this.isRedisAvailable ? 'OK' : 'NON DISPONIBLE'}`);
         } catch (error: unknown) {
-            logger.error('Redis n\'est pas disponible:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Redis n\'est pas disponible:', { error: error });
             this.isRedisAvailable = false;
         }
     }
@@ -143,7 +143,7 @@ export class LeaveQueryCacheService {
             await redis.set(key, JSON.stringify(data), 'EX', ttl);
             logger.info(`Cache mis à jour: ${key} (TTL: ${ttl}s)`);
         } catch (error: unknown) {
-            logger.error(`Erreur lors de la mise en cache (${key}):`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de la mise en cache (${key}):`, { error: error });
             this.isRedisAvailable = false;
             // Ne pas faire échouer l'opération en cas d'erreur de cache
         }
@@ -169,7 +169,7 @@ export class LeaveQueryCacheService {
 
             return JSON.parse(cachedData) as T;
         } catch (error: unknown) {
-            logger.error(`Erreur lors de la récupération du cache (${key}):`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de la récupération du cache (${key}):`, { error: error });
             this.isRedisAvailable = false;
             return null;
         }
@@ -218,7 +218,7 @@ export class LeaveQueryCacheService {
                     await this.invalidateAll();
             }
         } catch (error: unknown) {
-            logger.error(`Erreur lors de l'invalidation du cache:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de l'invalidation du cache:`, { error: error });
             this.isRedisAvailable = false;
         }
     }

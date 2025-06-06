@@ -34,7 +34,7 @@ export async function prefetchData<T>(url: string): Promise<T | null> {
 
         return response.json();
     } catch (error: unknown) {
-        logger.error(`Erreur de préchargement pour ${url}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur de préchargement pour ${url}:`, { error: error });
         // Ne pas propager l'erreur pour éviter de casser le préchargement
         return null;
     }

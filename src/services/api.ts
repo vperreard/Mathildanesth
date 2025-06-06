@@ -57,7 +57,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur API:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur API:', { error: error });
             throw error;
         }
     }
@@ -82,7 +82,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur API:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur API:', { error: error });
             throw error;
         }
     }
@@ -102,7 +102,7 @@ export class ApiService {
                 throw new Error('Erreur lors de la sauvegarde des gardes/vacations');
             }
         } catch (error: unknown) {
-            logger.error('Erreur API:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur API:', { error: error });
             throw error;
         }
     }
@@ -132,7 +132,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur API (generatePlanning):', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur API (generatePlanning):', { error: error });
             throw error;
         }
     }
@@ -153,7 +153,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur API (validatePlanning):', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur API (validatePlanning):', { error: error });
             throw error;
         }
     }
@@ -173,7 +173,7 @@ export class ApiService {
                 throw new Error('Erreur lors de l\'approbation du planning');
             }
         } catch (error: unknown) {
-            logger.error('Erreur API (approvePlanning):', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur API (approvePlanning):', { error: error });
             throw error;
         }
     }
@@ -199,7 +199,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur API (getUserPreferences):', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur API (getUserPreferences):', { error: error });
             throw error;
         }
     }
@@ -222,7 +222,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur lors de la sauvegarde des préférences utilisateur:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la sauvegarde des préférences utilisateur:', { error: error });
             throw error;
         }
     }
@@ -245,7 +245,7 @@ export class ApiService {
             }
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur lors de la sauvegarde des assignations par lots:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la sauvegarde des assignations par lots:', { error: error });
             throw error;
         }
     }

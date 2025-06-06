@@ -672,7 +672,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
             }
 
         } catch (error: unknown) {
-            logger.error("Erreur lors du chargement des données:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors du chargement des données:", { error: error });
             setError("Erreur lors du chargement des données");
         } finally {
             setIsLoading(false);
@@ -889,7 +889,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                 setShowSuccess(false);
             }, 3000);
         } catch (error: unknown) {
-            logger.error("Erreur lors de la soumission :", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la soumission :", { error: error });
             setFormError("Une erreur est survenue lors de la soumission du formulaire");
         } finally {
             setIsSubmitting(false);
@@ -994,7 +994,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                 setRooms(prevRooms => prevRooms.filter(room => room.id !== id));
                 toast.success("La salle a été supprimée avec succès");
             } catch (error: unknown) {
-                logger.error("Erreur lors de la suppression de la salle:", error instanceof Error ? error : new Error(String(error)));
+                logger.error("Erreur lors de la suppression de la salle:", { error: error });
                 toast.error("Erreur lors de la suppression de la salle");
             }
         }
@@ -1821,7 +1821,7 @@ const runTest = async () => {
         // Simuler les tests
         logger.info("Test terminé avec succès");
     } catch (error: unknown) {
-        logger.error("Erreur pendant les tests:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur pendant les tests:", { error: error });
     }
 };
 

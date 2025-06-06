@@ -90,7 +90,7 @@ class PublicHolidayService {
                 yearsToLoad.map(year => this.getPublicHolidaysForYear(year))
             );
         } catch (error: unknown) {
-            logger.error('[PublicHolidayService] Erreur lors du préchargement des données:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[PublicHolidayService] Erreur lors du préchargement des données:', { error: error });
         }
     }
 
@@ -450,7 +450,7 @@ class PublicHolidayService {
 
             return result;
         } catch (error: unknown) {
-            logger.error('[PublicHolidayService] Erreur lors de la récupération des jours fériés dans une plage:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[PublicHolidayService] Erreur lors de la récupération des jours fériés dans une plage:', { error: error });
 
             // En cas d'erreur, retourner les données en cache même si expirées
             if (cachedEntry) {
@@ -552,7 +552,7 @@ class PublicHolidayService {
                 return newHoliday;
             }
         } catch (error: unknown) {
-            logger.error('[PublicHolidayService] Erreur lors de la création du jour férié:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[PublicHolidayService] Erreur lors de la création du jour férié:', { error: error });
             throw error;
         }
     }
@@ -628,7 +628,7 @@ class PublicHolidayService {
                 return allHolidays.find(holiday => holiday.id === data.id) || null;
             }
         } catch (error: unknown) {
-            logger.error('[PublicHolidayService] Erreur lors de la mise à jour du jour férié:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[PublicHolidayService] Erreur lors de la mise à jour du jour férié:', { error: error });
             throw error;
         }
     }
@@ -671,7 +671,7 @@ class PublicHolidayService {
                 return foundAndDeleted;
             }
         } catch (error: unknown) {
-            logger.error('[PublicHolidayService] Erreur lors de la suppression du jour férié:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[PublicHolidayService] Erreur lors de la suppression du jour férié:', { error: error });
             throw error;
         }
     }

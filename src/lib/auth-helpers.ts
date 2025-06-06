@@ -40,7 +40,7 @@ export const getAuthToken = (session: unknown): string | null => {
             return storedToken;
         }
     } catch (error: unknown) {
-        logger.warn('Impossible d\'accéder au localStorage:', error instanceof Error ? error : new Error(String(error)));
+        logger.warn('Impossible d\'accéder au localStorage:', { error: error });
     }
 
     return null;

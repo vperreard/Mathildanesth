@@ -212,7 +212,7 @@ export default function AdvancedFilter({
                 setShowSaveDialog(false);
                 // Après la sauvegarde, on présume que le filtre sera ajouté à savedFilters via les props
             } catch (error: unknown) {
-                logger.error('Erreur lors de la sauvegarde du filtre:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors de la sauvegarde du filtre:', { error: error });
             }
         }
     };

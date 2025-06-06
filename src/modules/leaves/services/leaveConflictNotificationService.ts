@@ -166,7 +166,7 @@ export class LeaveConflictNotificationService {
 
             return true;
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'envoi de l\'email de notification de conflit:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'envoi de l\'email de notification de conflit:', { error: error });
             return false;
         }
     }
@@ -208,7 +208,7 @@ export class LeaveConflictNotificationService {
 
             return true;
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'envoi de la notification UI pour un conflit:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'envoi de la notification UI pour un conflit:', { error: error });
             return false;
         }
     }
@@ -287,7 +287,7 @@ export class LeaveConflictNotificationService {
 
             return true;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la notification du conflit:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la notification du conflit:', { error: error });
             return false;
         }
     }
@@ -313,7 +313,7 @@ export class LeaveConflictNotificationService {
 
             return results.every(result => result);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la notification des conflits:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la notification des conflits:', { error: error });
             return false;
         }
     }

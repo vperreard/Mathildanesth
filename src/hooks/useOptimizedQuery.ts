@@ -192,7 +192,7 @@ export function useOptimizedQuery<T = any>(
         } catch (error: unknown) {
             if (!isMounted.current || error.name === 'AbortError') return;
 
-            logger.error(`Erreur lors de la requête${cacheKey ? ` (${cacheKey})` : ''}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de la requête${cacheKey ? ` (${cacheKey})` : ''}:`, { error: error });
 
             // Gérer les tentatives de réessai
             if (retryCountRef.current < retryCount) {

@@ -1,7 +1,5 @@
 import * as jose from 'jose';
 import { logger } from "./logger";
-import type { NextAuthOptions } from '@/lib/auth/migration-shim';
-import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
@@ -26,7 +24,7 @@ async function comparePasswords(plainPassword: string, hashedPassword: string): 
         // Si bcrypt est utilisé, sinon utiliser votre logique de comparaison
         return await bcrypt.compare(plainPassword, hashedPassword);
     } catch (error: unknown) {
-        logger.error("Erreur lors de la comparaison des mots de passe:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur lors de la comparaison des mots de passe:", { error: error });
         return false;
     }
 }
@@ -53,91 +51,7 @@ const devUsers = [
     }
 ];
 
-// Configuration NextAuth
-export const authOptions: NextAuthOptions = {
-    session: {
-        strategy: 'jwt',
-        maxAge: 24 * 60 * 60, // 24 heures
-    },
-    providers: [
-        CredentialsProvider({
-            name: 'Credentials',
-            credentials: {
-                login: { label: "Login", type: "text" },
-                password: { label: "Mot de passe", type: "password" }
-            },
-            async authorize(credentials) {
-                if (!credentials?.login || !credentials?.password) {
-                    return null;
-                }
-
-                try {
-                    let user;
-
-                    if (IS_DEV_MODE) {
-                        // Mode développement: utiliser les utilisateurs mockés
-                        user = devUsers.find(u => u.login === credentials.login);
-
-                        // En développement, accepter n'importe quel mot de passe
-                        const isPasswordValid = process.env.BYPASS_AUTH === 'true' ||
-                            credentials.password === user?.login; // Mot de passe = nom d'utilisateur
-
-                        if (!user || !isPasswordValid) {
-                            logger.info('Authentification échouée en mode développement');
-                            return null;
-                        }
-                    } else {
-                        // Mode production: utiliser Prisma
-                        user = await prisma?.user.findUnique({
-                            where: { login: credentials.login }
-                        });
-
-                        if (!user || !user.password) {
-                            return null;
-                        }
-
-                        const isPasswordValid = await comparePasswords(credentials.password, user.password);
-
-                        if (!isPasswordValid) {
-                            return null;
-                        }
-                    }
-
-                    return {
-                        id: user.id.toString(),
-                        name: `${user.prenom} ${user.nom}`,
-                        email: user.email,
-                        role: user.role
-                    };
-                } catch (error: unknown) {
-                    logger.error("Erreur d'authentification:", error instanceof Error ? error : new Error(String(error)));
-                    return null;
-                }
-            }
-        })
-    ],
-    callbacks: {
-        async jwt({ token, user }: unknown) {
-            if (user) {
-                token.userId = parseInt(user.id);
-                token.role = user.role;
-            }
-            return token;
-        },
-        async session({ session, token }: unknown) {
-            if (session.user && token) {
-                session.user.id = token.userId;
-                session.user.role = token.role;
-            }
-            return session;
-        }
-    },
-    pages: {
-        signIn: '/login',
-        error: '/login',
-    },
-    secret: JWT_SECRET,
-};
+// NextAuth configuration has been removed - using custom JWT authentication only
 
 /**
  * Crée un token JWT signé.
@@ -226,7 +140,7 @@ export async function getUserFromCookie(request: unknown): Promise<unknown> {
 
         return null;
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération de l\'utilisateur:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération de l\'utilisateur:', { error: error });
         return null;
     }
 } 

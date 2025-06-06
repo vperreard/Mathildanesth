@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       simulationId: simulationResult.id,
     });
   } catch (error: unknown) {
-    logger.error('Erreur lors du démarrage de la simulation:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors du démarrage de la simulation:', { error: error });
     return NextResponse.json(
       {
         success: false,
@@ -184,7 +184,7 @@ async function startSimulation(resultId: string, scenario: unknown) {
       },
     });
   } catch (error: unknown) {
-    logger.error("Erreur lors de l'exécution de la simulation:", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Erreur lors de l'exécution de la simulation:", { error: error });
 
     // Marquer la simulation comme échouée
     await prisma.simulationResult.update({

@@ -69,7 +69,7 @@ export function OperatingSectorList() {
             handleCloseForm();
         } catch (error: unknown) {
             toast.error(`Erreur lors de la sauvegarde du secteur: ${error instanceof Error ? error.message : String(error)}`);
-            logger.error("Erreur sauvegarde secteur:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur sauvegarde secteur:", { error: error });
         }
     };
 
@@ -91,7 +91,7 @@ export function OperatingSectorList() {
             closeDeleteDialog();
         } catch (error: unknown) {
             toast.error(`Erreur lors de la suppression du secteur: ${error instanceof Error ? error.message : String(error)}`);
-            logger.error("Erreur suppression secteur:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur suppression secteur:", { error: error });
             // Garder la modale ouverte en cas d'erreur pour feedback
         }
     };

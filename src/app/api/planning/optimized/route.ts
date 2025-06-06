@@ -207,7 +207,7 @@ export async function GET(request: NextRequest) {
 
         return response;
     } catch (error: unknown) {
-        logger.error('Error fetching optimized planning:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error fetching optimized planning:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération du planning' },
             { status: 500 }
@@ -259,7 +259,7 @@ export async function PUT(request: NextRequest) {
             results
         });
     } catch (error: unknown) {
-        logger.error('Error updating planning:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error updating planning:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour du planning' },
             { status: 500 }

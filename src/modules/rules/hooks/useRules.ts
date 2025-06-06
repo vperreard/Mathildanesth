@@ -30,7 +30,7 @@ export const useRules = () => {
             setRules(loadedRules);
         } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors du chargement des règles'));
-            logger.error('Erreur lors du chargement des règles:', err);
+            logger.error('Erreur lors du chargement des règles:', { error: err });
         } finally {
             setLoading(false);
         }
@@ -58,7 +58,7 @@ export const useRules = () => {
             return newRule;
         } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la création de la règle'));
-            logger.error('Erreur lors de la création de la règle:', err);
+            logger.error('Erreur lors de la création de la règle:', { error: err });
             throw err;
         }
     }, []);
@@ -84,7 +84,7 @@ export const useRules = () => {
             return updatedRule;
         } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la mise à jour de la règle'));
-            logger.error('Erreur lors de la mise à jour de la règle:', err);
+            logger.error('Erreur lors de la mise à jour de la règle:', { error: err });
             throw err;
         }
     }, []);
@@ -103,7 +103,7 @@ export const useRules = () => {
             return success;
         } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la suppression de la règle'));
-            logger.error('Erreur lors de la suppression de la règle:', err);
+            logger.error('Erreur lors de la suppression de la règle:', { error: err });
             throw err;
         }
     }, []);
@@ -126,7 +126,7 @@ export const useRules = () => {
             return updatedRule;
         } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors du changement de statut de la règle'));
-            logger.error('Erreur lors du changement de statut de la règle:', err);
+            logger.error('Erreur lors du changement de statut de la règle:', { error: err });
             throw err;
         }
     }, []);

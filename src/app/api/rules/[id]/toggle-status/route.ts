@@ -71,7 +71,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     return NextResponse.json(serializedRule);
   } catch (error: unknown) {
-    logger.error(`Erreur lors du changement de statut de la règle ${params.id}:`, error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Erreur lors du changement de statut de la règle ${params.id}:`, { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors du changement de statut de la règle' },
       { status: 500 }

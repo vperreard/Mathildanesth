@@ -14,7 +14,7 @@ export const getDayPlanning = async (...args: unknown[]): Promise<any[]> => {
     }
     return [];
   } catch (error: unknown) {
-    logger.warn('getDayPlanning fallback used:', error instanceof Error ? error : new Error(String(error)));
+    logger.warn('getDayPlanning fallback used:', { error: error });
     return [];
   }
 };
@@ -27,7 +27,7 @@ export const validateDayPlanning = async (...args: unknown[]): Promise<{ valid: 
     }
     return { valid: true, violations: [] };
   } catch (error: unknown) {
-    logger.warn('validateDayPlanning fallback used:', error instanceof Error ? error : new Error(String(error)));
+    logger.warn('validateDayPlanning fallback used:', { error: error });
     return { valid: true, violations: [] };
   }
 };
@@ -40,7 +40,7 @@ export const saveDayPlanning = async (...args: unknown[]): Promise<boolean> => {
     }
     return true;
   } catch (error: unknown) {
-    logger.warn('saveDayPlanning fallback used:', error instanceof Error ? error : new Error(String(error)));
+    logger.warn('saveDayPlanning fallback used:', { error: error });
     return true;
   }
 };
@@ -53,7 +53,7 @@ export const getAllOperatingRooms = async (...args: unknown[]): Promise<any[]> =
     }
     return [];
   } catch (error: unknown) {
-    logger.warn('getAllOperatingRooms fallback used:', error instanceof Error ? error : new Error(String(error)));
+    logger.warn('getAllOperatingRooms fallback used:', { error: error });
     return [];
   }
 };
@@ -66,7 +66,7 @@ export const getOperatingRoomById = async (...args: unknown[]): Promise<unknown>
     }
     return null;
   } catch (error: unknown) {
-    logger.warn('getOperatingRoomById fallback used:', error instanceof Error ? error : new Error(String(error)));
+    logger.warn('getOperatingRoomById fallback used:', { error: error });
     return null;
   }
 };

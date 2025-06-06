@@ -87,7 +87,7 @@ export class ShiftConflictDetectionService implements ConflictDetectionService {
                 requiresManagerReview: conflicts.length > 0
             };
         } catch (error: unknown) {
-            logger.error('Erreur dans ShiftConflictDetectionService:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans ShiftConflictDetectionService:', { error: error });
             return this.createEmptyResult();
         }
     }

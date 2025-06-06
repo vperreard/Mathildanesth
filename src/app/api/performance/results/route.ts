@@ -30,7 +30,7 @@ export async function GET() {
             }
         });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des résultats de performance:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des résultats de performance:', { error: error });
         return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
     }
 } 

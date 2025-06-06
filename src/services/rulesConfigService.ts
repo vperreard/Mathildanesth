@@ -33,7 +33,7 @@ class RulesConfigService {
                 return rules;
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des règles:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des règles:', { error: error });
         }
 
         // Retourner la configuration par défaut si rien n'est trouvé
@@ -58,7 +58,7 @@ class RulesConfigService {
                 return fatigueConfig;
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement de la config fatigue:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement de la config fatigue:', { error: error });
         }
 
         return defaultFatigueConfig;
@@ -128,7 +128,7 @@ class RulesConfigService {
                 return value;
             }
         } catch (error: unknown) {
-            logger.error(`Erreur lors du chargement de la config ${key}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors du chargement de la config ${key}:`, { error: error });
         }
 
         return defaultValue;

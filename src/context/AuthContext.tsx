@@ -151,7 +151,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       router.push(redirectUrl);
       return response.data.user;
     } catch (error: unknown) {
-      logger.error('Erreur de connexion:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur de connexion:', { error: error });
       throw new Error('Identifiants incorrects');
     }
   };
@@ -160,7 +160,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await axios.post('http://localhost:3000/api/auth/deconnexion');
     } catch (error: unknown) {
-      logger.error('Erreur lors de la déconnexion:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors de la déconnexion:', { error: error });
     } finally {
       removeClientAuthToken();
       userCache.clear();

@@ -224,7 +224,7 @@ export class OptimizedSimulationService {
 
             return simulationResultId;
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'exécution de la simulation optimisée:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'exécution de la simulation optimisée:', { error: error });
 
             // Mettre à jour le statut en cas d'erreur
             await this.updateSimulationStatus(

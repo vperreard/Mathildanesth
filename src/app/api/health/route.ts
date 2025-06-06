@@ -22,7 +22,7 @@ async function getHandler(request: NextRequest) {
         });
 
     } catch (error: unknown) {
-        logger.error('Health check failed:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Health check failed:', { error: error });
         
         return NextResponse.json({
             status: 'unhealthy',

@@ -244,7 +244,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
             setTransferRules(rules);
         } catch (err: unknown) {
             setError(err as Error);
-            logger.error('Erreur lors de la récupération des quotas de congés', err);
+            logger.error('Erreur lors de la récupération des quotas de congés', { error: err });
         } finally {
             setLoading(false);
         }
@@ -320,7 +320,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
                 leaveType
             };
         } catch (error: unknown) {
-            logger.error('Erreur lors de la vérification des quotas', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la vérification des quotas', { error: error });
             return {
                 isValid: false,
                 message: 'Une erreur est survenue lors de la vérification des quotas.',
@@ -362,7 +362,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
             return result;
         } catch (err: unknown) {
             const error = err as Error;
-            logger.error('Erreur lors du transfert de quotas :', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du transfert de quotas :', { error: error });
             throw error;
         }
     }, [transferRules, refreshQuotas, leaveBalance?.useSimulation]);
@@ -389,7 +389,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
             }
         } catch (err: unknown) {
             const error = err as Error;
-            logger.error('Erreur lors de la simulation du transfert :', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la simulation du transfert :', { error: error });
             throw error;
         }
     }, [transferRules, leaveBalance?.useSimulation]);
@@ -415,7 +415,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
             }
         } catch (err: unknown) {
             const error = err as Error;
-            logger.error('Erreur lors du calcul du report :', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du calcul du report :', { error: error });
             throw error;
         }
     }, [leaveBalance?.useSimulation]);
@@ -447,7 +447,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
             }
         } catch (err: unknown) {
             const error = err as Error;
-            logger.error('Erreur lors de l\'exécution du report :', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'exécution du report :', { error: error });
             throw error;
         }
     }, [refreshQuotas, leaveBalance?.useSimulation]);

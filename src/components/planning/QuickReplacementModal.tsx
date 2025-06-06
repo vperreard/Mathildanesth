@@ -112,7 +112,7 @@ export function QuickReplacementModal({
                 setCandidates(data.candidates || []);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de la recherche de remplaçants:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la recherche de remplaçants:', { error: error });
         } finally {
             setIsLoading(false);
         }

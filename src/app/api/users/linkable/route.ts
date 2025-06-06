@@ -34,7 +34,7 @@ export async function GET(request: Request) {
         });
         return NextResponse.json(linkableUsers);
     } catch (error: unknown) {
-        logger.error("Erreur GET /api/utilisateurs/linkable:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur GET /api/utilisateurs/linkable:", { error: error });
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 }

@@ -25,7 +25,7 @@ export async function getPublicHolidays(startYear: number, endYear: number): Pro
         // Convertir les dates en objets Date
         return response.data.map((holiday: unknown) => new Date(holiday.date));
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des jours fériés:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des jours fériés:', { error: error });
 
         // En cas d'erreur, retourner une liste vide pour ne pas bloquer les fonctionnalités
         return [];

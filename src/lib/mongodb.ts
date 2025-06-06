@@ -26,7 +26,7 @@ export async function connectToDatabase() {
 
         return { db, client };
     } catch (error: unknown) {
-        logger.error('Erreur de connexion à MongoDB:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur de connexion à MongoDB:', { error: error });
         throw error;
     }
 }

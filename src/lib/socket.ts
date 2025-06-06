@@ -95,7 +95,7 @@ export const initSocket = (res: NextApiResponseWithSocket) => {
                         return next();
                     }
                 } catch (error: unknown) {
-                    logger.error('Erreur dans le middleware d\'authentification WebSocket:', error instanceof Error ? error : new Error(String(error)));
+                    logger.error('Erreur dans le middleware d\'authentification WebSocket:', { error: error });
                     socket.data.authenticated = false;
                     return next();
                 }
@@ -162,7 +162,7 @@ export const initSocket = (res: NextApiResponseWithSocket) => {
                             socket.emit('auth_error', 'Token d\'authentification requis');
                         }
                     } catch (error: unknown) {
-                        logger.error(`Socket ${socket.id}: Erreur lors de l'authentification:`, error instanceof Error ? error : new Error(String(error)));
+                        logger.error(`Socket ${socket.id}: Erreur lors de l'authentification:`, { error: error });
                         socket.emit('auth_error', 'Erreur lors de l\'authentification');
                     }
                 });
@@ -215,7 +215,7 @@ export const initSocket = (res: NextApiResponseWithSocket) => {
             res.socket.server.io = newIo;
             io = newIo;
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'initialisation du serveur WebSocket:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'initialisation du serveur WebSocket:', { error: error });
             io = null;
             return null;
         }

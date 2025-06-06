@@ -48,7 +48,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ template
 
     return NextResponse.json(template);
   } catch (error: unknown) {
-    logger.error('Erreur lors de la récupération du template:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la récupération du template:', { error: error });
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -119,7 +119,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ template
 
     return NextResponse.json(updatedTemplate);
   } catch (error: unknown) {
-    logger.error('Erreur lors de la mise à jour du template:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la mise à jour du template:', { error: error });
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -169,7 +169,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    logger.error('Erreur lors de la suppression du template:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la suppression du template:', { error: error });
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

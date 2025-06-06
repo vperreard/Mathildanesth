@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(newScenario, { status: 201 });
     } catch (error: unknown) {
-        logger.error("Erreur lors de la création du scénario de simulation:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur lors de la création du scénario de simulation:", { error: error });
         const errorMessage = error instanceof Error ? error.message : 'Erreur interne du serveur';
         return NextResponse.json({ error: "Impossible de créer le scénario.", details: errorMessage }, { status: 500 });
     }
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
         });
         return NextResponse.json(scenarios);
     } catch (error: unknown) {
-        logger.error("Erreur lors de la récupération des scénarios de simulation:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur lors de la récupération des scénarios de simulation:", { error: error });
         const errorMessage = error instanceof Error ? error.message : 'Erreur interne du serveur';
         return NextResponse.json({ error: "Impossible de récupérer les scénarios.", details: errorMessage }, { status: 500 });
     }

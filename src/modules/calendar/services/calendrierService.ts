@@ -19,7 +19,7 @@ class CalendarService {
             const response = await axios.get(`${this.baseUrl}/events${queryParams}`);
             return this.normalizeEvents(response.data);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération des événements:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des événements:', { error: error });
             // Renvoyer une erreur plus spécifique ou logger différemment
             throw new Error('Impossible de récupérer les événements du calendrier');
         }
@@ -35,7 +35,7 @@ class CalendarService {
             const [normalizedEvent] = this.normalizeEvents([response.data]);
             return normalizedEvent;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération de l\'événement:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération de l\'événement:', { error: error });
             throw new Error('Impossible de récupérer l\'événement demandé');
         }
     }
@@ -50,7 +50,7 @@ class CalendarService {
             const [normalizedEvent] = this.normalizeEvents([response.data]);
             return normalizedEvent;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la mise à jour de l\'événement:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la mise à jour de l\'événement:', { error: error });
             throw new Error('Impossible de mettre à jour l\'événement');
         }
     }
@@ -65,7 +65,7 @@ class CalendarService {
             const [normalizedEvent] = this.normalizeEvents([response.data]);
             return normalizedEvent;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la création de l\'événement:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la création de l\'événement:', { error: error });
             throw new Error('Impossible de créer l\'événement');
         }
     }
@@ -77,7 +77,7 @@ class CalendarService {
         try {
             await axios.delete(`${this.baseUrl}/events/${eventId}?type=${eventType}`);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la suppression de l\'événement:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la suppression de l\'événement:', { error: error });
             throw new Error('Impossible de supprimer l\'événement');
         }
     }
@@ -177,7 +177,7 @@ class CalendarService {
             const [normalizedEvent] = this.normalizeEvents([response.data]);
             return normalizedEvent;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la mise à jour du statut de l\'événement:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la mise à jour du statut de l\'événement:', { error: error });
             throw new Error('Impossible de mettre à jour le statut de l\'événement');
         }
     }

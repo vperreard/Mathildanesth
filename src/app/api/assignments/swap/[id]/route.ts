@@ -93,7 +93,7 @@ export async function GET(
         return NextResponse.json(swapRequest);
 
     } catch (error: unknown) {
-        logger.error(`GET /api/affectations/echange/${id}: Erreur serveur`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`GET /api/affectations/echange/${id}: Erreur serveur`, { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la récupération de la demande d\'échange',
             details: error.message
@@ -305,7 +305,7 @@ export async function PUT(
         return NextResponse.json(result.swapRequest);
 
     } catch (error: unknown) {
-        logger.error(`PUT /api/affectations/echange/${id}: Erreur serveur`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`PUT /api/affectations/echange/${id}: Erreur serveur`, { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la mise à jour de la demande d\'échange',
             details: error.message
@@ -394,7 +394,7 @@ export async function DELETE(
         });
 
     } catch (error: unknown) {
-        logger.error(`DELETE /api/affectations/echange/${id}: Erreur serveur`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`DELETE /api/affectations/echange/${id}: Erreur serveur`, { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la suppression de la demande d\'échange',
             details: error.message

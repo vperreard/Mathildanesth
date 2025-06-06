@@ -155,7 +155,7 @@ export async function PUT(
     logger.info('--- PUT /api/affectation-modeles/[affectationModeleId] END ---\n');
     return NextResponse.json(updatedAffectationModele);
   } catch (error: unknown) {
-    logger.error(`Error during PUT /api/affectation-modeles:`, error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Error during PUT /api/affectation-modeles:`, { error: error });
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2025') {
         logger.error(

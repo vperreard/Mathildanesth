@@ -103,7 +103,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tra
         return NextResponse.json(result);
 
     } catch (error: unknown) {
-        logger.error('Error applying trameModele model', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error applying trameModele model', { error: error });
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

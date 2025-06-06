@@ -119,7 +119,7 @@ export const LeaveConflictRecommendationList: React.FC<LeaveConflictRecommendati
                 total: automaticRecommendationsCount
             });
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'application des recommandations automatiques:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'application des recommandations automatiques:', { error: error });
         } finally {
             setIsApplyingAll(false);
         }

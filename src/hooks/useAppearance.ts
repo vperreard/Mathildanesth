@@ -100,7 +100,7 @@ export function useAppearance({ initialPreferences }: UseAppearanceProps = {}) {
                     setPreferences(userPreferences.appearance);
                 }
             } catch (error: unknown) {
-                logger.error('Erreur lors du chargement des préférences:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors du chargement des préférences:', { error: error });
                 // En cas d'erreur, utiliser les préférences par défaut
             } finally {
                 setLoading(false);
@@ -133,7 +133,7 @@ export function useAppearance({ initialPreferences }: UseAppearanceProps = {}) {
 
             return true;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la mise à jour des préférences:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la mise à jour des préférences:', { error: error });
             return false;
         }
     };

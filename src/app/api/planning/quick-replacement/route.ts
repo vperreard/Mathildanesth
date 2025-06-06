@@ -124,7 +124,7 @@ export async function POST(request: Request) {
         });
 
     } catch (error: unknown) {
-        logger.error('Erreur dans quick-replacement:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur dans quick-replacement:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la recherche de remplaçants' },
             { status: 500 }

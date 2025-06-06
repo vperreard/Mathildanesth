@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
       unreadCount,
     });
   } catch (error: unknown) {
-    logger.error('Erreur lors de la récupération des notifications:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la récupération des notifications:', { error: error });
     return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
   }
 }
@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error: unknown) {
-    logger.error('API Notifications POST: Erreur lors de la création des notifications:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('API Notifications POST: Erreur lors de la création des notifications:', { error: error });
     if (error instanceof SyntaxError) {
       return NextResponse.json({ error: 'Données JSON invalides' }, { status: 400 });
     }

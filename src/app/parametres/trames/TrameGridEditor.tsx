@@ -45,7 +45,7 @@ const safeToast = {
                 });
             }, 100);
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'affichage du toast:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'affichage du toast:', { error: error });
         }
     },
     error: (message: string) => {
@@ -63,7 +63,7 @@ const safeToast = {
                 });
             }, 100);
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'affichage du toast d\'erreur:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'affichage du toast d\'erreur:', { error: error });
         }
     }
 };
@@ -226,7 +226,7 @@ const TrameGridEditor: React.FC = () => {
                 }
             }
         } catch (err: unknown) {
-            logger.error('Erreur lors du chargement des trames:', err);
+            logger.error('Erreur lors du chargement des trames:', { error: err });
 
             if (err.response && err.response.status === 401) {
                 setError("Erreur d'authentification. Votre session a peut-être expiré.");
@@ -245,7 +245,7 @@ const TrameGridEditor: React.FC = () => {
                 setSites(response.data);
             }
         } catch (err: unknown) {
-            logger.error('Erreur lors du chargement des sites:', err);
+            logger.error('Erreur lors du chargement des sites:', { error: err });
         }
     };
 
@@ -282,7 +282,7 @@ const TrameGridEditor: React.FC = () => {
                 }
             }
         } catch (err: unknown) {
-            logger.error('Erreur lors du chargement des secteurs et salles:', err);
+            logger.error('Erreur lors du chargement des secteurs et salles:', { error: err });
         } finally {
             setIsRefreshing(false);
         }
@@ -352,7 +352,7 @@ const TrameGridEditor: React.FC = () => {
                 );
             }
         } catch (err: unknown) {
-            logger.error('Erreur lors de la mise à jour de la trameModele:', err);
+            logger.error('Erreur lors de la mise à jour de la trameModele:', { error: err });
             setError("Erreur lors de la sauvegarde des modifications. Veuillez réessayer.");
 
             // En cas d'erreur, on recharge les données
@@ -520,7 +520,7 @@ const TrameGridEditor: React.FC = () => {
                                 toastElements.forEach(el => el.remove());
                                 logger.info('Tous les toasts ont été fermés');
                             } catch (error: unknown) {
-                                logger.error('Erreur lors de la fermeture des toasts:', error instanceof Error ? error : new Error(String(error)));
+                                logger.error('Erreur lors de la fermeture des toasts:', { error: error });
                             }
                         }}
                         className="text-red-600 hover:text-red-800 hover:bg-red-50 border-red-300"

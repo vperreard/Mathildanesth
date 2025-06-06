@@ -122,7 +122,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
     useEffect(() => {
         if (userId) {
             refreshQuotas(userId).catch(err => {
-                logger.error('Erreur lors du chargement des quotas:', err);
+                logger.error('Erreur lors du chargement des quotas:', { error: err });
             });
         }
     }, [userId, refreshQuotas]);
@@ -156,7 +156,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
 
                 if (start <= end) {
                     checkConflicts(start, end, leave?.id).catch((error) => {
-                        logger.error('Erreur lors de la vérification des conflits:', error instanceof Error ? error : new Error(String(error)));
+                        logger.error('Erreur lors de la vérification des conflits:', { error: error });
                     });
                 }
             }
@@ -194,7 +194,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                 setFormErrors(prev => prev.filter(err => !err.includes('Quota insuffisant')));
             }
         } catch (err: unknown) {
-            logger.error('Erreur lors de la vérification des quotas:', err);
+            logger.error('Erreur lors de la vérification des quotas:', { error: err });
         }
     };
 
@@ -314,7 +314,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                 onSaveDraft(savedLeave);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'enregistrement du brouillon:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'enregistrement du brouillon:', { error: error });
         }
     };
 
@@ -644,7 +644,7 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                                             onSubmit(submittedLeave);
                                         }
                                     } catch (error: unknown) {
-                                        logger.error('Erreur lors de la soumission de la demande:', error instanceof Error ? error : new Error(String(error)));
+                                        logger.error('Erreur lors de la soumission de la demande:', { error: error });
                                     }
                                 }}
                                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

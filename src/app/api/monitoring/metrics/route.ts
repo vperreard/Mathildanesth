@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    logger.error('Error storing metric:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error storing metric:', { error: error });
     return NextResponse.json(
       { error: 'Failed to store metric' },
       { status: 500 }
@@ -141,7 +141,7 @@ export async function GET(req: NextRequest) {
       stats
     });
   } catch (error: unknown) {
-    logger.error('Error fetching metrics:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error fetching metrics:', { error: error });
     return NextResponse.json(
       { error: 'Failed to fetch metrics' },
       { status: 500 }
@@ -258,7 +258,7 @@ function getDashboardMetrics() {
       timestamp: new Date().toISOString()
     });
   } catch (error: unknown) {
-    logger.error('Error fetching dashboard metrics:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error fetching dashboard metrics:', { error: error });
     return NextResponse.json(
       { error: 'Failed to fetch metrics' },
       { status: 500 }

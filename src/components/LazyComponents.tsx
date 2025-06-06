@@ -119,7 +119,7 @@ export const dynamicImport = async function<T>(
             return module.default;
         } catch (error: unknown) {
             if (i === retries - 1) {
-                logger.error('Failed to load component after retries:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Failed to load component after retries:', { error: error });
                 throw error;
             }
             // Wait before retry

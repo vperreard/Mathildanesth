@@ -80,7 +80,7 @@ export default function SpecialtyManager() {
                 const response = await axios.get<Surgeon[]>('/api/chirurgiens');
                 setSurgeons(response.data);
             } catch (err: unknown) {
-                logger.error('Fetch surgeons error:', err);
+                logger.error('Fetch surgeons error:', { error: err });
             }
         };
         fetchSurgeons();

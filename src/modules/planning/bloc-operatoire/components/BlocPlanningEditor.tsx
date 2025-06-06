@@ -106,7 +106,7 @@ const BlocPlanningEditor: React.FC<BlocPlanningEditorProps> = ({
                 const supervisors = await blocPlanningService.getAvailableSupervisors(format(date, 'yyyy-MM-dd'));
                 setAvailableSupervisors(supervisors);
             } catch (error: unknown) {
-                logger.error("Erreur lors du chargement des superviseurs:", error instanceof Error ? error : new Error(String(error)));
+                logger.error("Erreur lors du chargement des superviseurs:", { error: error });
             } finally {
                 setLoading(false);
             }

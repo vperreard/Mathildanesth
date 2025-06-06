@@ -55,7 +55,7 @@ const AdminRequestsBanner: React.FC = () => {
                     // Non autorisé, ne pas afficher d'erreur
                     setPendingLeaves([]);
                 } else {
-                    logger.error('Erreur lors du chargement des demandes en attente:', err);
+                    logger.error('Erreur lors du chargement des demandes en attente:', { error: err });
                     setError(err.response?.data?.error || 'Erreur lors du chargement des demandes');
                 }
             } finally {

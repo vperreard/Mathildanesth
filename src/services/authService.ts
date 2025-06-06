@@ -110,7 +110,7 @@ export const authService = {
         token,
       };
     } catch (error: unknown) {
-      logger.error('Login failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Login failed', { error: error });
       throw error;
     }
   },
@@ -141,7 +141,7 @@ export const authService = {
 
       return payload;
     } catch (error: unknown) {
-      logger.error('Token validation failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Token validation failed', { error: error });
       throw error;
     }
   },
@@ -168,7 +168,7 @@ export const authService = {
 
       return newToken;
     } catch (error: unknown) {
-      logger.error('Token refresh failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Token refresh failed', { error: error });
       throw error;
     }
   },
@@ -217,7 +217,7 @@ export const authService = {
 
       logger.info('Password changed successfully', { userId });
     } catch (error: unknown) {
-      logger.error('Password change failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Password change failed', { error: error });
       throw error;
     }
   },

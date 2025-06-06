@@ -129,7 +129,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             const response = await axios.get<TrameModeleWithRelations[]>('/api/trameModele-modeles?includeAffectations=true');
             setTrameModeles(response.data);
         } catch (err: unknown) {
-            logger.error('Erreur lors du chargement des templates de trameModele:', err);
+            logger.error('Erreur lors du chargement des templates de trameModele:', { error: err });
             setError(err.response?.data?.error || err.message || 'Impossible de charger les templates de trameModele.');
             setTrameModeles([]); // Vider en cas d'erreur
         } finally {

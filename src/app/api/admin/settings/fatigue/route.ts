@@ -39,7 +39,7 @@ async function readConfigFile(): Promise<FatigueConfig> {
             logger.warn('fatigue-settings.json not found, returning default seed config.');
             return defaultFatigueSeedConfig; // Utiliser le fallback codé en dur
         }
-        logger.error("Error reading fatigue config file:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Error reading fatigue config file:", { error: error });
         throw new Error('Could not read fatigue configuration.');
     }
 }
@@ -49,7 +49,7 @@ async function writeConfigFile(config: FatigueConfig): Promise<void> {
     try {
         await fs.writeFile(configFilePath, JSON.stringify(config, null, 2), 'utf-8');
     } catch (error: unknown) {
-        logger.error("Error writing fatigue config file:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Error writing fatigue config file:", { error: error });
         throw new Error('Could not save fatigue configuration.');
     }
 }

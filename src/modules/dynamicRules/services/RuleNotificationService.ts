@@ -103,7 +103,7 @@ export class RuleNotificationService extends EventEmitter {
             });
 
         } catch (error: unknown) {
-            logger.error('Failed to connect to notification service:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to connect to notification service:', { error: error });
             throw error;
         }
     }
@@ -139,7 +139,7 @@ export class RuleNotificationService extends EventEmitter {
 
         // Erreur de connexion
         this.socket.on('connect_error', (error) => {
-            logger.error('Connection error:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Connection error:', { error: error });
             this.reconnectAttempts++;
             
             if (this.reconnectAttempts >= this.maxReconnectAttempts) {

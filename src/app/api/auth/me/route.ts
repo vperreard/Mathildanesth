@@ -109,7 +109,7 @@ async function handler(req: NextRequest) {
       }
     );
   } catch (error: unknown) {
-    logger.error('API /auth/me error:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('API /auth/me error:', { error: error });
     return NextResponse.json({ authenticated: false, error: 'Erreur serveur' }, { status: 500 });
   }
 }

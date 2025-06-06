@@ -95,7 +95,7 @@ async function verifyContextPermissions(
 
     return false;
   } catch (error: unknown) {
-    logger.error('Erreur lors de la vérification des permissions contextuelles:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la vérification des permissions contextuelles:', { error: error });
     return false;
   }
 }
@@ -287,7 +287,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    logger.error('Erreur lors de la création du message contextuel:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la création du message contextuel:', { error: error });
     if (error instanceof SyntaxError && req.bodyUsed && (await req.text().catch(() => '')) === '') {
       return NextResponse.json(
         { error: 'Le corps de la requête est vide ou malformé.' },
@@ -393,7 +393,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(messages);
   } catch (error: unknown) {
-    logger.error('Erreur lors de la récupération des messages contextuels:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la récupération des messages contextuels:', { error: error });
     return NextResponse.json(
       {
         error: 'Erreur interne du serveur',
@@ -441,7 +441,7 @@ export async function createNotification(args: NotificationCreationArgs) {
         // Exemple: global.io.to(socketRoomForUser(args.userId)).emit('new_notification', notification);
         return notification;
     } catch (error: unknown) {
-        logger.error("Erreur lors de la création de la notification en BDD:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur lors de la création de la notification en BDD:", { error: error });
         // Gérer l'erreur (ex: la logger sans bloquer le flux principal)
         return null;
     }

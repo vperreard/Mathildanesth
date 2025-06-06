@@ -87,7 +87,7 @@ export function InstallPrompt({ className }: InstallPromptProps) {
       setShowPrompt(false);
       setDeferredPrompt(null);
     } catch (error: unknown) {
-      logger.error('Erreur installation PWA:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur installation PWA:', { error: error });
     }
   };
 
@@ -240,7 +240,7 @@ export function usePWAInstall() {
       
       return false;
     } catch (error: unknown) {
-      logger.error('Erreur installation PWA:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur installation PWA:', { error: error });
       return false;
     } finally {
       setDeferredPrompt(null);

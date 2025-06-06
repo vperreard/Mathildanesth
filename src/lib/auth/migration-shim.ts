@@ -99,7 +99,7 @@ export async function getServerSession(authOptions?: any): Promise<NextAuthSessi
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     };
   } catch (error) {
-    logger.error('[Migration Shim] Erreur lors de la récupération de session:', error);
+    logger.error('[Migration Shim] Erreur lors de la récupération de session:', { error: error });
     return null;
   }
 }

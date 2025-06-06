@@ -37,7 +37,7 @@ export async function GET() {
         });
         return NextResponse.json(specialties);
     } catch (error: unknown) {
-        logger.error("Erreur GET /api/specialties:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur GET /api/specialties:", { error: error });
         return NextResponse.json(
             { error: 'Erreur interne du serveur lors de la récupération des spécialités.' },
             { status: 500 }
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
         if (error.code === 'P2002') { // Contrainte unique sur le nom
             return new NextResponse(JSON.stringify({ message: 'Ce nom de spécialité existe déjà.' }), { status: 409 });
         }
-        logger.error("Erreur POST /api/specialties:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur POST /api/specialties:", { error: error });
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 } 

@@ -90,7 +90,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         });
         return NextResponse.json(updatedActivityType, { status: 200 });
     } catch (error: unknown) {
-        logger.error(`[API ActivityType PUT /api/activity-types/${id}] Error updating activity type:`, error instanceof Error ? error : new Error(String(error))); // Garder ce log
+        logger.error(`[API ActivityType PUT /api/activity-types/${id}] Error updating activity type:`, { error: error }); // Garder ce log
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 return NextResponse.json({ error: 'Type d\'activité non trouvé.' }, { status: 404 });
@@ -161,7 +161,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         });
         return NextResponse.json({ message: 'Type d\'activité supprimé avec succès.' }, { status: 200 }); // Ou 204 No Content
     } catch (error: unknown) {
-        logger.error(`[API ActivityType DELETE /api/activity-types/${id}] Error deleting activity type:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`[API ActivityType DELETE /api/activity-types/${id}] Error deleting activity type:`, { error: error });
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 // Record to delete does not exist.

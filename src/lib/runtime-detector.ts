@@ -50,7 +50,7 @@ export function ifRuntimeSupports<T>(
         try {
             return fn();
         } catch (error: unknown) {
-            logger.warn(`Runtime feature ${feature} failed:`, error instanceof Error ? error : new Error(String(error)));
+            logger.warn(`Runtime feature ${feature} failed:`, { error: error });
         }
     }
     return fallback;

@@ -33,7 +33,7 @@ export function DocumentationViewer({ path = 'index.md', onClose }: Documentatio
             setContent(markdown);
             setError(null);
         } catch (err: unknown) {
-            logger.error('Erreur de chargement de la documentation:', err);
+            logger.error('Erreur de chargement de la documentation:', { error: err });
             setError('Impossible de charger la documentation demandée.');
             setContent('');
         } finally {

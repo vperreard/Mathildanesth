@@ -70,7 +70,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         return new NextResponse(JSON.stringify({ message: `Mot de passe pour l'utilisateur ${targetUserId} réinitialisé avec succès.` }), { status: 200 });
 
     } catch (error: unknown) {
-        logger.error(`Erreur interne PUT /api/utilisateurs/${targetUserIdString}/reset-password:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur interne PUT /api/utilisateurs/${targetUserIdString}/reset-password:`, { error: error });
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur lors de la réinitialisation.' }), { status: 500 });
     }
 } 

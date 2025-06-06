@@ -128,7 +128,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             setBalance(balanceData);
         } catch (err: unknown) {
             setError(err as Error);
-            logger.error('Erreur lors de la récupération du solde des congés', err);
+            logger.error('Erreur lors de la récupération du solde des congés', { error: err });
         } finally {
             setLoading(false);
         }
@@ -146,7 +146,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             setCarryOverRules(rules);
         } catch (err: unknown) {
             setError(err as Error);
-            logger.error('Erreur lors de la récupération des règles de report', err);
+            logger.error('Erreur lors de la récupération des règles de report', { error: err });
         } finally {
             setLoading(false);
         }
@@ -217,7 +217,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             return extendedPreview;
         } catch (err: unknown) {
             setCarryOverError(err as Error);
-            logger.error('Erreur lors de la simulation du report', err);
+            logger.error('Erreur lors de la simulation du report', { error: err });
 
             // Retourner un objet d'erreur
             return {
@@ -269,7 +269,7 @@ export function useQuotaCarryOver(options: UseQuotaCarryOverOptions): UseQuotaCa
             return previews;
         } catch (err: unknown) {
             setCarryOverError(err as Error);
-            logger.error('Erreur lors de la simulation des reports', err);
+            logger.error('Erreur lors de la simulation des reports', { error: err });
             return [];
         } finally {
             setSimulationLoading(false);

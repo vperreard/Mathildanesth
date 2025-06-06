@@ -666,7 +666,7 @@ async function executeAction(
 
         return { success: true, result };
     } catch (error: unknown) {
-        logger.error(`Erreur lors de l'exécution de l'action ${action.id}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur lors de l'exécution de l'action ${action.id}:`, { error: error });
         return {
             success: false,
             result: {

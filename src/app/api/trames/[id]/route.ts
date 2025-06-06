@@ -93,7 +93,7 @@ export async function GET(
         return NextResponse.json(trameModele);
 
     } catch (error: unknown) {
-        logger.error(`Erreur lors de la récupération de la trameModele ${id}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur lors de la récupération de la trameModele ${id}:`, { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération de la trameModele' },
             { status: 500 }
@@ -359,7 +359,7 @@ export async function PUT(
             return NextResponse.json({ error: 'Erreur base de données lors de la mise à jour.', details: error.message }, { status: 500 });
         }
 
-        logger.error(`Erreur générique lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur générique lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la mise à jour de la trameModele.', details: error.message || 'Erreur inconnue' },
             { status: 500 }
@@ -395,7 +395,7 @@ export async function DELETE(
             return NextResponse.json({ error: 'TrameModele non trouvée pour la suppression' }, { status: 404 });
         }
 
-        logger.error(`Erreur lors de la suppression de la trameModele ${id}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur lors de la suppression de la trameModele ${id}:`, { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la suppression de la trameModele' },
             { status: 500 }

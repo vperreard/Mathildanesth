@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
             message: `${results.length} salles mises à jour`
         });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la mise à jour de l\'ordre des salles:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la mise à jour de l\'ordre des salles:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour de l\'ordre des salles' },
             { status: 500 }

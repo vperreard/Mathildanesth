@@ -41,7 +41,7 @@ export function usePublicHolidays() {
         } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error('Erreur inconnue');
             setError(error);
-            logger.error('Erreur lors du chargement des jours fériés:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des jours fériés:', { error: error });
             return {
                 holidays: [],
                 events: []
@@ -58,7 +58,7 @@ export function usePublicHolidays() {
         try {
             return await holidayCalendarService.isHoliday(date);
         } catch (err: unknown) {
-            logger.error('Erreur lors de la vérification du jour férié:', err);
+            logger.error('Erreur lors de la vérification du jour férié:', { error: err });
             return false;
         }
     }, []);

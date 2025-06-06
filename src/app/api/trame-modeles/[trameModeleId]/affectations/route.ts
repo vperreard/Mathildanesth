@@ -159,7 +159,7 @@ export async function POST(
       throw prismaError; // Relancer pour la gestion globale des erreurs
     }
   } catch (error: unknown) {
-    logger.error('Error during POST /api/trameModele-modeles/[trameModeleId]/affectations:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error during POST /api/trameModele-modeles/[trameModeleId]/affectations:', { error: error });
 
     // Afficher plus d'informations sur l'erreur
     if (error instanceof Error) {

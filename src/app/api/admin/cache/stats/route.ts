@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(stats);
     } catch (error: unknown) {
-        logger.error('Failed to fetch cache stats:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Failed to fetch cache stats:', { error: error });
         return NextResponse.json(
             { error: 'Failed to fetch cache stats' },
             { status: 500 }

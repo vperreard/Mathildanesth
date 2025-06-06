@@ -94,7 +94,7 @@ export async function sendAssignmentSwapNotification(
         });
 
     } catch (error: unknown) {
-        logger.error('Erreur lors de l\'envoi de la notification d\'échange d\'affectation:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de l\'envoi de la notification d\'échange d\'affectation:', { error: error });
         return null;
     }
 }

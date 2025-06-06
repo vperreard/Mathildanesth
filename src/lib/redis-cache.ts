@@ -106,7 +106,7 @@ class RedisCacheService {
             // Fallback vers cache mémoire
             return this.getFallback<T>(key);
         } catch (error: unknown) {
-            logger.warn(`Cache get error for key ${key}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.warn(`Cache get error for key ${key}:`, { error: error });
             return this.getFallback<T>(key);
         }
     }
@@ -122,7 +122,7 @@ class RedisCacheService {
             this.setFallback(key, value, ttl);
             return true;
         } catch (error: unknown) {
-            logger.warn(`Cache set error for key ${key}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.warn(`Cache set error for key ${key}:`, { error: error });
             this.setFallback(key, value, ttl);
             return false;
         }
@@ -137,7 +137,7 @@ class RedisCacheService {
             this.fallbackCache.delete(key);
             return true;
         } catch (error: unknown) {
-            logger.warn(`Cache delete error for key ${key}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.warn(`Cache delete error for key ${key}:`, { error: error });
             return false;
         }
     }
@@ -152,7 +152,7 @@ class RedisCacheService {
             return this.fallbackCache.has(key) && 
                    this.fallbackCache.get(key)!.expires > Date.now();
         } catch (error: unknown) {
-            logger.warn(`Cache exists error for key ${key}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.warn(`Cache exists error for key ${key}:`, { error: error });
             return false;
         }
     }
@@ -165,7 +165,7 @@ class RedisCacheService {
             
             this.fallbackCache.clear();
         } catch (error: unknown) {
-            logger.warn('Cache flush error:', error instanceof Error ? error : new Error(String(error)));
+            logger.warn('Cache flush error:', { error: error });
         }
     }
 
@@ -255,7 +255,7 @@ class RedisCacheService {
             // - Préférences
             
         } catch (error: unknown) {
-            logger.warn('Cache warming failed:', error instanceof Error ? error : new Error(String(error)));
+            logger.warn('Cache warming failed:', { error: error });
         }
     }
 

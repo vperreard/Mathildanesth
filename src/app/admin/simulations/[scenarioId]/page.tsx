@@ -86,7 +86,7 @@ export default function ScenarioDetailsPage({ params }: { params: Promise<{ scen
                 const data = await response.json();
                 setScenario(data.data);
             } catch (err: unknown) {
-                logger.error('Erreur lors du chargement du scénario:', err);
+                logger.error('Erreur lors du chargement du scénario:', { error: err });
                 const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
                 setError(errorMessage);
             } finally {
@@ -133,7 +133,7 @@ export default function ScenarioDetailsPage({ params }: { params: Promise<{ scen
                 });
             }
         } catch (err: unknown) {
-            logger.error('Erreur lors du démarrage de la simulation:', err);
+            logger.error('Erreur lors du démarrage de la simulation:', { error: err });
             const errorMessage = err instanceof Error ? err.message : 'Erreur lors du démarrage de la simulation';
             toast.error(errorMessage);
         } finally {

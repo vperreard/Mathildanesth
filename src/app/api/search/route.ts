@@ -222,7 +222,7 @@ export async function GET(req: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error: unknown) {
-    logger.error('Search error:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Search error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to perform search' },
       { status: 500 }

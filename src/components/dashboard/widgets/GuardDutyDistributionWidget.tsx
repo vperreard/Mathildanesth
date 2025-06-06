@@ -33,7 +33,7 @@ export default function GuardDutyDistributionWidget() {
                 const result = await response.json();
                 setData(result.data);
             } catch (err: unknown) {
-                logger.error('Erreur lors du chargement des données:', err);
+                logger.error('Erreur lors du chargement des données:', { error: err });
                 setError(err.message || 'Erreur inconnue');
             } finally {
                 setIsLoading(false);

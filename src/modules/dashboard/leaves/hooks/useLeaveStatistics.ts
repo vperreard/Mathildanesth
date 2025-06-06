@@ -81,7 +81,7 @@ export function useLeaveStatistics({
             const data = await leaveStatisticsService.getLeaveStatistics(filtersToUse);
             setStatistics(data);
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des statistiques:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des statistiques:', { error: error });
             setStatsError('Impossible de charger les statistiques');
         } finally {
             setIsLoadingStats(false);
@@ -121,7 +121,7 @@ export function useLeaveStatistics({
             );
             setTeamAvailability(data);
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement de la disponibilité d\'équipe:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement de la disponibilité d\'équipe:', { error: error });
             setAvailabilityError('Impossible de charger les données de disponibilité');
         } finally {
             setIsLoadingAvailability(false);
@@ -143,7 +143,7 @@ export function useLeaveStatistics({
             const data = await leaveStatisticsService.getLeaveTrends(aggregation, filtersToUse);
             setTrends(data);
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des tendances:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des tendances:', { error: error });
             setTrendsError('Impossible de charger les tendances');
         } finally {
             setIsLoadingTrends(false);
@@ -161,7 +161,7 @@ export function useLeaveStatistics({
             const data = await leaveStatisticsService.getPeakPeriods(threshold);
             setPeakPeriods(data);
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des périodes de pointe:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des périodes de pointe:', { error: error });
             setPeaksError('Impossible de charger les périodes de pointe');
         } finally {
             setIsLoadingPeaks(false);
@@ -192,7 +192,7 @@ export function useLeaveStatistics({
 
             return true;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la génération du rapport:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la génération du rapport:', { error: error });
             return false;
         }
     }, [filters]);

@@ -171,7 +171,7 @@ export class AuditService {
                 }
             });
         } catch (error: unknown) {
-            logger.error(`[AuditService] Error handling leave event:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`[AuditService] Error handling leave event:`, { error: error });
         }
     }
 
@@ -201,7 +201,7 @@ export class AuditService {
                 }
             });
         } catch (error: unknown) {
-            logger.error(`[AuditService] Error handling quota event:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`[AuditService] Error handling quota event:`, { error: error });
         }
     }
 
@@ -215,7 +215,7 @@ export class AuditService {
             // Le payload contient directement les données d'audit
             await this.createAuditEntry(payload);
         } catch (error: unknown) {
-            logger.error(`[AuditService] Error handling generic audit event:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`[AuditService] Error handling generic audit event:`, { error: error });
         }
     }
 
@@ -315,7 +315,7 @@ export class AuditService {
 
             return response.data;
         } catch (error: unknown) {
-            logger.error('[AuditService] Error creating audit entry:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[AuditService] Error creating audit entry:', { error: error });
             throw error;
         }
     }
@@ -332,7 +332,7 @@ export class AuditService {
 
             return response.data;
         } catch (error: unknown) {
-            logger.error('[AuditService] Error searching audit entries:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[AuditService] Error searching audit entries:', { error: error });
             throw error;
         }
     }
@@ -348,7 +348,7 @@ export class AuditService {
 
             return response.data;
         } catch (error: unknown) {
-            logger.error(`[AuditService] Error fetching audit entry ${id}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`[AuditService] Error fetching audit entry ${id}:`, { error: error });
             throw error;
         }
     }

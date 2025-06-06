@@ -75,7 +75,7 @@ export const preferencesService = {
             const savedPreferences = localStorage.getItem('user-preferences');
             return savedPreferences ? JSON.parse(savedPreferences) : defaultPreferences;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération des préférences:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des préférences:', { error: error });
             return defaultPreferences;
         }
     },
@@ -86,7 +86,7 @@ export const preferencesService = {
             const updatedPreferences = { ...currentPreferences, ...preferences };
             localStorage.setItem('user-preferences', JSON.stringify(updatedPreferences));
         } catch (error: unknown) {
-            logger.error('Erreur lors de la sauvegarde des préférences:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la sauvegarde des préférences:', { error: error });
         }
     },
 

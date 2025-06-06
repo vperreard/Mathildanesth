@@ -142,7 +142,7 @@ export function SankeyChart({
                 links: graph.links as ProcessedLink[]
             });
         } catch (error: unknown) {
-            logger.error('Erreur lors du calcul du diagramme Sankey:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du calcul du diagramme Sankey:', { error: error });
             setProcessedData(null);
         }
     }, [data, width, height, nodeWidth, nodePadding, isValidData]);

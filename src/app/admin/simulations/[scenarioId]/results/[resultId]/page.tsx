@@ -437,7 +437,7 @@ export default function SimulationResultPage() {
 
             toast.success("Export PDF généré avec succès");
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'export PDF:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'export PDF:', { error: error });
             toast.error("Échec de l'export PDF");
         }
     };
@@ -481,7 +481,7 @@ export default function SimulationResultPage() {
 
             toast.success("Export Excel généré avec succès");
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'export Excel:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'export Excel:', { error: error });
             toast.error("Échec de l'export Excel");
         }
     };

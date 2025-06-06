@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
       metrics,
     });
   } catch (error: unknown) {
-    logger.error('Erreur lors de la comparaison des simulations:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la comparaison des simulations:', { error: error });
     return NextResponse.json(
       {
         success: false,

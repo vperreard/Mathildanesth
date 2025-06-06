@@ -81,7 +81,7 @@ const getHandler = withAuth({
         });
         
     } catch (error: unknown) {
-        logger.error('Error fetching audit logs', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error fetching audit logs', { error: error });
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -151,7 +151,7 @@ const postHandler = withAuth({
         });
         
     } catch (error: unknown) {
-        logger.error('Error exporting audit logs', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error exporting audit logs', { error: error });
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

@@ -135,7 +135,7 @@ export function ExportDialog({
 
       onOpenChange(false);
     } catch (error: unknown) {
-      logger.error('Export error:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Export error:', { error: error });
       toast({
         title: 'Erreur d\'export',
         description: 'Une erreur est survenue lors de l\'export des données.',

@@ -120,7 +120,7 @@ export async function GET(req: NextRequest) {
         });
 
     } catch (error: unknown) {
-        logger.error('Error fetching audit logs', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error fetching audit logs', { error: error });
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -232,7 +232,7 @@ export async function POST(req: NextRequest) {
         });
 
     } catch (error: unknown) {
-        logger.error('Error generating audit statistics', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error generating audit statistics', { error: error });
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

@@ -247,7 +247,7 @@ export class PerformanceMonitor {
             return result;
         } catch (error: unknown) {
             const duration = performance.now() - startTime;
-            logger.error(`Operation '${name}' failed after ${duration.toFixed(2)}ms`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Operation '${name}' failed after ${duration.toFixed(2)}ms`, { error: error });
             throw error;
         }
     }
@@ -274,7 +274,7 @@ export class PerformanceMonitor {
                     this.sendCustomMetric(name, duration);
                 }
             } catch (error: unknown) {
-                logger.error('Failed to measure performance', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Failed to measure performance', { error: error });
             }
         }
     }

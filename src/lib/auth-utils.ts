@@ -69,7 +69,7 @@ export async function verifyAuthToken(token?: string | null) {
             } as UserJWTPayload
         };
     } catch (error: unknown) {
-        logger.error('Erreur de vérification du token:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur de vérification du token:', { error: error });
         return { authenticated: false, error: 'Token invalide ou expiré' };
     }
 }
@@ -79,7 +79,7 @@ export async function getAuthToken() {
         const cookieStore = await cookies();
         return cookieStore.get('auth_token')?.value;
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération du token:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération du token:', { error: error });
         return null;
     }
 }
@@ -95,7 +95,7 @@ export async function setAuthToken(token: string) {
             path: '/',
         });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la définition du token:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la définition du token:', { error: error });
     }
 }
 
@@ -104,7 +104,7 @@ export async function removeAuthToken() {
         const cookieStore = await cookies();
         cookieStore.delete('auth_token');
     } catch (error: unknown) {
-        logger.error('Erreur lors de la suppression du token:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la suppression du token:', { error: error });
     }
 }
 

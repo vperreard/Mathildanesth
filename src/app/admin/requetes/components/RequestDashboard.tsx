@@ -149,7 +149,7 @@ export default function RequestDashboard() {
             } catch (err: unknown) { // Should not be reached if all promises handle their errors
                 const errorMessage = err instanceof Error ? err.message : 'Une erreur inattendue est survenue.';
                 setError(errorMessage);
-                logger.error('Erreur inattendue fetchData:', err);
+                logger.error('Erreur inattendue fetchData:', { error: err });
                 setRequests([]);
                 setRequestTypes([]);
                 setUsers([]);
@@ -266,7 +266,7 @@ export default function RequestDashboard() {
 
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            logger.error('Erreur lors de la mise à jour de la requête:', err);
+            logger.error('Erreur lors de la mise à jour de la requête:', { error: err });
         }
     };
 
@@ -290,7 +290,7 @@ export default function RequestDashboard() {
             setRequests(data);
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            logger.error('Erreur lors du rafraîchissement des données:', err);
+            logger.error('Erreur lors du rafraîchissement des données:', { error: err });
         } finally {
             setIsLoading(false);
         }

@@ -143,7 +143,7 @@ export function useLeaveRulesValidation(options: UseLeaveRulesValidationOptions 
             return validationResult;
 
         } catch (error: unknown) {
-            logger.error('Erreur lors de la validation des congés:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la validation des congés:', { error: error });
             return { isValid: true, violations: [], suggestions: [] };
         } finally {
             setIsValidating(false);
@@ -186,7 +186,7 @@ export function useLeaveRulesValidation(options: UseLeaveRulesValidationOptions 
 
             return Array.from(suggestions);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération des suggestions:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des suggestions:', { error: error });
             return [];
         }
     }, [isInitializing, createLeaveRuleContext, ruleEngine]);
@@ -232,7 +232,7 @@ export function useLeaveRulesValidation(options: UseLeaveRulesValidationOptions 
                 conflicts
             };
         } catch (error: unknown) {
-            logger.error('Erreur lors de la vérification des conflits:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la vérification des conflits:', { error: error });
             return { hasConflicts: false, conflicts: [] };
         }
     }, [isInitializing, createLeaveRuleContext, ruleEngine]);

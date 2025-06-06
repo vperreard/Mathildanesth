@@ -156,7 +156,7 @@ export const absenceService = {
                 bridgeDays,
             };
         } catch (error: unknown) {
-            logger.error('Error getting absence patterns:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Error getting absence patterns:', { error: error });
             throw new Error('Failed to get absence patterns');
         }
     },
@@ -231,7 +231,7 @@ export const absenceService = {
                 topAbsentUsers: topAbsentUsers?.map(item => ({ userId: item.userId, count: item._count._all })),
             };
         } catch (error: unknown) {
-            logger.error('Error getting absence statistics:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Error getting absence statistics:', { error: error });
             throw new Error('Failed to get absence statistics');
         }
     },
@@ -302,7 +302,7 @@ export const absenceService = {
                 });
             });
         } catch (error: unknown) {
-            logger.error('Error handling late notification:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Error handling late notification:', { error: error });
             throw new Error('Failed to handle late notification');
         }
     },
@@ -399,7 +399,7 @@ export const absenceService = {
 
             return { available, unavailable };
         } catch (error: unknown) {
-            logger.error('Error finding replacement:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Error finding replacement:', { error: error });
             throw new Error('Failed to find replacement');
         }
     },
@@ -452,7 +452,7 @@ export const absenceService = {
                 leave,
             };
         } catch (error: unknown) {
-            logger.error('Error converting to leave:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Error converting to leave:', { error: error });
             throw new Error('Failed to convert absence to leave');
         }
     },

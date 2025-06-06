@@ -202,7 +202,7 @@ export function usePlanningRules({
             setStatus('success');
 
         } catch (err: unknown) {
-            logger.error('Erreur lors de la génération du planning:', err);
+            logger.error('Erreur lors de la génération du planning:', { error: err });
             setError(err instanceof Error ? err : new Error('Erreur inconnue'));
             setStatus('error');
         }

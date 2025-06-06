@@ -140,7 +140,7 @@ export async function GET() {
       categoryBreakdown,
     });
   } catch (error: unknown) {
-    logger.error('Erreur lors de la récupération des statistiques:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la récupération des statistiques:', { error: error });
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

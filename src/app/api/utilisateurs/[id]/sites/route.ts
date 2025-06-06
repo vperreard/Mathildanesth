@@ -38,7 +38,7 @@ export async function GET(
 
         return NextResponse.json({ sites: user.sites });
     } catch (error: unknown) {
-        logger.error('Erreur GET /api/utilisateurs/[id]/sites:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur GET /api/utilisateurs/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }
@@ -94,7 +94,7 @@ export async function PUT(
             user: updatedUser 
         });
     } catch (error: unknown) {
-        logger.error('Erreur PUT /api/utilisateurs/[id]/sites:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur PUT /api/utilisateurs/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }
@@ -139,7 +139,7 @@ export async function POST(
             user: updatedUser 
         });
     } catch (error: unknown) {
-        logger.error('Erreur POST /api/utilisateurs/[id]/sites:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur POST /api/utilisateurs/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }

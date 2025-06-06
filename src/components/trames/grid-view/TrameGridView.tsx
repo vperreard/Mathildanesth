@@ -140,7 +140,7 @@ const TrameGridView: React.FC<{
                 if (parsed.compactView !== undefined) setCompactView(parsed.compactView);
                 logger.info(`Préférences de filtrage chargées pour la trameModele ${trameModele.id}:`, parsed);
             } catch (error: unknown) {
-                logger.error('Erreur lors du chargement des préférences de filtrage:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors du chargement des préférences de filtrage:', { error: error });
             }
         }
     }, [trameModele.id, filterStorageKey]);

@@ -85,9 +85,7 @@ export function OperatingRoomList() {
         `Erreur lors de la sauvegarde de la salle: ${error instanceof Error ? error.message : String(error)}`
       );
       logger.error(
-        'Erreur sauvegarde salle:',
-        error as Error
-      );
+        'Erreur sauvegarde salle:', { error: error });
     }
   };
 
@@ -112,9 +110,7 @@ export function OperatingRoomList() {
         `Erreur lors de la suppression de la salle: ${error instanceof Error ? error.message : String(error)}`
       );
       logger.error(
-        'Erreur suppression salle:',
-        error instanceof Error ? error : new Error(String(error))
-      );
+        'Erreur suppression salle:', { error: error });
     }
   };
 

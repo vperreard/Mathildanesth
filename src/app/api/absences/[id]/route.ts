@@ -45,7 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json(absence);
   } catch (error: unknown) {
-    logger.error("Erreur lors de la récupération de l'absence:", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Erreur lors de la récupération de l'absence:", { error: error });
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -100,7 +100,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     return NextResponse.json(updatedAbsence);
   } catch (error: unknown) {
-    logger.error("Erreur lors de la mise à jour de l'absence:", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Erreur lors de la mise à jour de l'absence:", { error: error });
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -142,7 +142,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error: unknown) {
-    logger.error("Erreur lors de la suppression de l'absence:", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Erreur lors de la suppression de l'absence:", { error: error });
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }

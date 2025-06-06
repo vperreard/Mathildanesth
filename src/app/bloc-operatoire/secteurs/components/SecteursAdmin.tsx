@@ -532,7 +532,7 @@ export default function SecteursAdmin() {
 
       logger.info('✅ Données chargées avec succès !');
     } catch (err: unknown) {
-      logger.error('❌ Erreur de chargement:', err);
+      logger.error('❌ Erreur de chargement:', { error: err });
       setError(
         `Erreur lors du chargement des données: ${err instanceof Error ? err.message : 'Erreur inconnue'}`
       );
@@ -843,7 +843,7 @@ export default function SecteursAdmin() {
         description: `Le secteur a été déplacé vers ${newSiteId ? getSiteName(newSiteId) : 'les non-assignés'}.`,
       });
     } catch (error: unknown) {
-      logger.error('Erreur lors du déplacement du secteur:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors du déplacement du secteur:', { error: error });
       toast({
         title: 'Erreur',
         description: 'Impossible de déplacer le secteur.',
@@ -912,7 +912,7 @@ export default function SecteursAdmin() {
         `Réorganisation interne: secteur ${activeSecteurId} déplacé à la position du secteur ${targetSecteurId}`
       );
     } catch (error: unknown) {
-      logger.error('Erreur lors de la réorganisation des secteurs:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors de la réorganisation des secteurs:', { error: error });
       // Recharger les données en cas d'erreur
       loadData();
       toast({
@@ -980,7 +980,7 @@ export default function SecteursAdmin() {
         description: `La salle a été déplacée vers ${newSecteurId ? 'le secteur sélectionné' : 'les non-assignées'}.`,
       });
     } catch (error: unknown) {
-      logger.error('Erreur lors du déplacement de la salle:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors du déplacement de la salle:', { error: error });
 
       // Afficher l'erreur détaillée dans le toast
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
@@ -1047,7 +1047,7 @@ export default function SecteursAdmin() {
 
       logger.info('Réorganisation interne réussie');
     } catch (error: unknown) {
-      logger.error('Erreur lors de la réorganisation:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors de la réorganisation:', { error: error });
       // Recharger les données en cas d'erreur
       loadData();
     }
@@ -1120,7 +1120,7 @@ export default function SecteursAdmin() {
         `Cross-secteur avec position: salle ${activeSalleId} → secteur ${newSecteurId} à la position ${targetIndex}`
       );
     } catch (error: unknown) {
-      logger.error('Erreur lors du déplacement cross-secteur:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors du déplacement cross-secteur:', { error: error });
       toast({
         title: 'Erreur',
         description: 'Impossible de déplacer la salle à cette position.',

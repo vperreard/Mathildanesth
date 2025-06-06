@@ -158,7 +158,7 @@ export class LeaveReportApi {
 
             return response.data;
         } catch (error: unknown) {
-            logger.error(`Erreur lors de la récupération du rapport ${reportType}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de la récupération du rapport ${reportType}:`, { error: error });
             throw error;
         } finally {
             const duration = performance.now() - startTime;
@@ -244,7 +244,7 @@ export class LeaveReportApi {
 
             return response.data;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération du rapport personnalisé:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération du rapport personnalisé:', { error: error });
             throw error;
         } finally {
             const duration = performance.now() - startTime;
@@ -286,7 +286,7 @@ export class LeaveReportApi {
             // Retourner l'ID de la tâche d'exportation
             return response.data.id || response.data.exportTaskId;
         } catch (error: unknown) {
-            logger.error(`Erreur lors de l'exportation du rapport ${reportType}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de l'exportation du rapport ${reportType}:`, { error: error });
             throw error;
         } finally {
             const duration = performance.now() - startTime;
@@ -307,7 +307,7 @@ export class LeaveReportApi {
 
             return response.data;
         } catch (error: unknown) {
-            logger.error(`Erreur lors de la vérification du statut d'exportation ${exportTaskId}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de la vérification du statut d'exportation ${exportTaskId}:`, { error: error });
             throw error;
         }
     }
@@ -326,7 +326,7 @@ export class LeaveReportApi {
 
             return response.data;
         } catch (error: unknown) {
-            logger.error(`Erreur lors du téléchargement du fichier d'exportation ${exportTaskId}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors du téléchargement du fichier d'exportation ${exportTaskId}:`, { error: error });
             throw error;
         }
     }

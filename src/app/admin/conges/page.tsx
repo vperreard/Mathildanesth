@@ -93,7 +93,7 @@ export default function AdminLeavesPage() {
             setRequests(response.data);
             setLoading(false);
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des demandes de congés:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des demandes de congés:', { error: error });
             toast.error('Erreur lors du chargement des demandes de congés');
             setLoading(false);
         }
@@ -104,7 +104,7 @@ export default function AdminLeavesPage() {
             const response = await axios.get('/api/conges/types');
             setTypes(response.data);
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des types de congés:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des types de congés:', { error: error });
         }
     };
 
@@ -136,7 +136,7 @@ export default function AdminLeavesPage() {
                 setSelectedRequest(prev => prev ? { ...prev, status: 'APPROVED' } : null);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'approbation de la demande:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'approbation de la demande:', { error: error });
             toast.error('Erreur lors de l\'approbation de la demande');
         } finally {
             setProcessingId(null);
@@ -160,7 +160,7 @@ export default function AdminLeavesPage() {
                 setSelectedRequest(prev => prev ? { ...prev, status: 'REJECTED' } : null);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors du refus de la demande:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du refus de la demande:', { error: error });
             toast.error('Erreur lors du refus de la demande');
         } finally {
             setProcessingId(null);

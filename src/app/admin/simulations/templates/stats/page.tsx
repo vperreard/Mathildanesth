@@ -55,7 +55,7 @@ export default function TemplateStatsPage() {
             const statsData = await fetchTemplateStats();
             setStats(statsData);
         } catch (err: unknown) {
-            logger.error('Erreur lors du chargement des statistiques:', err);
+            logger.error('Erreur lors du chargement des statistiques:', { error: err });
             setError(err.message || 'Erreur lors du chargement des statistiques');
             toast.error('Erreur lors du chargement des statistiques');
         } finally {
@@ -78,7 +78,7 @@ export default function TemplateStatsPage() {
             downloadStatsAsCSV(stats, `statistiques-templates-${new Date().toISOString().split('T')[0]}.csv`);
             toast.success('Statistiques exportées avec succès');
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'exportation:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'exportation:', { error: error });
             toast.error('Erreur lors de l\'exportation des statistiques');
         }
     };

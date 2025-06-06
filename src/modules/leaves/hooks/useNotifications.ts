@@ -71,7 +71,7 @@ export const useLeaveNotifications = (options: {
                 loading: false
             }));
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des notifications:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des notifications:', { error: error });
             setState(prev => ({
                 ...prev,
                 error: 'Impossible de charger les notifications',
@@ -134,7 +134,7 @@ export const useLeaveNotifications = (options: {
                 };
             });
         } catch (error: unknown) {
-            logger.error('Erreur lors du marquage de la notification:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du marquage de la notification:', { error: error });
         }
     }, []);
 
@@ -151,7 +151,7 @@ export const useLeaveNotifications = (options: {
                 unreadCount: 0
             }));
         } catch (error: unknown) {
-            logger.error('Erreur lors du marquage de toutes les notifications:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du marquage de toutes les notifications:', { error: error });
         }
     }, [userId]);
 
@@ -171,7 +171,7 @@ export const useLeaveNotifications = (options: {
                 };
             });
         } catch (error: unknown) {
-            logger.error('Erreur lors de la suppression de la notification:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la suppression de la notification:', { error: error });
         }
     }, []);
 
@@ -188,7 +188,7 @@ export const useLeaveNotifications = (options: {
                 unreadCount: 0
             }));
         } catch (error: unknown) {
-            logger.error('Erreur lors de la suppression de toutes les notifications:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la suppression de toutes les notifications:', { error: error });
         }
     }, [userId]);
 
@@ -202,7 +202,7 @@ export const useLeaveNotifications = (options: {
                 config: { ...prev.config, ...config }
             }));
         } catch (error: unknown) {
-            logger.error('Erreur lors de la mise à jour de la configuration:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la mise à jour de la configuration:', { error: error });
         }
     }, []);
 

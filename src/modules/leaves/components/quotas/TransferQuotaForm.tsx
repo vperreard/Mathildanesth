@@ -153,7 +153,7 @@ const TransferQuotaForm: React.FC<TransferQuotaFormProps> = ({
 
             setSimulationResult(result);
         } catch (error: unknown) {
-            logger.error("Erreur lors de la simulation:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la simulation:", { error: error });
         } finally {
             setIsSimulating(false);
         }

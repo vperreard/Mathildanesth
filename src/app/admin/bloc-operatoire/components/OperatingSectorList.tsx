@@ -84,9 +84,7 @@ export function OperatingSectorList() {
         `Erreur lors de la sauvegarde du secteur: ${error instanceof Error ? error.message : String(error)}`
       );
       logger.error(
-        'Erreur sauvegarde secteur:',
-        error instanceof Error ? error : new Error(String(error))
-      );
+        'Erreur sauvegarde secteur:', { error: error });
     }
   };
 
@@ -111,9 +109,7 @@ export function OperatingSectorList() {
         `Erreur lors de la suppression du secteur: ${error instanceof Error ? error.message : String(error)}`
       );
       logger.error(
-        'Erreur suppression secteur:',
-        error instanceof Error ? error : new Error(String(error))
-      );
+        'Erreur suppression secteur:', { error: error });
       // Garder la modale ouverte en cas d'erreur pour feedback
     }
   };

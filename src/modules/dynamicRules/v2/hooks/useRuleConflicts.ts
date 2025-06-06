@@ -39,7 +39,7 @@ export const useRuleConflicts = () => {
       const data = await response.json();
       setConflicts(data.conflicts || []);
     } catch (err: unknown) {
-      logger.error('Error checking conflicts:', err);
+      logger.error('Error checking conflicts:', { error: err });
       setConflicts([]);
     } finally {
       setIsChecking(false);
@@ -75,7 +75,7 @@ export const useRuleConflicts = () => {
       
       return data;
     } catch (err: unknown) {
-      logger.error('Error resolving conflict:', err);
+      logger.error('Error resolving conflict:', { error: err });
       throw err;
     }
   }, []);

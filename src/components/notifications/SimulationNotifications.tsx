@@ -50,7 +50,7 @@ export function SimulationNotifications() {
                         setUserId(data.id.toString());
                     }
                 } catch (error: unknown) {
-                    logger.error('Erreur lors de la récupération de l\'ID utilisateur:', error instanceof Error ? error : new Error(String(error)));
+                    logger.error('Erreur lors de la récupération de l\'ID utilisateur:', { error: error });
                 }
             }
         };

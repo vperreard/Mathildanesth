@@ -184,7 +184,7 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
             // Fermer le modal
             handleCloseModal();
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'export:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'export:', { error: error });
             // TODO: Afficher un message d'erreur
         } finally {
             setIsLoading(false);

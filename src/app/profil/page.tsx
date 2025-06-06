@@ -38,7 +38,7 @@ function ProfilePageContent() {
                 const response = await axios.get<UserSkill[]>(`${window.location.origin}/api/me/skills`);
                 setUserSkills(response.data);
             } catch (err: unknown) {
-                logger.error('Erreur lors du chargement des compétences:', err);
+                logger.error('Erreur lors du chargement des compétences:', { error: err });
                 setSkillsError('Impossible de charger vos compétences.');
             } finally {
                 setLoadingSkills(false);

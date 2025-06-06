@@ -23,7 +23,7 @@ interface ErrorRetryProps<T = any> {
  *   maxRetries={3}
  *   retryDelay={1000}
  *   onSuccess={(data) => setData(data)}
- *   onFinalFailure={(error) => logger.error('Échec final:', error instanceof Error ? error : new Error(String(error)))}
+ *   onFinalFailure={(error) => logger.error('Échec final:', { error: error })}
  * >
  *   <DataDisplay data={data} />
  * </ErrorRetry>

@@ -40,7 +40,7 @@ async function handler(req: NextRequest) {
 
     return NextResponse.json(results);
   } catch (error: unknown) {
-    logger.error('Erreur API requests/search:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur API requests/search:', { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }

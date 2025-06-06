@@ -39,7 +39,7 @@ export default function NewRulePage() {
 
             router.push('/admin/planningMedical-rules');
         } catch (error: unknown) {
-            logger.error('Erreur lors de la création de la règle:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la création de la règle:', { error: error });
             toast({
                 variant: 'destructive',
                 title: 'Erreur',

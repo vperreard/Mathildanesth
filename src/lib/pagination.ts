@@ -259,7 +259,7 @@ export class OptimizedPaginator<T> {
             return result;
 
         } catch (error: unknown) {
-            logger.error(`[Pagination] Erreur lors de la requête ${this.model}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`[Pagination] Erreur lors de la requête ${this.model}:`, { error: error });
             throw error;
         }
     }
@@ -305,7 +305,7 @@ export class OptimizedPaginator<T> {
             return result;
 
         } catch (error: unknown) {
-            logger.error(`[Pagination] Erreur lors du comptage ${this.model}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`[Pagination] Erreur lors du comptage ${this.model}:`, { error: error });
             throw error;
         }
     }
@@ -354,7 +354,7 @@ export class OptimizedPaginator<T> {
             return suggestions;
 
         } catch (error: unknown) {
-            logger.error(`[Pagination] Erreur lors des suggestions ${this.model}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`[Pagination] Erreur lors des suggestions ${this.model}:`, { error: error });
             return [];
         }
     }

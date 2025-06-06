@@ -175,7 +175,7 @@ export function useContextualMessagesWebSocket(options: UseContextualMessagesOpt
                 logger.info('Requête de messages annulée');
             } else {
                 setError(err instanceof Error ? err : new Error('Erreur inconnue'));
-                logger.error('Erreur lors du chargement des messages contextuels:', err);
+                logger.error('Erreur lors du chargement des messages contextuels:', { error: err });
             }
         } finally {
             setIsLoading(false);

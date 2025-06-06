@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: unknown) {
-    logger.error("Erreur lors de l'application de la simulation:", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Erreur lors de l'application de la simulation:", { error: error });
     return NextResponse.json(
       {
         success: false,
@@ -121,7 +121,7 @@ async function checkUserRightsForSimulationApply(userId: number): Promise<boolea
     // Si pas de système de rôles clair, vérifiez le champ isAdmin ou équivalent
     return user.isAdmin === true;
   } catch (error: unknown) {
-    logger.error('Erreur lors de la vérification des droits:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la vérification des droits:', { error: error });
     return false;
   }
 }

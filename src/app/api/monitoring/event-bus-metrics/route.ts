@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
         // Envoyer les métriques filtrées
         return NextResponse.json(filteredMetrics);
     } catch (error: unknown) {
-        logger.error('Error fetching event bus metrics:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error fetching event bus metrics:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des métriques' },
             { status: 500 }
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ message: 'Configuration mise à jour avec succès' });
     } catch (error: unknown) {
-        logger.error('Error updating profiler configuration:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error updating profiler configuration:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour de la configuration' },
             { status: 500 }
@@ -189,7 +189,7 @@ export async function DELETE(request: NextRequest) {
 
         return NextResponse.json({ message: 'Métriques réinitialisées avec succès' });
     } catch (error: unknown) {
-        logger.error('Error resetting metrics:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error resetting metrics:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la réinitialisation des métriques' },
             { status: 500 }

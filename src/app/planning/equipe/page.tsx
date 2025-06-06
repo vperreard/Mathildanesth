@@ -100,7 +100,7 @@ export default function TeamPlanningPage() {
             setTeamShifts(mockShifts);
 
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement du planning équipe:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement du planning équipe:', { error: error });
             toast({
                 title: "Erreur",
                 description: "Impossible de charger le planning de l'équipe",

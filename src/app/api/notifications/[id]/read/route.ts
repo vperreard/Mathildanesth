@@ -39,7 +39,7 @@ export async function POST(
 
         return NextResponse.json({ notification });
     } catch (error: unknown) {
-        logger.error('Erreur lors du marquage de la notification:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors du marquage de la notification:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }

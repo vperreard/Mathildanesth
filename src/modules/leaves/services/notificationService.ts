@@ -103,7 +103,7 @@ export class NotificationService {
         try {
           this.config = { ...DEFAULT_NOTIFICATION_CONFIG, ...JSON.parse(storedConfig) };
         } catch (e: unknown) {
-          logger.error('Erreur lors du chargement de la configuration:', e);
+          logger.error('Erreur lors du chargement de la configuration:', { error: e });
           this.config = DEFAULT_NOTIFICATION_CONFIG;
         }
       }
@@ -123,7 +123,7 @@ export class NotificationService {
       // Sauvegarder dans localStorage comme fallback
       localStorage.setItem('notificationConfig', JSON.stringify(this.config));
     } catch (error: unknown) {
-      logger.error('Erreur lors de la sauvegarde de la configuration:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors de la sauvegarde de la configuration:', { error: error });
     }
   }
 
@@ -214,7 +214,7 @@ export class NotificationService {
 
       return savedNotification;
     } catch (error: unknown) {
-      logger.error("Erreur lors de l'envoi de la notification:", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Erreur lors de l'envoi de la notification:", { error: error });
 
       // En cas d'erreur, on émet quand même l'événement localement
       this.emitEvent(notification.type, completeNotification);
@@ -291,7 +291,7 @@ export class NotificationService {
 
       return paginatedResult;
     } catch (error: unknown) {
-      logger.error('Erreur lors de la récupération des notifications:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors de la récupération des notifications:', { error: error });
       return {
         notifications: [],
         totalCount: 0,
@@ -365,7 +365,7 @@ export class NotificationService {
         }
       }
     } catch (error: unknown) {
-      logger.error('Erreur lors du marquage de la notification:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors du marquage de la notification:', { error: error });
     }
   }
 
@@ -379,7 +379,7 @@ export class NotificationService {
       // Invalider le cache pour cet utilisateur
       this.invalidateUserNotificationsCache(userId);
     } catch (error: unknown) {
-      logger.error('Erreur lors du marquage de toutes les notifications:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors du marquage de toutes les notifications:', { error: error });
     }
   }
 
@@ -418,7 +418,7 @@ export class NotificationService {
         }
       }
     } catch (error: unknown) {
-      logger.error('Erreur lors de la suppression de la notification:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors de la suppression de la notification:', { error: error });
     }
   }
 
@@ -432,7 +432,7 @@ export class NotificationService {
       // Invalider le cache pour cet utilisateur
       this.invalidateUserNotificationsCache(userId);
     } catch (error: unknown) {
-      logger.error('Erreur lors de la suppression de toutes les notifications:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors de la suppression de toutes les notifications:', { error: error });
     }
   }
 
@@ -469,7 +469,7 @@ export class NotificationService {
         });
       }
     } catch (error: unknown) {
-      logger.error("Erreur lors de l'envoi de la notification de demande de congé:", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Erreur lors de l'envoi de la notification de demande de congé:", { error: error });
     }
   }
 
@@ -494,7 +494,7 @@ export class NotificationService {
         actions: [{ label: 'Voir les détails', action: 'VIEW', url: `/conges?id=${leave.id}` }],
       });
     } catch (error: unknown) {
-      logger.error("Erreur lors de l'envoi de la notification de mise à jour de congé:", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Erreur lors de l'envoi de la notification de mise à jour de congé:", { error: error });
     }
   }
 
@@ -538,7 +538,7 @@ export class NotificationService {
         });
       }
     } catch (error: unknown) {
-      logger.error("Erreur lors de l'envoi de la notification de conflit de congés:", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Erreur lors de l'envoi de la notification de conflit de congés:", { error: error });
     }
   }
 
@@ -561,7 +561,7 @@ export class NotificationService {
         actions: [{ label: 'Voir les détails', action: 'VIEW', url: `/conges?id=${leave.id}` }],
       });
     } catch (error: unknown) {
-      logger.error("Erreur lors de l'envoi du rappel de congé:", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Erreur lors de l'envoi du rappel de congé:", { error: error });
     }
   }
 
@@ -594,7 +594,7 @@ export class NotificationService {
         actions: [{ label: 'Voir mes quotas', action: 'VIEW_QUOTAS', url: '/conges/quotas' }],
       });
     } catch (error: unknown) {
-      logger.error("Erreur lors de l'envoi de la notification de quota bas:", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Erreur lors de l'envoi de la notification de quota bas:", { error: error });
     }
   }
 
@@ -606,7 +606,7 @@ export class NotificationService {
       const response = await axios.get(`/api/utilisateurs/${userId}/approvers`);
       return response.data.map((user: User) => user.id);
     } catch (error: unknown) {
-      logger.error('Erreur lors de la récupération des approbateurs:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors de la récupération des approbateurs:', { error: error });
       return [];
     }
   }
@@ -616,7 +616,7 @@ export class NotificationService {
       const response = await axios.get('/api/utilisateurs/roles/SCHEDULER_MANAGER');
       return response.data.map((user: User) => user.id);
     } catch (error: unknown) {
-      logger.error('Erreur lors de la récupération des gestionnaires de planning:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur lors de la récupération des gestionnaires de planning:', { error: error });
       return [];
     }
   }

@@ -111,7 +111,7 @@ export class LeavePlanningIntegration {
                     break;
             }
         } catch (error: unknown) {
-            logger.error('LeavePlanningIntegration: Error handling leave event', error instanceof Error ? error : new Error(String(error)));
+            logger.error('LeavePlanningIntegration: Error handling leave event', { error: error });
         }
     }
 
@@ -138,7 +138,7 @@ export class LeavePlanningIntegration {
                     break;
             }
         } catch (error: unknown) {
-            logger.error('LeavePlanningIntegration: Error handling planning event', error instanceof Error ? error : new Error(String(error)));
+            logger.error('LeavePlanningIntegration: Error handling planning event', { error: error });
         }
     }
 
@@ -203,7 +203,7 @@ export class LeavePlanningIntegration {
             // Publier l'événement via l'adaptateur d'événements
             planningEventAdapter.emitPlanningEventAdded(planning, planningEvent);
         } catch (error: unknown) {
-            logger.error(`LeavePlanningIntegration: Error creating planning event`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`LeavePlanningIntegration: Error creating planning event`, { error: error });
         }
     }
 
@@ -246,7 +246,7 @@ export class LeavePlanningIntegration {
             // Publier l'événement via l'adaptateur d'événements
             planningEventAdapter.emitPlanningEventUpdated(planning, planningEvent);
         } catch (error: unknown) {
-            logger.error(`LeavePlanningIntegration: Error updating planning event`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`LeavePlanningIntegration: Error updating planning event`, { error: error });
         }
     }
 
@@ -289,7 +289,7 @@ export class LeavePlanningIntegration {
             // Publier l'événement via l'adaptateur d'événements
             planningEventAdapter.emitPlanningEventRemoved(planning, planningEvent);
         } catch (error: unknown) {
-            logger.error(`LeavePlanningIntegration: Error removing planning event`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`LeavePlanningIntegration: Error removing planning event`, { error: error });
         }
     }
 
@@ -319,7 +319,7 @@ export class LeavePlanningIntegration {
                 }
             }
         } catch (error: unknown) {
-            logger.error(`LeavePlanningIntegration: Error handling recurring leave`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`LeavePlanningIntegration: Error handling recurring leave`, { error: error });
         }
     }
 
@@ -343,7 +343,7 @@ export class LeavePlanningIntegration {
                 logger.info(`LeavePlanningIntegration: Notifying leave module about conflict for leave ${leaveId}`);
             }
         } catch (error: unknown) {
-            logger.error(`LeavePlanningIntegration: Error handling leave conflict`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`LeavePlanningIntegration: Error handling leave conflict`, { error: error });
         }
     }
 
@@ -363,7 +363,7 @@ export class LeavePlanningIntegration {
                 // Optionnel : recréer l'événement ou notifier un administrateur
             }
         } catch (error: unknown) {
-            logger.error(`LeavePlanningIntegration: Error handling leave removed from planning`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`LeavePlanningIntegration: Error handling leave removed from planning`, { error: error });
         }
     }
 }

@@ -94,7 +94,7 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (error: unknown) {
-    logger.error('Erreur lors de la duplication du scénario de simulation:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la duplication du scénario de simulation:', { error: error });
     return NextResponse.json(
       {
         success: false,

@@ -42,7 +42,7 @@ export async function GET(request: Request) {
 
         return NextResponse.json(affectations);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des affectations:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des affectations:', { error: error });
         return NextResponse.json({ error: 'Erreur lors de la récupération des affectations' }, { status: 500 });
     }
 }
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json(newAffectation, { status: 201 });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la création de l\'affectation:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la création de l\'affectation:', { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la création de l\'affectation',
             details: error instanceof Error ? error.message : 'Erreur inconnue'
@@ -157,7 +157,7 @@ export async function DELETE(request: Request) {
 
         return NextResponse.json({ success: true, message: 'Affectation supprimée avec succès' });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la suppression de l\'affectation:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la suppression de l\'affectation:', { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la suppression de l\'affectation',
             details: error instanceof Error ? error.message : 'Erreur inconnue'

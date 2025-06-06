@@ -145,7 +145,7 @@ export const useLeaveConflictAnalytics = (
         } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error('Erreur lors du chargement des données d\'analyse');
             setError(errorObj);
-            logger.error('Erreur dans useLeaveConflictAnalytics.loadData:', err);
+            logger.error('Erreur dans useLeaveConflictAnalytics.loadData:', { error: err });
         } finally {
             setLoading(false);
         }
@@ -171,7 +171,7 @@ export const useLeaveConflictAnalytics = (
         } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error('Erreur lors de la génération du rapport');
             setError(errorObj);
-            logger.error('Erreur dans useLeaveConflictAnalytics.generateReport:', err);
+            logger.error('Erreur dans useLeaveConflictAnalytics.generateReport:', { error: err });
         }
     }, [analyticsService, filter]);
 

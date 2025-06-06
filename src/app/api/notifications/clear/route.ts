@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la suppression des notifications:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la suppression des notifications:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }

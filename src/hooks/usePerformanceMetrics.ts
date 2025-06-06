@@ -79,7 +79,7 @@ export const usePerformanceMetrics = (pageName?: string): PerformanceHookReturn 
                 }
 
             } catch (error: unknown) {
-                logger.error('Erreur lors de la mesure des performances:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors de la mesure des performances:', { error: error });
                 setIsLoading(false);
             }
         };
@@ -145,7 +145,7 @@ export const measureExecutionTime = async <T>(
         const endTime = performance.now();
         const executionTime = endTime - startTime;
 
-        logger.error(`❌ ${metricName} failed after ${executionTime.toFixed(2)}ms:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`❌ ${metricName} failed after ${executionTime.toFixed(2)}ms:`, { error: error });
         throw error;
     }
 }; 

@@ -237,7 +237,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             }
             setHasUnsavedChanges(false);
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des trames:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des trames:', { error: error });
             toast.error('Impossible de charger les trameModeles');
         } finally {
             setIsLoading(false);
@@ -268,7 +268,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             logger.info("[BlocEditor] Données de support chargées (salles):", sallesData.slice(0, 2));
         } catch (error: unknown) {
             toast.error("Erreur lors du chargement des données de support.");
-            logger.error("[BlocEditor] Erreur loadSupportData:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("[BlocEditor] Erreur loadSupportData:", { error: error });
         }
     };
 
@@ -360,7 +360,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                 setHasUnsavedChanges(false);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de la sauvegarde de la trameModele:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la sauvegarde de la trameModele:', { error: error });
             toast.error('Impossible de sauvegarder la trameModele. Vérifiez la console.');
         } finally {
             setIsLoading(false);
@@ -409,7 +409,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                     setSelectedTrameId(savedTrame.id);
                 }
             } catch (error: unknown) {
-                logger.error('Erreur lors de l\'import de la trameModele:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors de l\'import de la trameModele:', { error: error });
                 toast.error('Impossible d\'importer la trameModele: format invalide ou erreur.');
             } finally {
                 setIsLoading(false);
@@ -433,7 +433,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             setSelectedTrameId(null);
             await loadTrames();
         } catch (error: unknown) {
-            logger.error('Erreur lors de la suppression de la trameModele:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la suppression de la trameModele:', { error: error });
             toast.error('Impossible de supprimer la trameModele.');
         } finally {
             setIsLoading(false);

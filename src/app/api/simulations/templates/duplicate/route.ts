@@ -66,7 +66,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json(newTemplate, { status: 201 });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la duplication du template de simulation:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la duplication du template de simulation:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }

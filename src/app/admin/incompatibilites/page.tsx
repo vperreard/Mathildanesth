@@ -15,7 +15,7 @@ async function fetchIncompatibilitiesData(): Promise<{ data: DisplayPersonnelInc
         const incompatibilities = await getPersonnelIncompatibilities();
         return { data: incompatibilities };
     } catch (error: unknown) {
-        logger.error("Failed to fetch incompatibilities:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Failed to fetch incompatibilities:", { error: error });
         return { data: [], error: error.message || "Une erreur est survenue lors de la récupération des données." };
     }
 }

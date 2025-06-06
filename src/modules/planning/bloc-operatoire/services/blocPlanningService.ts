@@ -1315,7 +1315,7 @@ export class BlocPlanningService {
             }
         } catch (error: unknown) {
             // En cas d'erreur inattendue lors de la requête, logguer et retourner null
-            logger.error("Erreur lors de la vérification des incompatibilités (R5) :", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la vérification des incompatibilités (R5) :", { error: error });
             return null;
         }
 
@@ -1501,7 +1501,7 @@ export class BlocPlanningService {
             logger.info(`[BlocPlanningService.getAllOperatingRooms] Nombre de salles après transformation/validation: ${transformedRooms.length}`);
             return transformedRooms;
         } catch (error: unknown) {
-            logger.error("[BlocPlanningService.getAllOperatingRooms] Erreur lors de la récupération des salles d'opération: ", error instanceof Error ? error : new Error(String(error)));
+            logger.error("[BlocPlanningService.getAllOperatingRooms] Erreur lors de la récupération des salles d'opération: ", { error: error });
             // Ne pas simplement jeter l'erreur ici pour voir si le catch plus haut (dans la route API) le fait
             // throw new Error("Impossible de récupérer les salles d'opération"); 
             return []; // Retourner un tableau vide en cas d'erreur ici pour éviter de planter et voir si l'API renvoie quand même 200
@@ -1532,7 +1532,7 @@ export class BlocPlanningService {
             });
             return this.transformAndValidateRooms(roomsData as any, includeRelations);
         } catch (error: unknown) {
-            logger.error("Erreur lors de la récupération des salles d'opération actives: ", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la récupération des salles d'opération actives: ", { error: error });
             throw new Error("Impossible de récupérer les salles d'opération actives");
         }
     }
@@ -1596,7 +1596,7 @@ export class BlocPlanningService {
             // Correction de l'appel de fonction
             return this.transformAndValidateSectors(sectorsData as any, includeRelations);
         } catch (error: unknown) {
-            logger.error("Erreur lors de la récupération des secteurs opératoires: ", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la récupération des secteurs opératoires: ", { error: error });
             throw new Error("Impossible de récupérer les secteurs opératoires");
         }
     }

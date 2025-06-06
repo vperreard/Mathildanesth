@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ consultations });
 
     } catch (error: unknown) {
-        logger.error('Erreur API [GET /api/consultations]:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur API [GET /api/consultations]:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des consultations.', details: error.message },
             { status: 500 }
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ consultation }, { status: 201 });
     } catch (error: unknown) {
-        logger.error('Erreur API [POST /api/consultations]:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur API [POST /api/consultations]:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la création de la consultation.', details: error.message },
             { status: 500 }
@@ -214,7 +214,7 @@ export async function PATCH(request: NextRequest) {
 
         return NextResponse.json({ consultation: updatedConsultation });
     } catch (error: unknown) {
-        logger.error('Erreur API [PATCH /api/consultations]:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur API [PATCH /api/consultations]:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la mise à jour de la consultation.', details: error.message },
             { status: 500 }
@@ -260,7 +260,7 @@ export async function DELETE(request: NextRequest) {
 
         return NextResponse.json({ success: true });
     } catch (error: unknown) {
-        logger.error('Erreur API [DELETE /api/consultations]:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur API [DELETE /api/consultations]:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la suppression de la consultation.', details: error.message },
             { status: 500 }

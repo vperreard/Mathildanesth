@@ -54,7 +54,7 @@ export class OperatingSectorService {
                 return mappedSector;
             });
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération des secteurs via BlocPlanningService:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des secteurs via BlocPlanningService:', { error: error });
             // Retourner un tableau vide ou jeter une erreur spécifique au service client
             return [];
         }
@@ -91,7 +91,7 @@ export class OperatingSectorService {
             };
             return mappedSector;
         } catch (error: unknown) {
-            logger.error(`Erreur lors de la récupération du secteur ${id} via BlocPlanningService:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de la récupération du secteur ${id} via BlocPlanningService:`, { error: error });
             return null;
         }
     }

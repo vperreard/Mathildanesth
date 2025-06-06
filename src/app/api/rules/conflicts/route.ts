@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(serializedConflicts);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des conflits:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des conflits:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des conflits' },
             { status: 500 }
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(serializedConflict, { status: 201 });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la création du conflit:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la création du conflit:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la création du conflit' },
             { status: 500 }

@@ -25,7 +25,7 @@ export class RuleService {
                 logger.info('Règles par défaut initialisées avec succès');
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'initialisation des règles par défaut:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'initialisation des règles par défaut:', { error: error });
             throw error;
         }
     }
@@ -41,7 +41,7 @@ export class RuleService {
             }
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur dans getAllRules:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans getAllRules:', { error: error });
             throw error;
         }
     }
@@ -57,7 +57,7 @@ export class RuleService {
             }
             return await response.json();
         } catch (error: unknown) {
-            logger.error(`Erreur dans getRulesByType pour ${type}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur dans getRulesByType pour ${type}:`, { error: error });
             throw error;
         }
     }
@@ -81,7 +81,7 @@ export class RuleService {
 
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur dans createRule:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans createRule:', { error: error });
             throw error;
         }
     }
@@ -105,7 +105,7 @@ export class RuleService {
 
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur dans updateRule:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans updateRule:', { error: error });
             throw error;
         }
     }
@@ -123,7 +123,7 @@ export class RuleService {
                 throw new Error(`Erreur lors de la suppression de la règle: ${response.statusText}`);
             }
         } catch (error: unknown) {
-            logger.error('Erreur dans deleteRule:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans deleteRule:', { error: error });
             throw error;
         }
     }
@@ -136,7 +136,7 @@ export class RuleService {
             const rules = await this.getAllRules();
             return JSON.stringify(rules, null, 2);
         } catch (error: unknown) {
-            logger.error('Erreur dans exportRules:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans exportRules:', { error: error });
             throw error;
         }
     }
@@ -168,7 +168,7 @@ export class RuleService {
                 }
             }
         } catch (error: unknown) {
-            logger.error('Erreur dans importRules:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans importRules:', { error: error });
             throw error;
         }
     }
@@ -190,7 +190,7 @@ export class RuleService {
 
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur dans getRuleById:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans getRuleById:', { error: error });
             throw error;
         }
     }
@@ -224,7 +224,7 @@ export class RuleService {
 
             return await this.updateRule(updatedRule);
         } catch (error: unknown) {
-            logger.error('Erreur dans resetRuleToDefault:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans resetRuleToDefault:', { error: error });
             throw error;
         }
     }

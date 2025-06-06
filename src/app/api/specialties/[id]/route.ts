@@ -48,7 +48,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         if (error.code === 'P2025') { // Enregistrement non trouvé
             return new NextResponse(JSON.stringify({ message: 'Spécialité non trouvée' }), { status: 404 });
         }
-        logger.error(`Erreur PUT /api/specialties/${specialtyId}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur PUT /api/specialties/${specialtyId}:`, { error: error });
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 }
@@ -82,7 +82,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         if (error.code === 'P2014' || (error.code === 'P2003' && error.message.includes('constraint'))) {
             return new NextResponse(JSON.stringify({ message: 'Impossible de supprimer: cette spécialité est utilisée par au moins un chirurgien.' }), { status: 409 }); // Conflict
         }
-        logger.error(`Erreur DELETE /api/specialties/${specialtyId}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur DELETE /api/specialties/${specialtyId}:`, { error: error });
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 } 

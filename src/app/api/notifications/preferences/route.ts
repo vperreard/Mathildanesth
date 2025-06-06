@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(preferences);
   } catch (error: unknown) {
-    logger.error('GET /api/notifications/preferences: Erreur serveur', error instanceof Error ? error : new Error(String(error)));
+    logger.error('GET /api/notifications/preferences: Erreur serveur', { error: error });
     return NextResponse.json(
       {
         error: 'Erreur lors de la récupération des préférences de notifications',
@@ -127,7 +127,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(preferences);
   } catch (error: unknown) {
-    logger.error('PUT /api/notifications/preferences: Erreur serveur', error instanceof Error ? error : new Error(String(error)));
+    logger.error('PUT /api/notifications/preferences: Erreur serveur', { error: error });
     return NextResponse.json(
       {
         error: 'Erreur lors de la mise à jour des préférences de notifications',

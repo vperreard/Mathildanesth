@@ -139,7 +139,7 @@ export default function OptimizedCalendarPage() {
             }));
             setAssignments(fetchedAssignments);
         } catch (error: unknown) {
-            logger.error("Erreur lors du chargement des affectations:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors du chargement des affectations:", { error: error });
             toast.error("Impossible de charger les affectations.");
             setAssignments([]);
         } finally {
@@ -162,7 +162,7 @@ export default function OptimizedCalendarPage() {
             toast.success('Affectations sauvegardées avec succès.');
             setAssignments(updatedAssignments);
         } catch (error: unknown) {
-            logger.error("Erreur lors de la sauvegarde:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la sauvegarde:", { error: error });
             toast.error('Échec de la sauvegarde des affectations.');
         }
     };

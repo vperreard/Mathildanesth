@@ -249,7 +249,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(result);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la génération du rapport de transferts :', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la génération du rapport de transferts :', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la génération du rapport de transferts' },
             { status: 500 }

@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(trameModele, { status: 201 });
     } catch (error: unknown) {
-        logger.error('[API /api/trameModele-modeles POST] Erreur lors de la création du template de trameModele:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('[API /api/trameModele-modeles POST] Erreur lors de la création du template de trameModele:', { error: error });
 
         // Afficher la stack trace pour plus de détails
         if (error.stack) {
@@ -202,7 +202,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(trameModeles);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des templates de trameModele:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des templates de trameModele:', { error: error });
         return NextResponse.json({ error: 'Erreur interne du serveur lors de la récupération des templates de trameModele.', details: error.message }, { status: 500 });
     }
 } 

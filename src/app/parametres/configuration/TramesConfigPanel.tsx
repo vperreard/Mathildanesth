@@ -365,7 +365,7 @@ const TramesConfigPanel: React.FC = () => {
             });
             setSelectedTrame(null);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la sauvegarde:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la sauvegarde:', { error: error });
             toast.error('Erreur lors de la sauvegarde');
         } finally {
             setSaving(false);
@@ -391,7 +391,7 @@ const TramesConfigPanel: React.FC = () => {
             setTrames(prev => prev.filter(trameModele => trameModele.id !== id));
             toast.success('TrameModele supprimée avec succès');
         } catch (error: unknown) {
-            logger.error('Erreur lors de la suppression:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la suppression:', { error: error });
             toast.error('Erreur lors de la suppression');
         }
     };

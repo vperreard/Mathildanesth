@@ -33,7 +33,7 @@ async function handler(req: unknown) {
         return NextResponse.json({ message: 'Déconnexion réussie' });
 
     } catch (error: unknown) {
-        logger.error("API LOGOUT ERROR:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("API LOGOUT ERROR:", { error: error });
         return NextResponse.json(
             { message: 'Erreur interne du serveur lors de la déconnexion' },
             { status: 500 }

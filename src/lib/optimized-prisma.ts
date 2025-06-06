@@ -116,7 +116,7 @@ class OptimizedPrismaClient extends PrismaClient {
             // Ici on pourrait envoyer vers un système de monitoring
             logger.info('Slow query logged:', logEntry);
         } catch (error: unknown) {
-            logger.warn('Failed to log slow query:', error instanceof Error ? error : new Error(String(error)));
+            logger.warn('Failed to log slow query:', { error: error });
         }
     }
 

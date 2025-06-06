@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         });
 
     } catch (error: unknown) {
-        logger.error('Erreur lors de la réorganisation des sites:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la réorganisation des sites:', { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la réorganisation des sites',
             details: error instanceof Error ? error.message : 'Erreur inconnue'

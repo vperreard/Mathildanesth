@@ -375,7 +375,7 @@ export const templateService = {
             logger.info(`[Modèle Service] Métadonnées de la trameModele ${isCreating ? 'créées' : 'mises à jour'} avec succès. ID: ${trameModeleId}`);
 
         } catch (error: unknown) {
-            logger.error(`[Modèle Service] Erreur lors de la sauvegarde des métadonnées de la tableau de service:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`[Modèle Service] Erreur lors de la sauvegarde des métadonnées de la tableau de service:`, { error: error });
             throw error; // Rethrow pour que le composant parent puisse gérer
         }
 
@@ -518,7 +518,7 @@ export const templateService = {
             }
 
         } catch (error: unknown) {
-            logger.error(`[Modèle Service] Erreur lors de la gestion des gardes/vacations pour la trameModele ${trameModeleId}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`[Modèle Service] Erreur lors de la gestion des gardes/vacations pour la trameModele ${trameModeleId}:`, { error: error });
             // Que faire ici? La trameModele a été sauvegardée, mais les gardes/vacations ont échoué.
             // Peut-être retourner la trameModele avec un avertissement ou relancer une erreur spécifique.
             throw new Error(`Erreur lors de la sauvegarde des affectations: ${error instanceof Error ? error.message : String(error)}`);
@@ -638,7 +638,7 @@ export const templateService = {
             return activityTypesFromApi;
 
         } catch (error: unknown) {
-            logger.error("[Modèle Service] Erreur DANS getAvailableAffectationTypes (API):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("[Modèle Service] Erreur DANS getAvailableAffectationTypes (API):", { error: error });
             if (error instanceof Error) {
                 logger.warn("[Modèle Service] Retourne un tableau vide pour availableFullActivityTypes suite à une erreur API.", error.message);
                 return [];

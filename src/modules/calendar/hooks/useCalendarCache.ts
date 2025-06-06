@@ -48,7 +48,7 @@ export function useCalendarCache(
             return result;
         } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error('Une erreur est survenue');
-            logger.error('Erreur lors de la récupération des événements:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des événements:', { error: error });
             setError(error);
             setEvents([]);
             setLoading(false);
@@ -94,7 +94,7 @@ export function useCalendarCache(
                 }
             } catch (err: unknown) {
                 const error = err instanceof Error ? err : new Error('Une erreur est survenue');
-                logger.error('Erreur lors de la récupération des événements:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors de la récupération des événements:', { error: error });
                 setError(error);
                 setEvents([]);
             } finally {

@@ -184,7 +184,7 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
             setBalance(balanceData);
         } catch (err: unknown) {
             setError(err as Error);
-            logger.error('Erreur lors de la récupération du solde des congés', err);
+            logger.error('Erreur lors de la récupération du solde des congés', { error: err });
         } finally {
             setLoading(false);
         }
@@ -202,7 +202,7 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
             setTransferRules(rules);
         } catch (err: unknown) {
             setError(err as Error);
-            logger.error('Erreur lors de la récupération des règles de transfert', err);
+            logger.error('Erreur lors de la récupération des règles de transfert', { error: err });
         } finally {
             setLoading(false);
         }
@@ -265,7 +265,7 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
             return extendedPreview;
         } catch (err: unknown) {
             setTransferError(err as Error);
-            logger.error('Erreur lors de la simulation du transfert', err);
+            logger.error('Erreur lors de la simulation du transfert', { error: err });
 
             return {
                 success: false,

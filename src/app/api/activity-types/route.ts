@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(activityTypes);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des types d\'activité:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des types d\'activité:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des types d\'activité' },
             { status: 500 }
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(newActivityType, { status: 201 });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la création du type d\'activité:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la création du type d\'activité:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la création du type d\'activité' },
             { status: 500 }

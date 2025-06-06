@@ -135,7 +135,7 @@ export default function ReglesSupervisionAdmin() {
       setSecteurs(adaptedSectors);
     } catch (err: unknown) {
       setError('Erreur lors du chargement des données');
-      logger.error('Erreur de chargement:', err instanceof Error ? err : new Error(String(err)));
+      logger.error('Erreur de chargement:', { error: err });
     } finally {
       setIsLoading(false);
     }

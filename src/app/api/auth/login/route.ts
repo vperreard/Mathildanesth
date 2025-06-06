@@ -101,7 +101,7 @@ async function loginHandler(req: NextRequest) {
 
         return response;
     } catch (error: unknown) {
-        logger.error('API LOGIN ERROR:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('API LOGIN ERROR:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la connexion' },
             { status: 500 }

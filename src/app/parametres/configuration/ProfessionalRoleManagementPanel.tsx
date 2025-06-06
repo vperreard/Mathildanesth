@@ -70,7 +70,7 @@ const ProfessionalRoleManagementPanel: React.FC = () => {
             const data = await response.json();
             setRoles(data);
         } catch (error: unknown) {
-            logger.error("Erreur lors du chargement des rôles:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors du chargement des rôles:", { error: error });
             setError(error.message || "Impossible de charger les rôles professionnels");
         } finally {
             setIsLoading(false);
@@ -142,7 +142,7 @@ const ProfessionalRoleManagementPanel: React.FC = () => {
             setIsModalOpen(false);
             setIsEditing(null);
         } catch (error: unknown) {
-            logger.error("Erreur lors de l'enregistrement du rôle:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de l'enregistrement du rôle:", { error: error });
             toast.error(error.message || "Erreur lors de l'enregistrement");
         }
     };
@@ -165,7 +165,7 @@ const ProfessionalRoleManagementPanel: React.FC = () => {
             setRoles(prev => prev.filter(role => role.id !== id));
             toast.success('Rôle professionnel supprimé avec succès');
         } catch (error: unknown) {
-            logger.error("Erreur lors de la suppression du rôle:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la suppression du rôle:", { error: error });
             toast.error(error.message || "Erreur lors de la suppression");
         }
     };

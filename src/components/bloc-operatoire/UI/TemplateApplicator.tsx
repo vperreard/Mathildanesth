@@ -141,7 +141,7 @@ export const TemplateApplicator: React.FC<TemplateApplicatorProps> = ({
             setPreviewResults(results);
             setShowPreview(true);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la prévisualisation:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la prévisualisation:', { error: error });
         }
     }, [selectedTemplateId, options, onPreview]);
 
@@ -152,7 +152,7 @@ export const TemplateApplicator: React.FC<TemplateApplicatorProps> = ({
         try {
             await onApply(selectedTemplateId, { ...options, dryRun: false });
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'application:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'application:', { error: error });
         } finally {
             setIsApplying(false);
         }

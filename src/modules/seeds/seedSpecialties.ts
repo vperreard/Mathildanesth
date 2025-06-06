@@ -69,7 +69,7 @@ export async function seedSpecialties() {
     logger.info('Initialisation des spécialités chirurgicales terminée avec succès!');
     return true;
   } catch (error: unknown) {
-    logger.error("Erreur lors de l'initialisation des spécialités chirurgicales:", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Erreur lors de l'initialisation des spécialités chirurgicales:", { error: error });
     throw error;
   }
 }
@@ -79,7 +79,7 @@ export async function seedSpecialties() {
 //     seedSpecialties()
 //         .then(() => process.exit(0))
 //         .catch(error => {
-//             logger.error('Erreur lors du seed des spécialités:', error instanceof Error ? error : new Error(String(error)));
+//             logger.error('Erreur lors du seed des spécialités:', { error: error });
 //             process.exit(1);
 //         });
 // }

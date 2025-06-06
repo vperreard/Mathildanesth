@@ -32,7 +32,7 @@ export async function GET(request: Request) {
         });
 
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des règles:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des règles:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération de la configuration' },
             { status: 500 }
@@ -111,7 +111,7 @@ export async function PUT(request: Request) {
         });
 
     } catch (error: unknown) {
-        logger.error('Erreur lors de la sauvegarde des règles:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la sauvegarde des règles:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la sauvegarde de la configuration' },
             { status: 500 }
@@ -179,7 +179,7 @@ export async function POST(request: Request) {
         );
 
     } catch (error: unknown) {
-        logger.error('Erreur dans l\'action:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur dans l\'action:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors du traitement' },
             { status: 500 }

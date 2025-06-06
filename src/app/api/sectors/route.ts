@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(formattedSectors);
 
     } catch (error: unknown) {
-        logger.error('Error during GET /api/sectors (Prisma - operatingSector): ', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error during GET /api/sectors (Prisma - operatingSector): ', { error: error });
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2021') {
             logger.error("Prisma Error P2021: Table or Model 'OperatingSector' not found.");
             return NextResponse.json({ error: 'Erreur de base de données: La table des secteurs est introuvable.' }, { status: 500 });
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(responseData, { status: 201 });
 
     } catch (error: unknown) {
-        logger.error('Error during POST /api/sectors (Prisma - operatingSector): ', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error during POST /api/sectors (Prisma - operatingSector): ', { error: error });
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2002') {
                 const target = error.meta?.target as string[] | undefined;

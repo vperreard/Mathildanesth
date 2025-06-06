@@ -39,7 +39,7 @@ export class AuthCacheService {
                 logger.debug(`Token cached for ${ttl}s`);
             }
         } catch (error: unknown) {
-            logger.error('Failed to cache auth token:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to cache auth token:', { error: error });
         }
     }
 
@@ -63,7 +63,7 @@ export class AuthCacheService {
             
             return data;
         } catch (error: unknown) {
-            logger.error('Failed to get cached auth token:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to get cached auth token:', { error: error });
             return null;
         }
     }
@@ -77,7 +77,7 @@ export class AuthCacheService {
             await redis.setex(key, CacheTTL.USER_DATA, JSON.stringify(userData));
             logger.debug(`User data cached for user ${userId}`);
         } catch (error: unknown) {
-            logger.error('Failed to cache user data:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to cache user data:', { error: error });
         }
     }
 
@@ -93,7 +93,7 @@ export class AuthCacheService {
             
             return JSON.parse(cached) as CachedUserData;
         } catch (error: unknown) {
-            logger.error('Failed to get cached user data:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to get cached user data:', { error: error });
             return null;
         }
     }
@@ -107,7 +107,7 @@ export class AuthCacheService {
             await redis.setex(key, CacheTTL.USER_PERMISSIONS, JSON.stringify(permissions));
             logger.debug(`Permissions cached for user ${userId}`);
         } catch (error: unknown) {
-            logger.error('Failed to cache user permissions:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to cache user permissions:', { error: error });
         }
     }
 
@@ -123,7 +123,7 @@ export class AuthCacheService {
             
             return JSON.parse(cached) as string[];
         } catch (error: unknown) {
-            logger.error('Failed to get cached user permissions:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to get cached user permissions:', { error: error });
             return null;
         }
     }
@@ -161,7 +161,7 @@ export class AuthCacheService {
                 logger.debug(`Cache invalidated for user ${userId}`);
             }
         } catch (error: unknown) {
-            logger.error('Failed to invalidate user cache:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to invalidate user cache:', { error: error });
         }
     }
 
@@ -186,7 +186,7 @@ export class AuthCacheService {
                 permissions: permKeys?.length || 0,
             };
         } catch (error: unknown) {
-            logger.error('Failed to get cache stats:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to get cache stats:', { error: error });
             return { tokens: 0, users: 0, permissions: 0 };
         }
     }

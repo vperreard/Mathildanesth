@@ -90,7 +90,7 @@ export class ConflictDetectionService {
                 logger.info('Règles de conflit chargées depuis la configuration');
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des règles de conflit:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des règles de conflit:', { error: error });
             // Continuer avec les règles par défaut
         }
     }
@@ -111,7 +111,7 @@ export class ConflictDetectionService {
         // Sauvegarder les nouvelles règles dans la configuration
         this.configService.setConfigValue('leaveConflictRules', this.rules)
             .catch(error => {
-                logger.error('Erreur lors de la sauvegarde des règles de conflit:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors de la sauvegarde des règles de conflit:', { error: error });
             });
     }
 
@@ -847,7 +847,7 @@ export const validateConflictRules = (rules: ConflictRules): boolean => {
 
         return true;
     } catch (error: unknown) {
-        logger.error('Erreur lors de la validation des règles:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la validation des règles:', { error: error });
         return false;
     }
 };

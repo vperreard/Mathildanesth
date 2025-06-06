@@ -211,7 +211,7 @@ export class OptimizedAuditService {
                 await this.processBatch(this.lowPriorityQueue.splice(0, batchSize));
             }
         } catch (error: unknown) {
-            logger.error('[OptimizedAuditService] Erreur lors du traitement de la file d\'attente:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[OptimizedAuditService] Erreur lors du traitement de la file d\'attente:', { error: error });
         } finally {
             // Calculer le temps de traitement
             const processingTime = performance.now() - startTime;
@@ -306,7 +306,7 @@ export class OptimizedAuditService {
                 logger.debug(`[OptimizedAuditService] Lot de ${batch.length} entrées envoyé avec succès`);
             }
         } catch (error: unknown) {
-            logger.error('[OptimizedAuditService] Erreur lors de l\'envoi du lot:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[OptimizedAuditService] Erreur lors de l\'envoi du lot:', { error: error });
 
             // Gérer les réessais pour les entrées échouées
             for (const entry of batch) {
@@ -454,7 +454,7 @@ export class OptimizedAuditService {
 
             return failedEntries.length;
         } catch (error: unknown) {
-            logger.error('[OptimizedAuditService] Erreur lors de la récupération des entrées échouées:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[OptimizedAuditService] Erreur lors de la récupération des entrées échouées:', { error: error });
             return 0;
         }
     }

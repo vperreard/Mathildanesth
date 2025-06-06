@@ -58,7 +58,7 @@ export async function GET(request: Request) {
         const surgeons = await prisma.surgeon.findMany(queryOptions);
         return NextResponse.json(surgeons);
     } catch (error: unknown) {
-        logger.error("Erreur GET /api/chirurgiens:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur GET /api/chirurgiens:", { error: error });
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 }
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
         return new NextResponse(JSON.stringify(newSurgeon), { status: 201 });
 
     } catch (error: unknown) {
-        logger.error("Erreur POST /api/chirurgiens:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur POST /api/chirurgiens:", { error: error });
         // Gérer les erreurs potentielles (ex: contrainte unique si on en ajoute)
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }

@@ -75,7 +75,7 @@ class EventService {
             try {
                 handler(event);
             } catch (error: unknown) {
-                logger.error(`Erreur lors du traitement de l'événement ${event.type}:`, error instanceof Error ? error : new Error(String(error)));
+                logger.error(`Erreur lors du traitement de l'événement ${event.type}:`, { error: error });
             }
         });
     }

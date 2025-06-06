@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // Import dynamique depuis le nouveau dossier local
 const BlocPlanningComponent = dynamic(
   () => import('./BlocPlanning').catch((error) => {
-    logger.error('Erreur chargement BlocPlanning:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur chargement BlocPlanning:', { error: error });
     return { default: () => <PlaceholderComponent componentName="BlocPlanning" /> };
   }),
   {
@@ -19,7 +19,7 @@ const BlocPlanningComponent = dynamic(
 
 const OptimizedBlocPlanningComponent = dynamic(
   () => import('./OptimizedBlocPlanning').catch((error) => {
-    logger.error('Erreur chargement OptimizedBlocPlanning:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur chargement OptimizedBlocPlanning:', { error: error });
     return { default: () => <PlaceholderComponent componentName="OptimizedBlocPlanning" /> };
   }),
   {

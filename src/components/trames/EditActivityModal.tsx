@@ -75,7 +75,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
             const data: ApiSpecialty[] = await response.json();
             setAvailableSpecialties(data);
         } catch (error: unknown) {
-            logger.error("Erreur lors du chargement des spécialités:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors du chargement des spécialités:", { error: error });
             setErrorSpecialties(error.message || "Impossible de charger les spécialités.");
         } finally {
             setIsLoadingSpecialties(false);
@@ -220,7 +220,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
                 onClose();
             }, 0);
         } catch (error: unknown) {
-            logger.error("Erreur lors de la sauvegarde de l'activité:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la sauvegarde de l'activité:", { error: error });
             toast.error("Une erreur est survenue lors de la sauvegarde de l'activité.");
         }
     }, [typeActivite, salleId, isFullDay, jour, periode, targetActivityRowKey, onSave, onClose,

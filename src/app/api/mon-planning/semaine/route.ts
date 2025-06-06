@@ -184,7 +184,7 @@ async function handler(req: NextRequest) {
         return response;
 
     } catch (error: unknown) {
-        logger.error('Erreur lors du chargement du planning semaine', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors du chargement du planning semaine', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors du chargement du planning' },
             { status: 500 }

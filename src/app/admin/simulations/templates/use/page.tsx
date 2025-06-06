@@ -101,7 +101,7 @@ export default function UseTemplatePage() {
                 // Charger les utilisateurs et chirurgiens
                 loadUsersAndSurgeons();
             } catch (err: unknown) {
-                logger.error('Erreur lors du chargement du template:', err);
+                logger.error('Erreur lors du chargement du template:', { error: err });
                 setError(err.message || 'Erreur lors du chargement du template');
                 toast.error('Erreur lors du chargement du template');
             } finally {
@@ -133,7 +133,7 @@ export default function UseTemplatePage() {
             }
             setLoadingSurgeons(false);
         } catch (error: unknown) {
-            logger.error("Erreur lors du chargement des utilisateurs/chirurgiens:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors du chargement des utilisateurs/chirurgiens:", { error: error });
             toast.error("Impossible de charger la liste des utilisateurs/chirurgiens");
         } finally {
             setLoadingUsers(false);
@@ -217,7 +217,7 @@ export default function UseTemplatePage() {
             // Rediriger vers la page d'édition du scénario
             router.push(`/admin/simulations/${result.id}/edit`);
         } catch (err: unknown) {
-            logger.error('Erreur lors de la création du scénario:', err);
+            logger.error('Erreur lors de la création du scénario:', { error: err });
             toast.error(`Erreur lors de la création du scénario: ${err.message}`);
         } finally {
             setIsSubmitting(false);

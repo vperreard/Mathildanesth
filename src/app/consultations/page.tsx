@@ -57,7 +57,7 @@ const ConsultationsPage: React.FC = () => {
                 date: new Date(item.date),
             })));
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des consultations:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des consultations:', { error: error });
             toast.error('Impossible de charger les consultations');
         } finally {
             setLoading(false);
@@ -88,7 +88,7 @@ const ConsultationsPage: React.FC = () => {
                 setSites(sitesData.sites);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des données:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des données:', { error: error });
             toast.error('Impossible de charger certaines données');
         }
     };
@@ -146,7 +146,7 @@ const ConsultationsPage: React.FC = () => {
                 setConsultations(consultations.filter(c => c.id !== consultationToDelete));
                 toast.success('Consultation supprimée');
             } catch (error: unknown) {
-                logger.error('Erreur de suppression:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur de suppression:', { error: error });
                 toast.error('Erreur lors de la suppression');
             } finally {
                 setIsDeleteConfirmOpen(false);
@@ -200,7 +200,7 @@ const ConsultationsPage: React.FC = () => {
             // Fermer le formulaire
             setIsFormOpen(false);
         } catch (error: unknown) {
-            logger.error('Erreur de soumission:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur de soumission:', { error: error });
             toast.error('Erreur lors de la soumission');
         }
     };

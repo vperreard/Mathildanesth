@@ -138,7 +138,7 @@ export default function UserRequestsPage() {
             } catch (err: unknown) { // Catch for unexpected errors not directly from promises
                 const errorMessage = err instanceof Error ? err.message : 'Une erreur inattendue est survenue lors du chargement des données.';
                 setError(errorMessage);
-                logger.error('Erreur inattendue lors du chargement initial des données:', err);
+                logger.error('Erreur inattendue lors du chargement initial des données:', { error: err });
                 setRequests([]);
                 setRequestTypes([]);
             } finally {
@@ -194,7 +194,7 @@ export default function UserRequestsPage() {
 
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            logger.error('Erreur lors de la soumission de la requête:', err);
+            logger.error('Erreur lors de la soumission de la requête:', { error: err });
         } finally {
             setSubmitting(false);
         }

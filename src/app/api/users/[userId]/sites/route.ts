@@ -53,7 +53,7 @@ export async function GET(
       },
     });
   } catch (error: unknown) {
-    logger.error('[USER_SITES_GET_ERROR]:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('[USER_SITES_GET_ERROR]:', { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors de la récupération des sites' },
       { status: 500 }
@@ -135,7 +135,7 @@ export async function PUT(
       },
     });
   } catch (error: unknown) {
-    logger.error('[USER_SITES_PUT_ERROR]:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('[USER_SITES_PUT_ERROR]:', { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors de la mise à jour des sites' },
       { status: 500 }
@@ -187,7 +187,7 @@ export async function POST(
       },
     });
   } catch (error: unknown) {
-    logger.error('[USER_SITES_POST_ERROR]:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('[USER_SITES_POST_ERROR]:', { error: error });
     return NextResponse.json(
       { error: "Erreur serveur lors de l'ajout des sites" },
       { status: 500 }

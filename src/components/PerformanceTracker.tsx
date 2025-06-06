@@ -59,7 +59,7 @@ export function PerformanceTracker() {
 
                     event.preventDefault();
                 } catch (error: unknown) {
-                    logger.error('[Performance] Erreur lors de la fermeture des toasts:', error instanceof Error ? error : new Error(String(error)));
+                    logger.error('[Performance] Erreur lors de la fermeture des toasts:', { error: error });
                 }
             }
         };
@@ -92,7 +92,7 @@ export function PerformanceTracker() {
                 observer.observe({ entryTypes: ['resource'] });
                 return () => observer.disconnect();
             } catch (error: unknown) {
-                logger.error('[Performance] Erreur lors de l\'observation des performances:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('[Performance] Erreur lors de l\'observation des performances:', { error: error });
             }
         }
     }, []);

@@ -73,7 +73,7 @@ export default function SiteAssignmentsPage() {
             setSurgeons(Array.isArray(surgeonsRes.data) ? surgeonsRes.data : []);
             setSites(Array.isArray(sitesRes.data) ? sitesRes.data : []);
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement:', { error: error });
         } finally {
             setLoading(false);
         }
@@ -152,7 +152,7 @@ export default function SiteAssignmentsPage() {
             setIsMultiSelectMode(false);
             setBulkSelectedSites([]);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la mise à jour groupée:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la mise à jour groupée:', { error: error });
             toast.error('Erreur lors de la mise à jour groupée');
         } finally {
             setIsBulkUpdating(false);

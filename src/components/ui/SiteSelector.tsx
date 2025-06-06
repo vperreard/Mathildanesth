@@ -62,7 +62,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                 setSites(data.sites || []);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des sites:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des sites:', { error: error });
         } finally {
             setLoadingSites(false);
         }

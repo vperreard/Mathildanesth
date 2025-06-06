@@ -86,7 +86,7 @@ export function AddRoomModal({ isOpen, onClose, onSave, sectors, initialData }: 
             form.reset();
             onClose();
         } catch (error: unknown) {
-            logger.error("Erreur lors de la sauvegarde:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la sauvegarde:", { error: error });
         } finally {
             setIsLoading(false);
         }

@@ -70,7 +70,7 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
         setOfflineActions(actions);
       }
     } catch (error: unknown) {
-      logger.error('Erreur chargement actions offline:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur chargement actions offline:', { error: error });
     }
   };
 
@@ -79,7 +79,7 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
       localStorage.setItem('mathildanesth_offline_actions', JSON.stringify(actions));
       setOfflineActions(actions);
     } catch (error: unknown) {
-      logger.error('Erreur sauvegarde actions offline:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur sauvegarde actions offline:', { error: error });
     }
   };
 
@@ -118,7 +118,7 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
           updateActionStatus(action.id, 'synced');
           
         } catch (error: unknown) {
-          logger.error(`Erreur sync action ${action.id}:`, error instanceof Error ? error : new Error(String(error)));
+          logger.error(`Erreur sync action ${action.id}:`, { error: error });
           
           // Incrémenter compteur retry
           const updatedActions = offlineActions.map(a => 
@@ -134,7 +134,7 @@ export function OfflineSyncManager({ className }: OfflineSyncManagerProps) {
       showNotification('Synchronisation terminée', 'success');
       
     } catch (error: unknown) {
-      logger.error('Erreur synchronisation globale:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Erreur synchronisation globale:', { error: error });
       showNotification('Erreur de synchronisation', 'error');
     } finally {
       setSyncInProgress(false);

@@ -77,7 +77,7 @@ export default function TemplatesRecommendationsPage() {
             setHiddenTemplates(['3', '9']);
 
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement des données:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement des données:', { error: error });
             toast.error('Erreur lors du chargement des données');
         } finally {
             setIsLoading(false);

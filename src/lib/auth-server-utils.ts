@@ -80,7 +80,7 @@ export async function verifyAuthToken(token: string): Promise<AuthResult> {
       role: payload.role as string,
     };
   } catch (error: unknown) {
-    logger.error('Erreur de vérification du token (serveur):', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur de vérification du token (serveur):', { error: error });
     return {
       authenticated: false,
       error: 'Token invalide ou expiré',
@@ -112,7 +112,7 @@ export async function getAuthTokenServer() {
     logger.info('[Auth Server] Aucun token trouvé (ni header, ni cookie).');
     return null;
   } catch (error: unknown) {
-    logger.error('Erreur lors de la récupération du token (serveur):', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la récupération du token (serveur):', { error: error });
     return null;
   }
 }
@@ -128,7 +128,7 @@ export async function setAuthTokenServer(token: string) {
       path: '/',
     });
   } catch (error: unknown) {
-    logger.error('Erreur lors de la définition du token (serveur):', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la définition du token (serveur):', { error: error });
   }
 }
 
@@ -137,7 +137,7 @@ export async function removeAuthTokenServer() {
     const cookieStore = await cookies();
     cookieStore.delete(AUTH_TOKEN_KEY);
   } catch (error: unknown) {
-    logger.error('Erreur lors de la suppression du token (serveur):', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la suppression du token (serveur):', { error: error });
   }
 }
 

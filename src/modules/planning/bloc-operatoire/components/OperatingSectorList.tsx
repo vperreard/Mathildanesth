@@ -99,7 +99,7 @@ export function OperatingSectorList() {
             setIsDeleteDialogOpen(false);
             setSectorToDelete(null);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la suppression:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la suppression:', { error: error });
             toast({
                 variant: 'destructive',
                 title: 'Erreur de suppression',
@@ -140,7 +140,7 @@ export function OperatingSectorList() {
             }
             setIsDialogOpen(false);
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'enregistrement:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'enregistrement:', { error: error });
             toast({
                 variant: 'destructive',
                 title: 'Erreur d\'enregistrement',

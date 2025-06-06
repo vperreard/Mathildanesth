@@ -105,7 +105,7 @@ export class RuleSimulator {
 
       simulation.status = 'completed';
     } catch (error: unknown) {
-      logger.error('Simulation error:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Simulation error:', { error: error });
       simulation.status = 'failed';
     }
 

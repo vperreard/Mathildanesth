@@ -150,7 +150,7 @@ export class AuditService {
             await this.sendToAuditAPI(completeEntry);
             return completeEntry;
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'enregistrement de l\'audit:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'enregistrement de l\'audit:', { error: error });
             // En cas d'erreur, nous essayons de stocker localement pour synchronisation ultérieure
             this.storeLocally(completeEntry);
             return completeEntry;
@@ -203,7 +203,7 @@ export class AuditService {
             }
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur dans getAuditHistory:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans getAuditHistory:', { error: error });
             return [];
         }
     }
@@ -252,7 +252,7 @@ export class AuditService {
             }
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur dans getUserAuditHistory:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans getUserAuditHistory:', { error: error });
             return [];
         }
     }
@@ -281,7 +281,7 @@ export class AuditService {
                 throw new Error(`Erreur lors de l'enregistrement de l'audit: ${response.statusText}`);
             }
         } catch (error: unknown) {
-            logger.error('Erreur dans sendToAuditAPI:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans sendToAuditAPI:', { error: error });
             throw error;
         }
     }
@@ -310,7 +310,7 @@ export class AuditService {
                 logger.debug(`[AuditService] Entrée stockée localement. ${trimmedEntries.length} entrées en attente.`);
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors du stockage local de l\'audit:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du stockage local de l\'audit:', { error: error });
         }
     }
 
@@ -350,7 +350,7 @@ export class AuditService {
                         break; // Arrêter si une synchronisation échoue
                     }
                 } catch (error: unknown) {
-                    logger.error('Erreur lors de la synchronisation du lot:', error instanceof Error ? error : new Error(String(error)));
+                    logger.error('Erreur lors de la synchronisation du lot:', { error: error });
                     break;
                 }
             }
@@ -367,7 +367,7 @@ export class AuditService {
 
             return syncedCount;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la synchronisation des entrées d\'audit:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la synchronisation des entrées d\'audit:', { error: error });
             return 0;
         }
     }

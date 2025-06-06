@@ -59,7 +59,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         if (error.code === 'P2025') { // Code d'erreur Prisma pour enregistrement non trouvé
             return new NextResponse(JSON.stringify({ message: 'Chirurgien non trouvé' }), { status: 404 });
         }
-        logger.error(`Erreur PUT /api/chirurgiens/${surgeonId}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur PUT /api/chirurgiens/${surgeonId}:`, { error: error });
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 }
@@ -85,7 +85,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         if (error.code === 'P2025') { // Code d'erreur Prisma pour enregistrement non trouvé
             return new NextResponse(JSON.stringify({ message: 'Chirurgien non trouvé' }), { status: 404 });
         }
-        logger.error(`Erreur DELETE /api/chirurgiens/${surgeonId}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur DELETE /api/chirurgiens/${surgeonId}:`, { error: error });
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 } 

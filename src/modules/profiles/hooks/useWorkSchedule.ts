@@ -69,7 +69,7 @@ export const useWorkSchedule = ({
             }
         } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur inconnue'));
-            logger.error('Erreur dans useWorkSchedule:', err);
+            logger.error('Erreur dans useWorkSchedule:', { error: err });
         } finally {
             setLoading(false);
         }
@@ -125,7 +125,7 @@ export const useWorkSchedule = ({
             return savedSchedule;
         } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de l\'enregistrement'));
-            logger.error('Erreur dans saveSchedule:', err);
+            logger.error('Erreur dans saveSchedule:', { error: err });
             throw err;
         } finally {
             setLoading(false);
@@ -149,7 +149,7 @@ export const useWorkSchedule = ({
             }
         } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur lors de la suppression'));
-            logger.error('Erreur dans removeSchedule:', err);
+            logger.error('Erreur dans removeSchedule:', { error: err });
             throw err;
         } finally {
             setLoading(false);

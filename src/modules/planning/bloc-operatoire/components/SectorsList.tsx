@@ -34,7 +34,7 @@ export default function SectorsList({ onSelect, selectable = false }: SectorsLis
                 setSectors(data);
                 setError(null);
             } catch (error: unknown) {
-                logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur:', { error: error });
                 setError('Impossible de charger les secteurs opératoires');
             } finally {
                 setIsLoading(false);

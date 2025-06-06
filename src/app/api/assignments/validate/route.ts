@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(validationResult);
 
     } catch (error: unknown) {
-        logger.error('Erreur API [POST /api/affectations/validate]:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur API [POST /api/affectations/validate]:', { error: error });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la validation des affectations.', details: error.message },
             { status: 500 }

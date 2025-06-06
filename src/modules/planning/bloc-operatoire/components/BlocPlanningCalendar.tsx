@@ -50,7 +50,7 @@ export default function BlocPlanningCalendar({ date, period, onAssignmentChange 
 
                 setError(null);
             } catch (error: unknown) {
-                logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur:', { error: error });
                 setError('Erreur lors du chargement des données');
             } finally {
                 setIsLoading(false);

@@ -34,7 +34,7 @@ function normalizeDate(date: Date | string | null | undefined): Date | null {
         normalizedDate.setHours(0, 0, 0, 0);
         return normalizedDate;
     } catch (error: unknown) {
-        logger.error('Error normalizing date:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error normalizing date:', { error: error });
         return null;
     }
 }
@@ -555,7 +555,7 @@ export function useRecurringLeaveValidation() {
             return result;
 
         } catch (error: unknown) {
-            logger.error('[validateRecurringLeaveRequest] Error generating occurrences:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('[validateRecurringLeaveRequest] Error generating occurrences:', { error: error });
 
             allErrors.push({
                 field: 'recurrencePattern',

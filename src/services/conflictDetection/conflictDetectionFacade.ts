@@ -119,7 +119,7 @@ export class ConflictDetectionFacade {
                     sources.push(service.getServiceName());
                     return result;
                 } catch (error: unknown) {
-                    logger.error(`Erreur dans le service ${service.getServiceName()}:`, error instanceof Error ? error : new Error(String(error)));
+                    logger.error(`Erreur dans le service ${service.getServiceName()}:`, { error: error });
                     return null;
                 }
             })

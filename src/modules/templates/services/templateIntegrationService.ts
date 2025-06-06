@@ -16,7 +16,7 @@ export const templateIntegrationService = {
         try {
             return await templateService.exportTemplateAsJSON(templateId);
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'exportation de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'exportation de la tableau de service:', { error: error });
             throw error;
         }
     },
@@ -56,7 +56,7 @@ export const templateIntegrationService = {
             // Libérer l'URL
             setTimeout(() => URL.revokeObjectURL(url), 100);
         } catch (error: unknown) {
-            logger.error('Erreur lors du téléchargement de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du téléchargement de la tableau de service:', { error: error });
             throw error;
         }
     },
@@ -70,7 +70,7 @@ export const templateIntegrationService = {
         try {
             return await templateService.importTemplateFromJSON(file);
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'importation de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'importation de la tableau de service:', { error: error });
             throw error;
         }
     },
@@ -93,7 +93,7 @@ export const templateIntegrationService = {
 
             return duplicatedTemplate;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la duplication de la tableau de service:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la duplication de la tableau de service:', { error: error });
             throw error;
         }
     },
@@ -122,7 +122,7 @@ export const templateIntegrationService = {
             // Retourner un ID fictif de planning généré
             return `planning_${Date.now()}`;
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'application de la trameModele au planning:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'application de la trameModele au planning:', { error: error });
             throw error;
         }
     },
@@ -213,7 +213,7 @@ export const templateIntegrationService = {
                 ]
             };
         } catch (error: unknown) {
-            logger.error('Erreur lors de la vérification de compatibilité:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la vérification de compatibilité:', { error: error });
             throw error;
         }
     }

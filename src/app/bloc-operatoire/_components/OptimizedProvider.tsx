@@ -30,7 +30,7 @@ const createOptimizedQueryClient = () => new QueryClient({
     mutations: {
       retry: false,
       onError: (error: unknown) => {
-        logger.error('Mutation error:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Mutation error:', { error: error });
         // TODO: Intégrer avec le système de notifications
       },
     },

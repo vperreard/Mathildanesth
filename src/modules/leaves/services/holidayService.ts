@@ -91,7 +91,7 @@ class HolidayService {
 
             return holidays;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération des jours fériés:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des jours fériés:', { error: error });
 
             // En cas d'erreur, retourner les données du cache même si expirées
             if (cachedEntry) {

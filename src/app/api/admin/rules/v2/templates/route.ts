@@ -348,7 +348,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error: unknown) {
-    logger.error('Error fetching templates:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error fetching templates:', { error: error });
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des templates' },
       { status: 500 }
@@ -433,7 +433,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: unknown) {
-    logger.error('Error creating from template:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error creating from template:', { error: error });
     return NextResponse.json(
       { error: 'Erreur lors de la création depuis le template' },
       { status: 500 }

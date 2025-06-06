@@ -229,7 +229,7 @@ export const useConflictRules = (): UseConflictRulesReturn => {
     // Charger les règles au montage du composant
     useEffect(() => {
         fetchRules().catch(error => {
-            logger.error('Erreur lors du chargement initial des règles:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement initial des règles:', { error: error });
         });
     }, [fetchRules]);
 

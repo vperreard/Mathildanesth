@@ -62,7 +62,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
             const response = await axios.get<Surgeon[]>('/api/chirurgiens');
             setSurgeons(response.data);
         } catch (err: unknown) {
-            logger.error('Erreur lors du chargement des chirurgiens:', err);
+            logger.error('Erreur lors du chargement des chirurgiens:', { error: err });
         }
     }, []);
 

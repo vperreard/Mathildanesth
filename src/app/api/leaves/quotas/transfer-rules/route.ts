@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(rules);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des règles de transfert :', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des règles de transfert :', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des règles de transfert' },
             { status: 500 }
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(rule, { status: 201 });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la création de la règle de transfert :', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la création de la règle de transfert :', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la création de la règle de transfert' },
             { status: 500 }

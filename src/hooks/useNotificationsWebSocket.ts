@@ -69,7 +69,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
             setUnreadCount(data.unreadCount || 0);
         } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error('Erreur inconnue'));
-            logger.error('Erreur lors du chargement des notifications:', err);
+            logger.error('Erreur lors du chargement des notifications:', { error: err });
         } finally {
             setIsLoading(false);
         }
@@ -100,7 +100,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
                 setUnreadCount(data.unreadCount);
             }
         } catch (err: unknown) {
-            logger.error('Erreur lors du marquage de la notification:', err);
+            logger.error('Erreur lors du marquage de la notification:', { error: err });
         }
     }, [user?.id]);
 
@@ -123,7 +123,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
 
             await response.json(); // Consomme la réponse
         } catch (err: unknown) {
-            logger.error('Erreur lors du marquage de toutes les notifications:', err);
+            logger.error('Erreur lors du marquage de toutes les notifications:', { error: err });
         }
     }, [user?.id]);
 
@@ -171,7 +171,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
         });
 
         socketInstance.on('connect_error', (err: Error) => {
-            logger.error('WebSocket connection error:', err);
+            logger.error('WebSocket connection error:', { error: err });
             setError(new Error(`Erreur de connexion: ${err.message}`));
         });
 

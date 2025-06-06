@@ -161,7 +161,7 @@ export default function WeeklyPlanningWidget({ userId, className, mockData }: We
             setNextShift(upcoming);
 
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement du planning:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement du planning:', { error: error });
             const errorMessage = error instanceof Error ? error.message : "Impossible de charger votre planning";
             toast({
                 title: "Erreur",

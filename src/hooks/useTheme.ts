@@ -17,7 +17,7 @@ export const useTheme = () => {
             }
         } catch (error: unknown) {
             // Ignorer les erreurs localStorage et utiliser le thème par défaut
-            logger.warn('Erreur lors du chargement du thème:', error instanceof Error ? error : new Error(String(error)));
+            logger.warn('Erreur lors du chargement du thème:', { error: error });
         }
     }, []);
 
@@ -29,7 +29,7 @@ export const useTheme = () => {
                 localStorage.setItem('dashboard-theme', themeId);
             } catch (error: unknown) {
                 // Ignorer les erreurs localStorage
-                logger.warn('Erreur lors de la sauvegarde du thème:', error instanceof Error ? error : new Error(String(error)));
+                logger.warn('Erreur lors de la sauvegarde du thème:', { error: error });
             }
         }
     };

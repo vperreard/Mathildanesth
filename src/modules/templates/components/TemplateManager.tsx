@@ -410,7 +410,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 setSites(sitesData);
             }
         } catch (err: unknown) {
-            logger.error('Erreur lors du chargement des sites:', err);
+            logger.error('Erreur lors du chargement des sites:', { error: err });
         }
     }, []);
 
@@ -434,7 +434,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             logger.info('✅✅✅ [DEBUG TemplateManager] Modèles reloaded successfully after edit');
             toast.success('Tableau de service modifiée avec succès');
         }).catch((error) => {
-            logger.error('❌❌❌ [DEBUG TemplateManager] Error reloading modèles after edit:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('❌❌❌ [DEBUG TemplateManager] Error reloading modèles after edit:', { error: error });
             toast.error('Tableau de service modifiée mais erreur lors du rechargement');
         });
     }, [loadTemplates]);

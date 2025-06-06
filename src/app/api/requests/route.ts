@@ -56,7 +56,7 @@ async function handler(req: NextRequest) {
       { status: 405 }
     );
   } catch (error: unknown) {
-    logger.error('Erreur API requests:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur API requests:', { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }

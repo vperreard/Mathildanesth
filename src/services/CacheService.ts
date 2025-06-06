@@ -246,7 +246,7 @@ class CacheService {
 
             return true;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la persistance du cache:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la persistance du cache:', { error: error });
             return false;
         }
     }
@@ -303,7 +303,7 @@ class CacheService {
 
             return true;
         } catch (error: unknown) {
-            logger.error('Erreur lors de la restauration du cache:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la restauration du cache:', { error: error });
             return false;
         }
     }

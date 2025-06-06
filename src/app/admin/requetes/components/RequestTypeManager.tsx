@@ -52,7 +52,7 @@ export default function RequestTypeManager() {
                 setRequestTypes(data);
             } catch (err: unknown) {
                 setError(err instanceof Error ? err.message : 'Erreur inconnue');
-                logger.error('Erreur lors du chargement des types de requêtes:', err);
+                logger.error('Erreur lors du chargement des types de requêtes:', { error: err });
             } finally {
                 setIsLoading(false);
             }
@@ -158,7 +158,7 @@ export default function RequestTypeManager() {
 
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            logger.error('Erreur lors de la soumission du formulaire:', err);
+            logger.error('Erreur lors de la soumission du formulaire:', { error: err });
         } finally {
             setIsLoading(false);
         }
@@ -204,7 +204,7 @@ export default function RequestTypeManager() {
 
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            logger.error('Erreur lors de la suppression du type de requête:', err);
+            logger.error('Erreur lors de la suppression du type de requête:', { error: err });
         } finally {
             setIsLoading(false);
         }
@@ -245,7 +245,7 @@ export default function RequestTypeManager() {
 
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue');
-            logger.error('Erreur lors de la mise à jour du statut:', err);
+            logger.error('Erreur lors de la mise à jour du statut:', { error: err });
         } finally {
             setIsLoading(false);
         }

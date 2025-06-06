@@ -49,7 +49,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
         return NextResponse.json(planningRule);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération de la règle de planning:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération de la règle de planning:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération de la règle de planning' },
             { status: 500 }
@@ -125,7 +125,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
         return NextResponse.json(updatedRule);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la mise à jour de la règle de planning:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la mise à jour de la règle de planning:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour de la règle de planning' },
             { status: 500 }
@@ -174,7 +174,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
         return NextResponse.json({ success: true });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la suppression de la règle de planning:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la suppression de la règle de planning:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la suppression de la règle de planning' },
             { status: 500 }

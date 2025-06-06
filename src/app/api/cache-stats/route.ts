@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
             }
         });
     } catch (error: unknown) {
-        logger.error('[API CacheStats] Error retrieving cache stats:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('[API CacheStats] Error retrieving cache stats:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des statistiques du cache.' },
             { status: 500 }
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
                 );
         }
     } catch (error: unknown) {
-        logger.error('[API CacheStats] Error invalidating cache:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('[API CacheStats] Error invalidating cache:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de l\'invalidation du cache.' },
             { status: 500 }

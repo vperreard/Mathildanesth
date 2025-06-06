@@ -156,7 +156,7 @@ export function useLeaveData(): UseLeaveDataReturn {
             const error = err instanceof Error ? err : new Error('Erreur lors de la récupération des congés');
             setError(error);
             setLoading(false);
-            logger.error('Erreur lors de la récupération des congés:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des congés:', { error: error });
             return [];
         }
     }, []);

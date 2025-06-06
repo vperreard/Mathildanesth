@@ -54,7 +54,7 @@ export class EventBusService {
                 try {
                     listener(event);
                 } catch (error: unknown) {
-                    logger.error(`Erreur lors de l'exécution d'un listener pour l'événement ${eventType}:`, error instanceof Error ? error : new Error(String(error)));
+                    logger.error(`Erreur lors de l'exécution d'un listener pour l'événement ${eventType}:`, { error: error });
                 }
             });
         }

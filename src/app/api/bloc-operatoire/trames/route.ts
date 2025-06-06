@@ -63,7 +63,7 @@ export async function GET(request: Request) {
 
         return NextResponse.json(trameModeles);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des trames:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des trames:', { error: error });
         return NextResponse.json({ error: 'Erreur lors de la récupération des trameModeles' }, { status: 500 });
     }
 }
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json(newTrame, { status: 201 });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la création de la trameModele:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la création de la trameModele:', { error: error });
         return NextResponse.json({
             error: 'Erreur lors de la création de la trameModele',
             details: error instanceof Error ? error.message : 'Erreur inconnue'

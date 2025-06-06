@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ attributions });
   } catch (error: unknown) {
-    logger.error('Erreur API [GET /api/affectations]:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur API [GET /api/affectations]:', { error: error });
     return NextResponse.json(
       { error: 'Erreur serveur lors de la récupération des affectations.', details: error.message },
       { status: 500 }
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newAssignment, { status: 201 });
   } catch (error: unknown) {
-    logger.error('Erreur API [POST /api/affectations]:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur API [POST /api/affectations]:', { error: error });
     logger.error("Erreur lors de la création de l'affectation", { error: error.message });
     return NextResponse.json(
       { error: "Erreur serveur lors de la création de l'affectation.", details: error.message },

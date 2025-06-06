@@ -224,7 +224,7 @@ export const useLeave = ({
             setLoading(false);
             return result;
         } catch (err: unknown) {
-            logger.error('Erreur dans checkAllowance:', err);
+            logger.error('Erreur dans checkAllowance:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -267,7 +267,7 @@ export const useLeave = ({
             setLoading(false);
             return savedLeave;
         } catch (err: unknown) {
-            logger.error('Erreur dans saveLeaveAsDraft:', err);
+            logger.error('Erreur dans saveLeaveAsDraft:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -316,7 +316,7 @@ export const useLeave = ({
             setLoading(false);
             return submittedLeave;
         } catch (err: unknown) {
-            logger.error('Erreur dans submitLeave:', err);
+            logger.error('Erreur dans submitLeave:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -345,7 +345,7 @@ export const useLeave = ({
             setLoading(false);
             return approvedLeave;
         } catch (err: unknown) {
-            logger.error('Erreur dans approveLeaveRequest:', err);
+            logger.error('Erreur dans approveLeaveRequest:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -374,7 +374,7 @@ export const useLeave = ({
             setLoading(false);
             return rejectedLeave;
         } catch (err: unknown) {
-            logger.error('Erreur dans rejectLeaveRequest:', err);
+            logger.error('Erreur dans rejectLeaveRequest:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -403,7 +403,7 @@ export const useLeave = ({
             setLoading(false);
             return cancelledLeave;
         } catch (err: unknown) {
-            logger.error('Erreur dans cancelLeaveRequest:', err);
+            logger.error('Erreur dans cancelLeaveRequest:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -438,7 +438,7 @@ export const useLeave = ({
             setLeaves(fetchedLeaves);
             setLoading(false);
         } catch (err: unknown) {
-            logger.error('Erreur dans fetchUserLeaves:', err);
+            logger.error('Erreur dans fetchUserLeaves:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,
@@ -460,7 +460,7 @@ export const useLeave = ({
             setLeave(fetchedLeave);
             setLoading(false);
         } catch (err: unknown) {
-            logger.error('Erreur dans fetchLeaveDetails:', err);
+            logger.error('Erreur dans fetchLeaveDetails:', { error: err });
             // Convertir l'erreur au format ErrorDetails
             setLocalError({
                 message: err.message,

@@ -185,7 +185,7 @@ export async function PUT(
         return NextResponse.json(result.updatedSwapRequest);
 
     } catch (error: unknown) {
-        logger.error(`PUT /api/affectations/echange/${id}/admin: Erreur serveur`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`PUT /api/affectations/echange/${id}/admin: Erreur serveur`, { error: error });
         return NextResponse.json({
             error: 'Erreur lors du traitement administratif de la demande d\'échange',
             details: error.message

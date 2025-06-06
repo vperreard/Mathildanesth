@@ -94,7 +94,7 @@ const FatigueSettingsForm: React.FC<FatigueSettingsFormProps> = ({ initialConfig
             toast.success('Paramètres de fatigue sauvegardés.');
         } catch (error: unknown) {
             toast.error("Erreur lors de la sauvegarde des paramètres.");
-            logger.error("Save fatigue settings error:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Save fatigue settings error:", { error: error });
         }
     };
 

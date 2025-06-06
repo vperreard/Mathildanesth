@@ -142,7 +142,7 @@ export async function runEnhancedSimulation(params: EnhancedSimulationParams) {
 
         return result;
     } catch (error: unknown) {
-        logger.error('Erreur lors de la simulation optimisée:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la simulation optimisée:', { error: error });
 
         // Notification d'erreur
         if (notifyProgress && params.userId) {

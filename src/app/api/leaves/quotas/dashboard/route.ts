@@ -318,7 +318,7 @@ export async function GET(req: NextRequest) {
             topUsers
         });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des données du dashboard:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des données du dashboard:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des données' },
             { status: 500 }

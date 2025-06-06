@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
             return await generatePdfReport(transfers, reportTitle);
         }
     } catch (error: unknown) {
-        logger.error(`Erreur lors de l'exportation du rapport :`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Erreur lors de l'exportation du rapport :`, { error: error });
         return NextResponse.json(
             { error: `Erreur lors de l'exportation du rapport` },
             { status: 500 }

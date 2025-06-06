@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
             transferId: result.transferId
         });
     } catch (error: unknown) {
-        logger.error('Erreur lors de l\'exécution du transfert:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de l\'exécution du transfert:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors du traitement de la demande' },
             { status: 500 }

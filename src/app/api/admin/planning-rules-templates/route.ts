@@ -25,7 +25,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ templates });
 
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des templates:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des templates:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des templates' },
             { status: 500 }
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
         });
 
     } catch (error: unknown) {
-        logger.error('Erreur lors de la création du template:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la création du template:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la création du template' },
             { status: 500 }
@@ -127,7 +127,7 @@ export async function PUT(request: Request) {
         });
 
     } catch (error: unknown) {
-        logger.error('Erreur lors de la mise à jour du template:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la mise à jour du template:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la mise à jour du template' },
             { status: 500 }
@@ -179,7 +179,7 @@ export async function DELETE(request: Request) {
         });
 
     } catch (error: unknown) {
-        logger.error('Erreur lors de la suppression du template:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la suppression du template:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la suppression du template' },
             { status: 500 }

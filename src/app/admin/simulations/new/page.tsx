@@ -99,7 +99,7 @@ export default function NewSimulationPage() {
                     setSites(sitesData.data);
                 }
             } catch (error: unknown) {
-                logger.error('Erreur lors du chargement des données initiales:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors du chargement des données initiales:', { error: error });
                 toast.error('Erreur lors du chargement des données initiales');
             } finally {
                 setIsLoading(false);
@@ -179,7 +179,7 @@ export default function NewSimulationPage() {
             // Rediriger vers la page du scénario créé
             router.push(`/admin/simulations/scenarios/${result.data.id}`);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la création du scénario:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la création du scénario:', { error: error });
             toast.error(error instanceof Error ? error.message : 'Erreur lors de la création du scénario');
         } finally {
             setIsSaving(false);

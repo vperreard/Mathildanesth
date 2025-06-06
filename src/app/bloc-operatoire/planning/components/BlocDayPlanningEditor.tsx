@@ -174,7 +174,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
             // Charger les données additionnelles (chirurgiens, personnel, salles)
             await loadAdditionalData();
         } catch (err: unknown) {
-            logger.error('Erreur lors du chargement du planning:', err);
+            logger.error('Erreur lors du chargement du planning:', { error: err });
             setError('Impossible de charger le planning. Veuillez réessayer ultérieurement.');
         } finally {
             setLoading(false);
@@ -213,7 +213,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
             ];
             setRooms(mockRooms);
         } catch (err: unknown) {
-            logger.error('Erreur lors du chargement des données additionnelles:', err);
+            logger.error('Erreur lors du chargement des données additionnelles:', { error: err });
         }
     };
 
@@ -327,7 +327,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
             // Revalider le planning
             await validatePlanning();
         } catch (err: unknown) {
-            logger.error('Erreur lors de la sauvegarde du planning:', err);
+            logger.error('Erreur lors de la sauvegarde du planning:', { error: err });
             setError('Impossible de sauvegarder le planning. Veuillez réessayer.');
         } finally {
             setSaving(false);
@@ -351,7 +351,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                 status: validationResult.isValid ? BlocPlanningStatus.VALIDATED : BlocPlanningStatus.CONFLICT
             } : null);
         } catch (err: unknown) {
-            logger.error('Erreur lors de la validation du planning:', err);
+            logger.error('Erreur lors de la validation du planning:', { error: err });
             setError('Impossible de valider le planning. Veuillez réessayer.');
         } finally {
             setValidating(false);

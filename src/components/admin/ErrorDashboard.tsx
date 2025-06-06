@@ -55,7 +55,7 @@ const ErrorDashboard: React.FC = () => {
                 setErrors(data.errors);
                 setStats(data.stats);
             } catch (error: unknown) {
-                logger.error('Erreur lors du chargement des erreurs:', error instanceof Error ? error : new Error(String(error)));
+                logger.error('Erreur lors du chargement des erreurs:', { error: error });
             } finally {
                 setLoading(false);
             }
@@ -126,7 +126,7 @@ const ErrorDashboard: React.FC = () => {
                 });
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de la résolution:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la résolution:', { error: error });
         }
     };
 

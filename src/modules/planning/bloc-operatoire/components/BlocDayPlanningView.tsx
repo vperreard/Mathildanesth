@@ -101,7 +101,7 @@ const BlocDayPlanningView: React.FC<BlocDayPlanningViewProps> = ({
                 }
             }
         } catch (err: unknown) {
-            logger.error('Erreur lors du chargement du planning:', err);
+            logger.error('Erreur lors du chargement du planning:', { error: err });
             setError('Impossible de charger le planning. Veuillez réessayer ultérieurement.');
             setPlanning(null);
         } finally {

@@ -72,7 +72,7 @@ export const SpecialPeriodManager: React.FC<SpecialPeriodManagerProps> = ({
                 setFormData(periods[0]);
             }
         } catch (err: unknown) {
-            logger.error('Erreur lors du chargement des périodes spéciales :', err);
+            logger.error('Erreur lors du chargement des périodes spéciales :', { error: err });
             setError(`Erreur: ${(err as Error).message}`);
         } finally {
             setLoading(false);

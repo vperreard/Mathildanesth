@@ -215,14 +215,14 @@ export class PermissionCacheService {
                             sessionStorage.removeItem(distributedKey);
                         }
                     } catch (error: unknown) {
-                        logger.error(`[PermissionCacheService] Error parsing cache entry for key ${key}:`, error instanceof Error ? error : new Error(String(error)));
+                        logger.error(`[PermissionCacheService] Error parsing cache entry for key ${key}:`, { error: error });
                         // Supprimer l'entrée corrompue
                         sessionStorage.removeItem(distributedKey);
                     }
                 }
             } catch (error: unknown) {
                 // Ignorer les erreurs de sessionStorage (ex: en navigation privée)
-                logger.warn('[PermissionCacheService] SessionStorage access error:', error instanceof Error ? error : new Error(String(error)));
+                logger.warn('[PermissionCacheService] SessionStorage access error:', { error: error });
             }
         }
 
@@ -293,7 +293,7 @@ export class PermissionCacheService {
             this.stats.distributedSaves++;
         } catch (error: unknown) {
             // Ignorer les erreurs de sessionStorage (ex: quota dépassé, navigation privée)
-            logger.warn('[PermissionCacheService] Error storing in distributed cache:', error instanceof Error ? error : new Error(String(error)));
+            logger.warn('[PermissionCacheService] Error storing in distributed cache:', { error: error });
         }
     }
 
@@ -507,7 +507,7 @@ export class PermissionCacheService {
                 logger.debug(`[PermissionCacheService] Loaded ${loadedCount} entries from distributed cache`);
             }
         } catch (error: unknown) {
-            logger.warn('[PermissionCacheService] Error loading distributed cache:', error instanceof Error ? error : new Error(String(error)));
+            logger.warn('[PermissionCacheService] Error loading distributed cache:', { error: error });
         }
     }
 

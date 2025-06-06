@@ -48,7 +48,7 @@ export class SalleService {
             logger.info('[SalleService] Salles chargées depuis API:', data);
             return data as OperatingRoomFromAPI[]; // S'assurer que les données correspondent à la nouvelle interface
         } catch (error: unknown) {
-            logger.error("Erreur lors de la récupération des salles (catch global):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la récupération des salles (catch global):", { error: error });
             // Optionnel: Mettre à jour les mocks pour correspondre à OperatingRoomFromAPI ou les supprimer si non utilisés
             // Pour l'instant, on retourne un tableau vide en cas d'erreur pour éviter d'utiliser des mocks avec une ancienne structure.
             return [];

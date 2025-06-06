@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(savedRequest);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la création de la demande récurrente:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la création de la demande récurrente:', { error: error });
 
         return NextResponse.json(
             { message: 'Erreur lors de la création de la demande récurrente.' },
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
         // Pour cet exemple, on retourne une liste vide
         return NextResponse.json([]);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des demandes récurrentes:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des demandes récurrentes:', { error: error });
 
         return NextResponse.json(
             { message: 'Erreur lors de la récupération des demandes récurrentes.' },

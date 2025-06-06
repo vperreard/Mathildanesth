@@ -66,7 +66,7 @@ export class LeaveToPlanningService {
                 logger.debug(`[LeaveToPlanningService] Handled event: ${event.type} for leave ${leave.id}`);
             }
         } catch (error: unknown) {
-            logger.error(`[LeaveToPlanningService] Error handling event ${event.type}:`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`[LeaveToPlanningService] Error handling event ${event.type}:`, { error: error });
         }
     }
 

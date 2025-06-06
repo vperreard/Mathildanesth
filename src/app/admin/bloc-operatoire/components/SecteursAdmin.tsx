@@ -90,20 +90,20 @@ export default function SecteursAdmin() {
       ]);
 
       // Map the data from service to match BlocSector type
-      const mappedSecteurs: BlocSector[] = secteursData.map((sector: unknown) => ({
+      const mappedSecteurs: BlocSector[] = secteursData.map((sector: any) => ({
         id: sector.id,
         name: sector.name,
         description: sector.description,
         colorCode: sector.colorCode || '#3B82F6',
         specialites: sector.specialites || [],
-        salles: sector.rooms ? sector.rooms.map((r: unknown) => r.name) : [],
+        salles: sector.rooms ? sector.rooms.map((r: any) => r.name) : [],
         isActive: sector.isActive,
         requiresSpecificSkills: sector.requiresSpecificSkills || false,
         supervisionSpeciale: sector.supervisionSpeciale || false,
       }));
 
       // Map the data from service to match OperatingRoom type
-      const mappedSalles: OperatingRoom[] = sallesData.map((room: unknown) => ({
+      const mappedSalles: OperatingRoom[] = sallesData.map((room: any) => ({
         id: room.id,
         number: room.number,
         name: room.name,
@@ -115,7 +115,7 @@ export default function SecteursAdmin() {
       setSalles(mappedSalles);
     } catch (err: unknown) {
       setError('Erreur lors du chargement des données');
-      logger.error('Erreur de chargement:', err as Error);
+      logger.error('Erreur de chargement:', { error: err });
     } finally {
       setIsLoading(false);
     }

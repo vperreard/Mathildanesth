@@ -200,7 +200,7 @@ const ConflictRulesManager: React.FC = () => {
             setEditMode(false);
             setValidationErrors([]);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la sauvegarde des règles:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la sauvegarde des règles:', { error: error });
             if (error instanceof Error) {
                 setValidationErrors([error.message]);
             }
@@ -220,7 +220,7 @@ const ConflictRulesManager: React.FC = () => {
             setEditMode(false);
             setValidationErrors([]);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la réinitialisation des règles:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la réinitialisation des règles:', { error: error });
             if (error instanceof Error) {
                 setValidationErrors([error.message]);
             }

@@ -29,7 +29,7 @@ const fetchFatigueConfig = async (): Promise<FatigueConfig> => {
         logger.info("Fetched fatigue config from API", config);
         return config;
     } catch (error: unknown) {
-        logger.error("Error fetching fatigue config from API:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Error fetching fatigue config from API:", { error: error });
         toast.error("Impossible de charger la configuration de fatigue depuis le serveur.");
         // Retourner le fallback en cas d'erreur API majeure
         return fallbackDefaultConfig;
@@ -54,7 +54,7 @@ const saveFatigueConfig = async (config: FatigueConfig): Promise<void> => {
         logger.info("Save response:", result);
         // Pas besoin de sauvegarder en localStorage maintenant
     } catch (error: unknown) {
-        logger.error("Error saving fatigue config via API:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Error saving fatigue config via API:", { error: error });
         // L'erreur sera catchée dans handleSave et affichée par le toast du formulaire
         throw error; // Renvoyer l'erreur pour que handleSave la traite
     }
@@ -84,7 +84,7 @@ export default function FatigueSettingsPage() {
             // Le toast de succès est déjà dans le composant Form
         } catch (error: unknown) {
             // Le toast d'erreur est déjà géré dans le composant Form
-            logger.error("Handle save error (page level):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Handle save error (page level):", { error: error });
             // Optionnel : recharger la config depuis le serveur pour annuler les changements locaux ?
             // loadConfig();
         } finally {

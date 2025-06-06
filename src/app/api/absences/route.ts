@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(absences);
   } catch (error: unknown) {
-    logger.error('Erreur lors de la récupération des absences:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la récupération des absences:', { error: error });
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(absence, { status: 201 });
   } catch (error: unknown) {
-    logger.error("Erreur lors de la création de l'absence:", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Erreur lors de la création de l'absence:", { error: error });
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
   }
 }

@@ -84,7 +84,7 @@ export const subscribeToChannel = (channelName: string, events: Record<string, (
             pusherClient.unsubscribe(channelName);
         };
     } catch (error: unknown) {
-        logger.error('Erreur lors de l\'abonnement au canal Pusher:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de l\'abonnement au canal Pusher:', { error: error });
         return () => { };
     }
 };
@@ -113,7 +113,7 @@ export const triggerEvent = async (
     try {
         await pusherServer.trigger(channelName, eventName, data);
     } catch (error: unknown) {
-        logger.error('Erreur lors du déclenchement de l\'événement Pusher:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors du déclenchement de l\'événement Pusher:', { error: error });
     }
 };
 

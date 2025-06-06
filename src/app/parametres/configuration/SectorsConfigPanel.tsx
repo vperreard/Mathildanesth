@@ -278,7 +278,7 @@ const SectorsConfigPanel: React.FC = () => {
 
             setSectors(fetchedSectors);
         } catch (error: unknown) {
-            logger.error("Erreur lors du chargement des secteurs:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors du chargement des secteurs:", { error: error });
             setSectorsError(error.response?.data?.error || error.message || 'Impossible de charger les secteurs.');
             toast.error('Erreur lors du chargement des secteurs');
             // Ne plus utiliser de données mock ici
@@ -736,7 +736,7 @@ const SectorsConfigPanel: React.FC = () => {
                 throw new Error(response.data.error || "Erreur inconnue lors de la sauvegarde de l'ordre");
             }
         } catch (error: unknown) {
-            logger.error("Erreur lors de l'enregistrement de l'ordre des secteurs en BDD:", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de l'enregistrement de l'ordre des secteurs en BDD:", { error: error });
             const errorMsg = error.response?.data?.error || error.message || "Erreur lors de l'enregistrement de l'ordre des secteurs";
             toast.error(errorMsg);
             setError(errorMsg);
@@ -1038,7 +1038,7 @@ const SectorsConfigPanel: React.FC = () => {
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
         } catch (error: unknown) {
-            logger.error('Erreur lors de la réinitialisation de l\'ordre:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la réinitialisation de l\'ordre:', { error: error });
             setSaveError(true);
             setTimeout(() => setSaveError(false), 3000);
         } finally {

@@ -100,7 +100,7 @@ const LeaveDashboard: React.FC = () => {
             link.click();
             document.body.removeChild(link);
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'export:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'export:', { error: error });
         }
     };
 

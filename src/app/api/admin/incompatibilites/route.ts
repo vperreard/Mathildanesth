@@ -73,7 +73,7 @@ export async function GET(request: Request) {
 
         return NextResponse.json(displayIncompatibilities);
     } catch (error: unknown) {
-        logger.error("Error fetching incompatibilities:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Error fetching incompatibilities:", { error: error });
         return NextResponse.json(
             { error: "Impossible de récupérer les incompatibilités." },
             { status: 500 }

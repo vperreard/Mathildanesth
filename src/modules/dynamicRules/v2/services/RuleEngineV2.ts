@@ -90,7 +90,7 @@ export class RuleEngineV2 {
 
       return result;
     } catch (error: unknown) {
-      logger.error(`Error evaluating rule ${rule.id}:`, error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Error evaluating rule ${rule.id}:`, { error: error });
       return {
         ruleId: rule.id,
         ruleName: rule.name,
@@ -136,7 +136,7 @@ export class RuleEngineV2 {
         );
       }
     } catch (error: unknown) {
-      logger.error('Failed to send violation notification:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Failed to send violation notification:', { error: error });
       // Ne pas faire échouer l'évaluation si la notification échoue
     }
   }
@@ -241,7 +241,7 @@ export class RuleEngineV2 {
         const func = new Function('context', 'value', condition.customFunction);
         return func(context, condition.value);
       } catch (error: unknown) {
-        logger.error('Error in custom condition:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error in custom condition:', { error: error });
         return false;
       }
     }
@@ -400,7 +400,7 @@ export class RuleEngineV2 {
     await Promise.all(
       updates.map(update => 
         prisma.planningRule.update(update).catch(err => 
-          logger.error('Failed to update metrics:', err)
+          logger.error('Failed to update metrics:', { error: err })
         )
       )
     );

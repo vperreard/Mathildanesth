@@ -102,7 +102,7 @@ export async function POST(request: Request) {
         );
 
     } catch (error: unknown) {
-        logger.error('Erreur lors de la réinitialisation:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la réinitialisation:', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la réinitialisation' },
             { status: 500 }

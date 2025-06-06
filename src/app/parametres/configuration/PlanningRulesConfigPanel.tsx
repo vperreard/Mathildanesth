@@ -313,7 +313,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
             setEditingRule(null);
             */
         } catch (error: unknown) {
-            logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur:', { error: error });
             toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement');
             setIsSaving(false);
         }
@@ -352,7 +352,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
             toast.success('Règle supprimée');
             */
         } catch (error: unknown) {
-            logger.error('Erreur:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur:', { error: error });
             toast.error(error instanceof Error ? error.message : 'Erreur lors de la suppression');
         }
     };

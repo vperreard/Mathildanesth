@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error: unknown) {
-    logger.error('Error in conflict handling:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error in conflict handling:', { error: error });
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error: unknown) {
-    logger.error('Error fetching conflicts:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error fetching conflicts:', { error: error });
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des conflits' },
       { status: 500 }

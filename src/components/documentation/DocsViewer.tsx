@@ -98,7 +98,7 @@ const DocsViewer: React.FC<DocsViewerProps> = ({ defaultDoc = 'performance.md' }
                 setError('Le document demandé est introuvable.');
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors du chargement du document:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors du chargement du document:', { error: error });
             setError('Une erreur est survenue lors du chargement du document.');
         } finally {
             setLoading(false);
@@ -136,7 +136,7 @@ const DocsViewer: React.FC<DocsViewerProps> = ({ defaultDoc = 'performance.md' }
                         }
                     }
                 } catch (error: unknown) {
-                    logger.error(`Erreur lors de la recherche dans ${doc.path}:`, error instanceof Error ? error : new Error(String(error)));
+                    logger.error(`Erreur lors de la recherche dans ${doc.path}:`, { error: error });
                 }
             }
 

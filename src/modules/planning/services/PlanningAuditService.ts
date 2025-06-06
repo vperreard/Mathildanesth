@@ -69,7 +69,7 @@ export class PlanningAuditService {
                 details: JSON.parse(auditEntry.details),
             };
         } catch (error: unknown) {
-            logger.error('Erreur lors de la création du log d\'audit:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la création du log d\'audit:', { error: error });
             throw error;
         }
     }
@@ -131,7 +131,7 @@ export class PlanningAuditService {
 
             return { items: transformedItems, total };
         } catch (error: unknown) {
-            logger.error('Erreur lors de la récupération des logs d\'audit:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de la récupération des logs d\'audit:', { error: error });
             throw error;
         }
     }
@@ -213,7 +213,7 @@ export class PlanningAuditService {
                 });
             }
         } catch (error: unknown) {
-            logger.error('Erreur lors de l\'envoi des notifications d\'audit:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur lors de l\'envoi des notifications d\'audit:', { error: error });
             // Ne pas faire échouer la fonction principale si les notifications échouent
         }
     }

@@ -34,7 +34,7 @@ export async function GET(
       },
     });
   } catch (error: unknown) {
-    logger.error('Erreur lors de la lecture du fichier de documentation:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Erreur lors de la lecture du fichier de documentation:', { error: error });
     return NextResponse.json({ error: 'Erreur lors de la lecture du fichier' }, { status: 500 });
   }
 }

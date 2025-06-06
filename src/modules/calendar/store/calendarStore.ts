@@ -182,7 +182,7 @@ export const useCalendarStore = create<CalendarState>()(
                 } catch (err: unknown) {
                     const error = err instanceof Error ? err : new Error('Erreur inconnue');
                     set({ error, loading: false });
-                    logger.error('Erreur lors du chargement des événements:', error instanceof Error ? error : new Error(String(error)));
+                    logger.error('Erreur lors du chargement des événements:', { error: error });
                 }
             },
 

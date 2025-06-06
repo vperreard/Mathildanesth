@@ -44,7 +44,7 @@ export async function GET(
 
         return NextResponse.json({ sites: surgeon.sites });
     } catch (error: unknown) {
-        logger.error('Erreur GET /api/chirurgiens/[id]/sites:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur GET /api/chirurgiens/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }
@@ -99,7 +99,7 @@ export async function PUT(
             surgeon: updatedSurgeon 
         });
     } catch (error: unknown) {
-        logger.error('Erreur PUT /api/chirurgiens/[id]/sites:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur PUT /api/chirurgiens/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }
@@ -143,7 +143,7 @@ export async function POST(
             surgeon: updatedSurgeon 
         });
     } catch (error: unknown) {
-        logger.error('Erreur POST /api/chirurgiens/[id]/sites:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur POST /api/chirurgiens/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }
@@ -187,7 +187,7 @@ export async function DELETE(
             surgeon: updatedSurgeon 
         });
     } catch (error: unknown) {
-        logger.error('Erreur DELETE /api/chirurgiens/[id]/sites:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur DELETE /api/chirurgiens/[id]/sites:', { error: error });
         return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
     }
 }

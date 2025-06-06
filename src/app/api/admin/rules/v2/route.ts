@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error: unknown) {
-    logger.error('Error fetching rules:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error fetching rules:', { error: error });
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Paramètres invalides', details: error.errors },
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
 
   } catch (error: unknown) {
-    logger.error('Error creating rule:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error creating rule:', { error: error });
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },
@@ -257,7 +257,7 @@ export async function PUT(request: NextRequest) {
     });
 
   } catch (error: unknown) {
-    logger.error('Error bulk updating rules:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error bulk updating rules:', { error: error });
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },
@@ -316,7 +316,7 @@ export async function DELETE(request: NextRequest) {
     });
 
   } catch (error: unknown) {
-    logger.error('Error archiving rules:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Error archiving rules:', { error: error });
     return NextResponse.json(
       { error: 'Erreur lors de l\'archivage des règles' },
       { status: 500 }

@@ -22,7 +22,7 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${session.accessToken}`;
       }
     } catch (error: unknown) {
-      logger.warn('Impossible d\'obtenir la session pour la requête API:', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Impossible d\'obtenir la session pour la requête API:', { error: error });
     }
 
     return config;

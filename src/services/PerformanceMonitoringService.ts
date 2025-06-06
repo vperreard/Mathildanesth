@@ -361,7 +361,7 @@ class PerformanceMonitoringService {
         this.observers.set('navigation', navObserver);
       }
     } catch (error: unknown) {
-      logger.warn('Some Core Web Vitals observers not supported:', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Some Core Web Vitals observers not supported:', { error: error });
     }
   }
 

@@ -48,7 +48,7 @@ export class PersonnelService {
             logger.info('[PersonnelService] Chirurgiens chargés depuis API:', data);
             return data;
         } catch (error: unknown) {
-            logger.error("Erreur lors de la récupération des chirurgiens (catch global):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la récupération des chirurgiens (catch global):", { error: error });
             logger.info('[PersonnelService] Utilisation des mocks pour Chirurgiens.');
             return this.getMockChirurgiens();
         }
@@ -73,7 +73,7 @@ export class PersonnelService {
             logger.info('[PersonnelService] MARs chargés depuis API:', data);
             return data;
         } catch (error: unknown) {
-            logger.error("Erreur lors de la récupération des MARs (catch global):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la récupération des MARs (catch global):", { error: error });
             logger.info('[PersonnelService] Utilisation des mocks pour MARs.');
             return this.getMockMARs();
         }
@@ -98,7 +98,7 @@ export class PersonnelService {
             logger.info('[PersonnelService] IADEs chargés depuis API:', data);
             return data;
         } catch (error: unknown) {
-            logger.error("Erreur lors de la récupération des IADEs (catch global):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la récupération des IADEs (catch global):", { error: error });
             logger.info('[PersonnelService] Utilisation des mocks pour IADEs.');
             return this.getMockIADEs();
         }

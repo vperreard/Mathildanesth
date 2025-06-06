@@ -68,7 +68,7 @@ export class ApiCacheMiddleware {
       logger.info(`🔍 Cache MISS: ${pathname}`);
       return null; // Continue to API handler
     } catch (error: unknown) {
-      logger.warn('Cache middleware error:', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Cache middleware error:', { error: error });
       return null; // Continue without cache
     }
   }
@@ -90,7 +90,7 @@ export class ApiCacheMiddleware {
 
       return response;
     } catch (error: unknown) {
-      logger.warn('Cache response handling error:', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Cache response handling error:', { error: error });
       return response;
     }
   }
@@ -110,7 +110,7 @@ export class ApiCacheMiddleware {
 
       logger.info(`💾 Cached: ${pathname} for ${cacheConfig.ttl}s`);
     } catch (error: unknown) {
-      logger.warn('Failed to cache response:', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Failed to cache response:', { error: error });
     }
   }
 
@@ -128,7 +128,7 @@ export class ApiCacheMiddleware {
 
       logger.info(`🗑️ Cache invalidated for: ${pathname}`);
     } catch (error: unknown) {
-      logger.warn('Cache invalidation error:', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Cache invalidation error:', { error: error });
     }
   }
 
@@ -214,7 +214,7 @@ export function withApiCache<T extends (...args: HandlerParams) => Promise<Respo
         const cacheKey = `api:${request.nextUrl.pathname}:${Date.now()}`;
         await redisCache.set(cacheKey, data, cacheConfig.ttl || 300);
       } catch (error: unknown) {
-        logger.warn('Failed to cache API response:', error instanceof Error ? error : new Error(String(error)));
+        logger.warn('Failed to cache API response:', { error: error });
       }
     }
 
@@ -239,13 +239,13 @@ export async function warmCriticalCache(): Promise<void> {
           logger.info(`✅ Warmed cache: ${endpoint}`);
         }
       } catch (error: unknown) {
-        logger.warn(`⚠️ Failed to warm cache for ${endpoint}:`, error instanceof Error ? error : new Error(String(error)));
+        logger.warn(`⚠️ Failed to warm cache for ${endpoint}:`, { error: error });
       }
     }
 
     logger.info('🔥 Cache warming completed');
   } catch (error: unknown) {
-    logger.warn('Cache warming failed:', error instanceof Error ? error : new Error(String(error)));
+    logger.warn('Cache warming failed:', { error: error });
   }
 }
 

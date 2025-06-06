@@ -20,7 +20,7 @@ export const AuthCacheService = {
         logger.info('Using memory cache for auth token');
       }
     } catch (error: unknown) {
-      logger.warn('Failed to cache auth token', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Failed to cache auth token', { error: error });
       // Try memory cache as last resort
       const key = `auth:token:${token}`;
       const expiry = Date.now() + (CACHE_TTL * 1000);
@@ -51,7 +51,7 @@ export const AuthCacheService = {
       
       return null;
     } catch (error: unknown) {
-      logger.warn('Failed to get cached auth token', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Failed to get cached auth token', { error: error });
       // Try memory cache as last resort
       const key = `auth:token:${token}`;
       const entry = memoryCache.get(key);
@@ -69,7 +69,7 @@ export const AuthCacheService = {
       const key = `auth:token:${token}`;
       await redis.del(key);
     } catch (error: unknown) {
-      logger.warn('Failed to invalidate auth token', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Failed to invalidate auth token', { error: error });
     }
   },
 
@@ -80,7 +80,7 @@ export const AuthCacheService = {
       const key = `auth:user:${userId}`;
       await redis.setex(key, CACHE_TTL, JSON.stringify(userData));
     } catch (error: unknown) {
-      logger.warn('Failed to cache user data', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Failed to cache user data', { error: error });
     }
   },
 
@@ -97,7 +97,7 @@ export const AuthCacheService = {
       
       return null;
     } catch (error: unknown) {
-      logger.warn('Failed to get cached user data', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Failed to get cached user data', { error: error });
       return null;
     }
   },
@@ -109,7 +109,7 @@ export const AuthCacheService = {
       const key = `auth:user:${userId}`;
       await redis.del(key);
     } catch (error: unknown) {
-      logger.warn('Failed to invalidate user data', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Failed to invalidate user data', { error: error });
     }
   },
 
@@ -123,7 +123,7 @@ export const AuthCacheService = {
         await redis.del(...keys);
       }
     } catch (error: unknown) {
-      logger.warn('Failed to clear auth caches', error instanceof Error ? error : new Error(String(error)));
+      logger.warn('Failed to clear auth caches', { error: error });
     }
   },
 };

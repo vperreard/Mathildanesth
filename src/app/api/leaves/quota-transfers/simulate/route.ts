@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
             message: `Le transfert générera ${resultingDays} jours de ${toType}`
         });
     } catch (error: unknown) {
-        logger.error("Erreur lors de la simulation du transfert de quota:", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Erreur lors de la simulation du transfert de quota:", { error: error });
         return NextResponse.json(
             { error: "Erreur serveur lors de la simulation du transfert" },
             { status: 500 }

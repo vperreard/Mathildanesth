@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(carryOvers);
     } catch (error: unknown) {
-        logger.error('Erreur lors de la récupération des reports :', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la récupération des reports :', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des reports' },
             { status: 500 }
@@ -289,7 +289,7 @@ export async function POST(req: NextRequest) {
                 : 'Report effectué avec succès'
         }, { status: 201 });
     } catch (error: unknown) {
-        logger.error('Erreur lors de la création du report :', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Erreur lors de la création du report :', { error: error });
         return NextResponse.json(
             { error: 'Erreur lors de la création du report' },
             { status: 500 }

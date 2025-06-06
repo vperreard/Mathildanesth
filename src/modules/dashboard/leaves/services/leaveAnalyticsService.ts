@@ -312,7 +312,7 @@ export class LeaveAnalyticsService {
             logger.info(`[Performance] getDepartmentStats from API: ${performance.now() - startTime}ms`);
             return data;
         } catch (error: unknown) {
-            logger.error('Erreur dans getDepartmentStats:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans getDepartmentStats:', { error: error });
             return [];
         }
     }
@@ -344,7 +344,7 @@ export class LeaveAnalyticsService {
 
             return await response.json();
         } catch (error: unknown) {
-            logger.error('Erreur dans predictTeamAvailability:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans predictTeamAvailability:', { error: error });
             return {};
         }
     }
@@ -384,7 +384,7 @@ export class LeaveAnalyticsService {
             logger.info(`[Performance] getPeriodStats from API: ${performance.now() - startTime}ms`);
             return data;
         } catch (error: unknown) {
-            logger.error('Erreur dans getPeriodStats:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans getPeriodStats:', { error: error });
             return [];
         }
     }
@@ -421,7 +421,7 @@ export class LeaveAnalyticsService {
             logger.info(`[Performance] getTeamAbsenceRates from API: ${performance.now() - startTime}ms`);
             return data;
         } catch (error: unknown) {
-            logger.error('Erreur dans getTeamAbsenceRates:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans getTeamAbsenceRates:', { error: error });
             return [];
         }
     }
@@ -465,7 +465,7 @@ export class LeaveAnalyticsService {
             logger.info(`[Performance] getUserStats from API: ${performance.now() - startTime}ms`);
             return data;
         } catch (error: unknown) {
-            logger.error('Erreur dans getUserStats:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans getUserStats:', { error: error });
             return {
                 data: [],
                 total: 0,
@@ -511,7 +511,7 @@ export class LeaveAnalyticsService {
             logger.info(`[Performance] getLeaveTypeTrends from API: ${performance.now() - startTime}ms`);
             return data;
         } catch (error: unknown) {
-            logger.error('Erreur dans getLeaveTypeTrends:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans getLeaveTypeTrends:', { error: error });
             return [];
         }
     }
@@ -548,7 +548,7 @@ export class LeaveAnalyticsService {
             logger.info(`[Performance] predictPeakPeriods from API: ${performance.now() - startTime}ms`);
             return data;
         } catch (error: unknown) {
-            logger.error('Erreur dans predictPeakPeriods:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans predictPeakPeriods:', { error: error });
             return [];
         }
     }
@@ -576,7 +576,7 @@ export class LeaveAnalyticsService {
             const blob = await response.blob();
             return URL.createObjectURL(blob);
         } catch (error: unknown) {
-            logger.error('Erreur dans exportAnalyticsToCSV:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Erreur dans exportAnalyticsToCSV:', { error: error });
             throw error;
         }
     }

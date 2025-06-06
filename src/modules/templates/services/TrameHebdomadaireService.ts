@@ -109,7 +109,7 @@ export class TrameHebdomadaireService {
 
             return data;
         } catch (error: unknown) {
-            logger.error("[TrameHebdomadaireService] Erreur lors de la récupération des trameModeles modèles (service catch getAllTrames):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("[TrameHebdomadaireService] Erreur lors de la récupération des trameModeles modèles (service catch getAllTrames):", { error: error });
             return [];
         }
     }
@@ -139,7 +139,7 @@ export class TrameHebdomadaireService {
             // On pourrait ajouter une validation de la structure de l'objet ici si nécessaire
             return await response.json();
         } catch (error: unknown) {
-            logger.error(`Erreur lors de la récupération de la trameModele modèle ${id} (service):`, error instanceof Error ? error : new Error(String(error)));
+            logger.error(`Erreur lors de la récupération de la trameModele modèle ${id} (service):`, { error: error });
             return null;
         }
     }
@@ -217,7 +217,7 @@ export class TrameHebdomadaireService {
             logger.info('[TrameHebdomadaireService] Tableau de service créée avec succès:', result);
             return result;
         } catch (error: unknown) {
-            logger.error("Erreur lors de la création de la trameModele modèle (service catch):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la création de la trameModele modèle (service catch):", { error: error });
             // Rethrow l'erreur pour qu'elle soit traitée par le composant appelant
             // Si l'erreur est déjà une instance de Error avec un message pertinent, la relancer telle quelle.
             // Sinon, encapsuler dans une nouvelle Error.
@@ -294,7 +294,7 @@ export class TrameHebdomadaireService {
             logger.info('[TrameHebdomadaireService] Tableau de service mise à jour avec succès:', result);
             return result;
         } catch (error: unknown) {
-            logger.error("Erreur lors de la mise à jour de la trameModele modèle (service catch):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la mise à jour de la trameModele modèle (service catch):", { error: error });
             if (error instanceof Error) {
                 throw error;
             }
@@ -345,7 +345,7 @@ export class TrameHebdomadaireService {
                 return true;
             }
         } catch (error: unknown) {
-            logger.error("Erreur lors de la suppression de la trameModele modèle (service catch):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la suppression de la trameModele modèle (service catch):", { error: error });
             if (error instanceof Error) {
                 throw error;
             }

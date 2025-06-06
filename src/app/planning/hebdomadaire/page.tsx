@@ -276,7 +276,7 @@ export default function WeeklyPlanningPage() {
                             setRoomOrderConfig({ orderedRoomIds: currentRoomOrder });
                         }
                     } catch (e: unknown) {
-                        logger.error('[WeeklyPlanningPage] Erreur lecture roomOrderConfig localStorage:', e);
+                        logger.error('[WeeklyPlanningPage] Erreur lecture roomOrderConfig localStorage:', { error: e });
                     }
                 }
             }
@@ -360,7 +360,7 @@ export default function WeeklyPlanningPage() {
             }
 
         } catch (error: unknown) {
-            logger.error("Erreur lors du chargement des données :", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors du chargement des données :", { error: error });
             toast.error("Erreur lors du chargement des données");
             setUsers([]);
             setRooms([]);
@@ -469,7 +469,7 @@ export default function WeeklyPlanningPage() {
             try {
                 logger.info("Préférences d'ordre des salles sauvegardées.");
             } catch (error: unknown) {
-                logger.error("Erreur sauvegarde préférences ordre salles:", error instanceof Error ? error : new Error(String(error)));
+                logger.error("Erreur sauvegarde préférences ordre salles:", { error: error });
             }
         }
     };
@@ -1178,7 +1178,7 @@ export default function WeeklyPlanningPage() {
             };
 
         } catch (error: unknown) {
-            logger.error("Erreur validation règles (Client):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur validation règles (Client):", { error: error });
             clientValidationResult = {
                 valid: false,
                 violations: [{
@@ -1210,7 +1210,7 @@ export default function WeeklyPlanningPage() {
             // les violations ou afficher les erreurs serveur si la validation client passe.
 
         } catch (error: unknown) {
-            logger.error("Erreur validation règles (Serveur):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur validation règles (Serveur):", { error: error });
             if (clientValidationResult) {
                 clientValidationResult.valid = false;
                 clientValidationResult.violations.push({
@@ -1277,7 +1277,7 @@ export default function WeeklyPlanningPage() {
             toast.success(result.message || "Changements sauvegardés avec succès !");
 
         } catch (error: unknown) { // Le catch d'axios error est plus détaillé
-            logger.error("Erreur lors de la sauvegarde des changements (apiClient):", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Erreur lors de la sauvegarde des changements (apiClient):", { error: error });
             let errorMessage = "Erreur lors de la sauvegarde des changements. Veuillez réessayer.";
             if (error.response && error.response.data && error.response.data.error) {
                 errorMessage = error.response.data.error;

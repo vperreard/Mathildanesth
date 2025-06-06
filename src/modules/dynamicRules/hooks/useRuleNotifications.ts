@@ -65,7 +65,7 @@ export function useRuleNotifications(
     const playNotificationSound = useCallback(() => {
         if (playSound && audioRef.current) {
             audioRef.current.play().catch(err => {
-                logger.warn('Failed to play notification sound:', err);
+                logger.warn('Failed to play notification sound:', { error: err });
             });
         }
     }, [playSound]);
@@ -200,7 +200,7 @@ export function useRuleNotifications(
         // Se connecter
         setConnectionStatus('connecting');
         service.connect(String(user.id), token).catch(err => {
-            logger.error('Failed to connect to notifications:', err);
+            logger.error('Failed to connect to notifications:', { error: err });
             setConnectionStatus('error');
         });
 

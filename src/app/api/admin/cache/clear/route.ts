@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
             message: `Cache ${type} cleared successfully`
         });
     } catch (error: unknown) {
-        logger.error('Failed to clear cache:', error instanceof Error ? error : new Error(String(error)));
+        logger.error('Failed to clear cache:', { error: error });
         return NextResponse.json(
             { error: 'Failed to clear cache' },
             { status: 500 }
