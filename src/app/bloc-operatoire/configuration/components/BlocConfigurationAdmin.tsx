@@ -17,26 +17,12 @@ const SallesAdmin = dynamic(
   }
 );
 
-// Version simple (rapide) sans drag & drop
-const SecteursAdminSimple = dynamic(() => import('../../secteurs/components/SecteursAdminSimple'), {
-  loading: () => (
-    <div className="flex items-center justify-center p-8">Chargement rapide...</div>
-  ),
-  ssr: false,
-});
-
-// Version complète avec drag & drop (plus lente)
-const SecteursAdminComplete = dynamic(() => import('../../secteurs/components/SecteursAdminOptimized'), {
+const SecteursAdmin = dynamic(() => import('../../secteurs/components/SecteursAdminWithDndKit'), {
   loading: () => (
     <div className="flex items-center justify-center p-8">Chargement des secteurs...</div>
   ),
   ssr: false,
 });
-
-// Toggle pour choisir la version
-const SecteursAdmin = ({ enableDragDrop = false }: { enableDragDrop?: boolean }) => {
-  return enableDragDrop ? <SecteursAdminComplete /> : <SecteursAdminSimple />;
-};
 
 const SitesAdmin = dynamic(() => import('../../../parametres/sites/page'), {
   loading: () => (
@@ -47,7 +33,6 @@ const SitesAdmin = dynamic(() => import('../../../parametres/sites/page'), {
 
 export default function BlocConfigurationAdmin() {
   const [activeTab, setActiveTab] = useState('sites');
-  const [enableDragDrop, setEnableDragDrop] = useState(false);
 
   const tabs = [
     {
@@ -62,7 +47,7 @@ export default function BlocConfigurationAdmin() {
       label: 'Secteurs',
       icon: Layout,
       description: 'Organisez les secteurs et spécialités du bloc',
-      component: <SecteursAdmin enableDragDrop={enableDragDrop} />,
+      component: <SecteursAdmin />,
     },
     {
       id: 'salles',
@@ -76,32 +61,11 @@ export default function BlocConfigurationAdmin() {
   return (
     <div className="space-y-6">
       {/* En-tête */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Configuration du Bloc Opératoire</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Gérez les sites, secteurs et salles d'opération en un seul endroit
-          </p>
-        </div>
-        
-        {/* Toggle pour drag & drop */}
-        {activeTab === 'secteurs' && (
-          <div className="flex items-center space-x-3">
-            <span className="text-sm text-gray-600">Mode réorganisation</span>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={enableDragDrop}
-                onChange={(e) => setEnableDragDrop(e.target.checked)}
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
-            <span className="text-xs text-gray-500">
-              {enableDragDrop ? 'Drag & drop activé' : 'Affichage rapide'}
-            </span>
-          </div>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Configuration du Bloc Opératoire</h1>
+        <p className="mt-2 text-sm text-gray-600">
+          Gérez les sites, secteurs et salles d'opération en un seul endroit
+        </p>
       </div>
 
       {/* Interface à onglets */}
