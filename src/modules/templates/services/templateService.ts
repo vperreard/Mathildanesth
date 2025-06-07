@@ -53,7 +53,7 @@ type DayOfWeekValue = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY'
 
 import { getClientAuthToken } from "@/lib/auth-client-utils"; // Pour l'authentification
 
-const API_BASE_URL = '/api/trameModele-modeles'; // Nouvelle URL de base pour l'API
+const API_BASE_URL = '/api/trame-modeles'; // URL de base corrigée pour l'API
 
 // --- Mock Data Store ---
 // const mockTemplates: PlanningTemplate[] = [ ... ]; // S'assurer que c'est bien commenté ou vide

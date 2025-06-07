@@ -19,7 +19,7 @@ module.exports = {
       sign: jest.fn().mockResolvedValue('mock.jwt.token'),
     };
   }),
-  jwtVerify: jest.fn().mockImplementation((token, secret) => {
+  jwtVerify: jest.fn().mockImplementation((token) => {
     if (token === 'invalid.token' || token === 'invalid.token.here') {
       throw new Error('Invalid token');
     }
