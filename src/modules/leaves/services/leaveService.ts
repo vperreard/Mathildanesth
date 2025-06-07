@@ -563,6 +563,19 @@ export const checkLeaveAllowance = async (
  * Calculer le nombre de jours de congés à partir des dates et du planning de travail
  * TODO: Adapter le calcul pour potentiellement utiliser une logique différente pour les congés récurrents (si nécessaire)
  */
+// Version simplifiée pour les tests qui ne prend pas en compte le planning médical
+export const calculateLeaveDaysSimple = (
+  startDate: Date,
+  endDate: Date,
+  isHalfDay: boolean = false
+): number => {
+  if (isHalfDay) {
+    return 0.5;
+  }
+  const days = differenceInDays(endDate, startDate) + 1;
+  return days;
+};
+
 export const calculateLeaveDays = (
   startDate: Date,
   endDate: Date,

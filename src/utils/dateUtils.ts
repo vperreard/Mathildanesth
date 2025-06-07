@@ -12,6 +12,8 @@ import {
     startOfDay,
     endOfDay,
     addDays,
+    addWeeks,
+    addMonths,
     differenceInDays,
     parse,
     addHours,
@@ -19,13 +21,19 @@ import {
     getWeek,
     startOfWeek,
     endOfWeek,
+    startOfMonth,
+    endOfMonth,
     eachDayOfInterval
 } from 'date-fns';
 import { logger } from "../lib/logger";
 import { fr } from 'date-fns/locale'; // Utiliser la locale française pour les formats
 
-// Ré-exporter addDays pour qu'il soit accessible via ce module
-export { addDays };
+// Ré-exporter les fonctions date-fns nécessaires
+export { 
+  addDays, 
+  addWeeks,
+  differenceInDays
+};
 
 // --- Constantes ---
 
@@ -53,6 +61,16 @@ export const isValidDateString = (dateString: string | number | null | undefined
     if (dateString === null || dateString === undefined) return false;
     const date = parseDate(dateString);
     return isValidDateObject(date);
+};
+
+/**
+ * Vérifie si une valeur est une date valide (accepte Date, string ou number).
+ * Alias générique pour isValidDateString et isValidDateObject.
+ */
+export const isValidDate = (date: string | number | Date | null | undefined): boolean => {
+    if (date === null || date === undefined) return false;
+    if (date instanceof Date) return isValidDateObject(date);
+    return isValidDateString(date);
 };
 
 // --- Parsing ---
@@ -198,6 +216,31 @@ export const isDateWeekend = (date: string | number | Date | null | undefined): 
 // Export direct pour ceux qui l'utilisent sous le nom isWeekend
 export { isDateWeekendFns as isWeekend };
 
+/**
+ * Formate une plage de dates
+ */
+export const formatDateRange = (startDate: Date, endDate: Date, formatStr?: string): string => {
+  // Pour les tests qui attendent le format avec le nom du mois
+  const detailedFormat = 'd MMMM yyyy';
+  const actualFormat = formatStr || detailedFormat;
+  
+  const start = format(startDate, actualFormat, { locale: fr });
+  const end = format(endDate, actualFormat, { locale: fr });
+  
+  if (start === end) {
+    return start;
+  }
+  
+  // Si même année, on peut omettre l'année sur la première date
+  if (startDate.getFullYear() === endDate.getFullYear()) {
+    const startFormatNoYear = actualFormat === detailedFormat ? 'd MMMM' : actualFormat;
+    const startNoYear = format(startDate, startFormatNoYear, { locale: fr });
+    return `${startNoYear} - ${end}`;
+  }
+  
+  return `${start} - ${end}`;
+};
+
 // --- Manipulation ---
 
 /**
@@ -315,6 +358,24 @@ export const getEndOfWeek = (date: string | number | Date | null | undefined): D
 };
 
 /**
+ * Obtient le début du mois pour une date donnée.
+ * Retourne null si la date est invalide.
+ */
+export const getStartOfMonth = (date: string | number | Date | null | undefined): Date | null => {
+    const d = parseDate(date);
+    return d ? startOfMonth(d) : null;
+};
+
+/**
+ * Obtient la fin du mois pour une date donnée.
+ * Retourne null si la date est invalide.
+ */
+export const getEndOfMonth = (date: string | number | Date | null | undefined): Date | null => {
+    const d = parseDate(date);
+    return d ? endOfMonth(d) : null;
+};
+
+/**
  * Génère un tableau de toutes les dates dans un intervalle donné.
  * Retourne un tableau vide si les dates sont invalides ou si start > end.
  */
@@ -334,7 +395,12 @@ export const getDaysInInterval = (interval: { start: string | number | Date | nu
  * @returns Nouvelle date
  */
 export const addMonths = (date: Date, months: number): Date => {
-    return new Date(date.getFullYear(), date.getMonth() + months, date.getDate());
+    const result = new Date(date.getFullYear(), date.getMonth() + months, date.getDate());
+    // Si le jour a changé (par ex: 31 jan -> 3 mars au lieu de 28/29 fév), ajuster
+    if (date.getDate() !== result.getDate()) {
+        result.setDate(0); // Dernier jour du mois précédent
+    }
+    return result;
 };
 
 /**

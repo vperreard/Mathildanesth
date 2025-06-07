@@ -188,7 +188,6 @@ export default function SpecialtyManager() {
                                     disabled={isSubmitting}
                                     isLoading={isSubmitting}
                                 >
-                                    {!isSubmitting && (isEditing ? {/* <<CheckIcon className="h-5 w-5 mr-1"  /> */} : {/* <<PlusIcon className="h-5 w-5 mr-1"  /> */})}
                                     {isEditing ? 'Enregistrer' : 'Ajouter'}
                                 </Button>
                                 {isEditing && (
@@ -229,7 +228,7 @@ export default function SpecialtyManager() {
                             <TableRow key={specialty.id}>
                                 <TableCell className="font-medium">{specialty.name}</TableCell>
                                 <TableCell>
-                                    <Badge variant={specialty.isPediatric ? "info" : "secondary"}>
+                                    <Badge variant={specialty.isPediatric ? "info" : "warning"}>
                                         {specialty.isPediatric ? 'Pédiatrique' : 'Adulte'}
                                     </Badge>
                                 </TableCell>

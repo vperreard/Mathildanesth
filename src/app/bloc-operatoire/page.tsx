@@ -29,20 +29,12 @@ const features = [
     bgColor: 'bg-blue-50',
   },
   {
-    title: 'Salles d\'opération',
-    description: 'Configurez et gérez les salles d\'opération et leurs équipements',
+    title: 'Configuration',
+    description: 'Gérez sites, secteurs et salles d\'opération en un seul endroit',
     icon: Building2,
-    href: '/bloc-operatoire/salles',
+    href: '/bloc-operatoire/configuration',
     color: 'text-green-600',
     bgColor: 'bg-green-50',
-  },
-  {
-    title: 'Secteurs',
-    description: 'Organisez les secteurs et spécialités du bloc',
-    icon: Layout,
-    href: '/bloc-operatoire/secteurs',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
     adminOnly: true,
   },
   {
@@ -55,21 +47,12 @@ const features = [
     adminOnly: true,
   },
   {
-    title: 'TrameModeles',
+    title: 'Modèles',
     description: 'Créez des templates de planning réutilisables',
     icon: Grid3X3,
     href: '/bloc-operatoire/trameModeles',
     color: 'text-indigo-600',
     bgColor: 'bg-indigo-50',
-  },
-  {
-    title: 'Sites d\'anesthésie',
-    description: 'Gérez les différents sites d\'anesthésie',
-    icon: MapPin,
-    href: '/parametres/sites',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    adminOnly: true,
   },
 ];
 
@@ -161,10 +144,10 @@ export default function BlocOperatoirePage() {
                 Nouveau planning
               </Button>
             </Link>
-            <Link href="/bloc-operatoire/salles/nouveau">
+            <Link href="/bloc-operatoire/configuration">
               <Button variant="outline" size="sm">
                 <Building2 className="mr-2 h-4 w-4" />
-                Ajouter une salle
+                Configuration bloc
               </Button>
             </Link>
             <Link href="/bloc-operatoire/trameModeles/nouveau">

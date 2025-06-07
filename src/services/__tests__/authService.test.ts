@@ -129,7 +129,7 @@ describe('AuthService', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(authService.login('test@example.com', 'wrongpassword')).rejects.toThrow(
-        'Invalid credentials'
+        'Account locked due to too many failed attempts'
       );
 
       expect(prisma.user.update).toHaveBeenCalledWith({

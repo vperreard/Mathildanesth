@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from "@/lib/logger";
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { checkUserRole } from '@/lib/auth-server-utils';
 import type { UserRole } from '@/lib/auth-client-utils';
-
 import { prisma } from '@/lib/prisma';
 
 const ALLOWED_ROLES: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'USER'];
@@ -29,11 +28,9 @@ export async function GET(request: NextRequest) {
     logger.info('GET /api/sites: Retrieving all sites from DB...');
     const sites = await prisma.site.findMany({
       orderBy: [
-        { displayOrder: { sort: 'asc', nulls: 'last' } }, // Gérer les nulls explicitement
+        { displayOrder: 'asc' }, // Les nulls sont gérés automatiquement par Prisma
         { name: 'asc' }, // Tri secondaire par nom pour la cohérence
       ],
-      // Ajouter la sélection de champs si nécessaire, sinon tous les champs sont renvoyés
-      // select: { id: true, name: true, description: true, isActive: true, displayOrder: true }
     });
 
     logger.info(`GET /api/sites: ${sites.length} sites retrieved successfully.`);
@@ -53,19 +50,18 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   logger.info('\\n--- POST /api/sites START ---');
   try {
-    const requestHeaders = await headers();
-    const auth = checkAuth(requestHeaders);
+    // Vérifier l'authentification
+    const authCheck = await checkUserRole(['ADMIN_TOTAL', 'ADMIN_PARTIEL']);
 
-    if (!auth) {
-      logger.error('POST /api/sites: Unauthorized (Middleware headers missing)');
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
-    if (auth.userRole !== 'ADMIN_TOTAL' && auth.userRole !== 'ADMIN_PARTIEL') {
-      logger.error(`POST /api/sites: Forbidden (Role '${auth.userRole}' not allowed)`);
-      return NextResponse.json({ error: 'Accès interdit pour créer un site' }, { status: 403 });
+    if (!authCheck.hasRequiredRole) {
+      logger.info("Vérification d'autorisation échouée:", authCheck.error);
+      return NextResponse.json(
+        { error: authCheck.error || 'Authentification requise' },
+        { status: 401 }
+      );
     }
     logger.info(
-      `POST /api/sites: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`
+      `POST /api/sites: Auth check passed! User ID: ${authCheck.user?.id}, Role: ${authCheck.user?.role}`
     );
 
     const data = await request.json();

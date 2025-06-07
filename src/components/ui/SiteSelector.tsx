@@ -26,7 +26,7 @@ interface SiteSelectorProps {
 }
 
 const SiteSelector: React.FC<SiteSelectorProps> = ({
-    selectedSites,
+    selectedSites = [],
     onSitesChange,
     availableSites = [],
     loading = false,
@@ -42,23 +42,27 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
     const [searchTerm, setSearchTerm] = useState('');
     const [sites, setSites] = useState<Site[]>([]);
     const [loadingSites, setLoadingSites] = useState(false);
+    const [hasFetchedSites, setHasFetchedSites] = useState(false);
 
     // Charger les sites disponibles si pas fournis
     useEffect(() => {
-        if (availableSites.length === 0) {
-            fetchSites();
-        } else {
+        if (availableSites && availableSites.length > 0) {
             setSites(availableSites);
+            setHasFetchedSites(true);
+        } else if (!hasFetchedSites) {
+            fetchSites();
         }
-    }, [availableSites]);
+    }, [availableSites?.length]); // Dépendance stable uniquement sur la longueur
 
     const fetchSites = async () => {
         try {
             setLoadingSites(true);
-            const response = await fetch('http://localhost:3000/api/sites');
+            const response = await fetch('/api/sites');
             if (response.ok) {
                 const data = await response.json();
-                setSites(data.sites || []);
+                // L'API retourne directement un tableau, pas un objet avec .sites
+                setSites(Array.isArray(data) ? data : []);
+                setHasFetchedSites(true);
             }
         } catch (error: unknown) {
             logger.error('Erreur lors du chargement des sites:', { error: error });
@@ -80,7 +84,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
             return;
         }
 
-        const currentSites = selectedSites || [];
+        const currentSites = Array.isArray(selectedSites) ? selectedSites : [];
         const isSelected = currentSites.some(s => s.id === site.id);
         if (isSelected) {
             onSitesChange(currentSites.filter(s => s.id !== site.id));
@@ -90,7 +94,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
     };
 
     const removeSite = (siteId: string) => {
-        const currentSites = selectedSites || [];
+        const currentSites = Array.isArray(selectedSites) ? selectedSites : [];
         onSitesChange(currentSites.filter(s => s.id !== siteId));
     };
 
@@ -140,7 +144,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                 `}
             >
                 <div className="flex flex-wrap gap-1 min-h-[1.5rem]">
-                    {!selectedSites || selectedSites.length === 0 ? (
+                    {!Array.isArray(selectedSites) || selectedSites.length === 0 ? (
                         <span className="text-gray-500">{placeholder}</span>
                     ) : (
                         selectedSites.map(site => (
@@ -165,7 +169,9 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                                         }}
                                         className="hover:text-red-600 ml-1"
                                     >
-                                        {/* <XMarkIcon className="h-3 w-3" /> */}
+                                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
                                     </button>
                                 )}
                             </span>
@@ -177,7 +183,9 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                     {isLoading ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
                     ) : (
-                        {/* <ChevronDownIcon className={`h-5 w-5 text-gray-400 transform transition-transform ${isOpen ? 'rotate-180' : ''}`} /> */}
+                        <svg className={`h-5 w-5 text-gray-400 transform transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
                     )}
                 </div>
             </button>
@@ -195,7 +203,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
                         />
-                        {multiple && selectedSites && selectedSites.length > 0 && (
+                        {multiple && Array.isArray(selectedSites) && selectedSites.length > 0 && (
                             <button
                                 type="button"
                                 onClick={clearAll}
@@ -214,7 +222,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                             </div>
                         ) : (
                             filteredSites.map(site => {
-                                const isSelected = selectedSites ? selectedSites.some(s => s.id === site.id) : false;
+                                const isSelected = Array.isArray(selectedSites) ? selectedSites.some(s => s.id === site.id) : false;
                                 return (
                                     <button
                                         key={site.id}

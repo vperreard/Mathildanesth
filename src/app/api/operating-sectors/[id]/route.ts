@@ -166,7 +166,7 @@ export async function DELETE(
 
     // Vérifier s'il y a des salles connectées
     const connectedRooms = await prisma.operatingRoom.findMany({
-      where: { sectorId: sectorId },
+      where: { operatingSectorId: sectorId },
       select: { id: true, name: true },
     });
 

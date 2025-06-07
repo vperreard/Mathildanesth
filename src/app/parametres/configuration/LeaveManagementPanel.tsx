@@ -29,7 +29,7 @@ import {
 } from "@/components/ui";
 // TODO: Replace with lucide-react icons
 
-import { UserIcon } from 'lucide-react';
+import { UserIcon, Plus as PlusIcon, Pencil as PencilIcon, Trash2 as TrashIcon, UserPlus as UserPlusIcon } from 'lucide-react';
 import { ProfessionalRole } from '@prisma/client';
 
 // Types pour les règles de congés

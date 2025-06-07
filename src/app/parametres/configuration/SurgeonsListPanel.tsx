@@ -223,7 +223,6 @@ const SurgeonsListPanel: React.FC = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
 
                 <div className="mb-6 flex justify-between items-center">
-                    }
                     <h2 className="text-2xl font-bold flex items-center space-x-3 text-gray-800">
                         <Users className="h-7 w-7 text-indigo-600" />
                         <span>Gestion des Chirurgiens</span>
@@ -238,7 +237,6 @@ const SurgeonsListPanel: React.FC = () => {
                     </button>
                 </div>
 
-                }
                 {isModalOpen && (
                     <Modal isOpen={isModalOpen} onClose={handleCloseForm} title={editingSurgeon ? 'Modifier le Chirurgien' : 'Ajouter un Chirurgien'}>
                         <SurgeonForm
@@ -251,7 +249,6 @@ const SurgeonsListPanel: React.FC = () => {
                     </Modal>
                 )}
 
-                }
                 <ConfirmationModal
                     isOpen={deleteConfirmation.isOpen}
                     onClose={closeDeleteConfirmation}
@@ -263,18 +260,13 @@ const SurgeonsListPanel: React.FC = () => {
                     isLoading={isLoadingSubmit}
                 />
 
-                }
-                }
-                }
                 {loading && <p className="text-center text-gray-600 py-4">Chargement...</p>}
                 {error && <p className="text-center text-red-600 font-medium py-4">{error}</p>}
                 {!loading && !error && (
                     <>
                         <div className="flex justify-between items-center mb-4">
-                            }
                             <h3 className="text-lg font-medium text-gray-700">Chirurgiens enregistrés ({filteredSurgeons.length})</h3>
 
-                            }
                             <div className="flex items-center space-x-4">
                                 <div className="relative flex items-center space-x-2">
                                     <Filter className="h-5 w-5 text-gray-500 flex-shrink-0" />
@@ -297,9 +289,7 @@ const SurgeonsListPanel: React.FC = () => {
                                         <ChevronDown className="h-4 w-4 text-gray-500" />
                                     </div>
                                 </div>
-                                }
 
-                                }
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
                                         id="showInactiveSurgeons"
@@ -311,7 +301,6 @@ const SurgeonsListPanel: React.FC = () => {
                                         Afficher les inactifs
                                     </Label>
                                 </div>
-                                }
                             </div>
                         </div>
 
@@ -322,7 +311,6 @@ const SurgeonsListPanel: React.FC = () => {
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            }
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom Complet</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spécialités</th>
@@ -333,7 +321,6 @@ const SurgeonsListPanel: React.FC = () => {
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {filteredSurgeons.map((surgeon) => (
                                             <motion.tr key={surgeon.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }} className="hover:bg-gray-50/50">
-                                                }
                                                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{surgeon.id}</td>
                                                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{surgeon.prenom} {surgeon.nom}</td>
                                                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">

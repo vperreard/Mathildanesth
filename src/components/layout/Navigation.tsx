@@ -4,10 +4,10 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 // TODO: Replace @heroicons with lucide-react
 const navigation = [
-    { name: 'Accueil', href: '/', icon: {/* HomeIcon},
-    { name: 'Absences', href: '/absences', icon: CalendarIcon },
-    { name: 'Équipe', href: '/equipe', icon: UserGroupIcon },
-    { name: 'Paramètres', href: '/parametres', icon: CogIcon },
+    { name: 'Accueil', href: '/', icon: null }, /* HomeIcon */
+    { name: 'Absences', href: '/absences', icon: null }, /* CalendarIcon */
+    { name: 'Équipe', href: '/equipe', icon: null }, /* UserGroupIcon */
+    { name: 'Paramètres', href: '/parametres', icon: null }, /* CogIcon */
 ];
 
 export const Navigation: React.FC = () => {

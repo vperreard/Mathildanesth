@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import BlocPlanningAdapter from './components/BlocPlanningAdapter';
+import BlocPlanning from './components/BlocPlanning';
 
 export const metadata: Metadata = {
   title: 'Planning Bloc Opératoire | Mathildanesth',
@@ -16,7 +16,7 @@ export default function BlocOperatoirePlanningPage() {
         </p>
       </div>
 
-      <BlocPlanningAdapter optimized={true} />
+      <BlocPlanning />
     </div>
   );
 }

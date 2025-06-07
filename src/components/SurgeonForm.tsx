@@ -113,7 +113,7 @@ export default function SurgeonForm({
         const fetchUsers = async () => {
             setLoadingUsers(true);
             try {
-                const response = await axios.get<LinkableUser[]>('/api/utilisateurs/linkable');
+                const response = await axios.get<LinkableUser[]>('/api/users/linkable');
                 setLinkableUsers(response.data);
             } catch (err: unknown) {
                 logger.error("Erreur fetch linkable users:", err);
@@ -131,7 +131,7 @@ export default function SurgeonForm({
             setLoadingSpecialties(true);
             setError(null);
             try {
-                const response = await fetch('http://localhost:3000/api/specialties');
+                const response = await fetch('/api/specialties');
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(errorData.message || 'Erreur lors de la récupération des spécialités');
@@ -382,8 +382,8 @@ export default function SurgeonForm({
                     Sites d'affectation
                 </label>
                 <SiteSelector
-                    value={selectedSites}
-                    onChange={setSelectedSites}
+                    selectedSites={selectedSites}
+                    onSitesChange={setSelectedSites}
                 />
             </div>
 

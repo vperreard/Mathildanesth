@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { logger } from '../../../../lib/logger';
-import { apiClient } from '@/utils/apiClient';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
@@ -31,13 +30,33 @@ const SecteursAdmin: React.FC = () => {
       try {
         setIsLoading(true);
 
-        // Charger les secteurs
-        const secteursResponse = await apiClient.get('/api/operating-sectors');
-        setSecteurs(secteursResponse.data || []);
+        // Charger les secteurs et sites en parallèle
+        const [secteursResponse, sitesResponse] = await Promise.all([
+          fetch('/api/operating-sectors', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          }),
+          fetch('/api/sites', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          })
+        ]);
 
-        // Charger les sites
-        const sitesResponse = await apiClient.get('/api/sites');
-        setSites(sitesResponse.data || []);
+        if (!secteursResponse.ok || !sitesResponse.ok) {
+          throw new Error('Erreur lors du chargement des données');
+        }
+
+        const secteursData = await secteursResponse.json();
+        const sitesData = await sitesResponse.json();
+
+        setSecteurs(secteursData || []);
+        setSites(sitesData || []);
       } catch (error) {
         logger.error('Erreur lors du chargement des données:', error);
         setError('Impossible de charger les données');

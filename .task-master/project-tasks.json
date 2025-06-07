@@ -5,9 +5,9 @@
     "tests": {
       "name": "Tests & Quality",
       "commands": {
-        "verify": "npm run verify",
-        "verify:quick": "npm run verify:quick",
+        "validate": "npm run validate",
         "test:fast": "npm run test:fast",
+        "test:bulletproof": "npm run test:bulletproof",
         "test:coverage": "npm run test:coverage"
       }
     },
@@ -38,8 +38,8 @@
     }
   },
   "workflows": {
-    "pre-commit": ["verify:quick"],
-    "full-check": ["verify"],
+    "pre-commit": ["test:fast", "lint"],
+    "full-check": ["validate"],
     "quick-dev": ["test:fast", "lint"]
   }
 }

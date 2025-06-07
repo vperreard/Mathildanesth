@@ -18,15 +18,15 @@ import {
 
 describe('DateUtils', () => {
   describe('formatDate', () => {
-    it('should format date to ISO string', () => {
+    it('should format date to default format', () => {
       const date = new Date('2025-06-15T10:30:00');
       const result = formatDate(date);
-      expect(result).toBe('2025-06-15');
+      expect(result).toBe('15/06/2025');
     });
 
     it('should handle string input', () => {
       const result = formatDate('2025-06-15');
-      expect(result).toBe('2025-06-15');
+      expect(result).toBe('15/06/2025');
     });
 
     it('should return empty string for invalid date', () => {

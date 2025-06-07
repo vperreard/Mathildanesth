@@ -27,6 +27,7 @@ import {
 } from "@/components/ui";
 // TODO: Replace with lucide-react icons
 
+import { Plus as PlusIcon, Pencil as PencilIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 // Type pour les rôles professionnels

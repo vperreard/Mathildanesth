@@ -7,7 +7,6 @@ import Button from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
-import { apiClient } from '@/utils/apiClient';
 
 interface Site {
     id: string;
@@ -45,8 +44,19 @@ export default function SitesPage() {
         setError(null);
 
         try {
-            const response = await apiClient.get('/api/sites');
-            const data = response.data;
+            const response = await fetch('/api/sites', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
 
             // Trier les sites par ordre d'affichage puis par nom
             const sortedSites = [...data].sort((a, b) => {
@@ -76,14 +86,25 @@ export default function SitesPage() {
         }
 
         try {
-            const response = await apiClient.post('/api/sites', {
-                name: newSiteName.trim(),
-                description: newSiteDescription.trim() || undefined,
-                colorCode: newSiteColor || undefined,
-                isActive: true,
+            const response = await fetch('/api/sites', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: newSiteName.trim(),
+                    description: newSiteDescription.trim() || undefined,
+                    colorCode: newSiteColor || undefined,
+                    isActive: true,
+                })
             });
 
-            const newSite = response.data;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const newSite = await response.json();
 
             // Mettre à jour la liste des sites
             setSites(prev => [...prev, newSite].sort((a, b) => a.name.localeCompare(b.name)));
@@ -109,14 +130,25 @@ export default function SitesPage() {
         }
 
         try {
-            const response = await apiClient.put(`/api/sites/${currentSite.id}`, {
-                name: currentSite.name,
-                description: currentSite.description || undefined,
-                colorCode: currentSite.colorCode || undefined,
-                isActive: currentSite.isActive,
+            const response = await fetch(`/api/sites/${currentSite.id}`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: currentSite.name,
+                    description: currentSite.description || undefined,
+                    colorCode: currentSite.colorCode || undefined,
+                    isActive: currentSite.isActive,
+                })
             });
 
-            const updatedSite = response.data;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const updatedSite = await response.json();
 
             // Mettre à jour la liste des sites
             setSites(prev =>
@@ -144,7 +176,17 @@ export default function SitesPage() {
         if (!currentSite) return;
 
         try {
-            await apiClient.delete(`/api/sites/${currentSite.id}`);
+            const response = await fetch(`/api/sites/${currentSite.id}`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
             // Mettre à jour la liste des sites
             setSites(prev => prev.filter(site => site.id !== currentSite.id));
@@ -189,12 +231,23 @@ export default function SitesPage() {
 
         // Envoyer la nouvelle ordre au serveur
         try {
-            await apiClient.post('/api/sites/reorder', {
-                siteOrders: updatedSites.map((site, index) => ({
-                    id: site.id,
-                    displayOrder: index
-                }))
+            const response = await fetch('/api/sites/reorder', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    siteOrders: updatedSites.map((site, index) => ({
+                        id: site.id,
+                        displayOrder: index
+                    }))
+                })
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
             // Pas besoin de mettre à jour la liste des sites car déjà fait avec setSites
         } catch (error: unknown) {

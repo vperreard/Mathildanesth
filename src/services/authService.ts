@@ -55,6 +55,7 @@ export const authService = {
           data: {
             loginAttempts,
             lockedUntil,
+            lastFailedAttempt: new Date(),
           },
         });
 
@@ -213,6 +214,11 @@ export const authService = {
       await prisma.user.update({
         where: { id: userId },
         data: { password: hashedPassword },
+      });
+
+      // Invalidate all user sessions
+      await prisma.session.deleteMany({
+        where: { userId },
       });
 
       logger.info('Password changed successfully', { userId });

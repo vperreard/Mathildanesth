@@ -5,6 +5,7 @@ import RuleFeedback from '@/modules/rules/components/RuleFeedback';
 // TODO: Create or import chart components
 // // TODO: Create or import chart components
 // import { PieChart, LineChart, BarChart } from '@/components/ui/charts';
+import { PieChart, LineChart, BarChart } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendrier';

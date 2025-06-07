@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { logger } from "../../../lib/logger";
-// TODO: Replace @heroicons with lucide-react
-import { Plus as PlusIcon, Pencil as PencilIcon, Trash2 as TrashIcon, Check as CheckIcon, ArrowsUpDown as ArrowsUpDownIcon, RefreshCw as ArrowPathIcon } from 'lucide-react';
+import { 
+    ChevronLeft as ChevronLeftIcon, 
+    ChevronRight as ChevronRightIcon, 
+    Calendar as CalendarIcon,
+    Settings as Cog6ToothIcon,
+    Check as CheckIcon,
+    Info as InformationCircleIcon
+} from "lucide-react";
 import { format, addWeeks, startOfWeek, endOfWeek, isToday, isWeekend, eachDayOfInterval, getISOWeek, isAfter, isBefore, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { motion } from "framer-motion";
@@ -275,7 +281,7 @@ export default function WeeklyPlanningPage() {
             }
 
             // Normaliser les données des salles
-            const orderedRooms = fetchedRooms.map((apiRoomData: unknown) => {
+            const orderedRooms = fetchedRooms.map((apiRoomData: any) => {
                 let sectorName = 'Sans secteur'; // Valeur par défaut
                 const roomColor = apiRoomData.colorCode || '#E5E7EB'; // Couleur de la salle elle-même
                 let sectorColor = '#F3F4F6'; // Couleur de fond par défaut pour l'en-tête de secteur (gris très clair)
@@ -1353,13 +1359,13 @@ export default function WeeklyPlanningPage() {
                         {activeDateRangeType === 'week' && (
                             <div className="flex items-center border border-gray-300 dark:border-slate-700 rounded-md shadow-sm overflow-hidden">
                                 <Button onClick={goToPreviousWeek} variant="ghost" size="icon" aria-label="Semaine précédente" className="p-2 rounded-none hover:bg-gray-100 dark:hover:bg-slate-700">
-                                    {/* <ChevronLeftIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" /> */}
+                                    <ChevronLeftIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                                 </Button>
                                 <Button onClick={goToCurrentWeek} variant="ghost" size="sm" className="px-3 py-2 border-l border-r border-gray-300 dark:border-slate-700 rounded-none text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">
                                     Aujourd'hui
                                 </Button>
                                 <Button onClick={goToNextWeek} variant="ghost" size="icon" aria-label="Semaine suivante" className="p-2 rounded-none hover:bg-gray-100 dark:hover:bg-slate-700">
-                                    {/* <ChevronRightIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" /> */}
+                                    <ChevronRightIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                                 </Button>
                             </div>
                         )}
@@ -1400,8 +1406,7 @@ export default function WeeklyPlanningPage() {
                             size="icon"
                             className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700"
                         >
-                            {/* <CalendarIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" /> */}
-                            <span className="sr-only">Sélectionner la date</span>
+                            <CalendarIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                         </Button>
                     </div>
 
@@ -1422,7 +1427,7 @@ export default function WeeklyPlanningPage() {
                             aria-label="Configurer l'affichage"
                             className="border-gray-300 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700"
                         >
-                            {/* <<Cog6ToothIcon className="h-5 w-5 text-gray-600 dark:text-gray-300"  /> */}
+                            <Cog6ToothIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                         </Button>
                     </div>
                 </div>
@@ -1661,7 +1666,7 @@ const ValidationSummaryDisplay = ({ result }: { result: ValidationResult }) => (
     <div className="space-y-2 max-h-[150px] overflow-y-auto">
         {result.valid && (
             <div className="flex items-center p-2 rounded bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200">
-                {/* <CheckIcon className="h-5 w-5 mr-2 flex-shrink-0" /> */}
+                <CheckIcon className="h-5 w-5 mr-2 flex-shrink-0" />
                 <span className="text-sm">Aucune violation critique détectée.</span>
             </div>
         )}
@@ -1672,14 +1677,14 @@ const ValidationSummaryDisplay = ({ result }: { result: ValidationResult }) => (
                         violation.severity === AssignmentRuleSeverity.MINOR ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200' :
                             'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200' // INFO
                     }`}>
-                    {violation.severity === AssignmentRuleSeverity.CRITICAL ? /* <InformationCircleIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0 text-red-500" /> */ null :
-                        /* <InformationCircleIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0 text-yellow-500" /> */ null}
+                    {violation.severity === AssignmentRuleSeverity.CRITICAL ? <InformationCircleIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0 text-red-500" /> :
+                        <InformationCircleIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0 text-yellow-500" />}
                     <span>{violation.message}</span>
                 </div>
             ))
         ) : !result.valid && (!result.violations || result.violations.length === 0) ? (
             <div className="flex items-center p-2 rounded bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200">
-                {/* <<InformationCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-red-500"  /> */}
+                <InformationCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-red-500" />
                 <span className="text-sm">Des violations existent mais n'ont pu être détaillées.</span>
             </div>
         ) : null}

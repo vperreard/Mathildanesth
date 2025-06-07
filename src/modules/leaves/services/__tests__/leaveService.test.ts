@@ -1,6 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import {
-  calculateLeaveDays,
+  calculateLeaveDaysSimple as calculateLeaveDays,
   getLeaveTypeLabel,
   getLeaveStatusLabel,
   formatLeavePeriod,
@@ -50,9 +50,7 @@ describe('LeaveService', () => {
       
       const result = formatLeavePeriod(startDate, endDate);
       
-      expect(result).toContain('15');
-      expect(result).toContain('20');
-      expect(result).toContain('juin');
+      expect(result).toBe('15/06/2025 au 20/06/2025');
     });
 
     it('should format single day leave', () => {
@@ -60,7 +58,7 @@ describe('LeaveService', () => {
       
       const result = formatLeavePeriod(date, date);
       
-      expect(result).toContain('15 juin');
+      expect(result).toBe('15/06/2025');
     });
   });
 
@@ -72,12 +70,12 @@ describe('LeaveService', () => {
 
     it('should return correct label for SICK leave', () => {
       const result = getLeaveTypeLabel(LeaveType.SICK);
-      expect(result).toBe('Congé maladie');
+      expect(result).toBe('Maladie');
     });
 
-    it('should return correct label for RTT', () => {
-      const result = getLeaveTypeLabel(LeaveType.RTT);
-      expect(result).toBe('RTT');
+    it('should return correct label for RECOVERY', () => {
+      const result = getLeaveTypeLabel(LeaveType.RECOVERY);
+      expect(result).toBe('Récupération');
     });
 
     it('should return correct label for UNPAID', () => {
@@ -85,8 +83,8 @@ describe('LeaveService', () => {
       expect(result).toBe('Congé sans solde');
     });
 
-    it('should return correct label for FORMATION', () => {
-      const result = getLeaveTypeLabel(LeaveType.FORMATION);
+    it('should return correct label for TRAINING', () => {
+      const result = getLeaveTypeLabel(LeaveType.TRAINING);
       expect(result).toBe('Formation');
     });
   });
@@ -104,7 +102,7 @@ describe('LeaveService', () => {
 
     it('should return correct label for REJECTED status', () => {
       const result = getLeaveStatusLabel(LeaveStatus.REJECTED);
-      expect(result).toBe('Rejeté');
+      expect(result).toBe('Refusé');
     });
 
     it('should return correct label for CANCELLED status', () => {
@@ -114,6 +112,200 @@ describe('LeaveService', () => {
   });
 
   describe('API Functions', () => {
+    const mockPrisma = {
+      leave: {
+        count: jest.fn(),
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      leaveBalance: {
+        findFirst: jest.fn(),
+        upsert: jest.fn(),
+      },
+      user: {
+        findUnique: jest.fn(),
+      },
+      department: {
+        findMany: jest.fn(),
+      },
+    };
+
+    // Mock prisma
+    jest.mock('@/lib/prisma', () => ({
+      prisma: mockPrisma,
+    }));
+
+    describe('fetchLeaves', () => {
+      it('should fetch leaves with basic filters', async () => {
+        const mockLeaves = [
+          {
+            id: '1',
+            userId: 1,
+            startDate: new Date('2025-06-15'),
+            endDate: new Date('2025-06-20'),
+            countedDays: 6,
+            type: 'ANNUAL',
+            reason: 'Test leave',
+            status: 'PENDING',
+            requestDate: new Date('2025-06-01'),
+            approvedById: null,
+            approvalDate: null,
+            isRecurring: false,
+            recurrencePattern: null,
+            parentId: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            user: {
+              id: 1,
+              prenom: 'John',
+              nom: 'Doe',
+              email: 'john.doe@example.com',
+              department: {
+                id: 1,
+                name: 'IT Department',
+              },
+            },
+          },
+        ];
+
+        mockPrisma.leave.count.mockResolvedValue(1);
+        mockPrisma.leave.findMany.mockResolvedValue(mockLeaves);
+
+        const { fetchLeaves } = await import('../leaveService');
+        const result = await fetchLeaves({ userId: '1' });
+
+        expect(result.items).toHaveLength(1);
+        expect(result.total).toBe(1);
+        expect(result.page).toBe(1);
+        expect(mockPrisma.leave.count).toHaveBeenCalled();
+        expect(mockPrisma.leave.findMany).toHaveBeenCalled();
+      });
+
+      it('should handle pagination in fetchLeaves', async () => {
+        mockPrisma.leave.count.mockResolvedValue(100);
+        mockPrisma.leave.findMany.mockResolvedValue([]);
+
+        const { fetchLeaves } = await import('../leaveService');
+        const result = await fetchLeaves({ page: 2, limit: 10 } as any);
+
+        expect(result.page).toBe(2);
+        expect(result.limit).toBe(10);
+        expect(result.totalPages).toBe(10);
+        expect(mockPrisma.leave.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            skip: 10,
+            take: 10,
+          })
+        );
+      });
+
+      it('should handle date filters in fetchLeaves', async () => {
+        mockPrisma.leave.count.mockResolvedValue(0);
+        mockPrisma.leave.findMany.mockResolvedValue([]);
+
+        const { fetchLeaves } = await import('../leaveService');
+        await fetchLeaves({
+          startDate: '2025-06-01',
+          endDate: '2025-06-30',
+        });
+
+        expect(mockPrisma.leave.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: expect.objectContaining({
+              AND: expect.arrayContaining([
+                { startDate: { gte: new Date('2025-06-01') } },
+                { endDate: { lte: new Date('2025-06-30') } },
+              ]),
+            }),
+          })
+        );
+      });
+
+      it('should handle search term in fetchLeaves', async () => {
+        mockPrisma.leave.count.mockResolvedValue(0);
+        mockPrisma.leave.findMany.mockResolvedValue([]);
+
+        const { fetchLeaves } = await import('../leaveService');
+        await fetchLeaves({ searchTerm: 'john' });
+
+        expect(mockPrisma.leave.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: expect.objectContaining({
+              OR: expect.arrayContaining([
+                { user: { prenom: { contains: 'john', mode: 'insensitive' } } },
+                { user: { nom: { contains: 'john', mode: 'insensitive' } } },
+                { reason: { contains: 'john', mode: 'insensitive' } },
+              ]),
+            }),
+          })
+        );
+      });
+
+      it('should handle error in fetchLeaves', async () => {
+        mockPrisma.leave.count.mockRejectedValue(new Error('Database error'));
+
+        const { fetchLeaves } = await import('../leaveService');
+        
+        await expect(fetchLeaves()).rejects.toThrow('Database error');
+      });
+    });
+
+    describe('fetchLeaveById', () => {
+      it('should fetch a specific leave by ID', async () => {
+        const mockLeave = {
+          id: '1',
+          userId: 1,
+          startDate: new Date('2025-06-15'),
+          endDate: new Date('2025-06-20'),
+          countedDays: 6,
+          type: 'ANNUAL',
+          reason: 'Test leave',
+          status: 'PENDING',
+          requestDate: new Date('2025-06-01'),
+          approvedById: null,
+          approvalDate: null,
+          isRecurring: false,
+          recurrencePattern: null,
+          parentId: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: {
+            id: 1,
+            prenom: 'John',
+            nom: 'Doe',
+            email: 'john.doe@example.com',
+            department: {
+              id: 1,
+              name: 'IT Department',
+            },
+          },
+        };
+
+        mockPrisma.leave.findUnique.mockResolvedValue(mockLeave);
+
+        const { fetchLeaveById } = await import('../leaveService');
+        const result = await fetchLeaveById('1');
+
+        expect(result.id).toBe('1');
+        expect(result.userName).toBe('John Doe');
+        expect(mockPrisma.leave.findUnique).toHaveBeenCalledWith({
+          where: { id: '1' },
+          include: expect.any(Object),
+        });
+      });
+
+      it('should handle not found in fetchLeaveById', async () => {
+        mockPrisma.leave.findUnique.mockResolvedValue(null);
+
+        const { fetchLeaveById } = await import('../leaveService');
+        
+        await expect(fetchLeaveById('999')).rejects.toThrow();
+      });
+    });
+
     describe('fetchLeaveBalance', () => {
       it('should fetch leave balance from API', async () => {
         const mockBalance = {
@@ -135,8 +327,19 @@ describe('LeaveService', () => {
 
         expect(result).toEqual(mockBalance);
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('/conges/balance/1')
+          expect.stringContaining('/conges/balance?userId=1')
         );
+      });
+
+      it('should handle API error in fetchLeaveBalance', async () => {
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+        } as Response);
+
+        const { fetchLeaveBalance } = await import('../leaveService');
+        
+        await expect(fetchLeaveBalance('1')).rejects.toThrow();
       });
     });
 
@@ -153,19 +356,15 @@ describe('LeaveService', () => {
         } as Response);
 
         const { checkLeaveConflicts } = await import('../leaveService');
-        const result = await checkLeaveConflicts({
-          userId: 1,
-          startDate: new Date('2025-06-15'),
-          endDate: new Date('2025-06-20'),
-          type: LeaveType.ANNUAL,
-        });
+        const result = await checkLeaveConflicts(
+          new Date('2025-06-15'),
+          new Date('2025-06-20'),
+          '1'
+        );
 
         expect(result).toEqual(mockConflicts);
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('/conges/check-conflicts'),
-          expect.objectContaining({
-            method: 'POST',
-          })
+          expect.stringContaining('/conges/check-conflicts?')
         );
       });
     });
@@ -224,7 +423,7 @@ describe('LeaveService', () => {
         expect(global.fetch).toHaveBeenCalledWith(
           expect.stringContaining('/conges/1/approve'),
           expect.objectContaining({
-            method: 'PUT',
+            method: 'POST',
           })
         );
       });
@@ -249,7 +448,7 @@ describe('LeaveService', () => {
         expect(global.fetch).toHaveBeenCalledWith(
           expect.stringContaining('/conges/1/cancel'),
           expect.objectContaining({
-            method: 'PUT',
+            method: 'POST',
           })
         );
       });

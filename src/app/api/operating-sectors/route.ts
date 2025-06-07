@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
           orderBy: { displayOrder: 'asc' },
         },
       },
-      orderBy: [{ displayOrder: { sort: 'asc', nulls: 'last' } }, { name: 'asc' }],
+      orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
     });
 
     // Log détaillé pour le débogage

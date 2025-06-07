@@ -74,7 +74,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     logger.info(`PUT /api/operating-rooms/${id} - Body reçu:`, body);
 
     // Extraire les données validées (compatible avec SallesAdmin)
-    const { name, number, operatingSectorId, isActive } = body;
+    const { name, number, operatingSectorId, isActive, colorCode } = body;
 
     if (!name || !operatingSectorId) {
       return NextResponse.json({ error: 'Nom et secteur requis' }, { status: 400 });
@@ -120,6 +120,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         number: number.trim(),
         operatingSectorId: sectorEntity.id,
         isActive: isActive !== undefined ? isActive : true,
+        colorCode: colorCode || null,
       },
       include: { operatingSector: true },
     });

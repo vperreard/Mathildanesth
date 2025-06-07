@@ -31,12 +31,18 @@ const setupAxiosInterceptors = (() => {
     if (isSetup) return;
     isSetup = true;
 
+    // Configuration par défaut pour inclure les cookies
+    axios.defaults.withCredentials = true;
+
     axios.interceptors.request.use(
       config => {
         const token = getClientAuthToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // S'assurer que withCredentials est activé pour toutes les requêtes
+        config.withCredentials = true;
 
         // Cache busting plus léger - seulement pour les APIs critiques
         if (config.url && (config.url.includes('/api/auth/') || config.url.includes('/api/me'))) {

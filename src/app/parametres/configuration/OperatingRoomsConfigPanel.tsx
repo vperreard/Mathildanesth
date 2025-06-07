@@ -5,7 +5,7 @@ import { logger } from "../../../lib/logger";
 import axios from 'axios';
 // TODO: Replace with lucide-react icons
 
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Plus as PlusIcon, Pencil as PencilIcon, Trash2 as TrashIcon, X as XMarkIcon, ChevronsUpDown as ArrowsUpDownIcon, Check as CheckIcon, RefreshCw as ArrowPathIcon } from 'lucide-react';
 import {
     Button,
     Dialog,

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { X as XMarkIcon, ArrowsUpDown as ArrowsUpDownIcon } from 'lucide-react';
 // TODO: Replace @heroicons with lucide-react
 // Importer les types depuis le fichier partagé
 import {

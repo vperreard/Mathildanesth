@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { Tabs, Typography, Button, Row, Col, Divider } from 'antd';
-import { ArrowLeftRight, Calendar, History, Settings, ChartBar, FileText, BarChart2 } from 'lucide-react';
+import { ArrowLeftRight, Calendar, History, Settings, ChartBar, FileText, BarChart2, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { QuotaTransferForm } from '@/modules/leaves/quotas/transfer/QuotaTransferForm';
 import { QuotaCarryOverForm } from '@/modules/leaves/quotas/carryOver/QuotaCarryOverForm';
@@ -186,7 +186,7 @@ export default function QuotasPage() {
                         <Col xs={24} sm={12}>
                             <ShadcnCard
                                 title="Transfert de quotas"
-                                extra={<Button type="primary" onClick={() => setActiveTab('transfer')}><SwapOutlined /> Transférer</Button>}
+                                extra={<Button type="primary" onClick={() => setActiveTab('transfer')}><ArrowLeftRight className="h-4 w-4" /> Transférer</Button>}
                             >
                                 <Paragraph>
                                     Transférez des jours entre différents types de congés selon les règles en vigueur.
@@ -197,7 +197,7 @@ export default function QuotasPage() {
                         <Col xs={24} sm={12}>
                             <ShadcnCard
                                 title="Report de quotas"
-                                extra={<Button type="primary" onClick={() => setActiveTab('carryover')}><CalendarOutlined /> Reporter</Button>}
+                                extra={<Button type="primary" onClick={() => setActiveTab('carryover')}><RotateCcw className="h-4 w-4" /> Reporter</Button>}
                             >
                                 <Paragraph>
                                     Reportez des jours de congés non utilisés de l'année {currentYear} vers l'année {nextYear}.
@@ -218,7 +218,7 @@ export default function QuotasPage() {
                 </TabPane>
 
                 <TabPane
-                    tab={<span><SwapOutlined /> Transfert de quotas</span>}
+                    tab={<span><ArrowLeftRight className="h-4 w-4" /> Transfert de quotas</span>}
                     key="transfer"
                 >
                     <QuotaTransferForm
@@ -229,7 +229,7 @@ export default function QuotasPage() {
                 </TabPane>
 
                 <TabPane
-                    tab={<span><CalendarOutlined /> Report de quotas</span>}
+                    tab={<span><RotateCcw className="h-4 w-4" /> Report de quotas</span>}
                     key="carryover"
                 >
                     <QuotaCarryOverForm
