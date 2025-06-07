@@ -1,0 +1,14 @@
+#!/bin/bash
+# Task Master wrapper for mathildanesth project
+# This provides a simple interface to task management
+
+TASK_WRAPPER="/workspace/.task-master/task-wrapper.js"
+
+# Ensure the wrapper exists
+if [ ! -f "$TASK_WRAPPER" ]; then
+    echo "❌ Task wrapper not found. Run setup-task-master.sh first."
+    exit 1
+fi
+
+# Execute the task wrapper with all arguments
+node "$TASK_WRAPPER" "$@"

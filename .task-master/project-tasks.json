@@ -1,0 +1,45 @@
+{
+  "name": "mathildanesth",
+  "description": "Medical planning application for anesthesia teams",
+  "categories": {
+    "tests": {
+      "name": "Tests & Quality",
+      "commands": {
+        "verify": "npm run verify",
+        "verify:quick": "npm run verify:quick",
+        "test:fast": "npm run test:fast",
+        "test:coverage": "npm run test:coverage"
+      }
+    },
+    "development": {
+      "name": "Development",
+      "commands": {
+        "dev": "npm run dev",
+        "build": "npm run build",
+        "etape": "npm run etape"
+      }
+    },
+    "database": {
+      "name": "Database",
+      "commands": {
+        "migrate": "npx prisma migrate dev",
+        "generate": "npx prisma generate",
+        "studio": "npx prisma studio",
+        "seed": "npm run db:seed"
+      }
+    },
+    "quality": {
+      "name": "Code Quality",
+      "commands": {
+        "lint": "npm run lint",
+        "typecheck": "npm run typecheck",
+        "audit": "./scripts/claude-auto.sh audit"
+      }
+    }
+  },
+  "workflows": {
+    "pre-commit": ["verify:quick"],
+    "full-check": ["verify"],
+    "quick-dev": ["test:fast", "lint"]
+  }
+}

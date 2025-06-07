@@ -157,8 +157,15 @@ class AutomatedManualTester {
     };
 
     const startTime = Date.now();
+    let progressInterval;
 
     try {
+      // Afficher des messages de progression toutes les 20 secondes
+      progressInterval = setInterval(() => {
+        const elapsed = Math.round((Date.now() - startTime) / 1000);
+        console.log(`   ⏱️  ${nom} - En cours depuis ${elapsed}s...`);
+      }, 20000);
+
       await testFn(parcoursResult);
       parcoursResult.statut = 'success';
       this.results.parcoursReussis++;
@@ -175,6 +182,11 @@ class AutomatedManualTester {
         parcoursResult.screenshots.push(screenshot);
       } catch (screenshotError) {
         console.error("Impossible de prendre une capture d'écran:", screenshotError);
+      }
+    } finally {
+      // Arrêter l'intervalle de progression
+      if (progressInterval) {
+        clearInterval(progressInterval);
       }
     }
 
@@ -565,6 +577,12 @@ class AutomatedManualTester {
 
   async run() {
     console.log('🚀 Démarrage des tests manuels automatisés complets\n');
+    console.log('   📌 Messages de progression toutes les 20 secondes pour éviter les timeouts\n');
+
+    // Intervalle global pour montrer que le script est toujours actif
+    const globalProgressInterval = setInterval(() => {
+      console.log(`\n💓 Script toujours actif - ${new Date().toLocaleTimeString()}`);
+    }, 30000);
 
     try {
       await this.initialize();
@@ -572,6 +590,7 @@ class AutomatedManualTester {
       // Tests pour chaque rôle
       for (const [role, userData] of Object.entries(TEST_USERS)) {
         console.log(`\n📋 Tests pour le rôle: ${role.toUpperCase()}`);
+        console.log(`   ⏰ Début: ${new Date().toLocaleTimeString()}`);
 
         // Connexion
         await this.testConnexion(userData, role);
@@ -604,6 +623,8 @@ class AutomatedManualTester {
 
         // Déconnexion
         await this.testDeconnexion();
+        
+        console.log(`   ⏰ Fin des tests pour ${role}: ${new Date().toLocaleTimeString()}`);
       }
 
       // Calculer les résultats finaux
@@ -621,11 +642,17 @@ class AutomatedManualTester {
         timestamp: new Date(),
       });
     } finally {
+      // Arrêter l'intervalle global
+      clearInterval(globalProgressInterval);
+      console.log('\n🛑 Arrêt des messages de progression');
+      
       await this.cleanup();
     }
   }
 
   async genererRapport() {
+    console.log('\n📝 Génération du rapport en cours...');
+    
     const rapport = {
       ...this.results,
       resume: {
@@ -645,11 +672,13 @@ class AutomatedManualTester {
     // Sauvegarder le rapport JSON
     const jsonPath = path.join(REPORTS_DIR, `manual-test-report-${Date.now()}.json`);
     await fs.writeFile(jsonPath, JSON.stringify(rapport, null, 2));
+    console.log('   ✔️ Rapport JSON sauvegardé');
 
     // Générer un rapport Markdown
     const markdown = this.genererRapportMarkdown(rapport);
     const mdPath = path.join(REPORTS_DIR, `manual-test-summary-${Date.now()}.md`);
     await fs.writeFile(mdPath, markdown);
+    console.log('   ✔️ Rapport Markdown sauvegardé');
 
     console.log(`\n📊 Rapports générés:`);
     console.log(`   - JSON: ${jsonPath}`);

@@ -1,0 +1,30 @@
+{
+  "project": {
+    "name": "mathildanesth",
+    "description": "Medical planning application for anesthesia teams",
+    "type": "nextjs",
+    "language": "typescript",
+    "framework": "Next.js 14"
+  },
+  "tasks": {
+    "storage": "local",
+    "path": ".task-master/tasks",
+    "categories": [
+      "bug-fix",
+      "feature",
+      "refactor",
+      "test",
+      "documentation",
+      "performance",
+      "security"
+    ]
+  },
+  "priorities": {
+    "levels": ["critical", "high", "medium", "low"],
+    "default": "medium"
+  },
+  "workflow": {
+    "states": ["todo", "in-progress", "review", "testing", "done", "blocked"],
+    "default": "todo"
+  }
+}

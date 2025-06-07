@@ -4,9 +4,12 @@ import { verifyAuthToken, getAuthTokenServer } from '@/lib/auth-server-utils';
 import { prisma } from '@/lib/prisma';
 import { withUserRateLimit } from '@/lib/rateLimit';
 import { AuthCacheService } from '@/lib/auth/authCache';
+import { OptimizedAuthCache } from '@/lib/auth/optimized-auth-cache';
+import { authPerformanceMonitor } from '@/lib/auth/performance-monitor';
 
 async function handler(req: NextRequest) {
-  const startTime = Date.now();
+  return authPerformanceMonitor.measure('meEndpoint', async () => {
+    const startTime = Date.now();
 
   try {
     // Optimized token extraction
@@ -31,7 +34,54 @@ async function handler(req: NextRequest) {
       );
     }
 
-    // Check cache first for better performance
+    // Check if middleware already verified
+    const verifiedHeader = req.headers.get('x-auth-verified');
+    const userId = req.headers.get('x-user-id');
+    const userRole = req.headers.get('x-user-role');
+
+    if (verifiedHeader === 'true' && userId) {
+      // Skip token verification, use middleware result
+      const cachedUser = await OptimizedAuthCache.getCachedUserById(userId);
+      if (cachedUser) {
+        return NextResponse.json({
+          user: cachedUser,
+          authenticated: true,
+        }, {
+          headers: {
+            'X-Response-Time': `${Date.now() - startTime}ms`,
+            'X-Cache': 'HIT',
+          },
+        });
+      }
+
+      // Fetch from DB if not cached
+      const user = await prisma.user.findUnique({
+        where: { id: parseInt(userId) },
+        select: {
+          id: true,
+          login: true,
+          email: true,
+          nom: true,
+          prenom: true,
+          role: true,
+        },
+      });
+
+      if (user) {
+        await OptimizedAuthCache.cacheAuthToken('dummy', user);
+        return NextResponse.json({
+          user,
+          authenticated: true,
+        }, {
+          headers: {
+            'X-Response-Time': `${Date.now() - startTime}ms`,
+            'X-Cache': 'MISS',
+          },
+        });
+      }
+    }
+
+    // Fallback to original cache check
     const cachedAuth = await AuthCacheService.getCachedAuthToken(token);
     if (cachedAuth && cachedAuth.userId) {
       // Try to get cached user data
@@ -112,6 +162,7 @@ async function handler(req: NextRequest) {
     logger.error('API /auth/me error:', { error: error });
     return NextResponse.json({ authenticated: false, error: 'Erreur serveur' }, { status: 500 });
   }
+  });
 }
 
 export const GET = withUserRateLimit(handler);

@@ -5,6 +5,7 @@
 
 # testing
 /coverage
+/coverage-*
 
 # next.js
 /.next/
@@ -145,3 +146,10 @@ node_modules/
 # Task files
 tasks.json
 tasks/ package.json.backup
+
+# Task Master
+.task-master/logs/
+.task-master/tasks/*.tmp
+
+# Added by Task Master AI
+tasks/ 
