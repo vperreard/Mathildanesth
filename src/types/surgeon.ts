@@ -8,6 +8,10 @@ export interface Surgeon {
     specialties: string[]; // Stocké comme tableau en BDD
     status: string; // Ex: 'ACTIF', 'INACTIF'
     userId?: number | null; // ID de l'utilisateur lié (optionnel)
+    sites?: Array<{
+        id: string;
+        name: string;
+    }>; // Sites assignés au chirurgien
 }
 
 // Interface pour les données du formulaire Chirurgien

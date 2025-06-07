@@ -43,7 +43,7 @@ export default function AdminSkillsPage() {
             const data = await response.json();
             setSkills(data);
         } catch (error: unknown) {
-            logger.error(error);
+            logger.error('Failed to fetch skills:', { error });
             toast({
                 title: "Erreur",
                 description: "Impossible de charger les compétences.",
@@ -79,7 +79,8 @@ export default function AdminSkillsPage() {
             setNewSkillName('');
             setNewSkillDescription('');
         } catch (error: unknown) {
-            toast({ title: "Erreur", description: error.message || "Impossible de créer la compétence.", variant: "destructive" });
+            const errorMessage = error instanceof Error ? error.message : "Impossible de créer la compétence.";
+            toast({ title: "Erreur", description: errorMessage, variant: "destructive" });
         }
         setIsSaving(false);
     };
@@ -104,7 +105,8 @@ export default function AdminSkillsPage() {
             toast({ title: "Succès", description: "Compétence mise à jour avec succès." });
             setShowEditDialog(false);
         } catch (error: unknown) {
-            toast({ title: "Erreur", description: error.message || "Impossible de mettre à jour la compétence.", variant: "destructive" });
+            const errorMessage = error instanceof Error ? error.message : "Impossible de mettre à jour la compétence.";
+            toast({ title: "Erreur", description: errorMessage, variant: "destructive" });
         }
         setIsSaving(false);
     };
@@ -124,7 +126,8 @@ export default function AdminSkillsPage() {
             toast({ title: "Succès", description: "Compétence supprimée avec succès." });
             setShowDeleteDialog(false);
         } catch (error: unknown) {
-            toast({ title: "Erreur", description: error.message || "Impossible de supprimer la compétence.", variant: "destructive" });
+            const errorMessage = error instanceof Error ? error.message : "Impossible de supprimer la compétence.";
+            toast({ title: "Erreur", description: errorMessage, variant: "destructive" });
         }
         setIsSaving(false);
     };

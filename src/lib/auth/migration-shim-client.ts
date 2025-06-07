@@ -1,9 +1,10 @@
 /**
- * Module de compatibilité CLIENT pour la migration NextAuth → JWT Custom
- * Ce fichier contient uniquement les exports utilisables côté client
+ * Module de compatibilité pour la migration NextAuth → JWT Custom
+ * Ce fichier contient les exports pour client ET serveur
  */
 
 import { useAuth } from '@/hooks/useAuth';
+import { Role } from '@prisma/client';
 
 // Type pour matcher le format NextAuth Session
 interface NextAuthSession {
@@ -66,5 +67,76 @@ export async function signOut(options?: any) {
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
     }
+  }
+}
+
+// Configuration d'authentification compatible NextAuth
+export const authOptions = {
+  pages: {
+    signIn: '/auth/signin',
+    signOut: '/auth/signin',
+  },
+  callbacks: {
+    jwt: async ({ token, user }: any) => {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+      return token;
+    },
+    session: async ({ session, token }: any) => {
+      if (token) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+      }
+      return session;
+    },
+  },
+};
+
+/**
+ * Version serveur de getServerSession adaptée pour JWT custom
+ * Remplace getServerSession de NextAuth
+ * NOTE: Cette fonction ne peut être utilisée que côté serveur
+ */
+export async function getServerSession(options?: any): Promise<NextAuthSession | null> {
+  // Vérification que nous sommes côté serveur
+  if (typeof window !== 'undefined') {
+    console.warn('getServerSession appelée côté client - retourne null');
+    return null;
+  }
+
+  try {
+    // Import dynamique côté serveur seulement
+    const { cookies } = await import('next/headers');
+    const jwt = await import('jsonwebtoken');
+    
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token')?.value;
+    
+    if (!token) {
+      return null;
+    }
+
+    const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    
+    if (!decoded || !decoded.id) {
+      return null;
+    }
+
+    return {
+      user: {
+        id: decoded.id,
+        email: decoded.email,
+        name: `${decoded.prenom} ${decoded.nom}`,
+        login: decoded.login,
+        role: decoded.role as Role,
+      },
+      expires: new Date(decoded.exp * 1000).toISOString(),
+    };
+  } catch (error) {
+    console.error('Erreur lors de la vérification du token:', error);
+    return null;
   }
 }

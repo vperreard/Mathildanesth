@@ -5,7 +5,7 @@ import { logger } from "../../../lib/logger";
 import SiteSelector from '@/components/ui/SiteSelector';
 import { useUserSiteAssignments, useSurgeonSiteAssignments } from '@/hooks/useSiteAssignments';
 import Link from 'next/link';
-import { Settings, Users, Check, X } from 'lucide-react';
+import { Settings, Users, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/utils/apiClient';
 import { toast } from 'react-hot-toast';
@@ -17,6 +17,11 @@ interface User {
     email: string;
     professionalRole: string;
     isActive: boolean;
+    sites?: Array<{
+        id: string;
+        name: string;
+        colorCode?: string;
+    }>;
 }
 
 interface Surgeon {
@@ -26,6 +31,11 @@ interface Surgeon {
     email?: string;
     status: string;
     specialties: { name: string }[];
+    sites?: Array<{
+        id: string;
+        name: string;
+        colorCode?: string;
+    }>;
 }
 
 interface Site {

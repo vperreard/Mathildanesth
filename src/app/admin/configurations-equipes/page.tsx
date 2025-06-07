@@ -27,8 +27,9 @@ export default function TeamConfigurationsPage() {
                 const data = await response.json();
                 setConfigurations(data);
             } catch (err: unknown) {
-                setError(err.message || 'Une erreur est survenue');
-                toast.error(err.message || 'Une erreur est survenue');
+                const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue';
+                setError(errorMessage);
+                toast.error(errorMessage);
             } finally {
                 setLoading(false);
             }
@@ -57,7 +58,8 @@ export default function TeamConfigurationsPage() {
             setConfigurations(prev => prev.filter(config => config.id !== id));
             toast.success('Configuration supprimée avec succès');
         } catch (err: unknown) {
-            toast.error(err.message || 'Erreur lors de la suppression');
+            const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la suppression';
+            toast.error(errorMessage);
         }
     };
 
@@ -88,7 +90,8 @@ export default function TeamConfigurationsPage() {
 
             toast.success(`Configuration ${!isActive ? 'activée' : 'désactivée'} avec succès`);
         } catch (err: unknown) {
-            toast.error(err.message || 'Erreur lors de la mise à jour');
+            const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la mise à jour';
+            toast.error(errorMessage);
         }
     };
 
@@ -118,7 +121,8 @@ export default function TeamConfigurationsPage() {
 
             toast.success('Configuration définie par défaut avec succès');
         } catch (err: unknown) {
-            toast.error(err.message || 'Erreur lors de la mise à jour');
+            const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la mise à jour';
+            toast.error(errorMessage);
         }
     };
 

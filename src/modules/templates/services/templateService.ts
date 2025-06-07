@@ -220,7 +220,7 @@ const mapTrameModeleDtoToPlanningTemplate = (dto: unknown): PlanningTemplate => 
 // --- Service API --- 
 export const templateService = {
     async getTemplates(): Promise<PlanningTemplate[]> {
-        logger.info("[Modèle Service] Appel de getTemplates via API /api/trameModele-modeles?includeAffectations=true...");
+        logger.info("[Modèle Service] Appel de getTemplates via API /api/trame-modeles?includeAffectations=true...");
         try {
             const token = await getClientAuthToken();
             // Ajouter un timestamp pour éviter le cache
