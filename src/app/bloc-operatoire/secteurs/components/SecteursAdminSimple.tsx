@@ -95,7 +95,14 @@ export default function SecteursAdminSimple() {
         if (!response.ok) throw new Error('Erreur de chargement');
         
         const data = await response.json();
-        setSecteurs(data);
+        
+        // Transformer 'rooms' en 'operatingRooms' pour compatibilité
+        const transformedData = data.map((secteur: any) => ({
+          ...secteur,
+          operatingRooms: secteur.rooms || []
+        }));
+        
+        setSecteurs(transformedData);
       } catch (error) {
         console.error('Erreur lors du chargement des secteurs:', error);
         toast.error('Erreur lors du chargement des secteurs');
