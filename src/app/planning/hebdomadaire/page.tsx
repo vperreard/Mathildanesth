@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { logger } from "../../../lib/logger";
 import { 
-    ChevronLeftIcon, 
-    ChevronRightIcon, 
-    CalendarIcon,
-    Cog6ToothIcon,
-    CheckIcon,
-    InformationCircleIcon
-} from "@heroicons/react/24/outline";
+    ChevronLeft as ChevronLeftIcon, 
+    ChevronRight as ChevronRightIcon, 
+    Calendar as CalendarIcon,
+    Settings as Cog6ToothIcon,
+    Check as CheckIcon,
+    Info as InformationCircleIcon
+} from "lucide-react";
 import { format, addWeeks, startOfWeek, endOfWeek, isToday, isWeekend, eachDayOfInterval, getISOWeek, isAfter, isBefore, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { motion } from "framer-motion";

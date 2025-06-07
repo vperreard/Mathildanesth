@@ -17,7 +17,7 @@ import { hasPermission } from '@/lib/permissions';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { trameId: string } }
+  { params }: { params: { trameModeleId: string } }
 ) {
   try {
     // Authentification
@@ -38,7 +38,7 @@ export async function GET(
     // Vérification des permissions
     const canAccess = await trameAffectationService.checkPermission(
       payload.userId,
-      params.trameId
+      params.trameModeleId
     );
 
     if (!canAccess) {
@@ -84,7 +84,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { trameId: string } }
+  { params }: { params: { trameModeleId: string } }
 ) {
   try {
     // Authentification
@@ -116,7 +116,7 @@ export async function POST(
 
     logger.info('Trame affectation created', {
       userId: payload.userId,
-      trameId: params.trameId,
+      trameId: params.trameModeleId,
       affectationId: newAffectation.id
     });
 
@@ -141,7 +141,7 @@ export async function POST(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { trameId: string } }
+  { params }: { params: { trameModeleId: string } }
 ) {
   try {
     // Authentification
@@ -168,7 +168,7 @@ export async function PUT(
     // Vérification des permissions
     const canModify = await trameAffectationService.checkPermission(
       payload.userId,
-      params.trameId
+      params.trameModeleId
     );
 
     if (!canModify) {
@@ -198,7 +198,7 @@ export async function PUT(
 
     logger.info('Trame affectation updated', {
       userId: payload.userId,
-      trameId: params.trameId,
+      trameId: params.trameModeleId,
       affectationId
     });
 
@@ -223,7 +223,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { trameId: string } }
+  { params }: { params: { trameModeleId: string } }
 ) {
   try {
     // Authentification
@@ -270,7 +270,7 @@ export async function DELETE(
 
     logger.info('Trame affectation deleted', {
       userId: payload.userId,
-      trameId: params.trameId,
+      trameId: params.trameModeleId,
       affectationId
     });
 

@@ -4,7 +4,7 @@ Cette API permet de gérer les affectations individuelles des trames modèles po
 
 ## Endpoints
 
-### GET /api/trame-modeles/[trameId]/affectations
+### GET /api/trame-modeles/[trameModeleId]/affectations-individuelles
 
 Récupère toutes les affectations d'une trame modèle avec pagination et filtres.
 
@@ -62,7 +62,7 @@ Récupère toutes les affectations d'une trame modèle avec pagination et filtre
 }
 ```
 
-### POST /api/trame-modeles/[trameId]/affectations
+### POST /api/trame-modeles/[trameModeleId]/affectations-individuelles
 
 Crée une nouvelle affectation pour une trame modèle.
 
@@ -91,7 +91,7 @@ Crée une nouvelle affectation pour une trame modèle.
 
 **Réponse :** 201 Created avec l'objet créé
 
-### PUT /api/trame-modeles/[trameId]/affectations/[affectationId]
+### PUT /api/trame-modeles/[trameModeleId]/affectations-individuelles/[affectationId]
 
 Met à jour une affectation existante.
 
@@ -108,7 +108,7 @@ Met à jour une affectation existante.
 
 **Réponse :** 200 OK avec l'objet mis à jour
 
-### DELETE /api/trame-modeles/[trameId]/affectations/[affectationId]
+### DELETE /api/trame-modeles/[trameModeleId]/affectations-individuelles/[affectationId]
 
 Supprime une affectation.
 
@@ -131,12 +131,12 @@ Supprime une affectation.
 
 ### Récupérer les affectations actives
 ```bash
-GET /api/trame-modeles/123/affectations?isActive=true&sortBy=name&sortOrder=asc
+GET /api/trame-modeles/123/affectations-individuelles?isActive=true&sortBy=name&sortOrder=asc
 ```
 
 ### Créer une nouvelle affectation
 ```bash
-POST /api/trame-modeles/123/affectations
+POST /api/trame-modeles/123/affectations-individuelles
 Content-Type: application/json
 Authorization: Bearer <token>
 
@@ -158,7 +158,7 @@ Authorization: Bearer <token>
 
 ### Mettre à jour une affectation
 ```bash
-PUT /api/trame-modeles/123/affectations/affectation-456
+PUT /api/trame-modeles/123/affectations-individuelles/affectation-456
 Content-Type: application/json
 Authorization: Bearer <token>
 
@@ -170,6 +170,6 @@ Authorization: Bearer <token>
 
 ### Supprimer une affectation
 ```bash
-DELETE /api/trame-modeles/123/affectations/affectation-456
+DELETE /api/trame-modeles/123/affectations-individuelles/affectation-456
 Authorization: Bearer <token>
 ```

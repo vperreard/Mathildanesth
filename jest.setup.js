@@ -8,6 +8,13 @@ global.console = {
   error: jest.fn(),
 };
 
+// Add TextEncoder/TextDecoder polyfills for Node.js environment
+if (typeof TextEncoder === 'undefined') {
+  const { TextEncoder, TextDecoder } = require('util');
+  global.TextEncoder = TextEncoder;
+  global.TextDecoder = TextDecoder;
+}
+
 // Mock window.matchMedia if window is defined
 if (typeof window !== 'undefined') {
   Object.defineProperty(window, 'matchMedia', {

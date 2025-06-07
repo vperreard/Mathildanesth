@@ -1,53 +1,77 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { renderHook, act } from '@testing-library/react-hooks';
+import React from 'react';
+import { renderHook, act } from '@testing-library/react';
 import { useAuth } from '../useAuth';
-
-// signIn - utiliser les méthodes du hook useAuth
-// signOut - utiliser les méthodes du hook useAuth;
+import { AuthProvider } from '@/context/AuthContext';
+import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
-// Mock next-auth/react
-jest.mock('next-auth/react', () => ({
-  useSession: jest.fn(),
-  signIn: jest.fn(),
-  signOut: jest.fn(),
-}));
+// Mock axios
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-// Mock fetch
-global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+// Mock auth-client-utils
+jest.mock('@/lib/auth-client-utils', () => ({
+  getClientAuthToken: jest.fn(),
+  setClientAuthToken: jest.fn(),
+  removeClientAuthToken: jest.fn(),
+}));
+
+// Mock console methods to reduce noise
+const originalConsoleError = console.error;
+const originalConsoleLog = console.log;
+beforeAll(() => {
+  console.error = jest.fn();
+  console.log = jest.fn();
+});
+afterAll(() => {
+  console.error = originalConsoleError;
+  console.log = originalConsoleLog;
+});
 
 describe('useAuth', () => {
   const mockPush = jest.fn();
-  const mockSession = {
-    user: {
-      id: 1,
-      email: 'test@example.com',
-      name: 'Test User',
-      role: 'USER',
-    },
+  const mockUser = {
+    id: 1,
+    login: 'testuser',
+    email: 'test@example.com',
+    nom: 'User',
+    prenom: 'Test',
+    role: 'USER',
+    actif: true,
   };
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <AuthProvider>{children}</AuthProvider>
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
+    
+    // Setup axios interceptors mock
+    mockedAxios.interceptors = {
+      request: { use: jest.fn() },
+      response: { use: jest.fn() },
+    } as any;
   });
 
   describe('when user is not authenticated', () => {
     beforeEach(() => {
-      const { useSession } = require('next-auth/react');
-      (useSession as jest.Mock).mockReturnValue({
-        data: null,
-        status: 'unauthenticated',
-      });
+      mockedAxios.get.mockRejectedValue({ response: { status: 401 } });
     });
 
-    it('should return unauthenticated state', () => {
-      const { result } = renderHook(() => useAuth());
+    it('should return unauthenticated state', async () => {
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      // Wait for the initial load to complete
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
 
       expect(result.current.user).toBeNull();
       expect(result.current.isAuthenticated).toBe(false);
@@ -55,190 +79,105 @@ describe('useAuth', () => {
     });
 
     it('should handle login successfully', async () => {
-      (signIn as jest.Mock).mockResolvedValue({ ok: true });
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ token: 'mock-token' }),
-      } as Response);
+      mockedAxios.post.mockResolvedValueOnce({
+        data: { token: 'mock-token', user: mockUser },
+      });
+      mockedAxios.get.mockResolvedValueOnce({
+        data: mockUser,
+      });
 
-      const { result } = renderHook(() => useAuth());
+      const { result } = renderHook(() => useAuth(), { wrapper });
 
       await act(async () => {
-        const success = await result.current.login('test@example.com', 'password');
-        expect(success).toBe(true);
+        await result.current.login({ login: 'testuser', password: 'password' });
       });
 
-      expect(signIn).toHaveBeenCalledWith('credentials', {
-        email: 'test@example.com',
+      expect(mockedAxios.post).toHaveBeenCalledWith('/api/auth/login', {
+        login: 'testuser',
         password: 'password',
-        redirect: false,
       });
+      expect(result.current.user).toEqual(mockUser);
+      expect(result.current.isAuthenticated).toBe(true);
     });
 
     it('should handle login failure', async () => {
-      (signIn as jest.Mock).mockResolvedValue({ ok: false, error: 'Invalid credentials' });
-
-      const { result } = renderHook(() => useAuth());
-
-      await act(async () => {
-        const success = await result.current.login('test@example.com', 'wrong-password');
-        expect(success).toBe(false);
+      mockedAxios.post.mockRejectedValueOnce({
+        response: { data: { error: 'Invalid credentials' } },
       });
 
-      expect(result.current.error).toBe('Invalid credentials');
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await expect(
+        act(async () => {
+          await result.current.login({ login: 'testuser', password: 'wrong-password' });
+        })
+      ).rejects.toThrow();
+
+      expect(result.current.user).toBeNull();
+      expect(result.current.isAuthenticated).toBe(false);
     });
   });
 
   describe('when user is authenticated', () => {
     beforeEach(() => {
-      const { useSession } = require('next-auth/react');
-      (useSession as jest.Mock).mockReturnValue({
-        data: mockSession,
-        status: 'authenticated',
-      });
+      mockedAxios.get.mockResolvedValue({ data: mockUser });
     });
 
-    it('should return authenticated state', () => {
-      const { result } = renderHook(() => useAuth());
+    it('should return authenticated state', async () => {
+      const { result } = renderHook(() => useAuth(), { wrapper });
 
-      expect(result.current.user).toEqual(mockSession.user);
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
+      expect(result.current.user).toEqual(mockUser);
       expect(result.current.isAuthenticated).toBe(true);
       expect(result.current.isLoading).toBe(false);
     });
 
     it('should handle logout', async () => {
-      (signOut as jest.Mock).mockResolvedValue(undefined);
+      mockedAxios.post.mockResolvedValueOnce({
+        data: { message: 'Logged out' },
+      });
 
-      const { result } = renderHook(() => useAuth());
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
 
       await act(async () => {
         await result.current.logout();
       });
 
-      expect(signOut).toHaveBeenCalledWith({ redirect: false });
+      expect(mockedAxios.post).toHaveBeenCalledWith('/api/auth/logout');
       expect(mockPush).toHaveBeenCalledWith('/connexion');
-    });
-
-    it('should check permissions correctly', () => {
-      const { result } = renderHook(() => useAuth());
-
-      expect(result.current.hasRole('USER')).toBe(true);
-      expect(result.current.hasRole('ADMIN')).toBe(false);
-      expect(result.current.hasAnyRole(['USER', 'ADMIN'])).toBe(true);
-      expect(result.current.hasAnyRole(['ADMIN', 'SUPER_ADMIN'])).toBe(false);
-    });
-  });
-
-  describe('when loading', () => {
-    beforeEach(() => {
-      const { useSession } = require('next-auth/react');
-      (useSession as jest.Mock).mockReturnValue({
-        data: null,
-        status: 'loading',
-      });
-    });
-
-    it('should return loading state', () => {
-      const { result } = renderHook(() => useAuth());
-
       expect(result.current.user).toBeNull();
       expect(result.current.isAuthenticated).toBe(false);
-      expect(result.current.isLoading).toBe(true);
     });
   });
 
-  describe('updateProfile', () => {
-    beforeEach(() => {
-      const { useSession } = require('next-auth/react');
-      (useSession as jest.Mock).mockReturnValue({
-        data: mockSession,
-        status: 'authenticated',
-        update: jest.fn(),
-      });
-    });
+  describe('refetchUser', () => {
+    it('should refetch user data', async () => {
+      const updatedUser = { ...mockUser, nom: 'Updated' };
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: mockUser })
+        .mockResolvedValueOnce({ data: updatedUser });
 
-    it('should update user profile successfully', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ ...mockSession.user, name: 'Updated Name' }),
-      } as Response);
-
-      const { result } = renderHook(() => useAuth());
+      const { result } = renderHook(() => useAuth(), { wrapper });
 
       await act(async () => {
-        const success = await result.current.updateProfile({ name: 'Updated Name' });
-        expect(success).toBe(true);
+        await new Promise(resolve => setTimeout(resolve, 0));
       });
 
-      expect(global.fetch).toHaveBeenCalledWith('/api/users/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'Updated Name' }),
-      });
-    });
-
-    it('should handle profile update failure', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({ error: 'Update failed' }),
-      } as Response);
-
-      const { result } = renderHook(() => useAuth());
+      expect(result.current.user).toEqual(mockUser);
 
       await act(async () => {
-        const success = await result.current.updateProfile({ name: 'Updated Name' });
-        expect(success).toBe(false);
+        const user = await result.current.refetchUser();
+        expect(user).toEqual(updatedUser);
       });
 
-      expect(result.current.error).toBe('Update failed');
-    });
-  });
-
-  describe('checkSession', () => {
-    it('should verify session validity', async () => {
-      const { useSession } = require('next-auth/react');
-      const mockUpdate = jest.fn();
-      (useSession as jest.Mock).mockReturnValue({
-        data: mockSession,
-        status: 'authenticated',
-        update: mockUpdate,
-      });
-
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ valid: true }),
-      } as Response);
-
-      const { result } = renderHook(() => useAuth());
-
-      await act(async () => {
-        const isValid = await result.current.checkSession();
-        expect(isValid).toBe(true);
-      });
-
-      expect(mockUpdate).toHaveBeenCalled();
-    });
-
-    it('should handle invalid session', async () => {
-      const { useSession } = require('next-auth/react');
-      (useSession as jest.Mock).mockReturnValue({
-        data: mockSession,
-        status: 'authenticated',
-        update: jest.fn(),
-      });
-
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-      } as Response);
-
-      const { result } = renderHook(() => useAuth());
-
-      await act(async () => {
-        const isValid = await result.current.checkSession();
-        expect(isValid).toBe(false);
-      });
-
-      expect(signOut).toHaveBeenCalled();
+      expect(result.current.user).toEqual(updatedUser);
     });
   });
 });

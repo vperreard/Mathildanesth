@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { GET, POST, PUT, DELETE } from '@/app/api/trame-modeles/[trameId]/affectations/route';
+import { GET, POST, PUT, DELETE } from '@/app/api/trame-modeles/[trameModeleId]/affectations-individuelles/route';
 import { trameAffectationService } from '@/services/trameAffectationService';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { hasPermission } from '@/lib/permissions';
@@ -61,8 +61,8 @@ describe('Trame Affectations API', () => {
         }
       });
 
-      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations?page=1&limit=20');
-      const response = await GET(request, { params: { trameId: '123' } });
+      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations-individuelles?page=1&limit=20');
+      const response = await GET(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -75,8 +75,8 @@ describe('Trame Affectations API', () => {
     it('should return 401 for unauthenticated user', async () => {
       mockVerifyAuthToken.mockResolvedValue(null);
 
-      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations');
-      const response = await GET(request, { params: { trameId: '123' } });
+      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations-individuelles');
+      const response = await GET(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -87,8 +87,8 @@ describe('Trame Affectations API', () => {
       mockVerifyAuthToken.mockResolvedValue(mockUser);
       (trameAffectationService.checkPermission as jest.Mock).mockResolvedValue(false);
 
-      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations');
-      const response = await GET(request, { params: { trameId: '123' } });
+      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations-individuelles');
+      const response = await GET(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(403);
@@ -104,9 +104,9 @@ describe('Trame Affectations API', () => {
       });
 
       const request = new NextRequest(
-        'http://localhost:3000/api/trame-modeles/123/affectations?page=2&limit=10&isActive=true&search=test'
+        'http://localhost:3000/api/trame-modeles/123/affectations-individuelles?page=2&limit=10&isActive=true&search=test'
       );
-      const response = await GET(request, { params: { trameId: '123' } });
+      const response = await GET(request, { params: { trameModeleId: '123' } });
 
       expect(response.status).toBe(200);
       expect(trameAffectationService.getTrameAffectations).toHaveBeenCalledWith(
@@ -145,11 +145,11 @@ describe('Trame Affectations API', () => {
         ...newAffectation
       });
 
-      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations', {
+      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations-individuelles', {
         method: 'POST',
         body: JSON.stringify(newAffectation)
       });
-      const response = await POST(request, { params: { trameId: '123' } });
+      const response = await POST(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(201);
@@ -165,11 +165,11 @@ describe('Trame Affectations API', () => {
       mockVerifyAuthToken.mockResolvedValue({ ...mockUser, role: 'USER' });
       mockHasPermission.mockReturnValue(false);
 
-      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations', {
+      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations-individuelles', {
         method: 'POST',
         body: JSON.stringify(newAffectation)
       });
-      const response = await POST(request, { params: { trameId: '123' } });
+      const response = await POST(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(403);
@@ -181,11 +181,11 @@ describe('Trame Affectations API', () => {
       mockHasPermission.mockReturnValue(true);
 
       const invalidData = { name: '' }; // Invalid: name too short
-      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations', {
+      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations-individuelles', {
         method: 'POST',
         body: JSON.stringify(invalidData)
       });
-      const response = await POST(request, { params: { trameId: '123' } });
+      const response = await POST(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -209,13 +209,13 @@ describe('Trame Affectations API', () => {
       });
 
       const request = new NextRequest(
-        'http://localhost:3000/api/trame-modeles/123/affectations/affectation-1',
+        'http://localhost:3000/api/trame-modeles/123/affectations-individuelles/affectation-1',
         {
           method: 'PUT',
           body: JSON.stringify(updateData)
         }
       );
-      const response = await PUT(request, { params: { trameId: '123' } });
+      const response = await PUT(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -234,13 +234,13 @@ describe('Trame Affectations API', () => {
       (trameAffectationService.updateTrameAffectation as jest.Mock).mockResolvedValue(null);
 
       const request = new NextRequest(
-        'http://localhost:3000/api/trame-modeles/123/affectations/non-existent',
+        'http://localhost:3000/api/trame-modeles/123/affectations-individuelles/non-existent',
         {
           method: 'PUT',
           body: JSON.stringify(updateData)
         }
       );
-      const response = await PUT(request, { params: { trameId: '123' } });
+      const response = await PUT(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -251,13 +251,13 @@ describe('Trame Affectations API', () => {
       mockVerifyAuthToken.mockResolvedValue(mockUser);
 
       const request = new NextRequest(
-        'http://localhost:3000/api/trame-modeles/123/affectations',
+        'http://localhost:3000/api/trame-modeles/123/affectations-individuelles',
         {
           method: 'PUT',
           body: JSON.stringify(updateData)
         }
       );
-      const response = await PUT(request, { params: { trameId: '123' } });
+      const response = await PUT(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -272,10 +272,10 @@ describe('Trame Affectations API', () => {
       (trameAffectationService.deleteTrameAffectation as jest.Mock).mockResolvedValue(true);
 
       const request = new NextRequest(
-        'http://localhost:3000/api/trame-modeles/123/affectations/affectation-1',
+        'http://localhost:3000/api/trame-modeles/123/affectations-individuelles/affectation-1',
         { method: 'DELETE' }
       );
-      const response = await DELETE(request, { params: { trameId: '123' } });
+      const response = await DELETE(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -292,10 +292,10 @@ describe('Trame Affectations API', () => {
       (trameAffectationService.deleteTrameAffectation as jest.Mock).mockResolvedValue(false);
 
       const request = new NextRequest(
-        'http://localhost:3000/api/trame-modeles/123/affectations/non-existent',
+        'http://localhost:3000/api/trame-modeles/123/affectations-individuelles/non-existent',
         { method: 'DELETE' }
       );
-      const response = await DELETE(request, { params: { trameId: '123' } });
+      const response = await DELETE(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -310,10 +310,10 @@ describe('Trame Affectations API', () => {
       );
 
       const request = new NextRequest(
-        'http://localhost:3000/api/trame-modeles/123/affectations/affectation-1',
+        'http://localhost:3000/api/trame-modeles/123/affectations-individuelles/affectation-1',
         { method: 'DELETE' }
       );
-      const response = await DELETE(request, { params: { trameId: '123' } });
+      const response = await DELETE(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(409);
@@ -325,10 +325,10 @@ describe('Trame Affectations API', () => {
       mockHasPermission.mockReturnValue(false);
 
       const request = new NextRequest(
-        'http://localhost:3000/api/trame-modeles/123/affectations/affectation-1',
+        'http://localhost:3000/api/trame-modeles/123/affectations-individuelles/affectation-1',
         { method: 'DELETE' }
       );
-      const response = await DELETE(request, { params: { trameId: '123' } });
+      const response = await DELETE(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(403);
@@ -343,8 +343,8 @@ describe('Trame Affectations API', () => {
         new Error('Database connection error')
       );
 
-      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations');
-      const response = await GET(request, { params: { trameId: '123' } });
+      const request = new NextRequest('http://localhost:3000/api/trame-modeles/123/affectations-individuelles');
+      const response = await GET(request, { params: { trameModeleId: '123' } });
       const data = await response.json();
 
       expect(response.status).toBe(500);

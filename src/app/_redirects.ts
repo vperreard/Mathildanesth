@@ -18,6 +18,26 @@ export const redirects = {
   '/notifications/echanges': '/demandes?type=ASSIGNMENT_SWAP',
   '/conges/demander': '/demandes/nouvelle?type=LEAVE',
   '/planning/echanges': '/demandes?type=ASSIGNMENT_SWAP',
+  
+  // Nouvelles redirections pour routes en français
+  '/login': '/connexion',
+  '/auth/reset-password': '/auth/reinitialiser-mot-de-passe',
+  '/dashboard': '/tableau-bord',
+  '/admin/command-center': '/admin/centre-commande',
+  '/admin/emergency-replacement': '/admin/remplacement-urgence',
+  '/admin/performance': '/admin/performances',
+  '/admin/planning-generator': '/admin/generateur-planning',
+  '/admin/planning-rules': '/admin/regles-planning',
+  '/admin/schedule-rules': '/admin/regles-horaires',
+  '/admin/skills': '/admin/competences',
+  '/admin/team-configurations': '/admin/configurations-equipes',
+  '/admin/site-assignments': '/admin/affectations-sites',
+  '/admin/rules': '/admin/regles',
+  '/admin/analytics': '/admin/analyses',
+  '/quota-management': '/gestion-quotas',
+  '/test-auth': '/test-authentification',
+  '/design-system': '/systeme-design',
+  '/drag-and-drop-demo': '/demo-glisser-deposer',
 } as const;
 
 export function handleRedirects(request: NextRequest): NextResponse | null {

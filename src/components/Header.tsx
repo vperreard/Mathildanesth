@@ -149,7 +149,7 @@ const Header = memo(function Header() {
 
                     {/* Vue d'ensemble */}
                     <DropdownMenuItem>
-                      <Link href="/admin/command-center" className="flex items-center gap-2 w-full">
+                      <Link href="/admin/centre-commande" className="flex items-center gap-2 w-full">
                         <Activity className="h-4 w-4" />
                         <span>Vue d'ensemble</span>
                       </Link>

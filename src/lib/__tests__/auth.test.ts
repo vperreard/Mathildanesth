@@ -1,7 +1,7 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import * as jose from 'jose';
 import bcrypt from 'bcrypt';
-import { authOptions, createToken, verifyToken } from '../auth';
+import { createToken, verifyToken } from '../auth';
 import { prisma } from '@/lib/prisma';
 
 // Mock des dépendances

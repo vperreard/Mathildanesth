@@ -74,11 +74,11 @@ export const userNavigation: NavigationItem[] = [
 // NAVIGATION ADMIN SIMPLIFIÉE - 4 CATÉGORIES MAXIMUM
 export const adminNavigation: NavigationGroup[] = [
   {
-    name: '📊 Command Center',
+    name: '📊 Centre de Commande',
     icon: BarChart3,
     items: [
       {
-        href: '/admin/command-center',
+        href: '/admin/centre-commande',
         label: "Vue d'ensemble",
         icon: Activity,
         description: 'Dashboard unifié avec métriques temps réel',
@@ -90,8 +90,8 @@ export const adminNavigation: NavigationGroup[] = [
         description: 'Remplacements express et alertes',
       },
       {
-        href: '/admin/analytics',
-        label: 'Analytics',
+        href: '/admin/analyses',
+        label: 'Analyses',
         icon: BarChart3,
         description: 'Tendances et prédictions',
       },
@@ -138,7 +138,7 @@ export const adminNavigation: NavigationGroup[] = [
         description: 'Validation et quotas',
       },
       {
-        href: '/admin/planning-generator',
+        href: '/admin/generateur-planning',
         label: 'Assistant Planning',
         icon: ClipboardList,
         description: 'Génération intelligente',
@@ -174,7 +174,7 @@ export const adminNavigation: NavigationGroup[] = [
     icon: Settings,
     items: [
       {
-        href: '/admin/planning-rules',
+        href: '/admin/regles-planning',
         label: 'Règles Métier',
         icon: Settings,
         description: 'Contraintes et validation',
@@ -207,7 +207,7 @@ export const getNavigationByRole = (userRole: string): NavigationItem[] => {
       return [
         ...baseNavigation,
         ...adminNavigation
-          .filter(group => ['Tableaux de Bord', 'Gestion des Équipes'].includes(group.name))
+          .filter(group => ['📊 Centre de Commande', '👥 Gestion'].includes(group.name))
           .flatMap(group => group.items),
       ];
 
@@ -356,6 +356,20 @@ export const getBreadcrumbs = (pathname: string): BreadcrumbItem[] => {
     utilisateurs: 'Personnel Médical',
     chirurgiens: 'Chirurgiens',
     'bloc-operatoire': 'Bloc Opératoire',
+    'centre-commande': 'Centre de Commande',
+    'generateur-planning': 'Générateur de Planning',
+    'regles-planning': 'Règles de Planning',
+    'remplacement-urgence': 'Remplacement d\'Urgence',
+    performances: 'Performances',
+    competences: 'Compétences',
+    'configurations-equipes': 'Configurations d\'Équipes',
+    'affectations-sites': 'Affectations de Sites',
+    regles: 'Règles',
+    analyses: 'Analyses',
+    'tableau-bord': 'Tableau de Bord',
+    connexion: 'Connexion',
+    'reinitialiser-mot-de-passe': 'Réinitialiser le mot de passe',
+    'gestion-quotas': 'Gestion des Quotas',
     trameModeles: 'Tableaux de Service',
     affectations: 'Affectations',
     rapports: 'Rapports',
@@ -391,7 +405,7 @@ export const hasAccess = (userRole: string, href: string): boolean => {
   }
 
   // Liens admin total uniquement
-  const adminTotalPaths = ['/admin/performance', '/parametres/regles'];
+  const adminTotalPaths = ['/admin/performances', '/parametres/regles'];
   if (adminTotalPaths.some(path => href.startsWith(path))) {
     return userRole === 'ADMIN_TOTAL';
   }
