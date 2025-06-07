@@ -5,6 +5,7 @@ import { LeaveStatus, LeaveType as PrismaLeaveType } from '@prisma/client';
 import { withAuth, SecurityChecks } from '@/middleware/authorization';
 import { getServerSession } from '@/lib/auth/migration-shim';
 import { authOptions } from '@/lib/auth/migration-shim';
+import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { BusinessRulesValidator } from '@/services/businessRulesValidator';
 import { withSensitiveRateLimit } from '@/lib/rateLimit';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
@@ -49,24 +50,17 @@ const mapCodeToLeaveType = (code: string): PrismaLeaveType => {
 };
 
 /**
- * GET /api/conges?userId=123
- * Récupère les congés d'un utilisateur.
+ * GET /api/conges
+ * Récupère les congés avec filtrage et pagination
  */
 async function getHandler(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    logger.info(`[API /api/conges] Requête GET reçue pour userId: ${userId}`);
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Le paramètre userId est manquant' }, { status: 400 });
-    }
 
     // Vérifier l'authentification avec le shim
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      logger.warn("Tentative d'accès sans authentification", { path: '/api/conges', userId });
+      logger.warn("Tentative d'accès sans authentification", { path: '/api/conges' });
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
@@ -75,42 +69,96 @@ async function getHandler(request: NextRequest) {
       role: session.user.role,
     };
 
-    // Vérifier les permissions : l'utilisateur peut voir ses propres congés ou être admin
-    const targetUserId = parseInt(userId, 10);
-    if (
-      authenticatedUser.id !== targetUserId &&
-      authenticatedUser.role !== 'ADMIN_TOTAL' &&
-      authenticatedUser.role !== 'ADMIN_PARTIEL'
-    ) {
-      logger.warn('Accès non autorisé aux congés', {
-        authenticatedUserId: authenticatedUser.id,
-        targetUserId,
-        role: authenticatedUser.role,
-      });
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    // Extraction des paramètres de filtrage
+    const userId = searchParams.get('userId');
+    const departmentId = searchParams.get('departmentId');
+    const statuses = searchParams.getAll('statuses');
+    const types = searchParams.getAll('types');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    const searchTerm = searchParams.get('searchTerm');
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const sortBy = searchParams.get('sortBy') || 'startDate';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
 
-    // Logger l'action
-    logger.info('Consultation des congés', {
-      action: 'READ_LEAVES',
-      authenticatedUserId: authenticatedUser.id,
-      targetUserId,
-      role: authenticatedUser.role,
+    logger.info(`[API /api/conges] Requête GET reçue`, { 
+      userId, departmentId, statuses, types, startDate, endDate, page, limit 
     });
 
-    const userIdInt = parseInt(userId, 10);
-    if (isNaN(userIdInt)) {
-      return NextResponse.json(
-        { error: 'Le paramètre userId doit être un nombre valide' },
-        { status: 400 }
-      );
+    // Construction des conditions de filtrage
+    const where: any = {};
+
+    // Si un userId est spécifié, vérifier les permissions
+    if (userId) {
+      const targetUserId = parseInt(userId, 10);
+      if (
+        authenticatedUser.id !== targetUserId &&
+        authenticatedUser.role !== 'ADMIN_TOTAL' &&
+        authenticatedUser.role !== 'ADMIN_PARTIEL'
+      ) {
+        logger.warn('Accès non autorisé aux congés', {
+          authenticatedUserId: authenticatedUser.id,
+          targetUserId,
+          role: authenticatedUser.role,
+        });
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      where.userId = targetUserId;
+    } else if (authenticatedUser.role !== 'ADMIN_TOTAL' && authenticatedUser.role !== 'ADMIN_PARTIEL') {
+      // Si pas d'userId et pas admin, retourner seulement ses propres congés
+      where.userId = authenticatedUser.id;
     }
+
+    if (departmentId) {
+      where.user = { departmentId };
+    }
+
+    if (statuses.length > 0) {
+      where.status = { in: statuses };
+    }
+
+    if (types.length > 0) {
+      where.type = { in: types };
+    }
+
+    if (startDate && endDate) {
+      where.AND = [
+        { startDate: { gte: new Date(startDate) } },
+        { endDate: { lte: new Date(endDate) } },
+      ];
+    } else if (startDate) {
+      where.startDate = { gte: new Date(startDate) };
+    } else if (endDate) {
+      where.endDate = { lte: new Date(endDate) };
+    }
+
+    if (searchTerm) {
+      where.OR = [
+        { user: { prenom: { contains: searchTerm, mode: 'insensitive' } } },
+        { user: { nom: { contains: searchTerm, mode: 'insensitive' } } },
+        { reason: { contains: searchTerm, mode: 'insensitive' } },
+      ];
+    }
+
+    // Construction de l'ordre de tri
+    const orderBy: any = {};
+    if (sortBy === 'userName') {
+      orderBy.user = { prenom: sortOrder };
+    } else if (sortBy === 'userEmail') {
+      orderBy.user = { email: sortOrder };
+    } else if (sortBy === 'departmentName') {
+      orderBy.user = { department: { name: sortOrder } };
+    } else {
+      orderBy[sortBy] = sortOrder;
+    }
+
+    // Compter le total pour la pagination
+    const total = await prisma.leave.count({ where });
 
     // --- Logique Prisma activée ---
     const leaves = await prisma.leave.findMany({
-      where: {
-        userId: userIdInt,
-      },
+      where,
       include: {
         // Inclure les données utilisateur
         user: {
@@ -118,12 +166,19 @@ async function getHandler(request: NextRequest) {
             id: true,
             nom: true,
             prenom: true,
+            email: true,
+            department: {
+              select: {
+                id: true,
+                name: true,
+              }
+            }
           },
         },
       },
-      orderBy: {
-        startDate: 'desc',
-      },
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy,
     });
 
     // Fonction adaptateur pour uniformiser les champs nom/prenom
@@ -180,7 +235,14 @@ async function getHandler(request: NextRequest) {
       })
       .filter((leave): leave is LeaveWithUserFrontend => leave !== null); // Filtrer les nulls
 
-    return NextResponse.json(formattedLeaves);
+    // Retourner le résultat paginé
+    return NextResponse.json({
+      items: formattedLeaves,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error: unknown) {
     logger.error(`[API /api/conges] Erreur lors de la récupération des congés:`, { error: error });
     return NextResponse.json(

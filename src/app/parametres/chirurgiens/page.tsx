@@ -27,14 +27,20 @@ function SurgeonsPageContent() {
 
                 {/* Interface avec onglets */}
                 <Tabs defaultValue="chirurgiens" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="chirurgiens" className="flex items-center space-x-2">
+                    <TabsList className="grid w-full grid-cols-2 bg-gray-100/80 p-1.5">
+                        <TabsTrigger 
+                            value="chirurgiens" 
+                            className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg data-[state=active]:border-indigo-200 data-[state=active]:border"
+                        >
                             <Users className="h-4 w-4" />
-                            <span>Chirurgiens</span>
+                            <span className="font-semibold">Chirurgiens</span>
                         </TabsTrigger>
-                        <TabsTrigger value="specialites" className="flex items-center space-x-2">
+                        <TabsTrigger 
+                            value="specialites" 
+                            className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg data-[state=active]:border-indigo-200 data-[state=active]:border"
+                        >
                             <Stethoscope className="h-4 w-4" />
-                            <span>Spécialités</span>
+                            <span className="font-semibold">Spécialités</span>
                         </TabsTrigger>
                     </TabsList>
                     

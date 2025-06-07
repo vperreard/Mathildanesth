@@ -254,7 +254,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
         }];
 
         try {
-            const response = await axios.post('http://localhost:3000/api/conges/batch', batchPayload);
+            const response = await axios.post('/api/leaves/batch', batchPayload);
 
             // L'API batch retourne un objet { results: BatchResult[] }
             const batchResults = response.data.results;

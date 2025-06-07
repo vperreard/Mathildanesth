@@ -7,9 +7,10 @@ import { PlanningTemplate, RoleType } from '../types/template';
 import BlocPlanningTemplateEditor, { BlocPlanningTemplateEditorHandle } from './BlocPlanningTemplateEditor';
 import { useRouter, usePathname } from 'next/navigation';
 import { DragDropContext } from '@hello-pangea/dnd';
+import { getClientAuthToken } from "@/lib/auth-client-utils";
 
 // Importer les composants UI nécessaires
-import Button from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogPortal, DialogOverlay, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
@@ -17,17 +18,17 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { MoreHorizontal, Loader2, Plus } from "lucide-react";
 import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
-import Input from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { toast as hotToast } from 'react-hot-toast';
 import { useSession } from '@/lib/auth/migration-shim-client';
 import SimpleDropdownMenu from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Importer le modal de création de trameModele unifié
-import dynamic from 'next/dynamic';
+// import dynamic from 'next/dynamic';
 
-// Import dynamique du NewTrameModal pour éviter les problèmes SSR
-const NewTrameModal = dynamic(() => import('@/components/trames/grid-view/NewTrameModal'), { ssr: false });
+// Test with regular import instead of dynamic
+import NewTrameModal from '@/components/trames/grid-view/NewTrameModal';
 
 // Import du type TrameModele pour la conversion
 import type { TrameModele } from '@/components/trames/grid-view/TrameGridView';
@@ -37,6 +38,7 @@ export interface TemplateManagerProps {
     availableSitesParam: unknown[]; // Correction du type pour éviter l'erreur d'import
     availableActivityTypesParam: FullActivityType[];
     availableRolesParam: RoleType[];
+    operatingRoomsParam?: unknown[]; // Ajout des salles d'opération
 }
 
 // Fonction de conversion PlanningTemplate vers TrameModele
@@ -74,7 +76,8 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     initialTemplatesParam = [],
     availableSitesParam,
     availableActivityTypesParam,
-    availableRolesParam
+    availableRolesParam,
+    operatingRoomsParam = []
 }) => {
     logger.info('[DEBUG TemplateManager] Component RENDERED with props');
     const { data: session } = useSession();
@@ -91,6 +94,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     // Nouveaux états pour le modal unifié
     const [isNewTrameModalOpen, setIsNewTrameModalOpen] = useState<boolean>(false);
     const [sites, setSites] = useState<Array<{ id: string; name: string; }>>([]);
+    const [operatingRooms, setOperatingRooms] = useState<unknown[]>(operatingRoomsParam);
 
     // États pour l'édition avec le nouveau modal
     const [isEditTrameModalOpen, setIsEditTrameModalOpen] = useState<boolean>(false);
@@ -266,7 +270,9 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 
     const handleCreateNew = useCallback(() => {
         logger.info('[DEBUG TemplateManager] handleCreateNew called - Opening unified modal');
+        logger.info('[DEBUG TemplateManager] Current isNewTrameModalOpen state:', isNewTrameModalOpen);
         setIsNewTrameModalOpen(true);
+        logger.info('[DEBUG TemplateManager] Set isNewTrameModalOpen to true');
     }, []);
 
     const handleEdit = useCallback((modèle: PlanningTemplate) => {
@@ -390,20 +396,16 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
         }
     }, [editingTemplateRoles, loadTemplates, setIsLoading, setIsEditorOpen, setEditingTemplate, availableTypes]);
 
-    useEffect(() => {
-        loadTemplates();
-        loadAvailableTypes();
-    }, [loadTemplates, loadAvailableTypes]);
-
-    // Charger les sites au démarrage
-    useEffect(() => {
-        loadSites();
-    }, []);
-
     // Fonction pour charger les sites
     const loadSites = useCallback(async () => {
         try {
-            const response = await fetch('http://localhost:3000/api/sites');
+            const token = await getClientAuthToken();
+            const response = await fetch('/api/sites', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
             if (response.ok) {
                 const sitesData = await response.json();
                 setSites(sitesData);
@@ -412,6 +414,51 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             logger.error('Erreur lors du chargement des sites:', { error: err });
         }
     }, []);
+
+    // Fonction pour charger les salles d'opération
+    const loadOperatingRooms = useCallback(async () => {
+        try {
+            const token = await getClientAuthToken();
+            const response = await fetch('/api/operating-rooms', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.ok) {
+                const roomsData = await response.json();
+                setOperatingRooms(roomsData);
+                logger.info('[TemplateManager] Operating rooms loaded:', roomsData.length);
+            }
+        } catch (err: unknown) {
+            logger.error('Erreur lors du chargement des salles d\'opération:', { error: err });
+        }
+    }, []);
+
+    useEffect(() => {
+        loadTemplates();
+        loadAvailableTypes();
+    }, [loadTemplates, loadAvailableTypes]);
+    
+    // Debug effect for modal state
+    useEffect(() => {
+        logger.info('[DEBUG TemplateManager useEffect] isNewTrameModalOpen changed to:', isNewTrameModalOpen);
+        if (isNewTrameModalOpen) {
+            logger.info('[DEBUG TemplateManager useEffect] Modal should be visible now');
+            // Force a re-render by updating a dummy state
+            setTimeout(() => {
+                logger.info('[DEBUG TemplateManager useEffect] Checking DOM for modal...');
+                const modalElement = document.querySelector('[role="dialog"]');
+                logger.info('[DEBUG TemplateManager useEffect] Modal in DOM:', !!modalElement);
+            }, 100);
+        }
+    }, [isNewTrameModalOpen]);
+
+    // Charger les sites et salles au démarrage
+    useEffect(() => {
+        loadSites();
+        loadOperatingRooms();
+    }, [loadSites, loadOperatingRooms]);
 
     // Fonction pour gérer le succès de création de trameModele via le modal unifié
     const handleCreateTrameSuccess = useCallback((newTrameId: string) => {
@@ -483,18 +530,48 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     }
 
     if (error) {
-        return <div className="text-red-600 p-4">{error} <Button onClick={loadTemplates}>Réessayer</Button></div>;
+        return (
+            <>
+                <div className="text-red-600 p-4">{error} <Button onClick={loadTemplates}>Réessayer</Button></div>
+                
+                {/* Modal de création de nouvelle trameModele unifié */}
+                <NewTrameModal
+                    isOpen={isNewTrameModalOpen}
+                    onClose={() => {
+                        logger.info('[DEBUG TemplateManager] Modal onClose called');
+                        setIsNewTrameModalOpen(false);
+                    }}
+                    onSuccess={handleCreateTrameSuccess}
+                    sites={sites || []}
+                    rooms={operatingRooms}
+                />
+            </>
+        );
     }
 
     if (modèles.length === 0) {
         return (
-            <div className="p-8 text-center flex flex-col items-center justify-center space-y-4">
-                <div className="text-orange-600 mb-4">Aucune trameModele disponible dans le système.</div>
-                <p className="text-muted-foreground">Vous pouvez créer votre première trameModele dès maintenant.</p>
-                <Button onClick={handleCreateNew} className="mt-2">
-                    <Plus className="h-4 w-4 mr-2" /> Créer une nouvelle trameModele
-                </Button>
-            </div>
+            <>
+                <div className="p-8 text-center flex flex-col items-center justify-center space-y-4">
+                    <div className="text-orange-600 mb-4">Aucune trameModele disponible dans le système.</div>
+                    <p className="text-muted-foreground">Vous pouvez créer votre première trameModele dès maintenant.</p>
+                    <Button onClick={handleCreateNew} className="mt-2">
+                        <Plus className="h-4 w-4 mr-2" /> Créer une nouvelle trameModele
+                    </Button>
+                </div>
+                
+                {/* Modal de création de nouvelle trameModele unifié */}
+                <NewTrameModal
+                    isOpen={isNewTrameModalOpen}
+                    onClose={() => {
+                        logger.info('[DEBUG TemplateManager] Modal onClose called');
+                        setIsNewTrameModalOpen(false);
+                    }}
+                    onSuccess={handleCreateTrameSuccess}
+                    sites={sites || []}
+                    rooms={operatingRooms}
+                />
+            </>
         );
     }
 
@@ -610,6 +687,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                                         availableAffectationTypes={memoizedAvailableTypes}
                                         modèles={modèles}
                                         onMuiModalOpenChange={handleMuiModalOpenChange}
+                                        operatingRooms={operatingRooms}
                                     />
                                 </div>
                             )}
@@ -655,14 +733,16 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 </div>
 
                 {/* Modal de création de nouvelle trameModele unifié */}
-                {isNewTrameModalOpen && (
-                    <NewTrameModal
-                        isOpen={isNewTrameModalOpen}
-                        onClose={() => setIsNewTrameModalOpen(false)}
-                        onSuccess={handleCreateTrameSuccess}
-                        sites={sites}
-                    />
-                )}
+                <NewTrameModal
+                    isOpen={isNewTrameModalOpen}
+                    onClose={() => {
+                        logger.info('[DEBUG TemplateManager] Modal onClose called');
+                        setIsNewTrameModalOpen(false);
+                    }}
+                    onSuccess={handleCreateTrameSuccess}
+                    sites={sites || []}
+                    rooms={operatingRooms}
+                />
 
                 {/* Modal d'édition de trameModele unifié */}
                 {isEditTrameModalOpen && trameToEdit && (
@@ -674,6 +754,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                         }}
                         onSuccess={handleEditTrameSuccess}
                         sites={sites}
+                        rooms={operatingRooms}
                         initialTrame={trameToEdit}
                         isEditMode={true}
                     />

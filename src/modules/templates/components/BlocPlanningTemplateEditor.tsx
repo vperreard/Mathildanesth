@@ -92,6 +92,7 @@ export interface BlocPlanningTemplateEditorProps {
     availablePostes?: string[];
     readOnly?: boolean;
     onMuiModalOpenChange?: (isOpen: boolean) => void;
+    operatingRooms?: unknown[]; // Ajout des salles d'opération
 }
 
 // Interface pour les méthodes exposées par la ref

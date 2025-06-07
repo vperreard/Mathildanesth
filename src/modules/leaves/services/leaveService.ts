@@ -30,17 +30,6 @@ import { logError } from '@/services/errorLoggingService';
 import { ErrorSeverity, ErrorDetails } from '@/hooks/useErrorHandler';
 import { formatDate, parseDate, ISO_DATE_FORMAT } from '@/utils/dateUtils';
 import apiClient from '../../../utils/apiClient';
-import {
-  PrismaClient,
-  Prisma,
-  LeaveStatus as PrismaLeaveStatus,
-  LeaveType as PrismaLeaveType,
-  User as PrismaUser,
-  Department as PrismaDepartment,
-} from '@prisma/client';
-
-// Importer l'instance partagée de Prisma
-import { prisma } from '@/lib/prisma';
 
 const BASE_URL = '/conges';
 
@@ -75,165 +64,56 @@ const buildLeaveServiceErrorDetails = (
 
 /**
  * Récupérer les demandes de congés avec filtres
- * @optimization Utilisation de take/skip pour la pagination et select pour les champs spécifiques
  */
 export const fetchLeaves = async (filters: LeaveFilters = {}): Promise<PaginatedLeaveResults> => {
   const operationKey = 'LeaveService.fetchLeaves';
   try {
-    const page = (filters as any).page || 1;
-    const limit = (filters as any).limit || 50;
-    const skip = (page - 1) * limit;
-
-    const where: Prisma.LeaveWhereInput = {};
-
-    if (filters.userId) {
-      where.userId = Number(filters.userId);
-    }
-
-    if (filters.departmentId) {
-      where.user = {
-        departmentId: filters.departmentId,
-      };
-    }
-
+    // Construire les paramètres de requête
+    const params = new URLSearchParams();
+    
+    if (filters.userId) params.append('userId', filters.userId);
+    if (filters.departmentId) params.append('departmentId', filters.departmentId);
     if (filters.statuses) {
-      if (Array.isArray(filters.statuses) && filters.statuses.length > 0) {
-        where.status = { in: filters.statuses as PrismaLeaveStatus[] };
-      } else if (!Array.isArray(filters.statuses)) {
-        where.status = filters.statuses as PrismaLeaveStatus;
-      }
-    }
-
-    if (filters.types) {
-      if (Array.isArray(filters.types) && filters.types.length > 0) {
-        where.type = { in: filters.types as PrismaLeaveType[] };
-      } else if (!Array.isArray(filters.types)) {
-        where.type = filters.types as PrismaLeaveType;
-      }
-    }
-
-    if (filters.startDate && filters.endDate) {
-      where.AND = [
-        ...(Array.isArray(where.AND) ? where.AND : []),
-        { startDate: { gte: new Date(filters.startDate as string) } },
-        { endDate: { lte: new Date(filters.endDate as string) } },
-      ];
-    } else if (filters.startDate) {
-      where.startDate = { gte: new Date(filters.startDate as string) };
-    } else if (filters.endDate) {
-      where.endDate = { lte: new Date(filters.endDate as string) };
-    }
-
-    if (filters.searchTerm) {
-      const searchCondition = {
-        contains: filters.searchTerm,
-        mode: 'insensitive',
-      } as Prisma.StringFilter;
-      where.OR = [
-        { user: { prenom: searchCondition } },
-        { user: { nom: searchCondition } },
-        { reason: searchCondition },
-      ];
-    }
-
-    const orderBy: Prisma.LeaveOrderByWithRelationInput[] = [];
-    const localSortBy = (filters as any).sortBy;
-    const localSortOrder = (filters as any).sortOrder;
-
-    if (localSortBy) {
-      if (['userName', 'userEmail', 'departmentName'].includes(localSortBy)) {
-        if (localSortBy === 'userName') {
-          orderBy.push({ user: { prenom: localSortOrder || 'desc' } });
-          orderBy.push({ user: { nom: localSortOrder || 'desc' } });
-        } else if (localSortBy === 'userEmail') {
-          orderBy.push({ user: { email: localSortOrder || 'desc' } });
-        } else if (localSortBy === 'departmentName') {
-          orderBy.push({ user: { department: { name: localSortOrder || 'desc' } } });
-        }
+      if (Array.isArray(filters.statuses)) {
+        filters.statuses.forEach(status => params.append('statuses', status));
       } else {
-        const validSortBy = localSortBy as keyof Prisma.LeaveOrderByWithRelationInput;
-        orderBy.push({ [validSortBy]: localSortOrder || 'desc' });
+        params.append('statuses', filters.statuses);
       }
-    } else {
-      orderBy.push({ startDate: 'desc' });
+    }
+    if (filters.types) {
+      if (Array.isArray(filters.types)) {
+        filters.types.forEach(type => params.append('types', type));
+      } else {
+        params.append('types', filters.types);
+      }
+    }
+    if (filters.startDate) params.append('startDate', filters.startDate);
+    if (filters.endDate) params.append('endDate', filters.endDate);
+    if (filters.searchTerm) params.append('searchTerm', filters.searchTerm);
+    if ((filters as any).page) params.append('page', String((filters as any).page));
+    if ((filters as any).limit) params.append('limit', String((filters as any).limit));
+    if ((filters as any).sortBy) params.append('sortBy', (filters as any).sortBy);
+    if ((filters as any).sortOrder) params.append('sortOrder', (filters as any).sortOrder);
+
+    const response = await fetch(`/api/leaves?${params.toString()}`);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => response.statusText);
+      const error = new Error(
+        `Erreur HTTP ${response.status} lors de la récupération des congés: ${errorData}`
+      );
+      (error as any).code = `HTTP_${response.status}`;
+      throw error;
     }
 
-    const prismaSelect: Prisma.LeaveSelect = {
-      id: true,
-      userId: true,
-      startDate: true,
-      endDate: true,
-      countedDays: true,
-      type: true,
-      reason: true,
-      status: true,
-      requestDate: true,
-      approvedById: true,
-      approvalDate: true,
-      isRecurring: true,
-      recurrencePattern: true,
-      parentId: true,
-      createdAt: true,
-      updatedAt: true,
-      user: {
-        include: {
-          department: true,
-        },
-      },
-    };
+    const result = await response.json();
 
-    const total = await prisma.leave.count({ where });
+    // Vérifier que le résultat a la structure attendue
+    if (!result || typeof result !== 'object' || !Array.isArray(result.items)) {
+      throw new Error('Réponse invalide du serveur');
+    }
 
-    const prismaLeaves = await prisma.leave.findMany({
-      where,
-      select: prismaSelect,
-      skip,
-      take: limit,
-      orderBy,
-    });
-
-    const items: Leave[] = prismaLeaves.map(leave => {
-      const userWithDepartment = leave.user as PrismaUser & { department: PrismaDepartment | null };
-
-      return {
-        id: leave.id,
-        userId: String(userWithDepartment.id),
-        userName: `${userWithDepartment.prenom} ${userWithDepartment.nom}`,
-        userEmail: userWithDepartment.email,
-        departmentId: userWithDepartment.department?.id ?? '',
-        departmentName: userWithDepartment.department?.name ?? '',
-        startDate: formatDate(leave.startDate, ISO_DATE_FORMAT),
-        endDate: formatDate(leave.endDate, ISO_DATE_FORMAT),
-        halfDayStart: (leave as any).halfDayStart ?? undefined,
-        halfDayEnd: (leave as any).halfDayEnd ?? undefined,
-        workingDaysCount: leave.countedDays ?? 0,
-        type: leave.type as LeaveType,
-        reason: leave.reason ?? undefined,
-        status: leave.status as LeaveStatus,
-        requestDate: formatDate(leave.requestDate, ISO_DATE_FORMAT),
-        approverId: leave.approvedById ? String(leave.approvedById) : undefined,
-        approvalDate: leave.approvalDate
-          ? formatDate(leave.approvalDate, ISO_DATE_FORMAT)
-          : undefined,
-        rejectionReason: (leave as any).rejectionReason ?? undefined,
-        cancellationReason: (leave as any).cancellationReason ?? undefined,
-        isRecurring: leave.isRecurring ?? undefined,
-        recurrencePattern: leave.recurrencePattern
-          ? JSON.parse(JSON.stringify(leave.recurrencePattern))
-          : undefined,
-        parentId: leave.parentId ?? undefined,
-        createdAt: formatDate(leave.createdAt, ISO_DATE_FORMAT),
-        updatedAt: formatDate(leave.updatedAt, ISO_DATE_FORMAT),
-      };
-    });
-
-    return {
-      items,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return result;
   } catch (error: unknown) {
     const errorDetails = buildLeaveServiceErrorDetails(error, { filters });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
@@ -247,7 +127,7 @@ export const fetchLeaves = async (filters: LeaveFilters = {}): Promise<Paginated
 export const fetchLeaveById = async (leaveId: string): Promise<Leave> => {
   const operationKey = 'LeaveService.fetchLeaveById';
   try {
-    const response = await fetch(`http://localhost:3000/api/conges/${leaveId}`);
+    const response = await fetch(`/api/leaves/${leaveId}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -272,7 +152,7 @@ export const fetchLeaveById = async (leaveId: string): Promise<Leave> => {
 export const fetchLeaveBalance = async (userId: string): Promise<LeaveBalance> => {
   const operationKey = 'LeaveService.fetchLeaveBalance';
   try {
-    const response = await fetch(`http://localhost:3000/api/conges/balance?userId=${userId}`);
+    const response = await fetch(`/api/leaves/balance?userId=${userId}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -292,13 +172,44 @@ export const fetchLeaveBalance = async (userId: string): Promise<LeaveBalance> =
 };
 
 /**
+ * Récupérer les congés d'un utilisateur spécifique
+ */
+export const fetchUserLeaves = async (userId: string, year?: number): Promise<Leave[]> => {
+  const operationKey = 'LeaveService.fetchUserLeaves';
+  try {
+    const params = new URLSearchParams();
+    params.append('userId', userId);
+    if (year !== undefined) {
+      params.append('year', String(year));
+    }
+
+    const response = await fetch(`/api/leaves/user-leaves?${params.toString()}`);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => response.statusText);
+      const error = new Error(
+        `Erreur HTTP ${response.status} lors de la récupération des congés de l'utilisateur ${userId}: ${errorData}`
+      );
+      (error as any).code = `HTTP_${response.status}`;
+      throw error;
+    }
+
+    return await response.json();
+  } catch (error: unknown) {
+    const errorDetails = buildLeaveServiceErrorDetails(error, { userId, year });
+    logError(operationKey, { ...errorDetails, timestamp: new Date() });
+    throw error;
+  }
+};
+
+/**
  * Créer ou mettre à jour une demande de congés
  */
 export const saveLeave = async (leave: Partial<Leave>): Promise<Leave> => {
   const operationKey = leave.id ? 'LeaveService.updateLeave' : 'LeaveService.createLeave';
   try {
     const method = leave.id ? 'PUT' : 'POST';
-    const url = leave.id ? `/api/conges/${leave.id}` : '/api/conges';
+    const url = leave.id ? `/api/leaves/${leave.id}` : '/api/leaves';
 
     const payload = {
       ...leave,
@@ -366,7 +277,7 @@ export const submitLeaveRequest = async (leaveData: Partial<Leave>): Promise<Lea
 export const approveLeave = async (leaveId: string, comment?: string): Promise<Leave> => {
   const operationKey = 'LeaveService.approveLeave';
   try {
-    const response = await fetch(`http://localhost:3000/api/conges/${leaveId}/approve`, {
+    const response = await fetch(`/api/leaves/${leaveId}/approve`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -397,7 +308,7 @@ export const approveLeave = async (leaveId: string, comment?: string): Promise<L
 export const rejectLeave = async (leaveId: string, comment?: string): Promise<Leave> => {
   const operationKey = 'LeaveService.rejectLeave';
   try {
-    const response = await fetch(`http://localhost:3000/api/conges/${leaveId}/reject`, {
+    const response = await fetch(`/api/leaves/${leaveId}/reject`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -428,7 +339,7 @@ export const rejectLeave = async (leaveId: string, comment?: string): Promise<Le
 export const cancelLeave = async (leaveId: string, comment?: string): Promise<Leave> => {
   const operationKey = 'LeaveService.cancelLeave';
   try {
-    const response = await fetch(`http://localhost:3000/api/conges/${leaveId}/cancel`, {
+    const response = await fetch(`/api/leaves/${leaveId}/cancel`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -477,7 +388,7 @@ export const checkLeaveConflicts = async (
       params.append('leaveId', leaveId);
     }
 
-    const response = await fetch(`http://localhost:3000/api/conges/check-conflicts?${params.toString()}`);
+    const response = await fetch(`/api/leaves/check-conflicts?${params.toString()}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -528,7 +439,7 @@ export const checkLeaveAllowance = async (
       includeRecurringOccurrences: includeRecurringOccurrences.toString(),
     });
 
-    const response = await fetch(`http://localhost:3000/api/conges/check-allowance?${params.toString()}`);
+    const response = await fetch(`/api/leaves/check-allowance?${params.toString()}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -678,7 +589,7 @@ export const createRecurringLeaveRequest = async (
         : undefined,
     };
 
-    const response = await fetch('http://localhost:3000/api/conges/recurrents', {
+    const response = await fetch('/api/leaves/recurring', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -727,7 +638,7 @@ export const updateRecurringLeaveRequest = async (
         : undefined,
     };
 
-    const response = await fetch(`http://localhost:3000/api/conges/recurrents/${recurringRequest.id}`, {
+    const response = await fetch(`/api/leaves/recurring/${recurringRequest.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -762,7 +673,7 @@ export const fetchRecurringLeaveRequestById = async (
 ): Promise<RecurringLeaveRequest> => {
   const operationKey = 'LeaveService.fetchRecurringLeaveRequestById';
   try {
-    const response = await fetch(`http://localhost:3000/api/conges/recurrents/${id}`);
+    const response = await fetch(`/api/leaves/recurring/${id}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -791,7 +702,7 @@ export const fetchRecurringLeaveRequestsByUser = async (
 ): Promise<RecurringLeaveRequest[]> => {
   const operationKey = 'LeaveService.fetchRecurringLeaveRequestsByUser';
   try {
-    const response = await fetch(`http://localhost:3000/api/conges/recurrents?userId=${userId}`);
+    const response = await fetch(`/api/leaves/recurring?userId=${userId}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -822,7 +733,7 @@ export const deleteRecurringLeaveRequest = async (
 ): Promise<{ success: boolean; deletedOccurrences?: number }> => {
   const operationKey = 'LeaveService.deleteRecurringLeaveRequest';
   try {
-    const response = await fetch(`http://localhost:3000/api/conges/recurrents/${id}?deleteOccurrences=${deleteOccurrences}`,
+    const response = await fetch(`/api/leaves/recurring/${id}?deleteOccurrences=${deleteOccurrences}`,
       {
         method: 'DELETE',
       }
@@ -865,7 +776,7 @@ export const previewRecurringLeaveOccurrences = async (
         : undefined,
     };
 
-    const response = await fetch('http://localhost:3000/api/conges/recurrents/preview', {
+    const response = await fetch('/api/leaves/recurring/preview', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -910,7 +821,7 @@ export const checkRecurringLeaveConflicts = async (
         : undefined,
     };
 
-    const response = await fetch('http://localhost:3000/api/conges/recurrents/conflicts', {
+    const response = await fetch('/api/leaves/recurring/conflicts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

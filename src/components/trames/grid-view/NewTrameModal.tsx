@@ -14,6 +14,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogPortal,
 } from '@/components/ui/dialog';
 import {
     Form,
@@ -59,6 +60,7 @@ interface NewTrameModalProps {
     sites: Array<{ id: string; name: string; }>;
     initialTrame?: TrameModele;
     isEditMode?: boolean;
+    rooms?: unknown[]; // Ajout des salles d'opération
 }
 
 const daysOfWeek = [
@@ -71,10 +73,19 @@ const daysOfWeek = [
     { value: 7, label: 'Dimanche' },
 ];
 
-const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSuccess, sites, initialTrame, isEditMode }) => {
+const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSuccess, sites, initialTrame, isEditMode, rooms }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [currentTab, setCurrentTab] = useState('informations');
+    
+    logger.info('[DEBUG NewTrameModal] Component rendered with props:', {
+        isOpen,
+        sitesCount: sites?.length || 0,
+        roomsCount: rooms?.length || 0,
+        isEditMode,
+        hasInitialTrame: !!initialTrame
+    });
+
 
     // Initialiser le formulaire avec des valeurs par défaut
     const form = useForm<FormValues>({
@@ -108,11 +119,11 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
             let response;
             if (isEditMode && initialTrame) {
                 // Mode modification - PUT
-                response = await axios.put(`http://localhost:3000/api/trameModele-modeles/${initialTrame.id}`, apiData);
+                response = await axios.put(`/api/trame-modeles/${initialTrame.id}`, apiData);
                 logger.info('TrameModele modifiée avec succès:', response.data);
             } else {
                 // Mode création - POST
-                response = await axios.post('http://localhost:3000/api/trameModele-modeles', apiData);
+                response = await axios.post('/api/trame-modeles', apiData);
                 logger.info('TrameModele créée avec succès:', response.data);
             }
             form.reset();
@@ -141,8 +152,12 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-[70vw] lg:max-w-[60vw] xl:max-w-[55vw] max-h-[85vh] overflow-hidden flex flex-col bg-white dark:bg-gray-900">
+        <Dialog open={isOpen} onOpenChange={(open) => {
+            logger.info('[DEBUG NewTrameModal] Dialog onOpenChange called with:', open);
+            if (!open) onClose();
+        }}>
+            <DialogPortal>
+                <DialogContent className="sm:max-w-[70vw] lg:max-w-[60vw] xl:max-w-[55vw] h-[90vh] flex flex-col bg-white dark:bg-gray-900 z-[100]">
                 <DialogHeader className="pb-2">
                     <DialogTitle className="text-lg">
                         {isEditMode ? 'Modifier la trameModele' : 'Créer une nouvelle trameModele'}
@@ -158,12 +173,12 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
                         <Tabs defaultValue="informations" value={currentTab} onValueChange={setCurrentTab} className="flex flex-col h-full">
-                            <TabsList className="grid w-full grid-cols-2 mb-3">
+                            <TabsList className="grid w-full grid-cols-2 mb-3 flex-shrink-0">
                                 <TabsTrigger value="informations" className="text-sm">Informations générales</TabsTrigger>
                                 <TabsTrigger value="preview" className="text-sm">Prévisualisation</TabsTrigger>
                             </TabsList>
 
-                            <div className="flex-1 overflow-y-auto">
+                            <div className="flex-1 overflow-y-auto px-1 pb-4">
                                 <TabsContent value="informations" className="space-y-3 mt-0 px-1">
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                                         <FormField
@@ -194,7 +209,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                                                             <SelectTrigger className="h-9">
                                                                 <SelectValue placeholder="Sélectionner un site (optionnel)" />
                                                             </SelectTrigger>
-                                                            <SelectContent className="bg-white dark:bg-gray-800">
+                                                            <SelectContent className="bg-white dark:bg-gray-800 z-[200] border border-gray-200 dark:border-gray-700">
                                                                 <SelectItem value="aucun">Aucun</SelectItem>
                                                                 {sites.map(site => (
                                                                     <SelectItem key={site.id} value={site.id}>
@@ -237,7 +252,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                                                             <SelectTrigger className="h-9">
                                                                 <SelectValue placeholder="Type de semaine" />
                                                             </SelectTrigger>
-                                                            <SelectContent className="bg-white dark:bg-gray-800">
+                                                            <SelectContent className="bg-white dark:bg-gray-800 z-[200] border border-gray-200 dark:border-gray-700">
                                                                 <SelectItem value="TOUTES">Toutes les semaines</SelectItem>
                                                                 <SelectItem value="PAIRES">Semaines paires</SelectItem>
                                                                 <SelectItem value="IMPAIRES">Semaines impaires</SelectItem>
@@ -263,7 +278,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                                                             <SelectTrigger className="h-9">
                                                                 <SelectValue placeholder="Type de récurrence" />
                                                             </SelectTrigger>
-                                                            <SelectContent className="bg-white dark:bg-gray-800">
+                                                            <SelectContent className="bg-white dark:bg-gray-800 z-[200] border border-gray-200 dark:border-gray-700">
                                                                 <SelectItem value="HEBDOMADAIRE">Hebdomadaire</SelectItem>
                                                                 <SelectItem value="AUCUNE">Aucune</SelectItem>
                                                             </SelectContent>
@@ -330,7 +345,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                                                                     </FormControl>
                                                                 </PopoverTrigger>
                                                                 <PopoverContent
-                                                                    className="w-auto p-0 bg-white dark:bg-gray-800 shadow-xl border-2 border-gray-200 dark:border-gray-700 rounded-lg"
+                                                                    className="w-auto p-0 bg-white dark:bg-gray-800 shadow-xl border-2 border-gray-200 dark:border-gray-700 rounded-lg z-[200]"
                                                                     align="center"
                                                                     side="bottom"
                                                                     sideOffset={8}
@@ -561,7 +576,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                                 <TabsContent value="preview" className="space-y-3 mt-0 px-1">
                                     <div className="border rounded p-3">
                                         <h3 className="text-base font-medium mb-3">Aperçu de la grille</h3>
-                                        <TrameGridView trameModele={previewTrame} readOnly={true} />
+                                        <TrameGridView trameModele={previewTrame} readOnly={true} rooms={rooms} />
                                     </div>
 
                                     <div className="flex justify-end space-x-2 pt-2">
@@ -578,9 +593,9 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                             </div>
                         </Tabs>
 
-                        {error && <div className="text-red-500 text-sm mt-3">{error}</div>}
+                        {error && <div className="text-red-500 text-sm px-4 py-2">{error}</div>}
 
-                        <DialogFooter className="pt-3 border-t mt-3">
+                        <DialogFooter className="flex-shrink-0 pt-3 px-4 border-t mt-auto">
                             <Button variant="outline" type="button" onClick={onClose} disabled={isLoading} size="sm">
                                 Annuler
                             </Button>
@@ -594,6 +609,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                     </form>
                 </Form>
             </DialogContent>
+            </DialogPortal>
         </Dialog>
     );
 };

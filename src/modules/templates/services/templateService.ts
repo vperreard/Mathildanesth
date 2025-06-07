@@ -614,7 +614,7 @@ export const templateService = {
         logger.info("[Modèle Service] Appel de getAvailableAffectationTypes via API /api/activity-types...");
         try {
             const token = await getClientAuthToken();
-            const response = await fetch('http://localhost:3000/api/activity-types', {
+            const response = await fetch('/api/admin/activity-types', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'

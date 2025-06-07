@@ -24,7 +24,7 @@ export function getClientAuthToken(): string | null {
     if (typeof window !== 'undefined') {
         // Essayer d'abord dans les cookies (auth_token)
         const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
+        for (const cookie of cookies) {
             const [name, value] = cookie.trim().split('=');
             if (name === AUTH_TOKEN_KEY) {
                 return decodeURIComponent(value);

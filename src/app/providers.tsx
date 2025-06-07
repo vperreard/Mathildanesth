@@ -5,12 +5,14 @@ import { NotificationProvider } from '@/components/ui/notification';
 import { UnsavedChangesProvider } from '@/hooks/useUnsavedChanges';
 import { RuleViolationsProvider } from '@/hooks/useRuleViolations';
 import { PerformanceProvider } from '@/context/PerformanceContext';
+import { ReactQueryProvider } from '@/lib/reactQuery';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <AuthProvider>
+            <ReactQueryProvider>
                 {/* <ThemeProvider> // Commenté temporairement */}
                 <PerformanceProvider>
                     <NotificationProvider>
@@ -41,6 +43,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     </NotificationProvider>
                 </PerformanceProvider>
                 {/* </ThemeProvider> // Commenté temporairement */}
+            </ReactQueryProvider>
         </AuthProvider>
     );
 } 

@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Button from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AffectationConfigModal from './AffectationConfigModal';
 import {
     Select,
     SelectContent,
@@ -118,6 +119,16 @@ const TrameGridView: React.FC<{
     const [showWeekType, setShowWeekType] = useState<WeekType | 'ALL'>('ALL');
     const [showPersonnel, setShowPersonnel] = useState(true);
     const [compactView, setCompactView] = useState(false);
+
+    // États pour le modal de configuration des affectations
+    const [isAffectationModalOpen, setIsAffectationModalOpen] = useState(false);
+    const [modalConfig, setModalConfig] = useState<{
+        roomId: string;
+        dayCode: number;
+        period: DayPeriod;
+        roomName?: string;
+        dayName?: string;
+    } | null>(null);
 
     // États pour le filtrage des secteurs
     const [sectorFilter, setSectorFilter] = useState<'ALL' | 'SELECTED'>('ALL');
@@ -480,6 +491,32 @@ const TrameGridView: React.FC<{
         [filteredAffectations]
     );
 
+    // Fonction pour vérifier si une salle/jour a des affectations 24h
+    const hasFullDayAffectations = useCallback(
+        (roomId: string, dayCode: number) => {
+            const affectations = getRoomDayAffectations(roomId, dayCode);
+            return affectations.some(aff => {
+                const activity = mockActivityTypes.find(a => a.id === aff.activityTypeId);
+                return aff.period === 'FULL_DAY' || 
+                       (activity && (activity.code === 'GARDE' || activity.code === 'ASTREINTE'));
+            });
+        },
+        [getRoomDayAffectations, mockActivityTypes]
+    );
+
+    // Fonction pour vérifier si une salle est principalement pour des affectations 24h
+    const isFullDayRoom = useCallback(
+        (roomId: string) => {
+            // Vérifier si c'est une salle virtuelle pour garde ou astreinte
+            const room = roomsWithVirtualRooms.find(r => r.id === roomId);
+            if (room && (room.name.toLowerCase().includes('garde') || room.name.toLowerCase().includes('astreinte'))) {
+                return true;
+            }
+            return false;
+        },
+        [roomsWithVirtualRooms]
+    );
+
     // Fonctions de gestion des filtres
     const handleToggleSector = useCallback((sectorId: number) => {
         setSelectedSectorIds(prev => {
@@ -596,8 +633,14 @@ const TrameGridView: React.FC<{
                 const activity = mockActivityTypes.find(a => a.id === affectation.activityTypeId);
                 if (!affectation.isActive) return 'bg-red-100 border-red-300';
 
+                // Style spécial pour les gardes et astreintes (24h)
+                if (activity && (activity.code === 'GARDE' || activity.code === 'ASTREINTE')) {
+                    return 'bg-purple-50 border-purple-300';
+                }
+
                 if (period === 'MORNING') return 'bg-blue-50 border-blue-200';
                 if (period === 'AFTERNOON') return 'bg-amber-50 border-amber-200';
+                if (period === 'FULL_DAY') return 'bg-indigo-50 border-indigo-300';
                 return 'bg-indigo-50 border-indigo-200';
             };
 
@@ -716,66 +759,56 @@ const TrameGridView: React.FC<{
         []
     );
 
-    // Fonction pour ajouter une nouvelle affectation
+    // Fonction pour ouvrir le modal de configuration d'affectation
     const handleAddAffectation = useCallback(
         (roomId: string, dayCode: number, period: DayPeriod) => {
             if (readOnly) return;
 
-            // Déterminer le type d'activité approprié en fonction de la salle
-            let defaultActivityType = mockActivityTypes[0].id; // Bloc opératoire par défaut
+            // Trouver les informations de la salle et du jour pour l'affichage
+            const room = roomsWithVirtualRooms.find(r => r.id === roomId);
+            const day = weekDays.find(d => d.code === dayCode);
 
-            // Si c'est une salle virtuelle, utiliser le type d'activité correspondant
-            if (roomId.startsWith('virtual-')) {
-                const room = roomsWithVirtualRooms.find(r => r.id === roomId);
-                if (room) {
-                    if (room.name.toLowerCase().includes('consultation')) {
-                        const consultationType = mockActivityTypes.find(a => a.code === 'CONSULT')?.id;
-                        if (consultationType) defaultActivityType = consultationType;
-                    } else if (room.name.toLowerCase().includes('garde')) {
-                        const gardeType = mockActivityTypes.find(a => a.code === 'GARDE')?.id;
-                        if (gardeType) defaultActivityType = gardeType;
-                    } else if (room.name.toLowerCase().includes('astreinte')) {
-                        const astreinteType = mockActivityTypes.find(a => a.code === 'ASTREINTE')?.id;
-                        if (astreinteType) defaultActivityType = astreinteType;
-                    }
-                }
-            }
+            setModalConfig({
+                roomId,
+                dayCode,
+                period,
+                roomName: room?.name || 'Salle',
+                dayName: day?.name || 'Jour'
+            });
+            setIsAffectationModalOpen(true);
 
-            // Création d'une nouvelle affectation
+            logger.info(`Ouverture du modal de configuration pour ${roomId}, jour ${dayCode}, période ${period}`);
+        },
+        [readOnly, roomsWithVirtualRooms, weekDays]
+    );
+
+    // Fonction pour sauvegarder une nouvelle affectation configurée
+    const handleSaveAffectation = useCallback(
+        (affectationData: Partial<AffectationModele>) => {
+            if (readOnly) return;
+
+            // Créer l'affectation complète
             const newAffectation: AffectationModele = {
-                id: `new-${Date.now()}`,
+                ...affectationData,
+                id: affectationData.id || `new-${Date.now()}`,
                 trameId: trameModele.id,
-                roomId: roomId,
-                activityTypeId: defaultActivityType,
-                period: period,
-                dayOverride: dayCode,
-                isActive: true,
-                requiredStaff: [
-                    {
-                        id: `staff-${Date.now()}`,
-                        affectationId: `new-${Date.now()}`,
-                        role: 'MAR',
-                        count: 1
-                    }
-                ]
-            };
+                isActive: affectationData.isActive !== undefined ? affectationData.isActive : true,
+            } as AffectationModele;
 
             // Mise à jour de la trameModele
             const updatedTrame = {
-                ...trame,
-                affectations: [...trame.affectations, newAffectation]
+                ...trameModele,
+                affectations: [...trameModele.affectations, newAffectation]
             };
-
-            setTrame(updatedTrame);
 
             // Notification de changement
             if (onTrameChange) {
                 onTrameChange(updatedTrame);
             }
 
-            logger.info(`Nouvelle affectation créée pour ${roomId}, jour ${dayCode}, période ${period}`);
+            logger.info(`Nouvelle affectation sauvegardée:`, newAffectation);
         },
-        [trameModele, readOnly, onTrameChange, roomsWithVirtualRooms, mockActivityTypes]
+        [trameModele, readOnly, onTrameChange]
     );
 
     // Fonction pour obtenir le nom du site
@@ -862,110 +895,168 @@ const TrameGridView: React.FC<{
                                 {/* Grille des jours pour mobile */}
                                 <div className="p-3">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {weekDays.map(day => (
-                                            <div key={day.code} className="border rounded-lg p-2">
-                                                <div className="font-medium text-sm mb-2 text-center">{day.name}</div>
-                                                <div className="space-y-2">
-                                                    {/* Matin */}
-                                                    <div className="bg-blue-50 rounded p-2">
-                                                        <div className="text-xs font-medium mb-1 text-blue-700">Matin</div>
-                                                        <Droppable
-                                                            droppableId={`${room.id}-${day.code}-morning`}
-                                                            isDropDisabled={false}
-                                                            isCombineEnabled={false}
-                                                            ignoreContainerClipping={false}
-                                                        >
-                                                            {(provided) => (
-                                                                <div
-                                                                    ref={provided.innerRef}
-                                                                    {...provided.droppableProps}
-                                                                    className="min-h-[40px]"
+                                        {weekDays.map(day => {
+                                            const isFullDay = isFullDayRoom(room.id) || hasFullDayAffectations(room.id, day.code);
+                                            
+                                            return (
+                                                <div key={day.code} className="border rounded-lg p-2">
+                                                    <div className="font-medium text-sm mb-2 text-center">{day.name}</div>
+                                                    <div className="space-y-2">
+                                                        {isFullDay ? (
+                                                            // Affichage 24h mobile
+                                                            <div className="bg-indigo-50 rounded p-2">
+                                                                <div className="text-xs font-medium mb-1 text-indigo-700">24 heures</div>
+                                                                <Droppable
+                                                                    droppableId={`${room.id}-${day.code}-fullday-mobile`}
+                                                                    isDropDisabled={false}
+                                                                    isCombineEnabled={false}
+                                                                    ignoreContainerClipping={false}
                                                                 >
-                                                                    {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
-                                                                        <Draggable
-                                                                            key={`${affectation.id}-morning`}
-                                                                            draggableId={`${affectation.id}-morning`}
-                                                                            index={index}
-                                                                            isDragDisabled={readOnly}
+                                                                    {(provided) => (
+                                                                        <div
+                                                                            ref={provided.innerRef}
+                                                                            {...provided.droppableProps}
+                                                                            className="min-h-[40px]"
                                                                         >
-                                                                            {(provided) => (
-                                                                                <div
-                                                                                    ref={provided.innerRef}
-                                                                                    {...provided.draggableProps}
-                                                                                    {...provided.dragHandleProps}
+                                                                            {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                                <Draggable
+                                                                                    key={`${affectation.id}-fullday-mobile`}
+                                                                                    draggableId={`${affectation.id}-fullday-mobile`}
+                                                                                    index={index}
+                                                                                    isDragDisabled={readOnly}
                                                                                 >
-                                                                                    {renderAssignment(affectation, 'MORNING')}
-                                                                                </div>
+                                                                                    {(provided) => (
+                                                                                        <div
+                                                                                            ref={provided.innerRef}
+                                                                                            {...provided.draggableProps}
+                                                                                            {...provided.dragHandleProps}
+                                                                                        >
+                                                                                            {renderAssignment(affectation, 'FULL_DAY')}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </Draggable>
+                                                                            ))}
+                                                                            {provided.placeholder}
+                                                                            {!readOnly && (
+                                                                                <Button
+                                                                                    variant="ghost"
+                                                                                    size="sm"
+                                                                                    className="w-full mt-1 text-xs h-6 border border-dashed border-indigo-300 text-indigo-600"
+                                                                                    onClick={() => handleAddAffectation(room.id.toString(), day.code, 'FULL_DAY')}
+                                                                                >
+                                                                                    + Ajouter 24h
+                                                                                </Button>
                                                                             )}
-                                                                        </Draggable>
-                                                                    ))}
-                                                                    {provided.placeholder}
-                                                                    {!readOnly && (
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="sm"
-                                                                            className="w-full mt-1 text-xs h-6 border border-dashed border-gray-300 text-gray-500"
-                                                                            onClick={() => handleAddAffectation(room.id.toString(), day.code, 'MORNING')}
-                                                                        >
-                                                                            + Ajouter
-                                                                        </Button>
+                                                                        </div>
                                                                     )}
+                                                                </Droppable>
+                                                            </div>
+                                                        ) : (
+                                                            // Affichage AM/PM mobile
+                                                            <>
+                                                                {/* Matin */}
+                                                                <div className="bg-blue-50 rounded p-2">
+                                                                    <div className="text-xs font-medium mb-1 text-blue-700">Matin</div>
+                                                                    <Droppable
+                                                                        droppableId={`${room.id}-${day.code}-morning`}
+                                                                        isDropDisabled={false}
+                                                                        isCombineEnabled={false}
+                                                                        ignoreContainerClipping={false}
+                                                                    >
+                                                                        {(provided) => (
+                                                                            <div
+                                                                                ref={provided.innerRef}
+                                                                                {...provided.droppableProps}
+                                                                                className="min-h-[40px]"
+                                                                            >
+                                                                                {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                                    <Draggable
+                                                                                        key={`${affectation.id}-morning`}
+                                                                                        draggableId={`${affectation.id}-morning`}
+                                                                                        index={index}
+                                                                                        isDragDisabled={readOnly}
+                                                                                    >
+                                                                                        {(provided) => (
+                                                                                            <div
+                                                                                                ref={provided.innerRef}
+                                                                                                {...provided.draggableProps}
+                                                                                                {...provided.dragHandleProps}
+                                                                                            >
+                                                                                                {renderAssignment(affectation, 'MORNING')}
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </Draggable>
+                                                                                ))}
+                                                                                {provided.placeholder}
+                                                                                {!readOnly && (
+                                                                                    <Button
+                                                                                        variant="ghost"
+                                                                                        size="sm"
+                                                                                        className="w-full mt-1 text-xs h-6 border border-dashed border-gray-300 text-gray-500"
+                                                                                        onClick={() => handleAddAffectation(room.id.toString(), day.code, 'MORNING')}
+                                                                                    >
+                                                                                        + Ajouter
+                                                                                    </Button>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </Droppable>
                                                                 </div>
-                                                            )}
-                                                        </Droppable>
-                                                    </div>
 
-                                                    {/* Après-midi */}
-                                                    <div className="bg-amber-50 rounded p-2">
-                                                        <div className="text-xs font-medium mb-1 text-amber-700">Après-midi</div>
-                                                        <Droppable
-                                                            droppableId={`${room.id}-${day.code}-afternoon`}
-                                                            isDropDisabled={false}
-                                                            isCombineEnabled={false}
-                                                            ignoreContainerClipping={false}
-                                                        >
-                                                            {(provided) => (
-                                                                <div
-                                                                    ref={provided.innerRef}
-                                                                    {...provided.droppableProps}
-                                                                    className="min-h-[40px]"
-                                                                >
-                                                                    {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
-                                                                        <Draggable
-                                                                            key={`${affectation.id}-afternoon`}
-                                                                            draggableId={`${affectation.id}-afternoon`}
-                                                                            index={index}
-                                                                            isDragDisabled={readOnly}
-                                                                        >
-                                                                            {(provided) => (
-                                                                                <div
-                                                                                    ref={provided.innerRef}
-                                                                                    {...provided.draggableProps}
-                                                                                    {...provided.dragHandleProps}
-                                                                                >
-                                                                                    {renderAssignment(affectation, 'AFTERNOON')}
-                                                                                </div>
-                                                                            )}
-                                                                        </Draggable>
-                                                                    ))}
-                                                                    {provided.placeholder}
-                                                                    {!readOnly && (
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="sm"
-                                                                            className="w-full mt-1 text-xs h-6 border border-dashed border-gray-300 text-gray-500"
-                                                                            onClick={() => handleAddAffectation(room.id.toString(), day.code, 'AFTERNOON')}
-                                                                        >
-                                                                            + Ajouter
-                                                                        </Button>
-                                                                    )}
+                                                                {/* Après-midi */}
+                                                                <div className="bg-amber-50 rounded p-2">
+                                                                    <div className="text-xs font-medium mb-1 text-amber-700">Après-midi</div>
+                                                                    <Droppable
+                                                                        droppableId={`${room.id}-${day.code}-afternoon`}
+                                                                        isDropDisabled={false}
+                                                                        isCombineEnabled={false}
+                                                                        ignoreContainerClipping={false}
+                                                                    >
+                                                                        {(provided) => (
+                                                                            <div
+                                                                                ref={provided.innerRef}
+                                                                                {...provided.droppableProps}
+                                                                                className="min-h-[40px]"
+                                                                            >
+                                                                                {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                                    <Draggable
+                                                                                        key={`${affectation.id}-afternoon`}
+                                                                                        draggableId={`${affectation.id}-afternoon`}
+                                                                                        index={index}
+                                                                                        isDragDisabled={readOnly}
+                                                                                    >
+                                                                                        {(provided) => (
+                                                                                            <div
+                                                                                                ref={provided.innerRef}
+                                                                                                {...provided.draggableProps}
+                                                                                                {...provided.dragHandleProps}
+                                                                                            >
+                                                                                                {renderAssignment(affectation, 'AFTERNOON')}
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </Draggable>
+                                                                                ))}
+                                                                                {provided.placeholder}
+                                                                                {!readOnly && (
+                                                                                    <Button
+                                                                                        variant="ghost"
+                                                                                        size="sm"
+                                                                                        className="w-full mt-1 text-xs h-6 border border-dashed border-gray-300 text-gray-500"
+                                                                                        onClick={() => handleAddAffectation(room.id.toString(), day.code, 'AFTERNOON')}
+                                                                                    >
+                                                                                        + Ajouter
+                                                                                    </Button>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </Droppable>
                                                                 </div>
-                                                            )}
-                                                        </Droppable>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
@@ -996,6 +1087,7 @@ const TrameGridView: React.FC<{
                                     <div className="flex justify-center mt-1 gap-1">
                                         <span className="text-xs bg-blue-100 text-blue-700 px-1 rounded">AM</span>
                                         <span className="text-xs bg-amber-100 text-amber-700 px-1 rounded">PM</span>
+                                        <span className="text-xs bg-indigo-100 text-indigo-700 px-1 rounded">24h</span>
                                     </div>
                                 </div>
                             ))}
@@ -1053,107 +1145,162 @@ const TrameGridView: React.FC<{
                                     </div>
 
                                     {/* Colonnes des jours */}
-                                    {weekDays.map(day => (
-                                        <div key={`${room.id}-${day.code}`} className="border border-gray-300 dark:border-gray-700 rounded overflow-hidden">
-                                            <div className="grid grid-cols-2 h-full">
-                                                {/* Matin */}
-                                                <div className="bg-blue-50 border-r border-gray-200 p-1">
-                                                    <Droppable
-                                                        droppableId={`${room.id}-${day.code}-morning`}
-                                                        isDropDisabled={false}
-                                                        isCombineEnabled={false}
-                                                        ignoreContainerClipping={false}
-                                                    >
-                                                        {(provided) => (
-                                                            <div
-                                                                ref={provided.innerRef}
-                                                                {...provided.droppableProps}
-                                                                className="min-h-[60px]"
+                                    {weekDays.map(day => {
+                                        const isFullDay = isFullDayRoom(room.id) || hasFullDayAffectations(room.id, day.code);
+                                        
+                                        return (
+                                            <div key={`${room.id}-${day.code}`} className="border border-gray-300 dark:border-gray-700 rounded overflow-hidden">
+                                                {isFullDay ? (
+                                                    // Affichage 24h (colonne unique)
+                                                    <div className="bg-indigo-50 p-1 h-full">
+                                                        <Droppable
+                                                            droppableId={`${room.id}-${day.code}-fullday`}
+                                                            isDropDisabled={false}
+                                                            isCombineEnabled={false}
+                                                            ignoreContainerClipping={false}
+                                                        >
+                                                            {(provided) => (
+                                                                <div
+                                                                    ref={provided.innerRef}
+                                                                    {...provided.droppableProps}
+                                                                    className="min-h-[60px]"
+                                                                >
+                                                                    {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                        <Draggable
+                                                                            key={`${affectation.id}-fullday`}
+                                                                            draggableId={`${affectation.id}-fullday`}
+                                                                            index={index}
+                                                                            isDragDisabled={readOnly}
+                                                                        >
+                                                                            {(provided) => (
+                                                                                <div
+                                                                                    ref={provided.innerRef}
+                                                                                    {...provided.draggableProps}
+                                                                                    {...provided.dragHandleProps}
+                                                                                >
+                                                                                    {renderAssignment(affectation, 'FULL_DAY')}
+                                                                                </div>
+                                                                            )}
+                                                                        </Draggable>
+                                                                    ))}
+                                                                    {provided.placeholder}
+                                                                    {!readOnly && (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            className="w-full mt-1 text-xs h-5 border border-dashed border-indigo-300 text-indigo-600 bg-indigo-50 hover:bg-indigo-100"
+                                                                            onClick={() => handleAddAffectation(room.id.toString(), day.code, 'FULL_DAY')}
+                                                                        >
+                                                                            + 24h
+                                                                        </Button>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </Droppable>
+                                                    </div>
+                                                ) : (
+                                                    // Affichage AM/PM (colonnes séparées)
+                                                    <div className="grid grid-cols-2 h-full">
+                                                        {/* Matin */}
+                                                        <div className="bg-blue-50 border-r border-gray-200 p-1">
+                                                            <Droppable
+                                                                droppableId={`${room.id}-${day.code}-morning`}
+                                                                isDropDisabled={false}
+                                                                isCombineEnabled={false}
+                                                                ignoreContainerClipping={false}
                                                             >
-                                                                {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
-                                                                    <Draggable
-                                                                        key={`${affectation.id}-morning`}
-                                                                        draggableId={`${affectation.id}-morning`}
-                                                                        index={index}
-                                                                        isDragDisabled={readOnly}
+                                                                {(provided) => (
+                                                                    <div
+                                                                        ref={provided.innerRef}
+                                                                        {...provided.droppableProps}
+                                                                        className="min-h-[60px]"
                                                                     >
-                                                                        {(provided) => (
-                                                                            <div
-                                                                                ref={provided.innerRef}
-                                                                                {...provided.draggableProps}
-                                                                                {...provided.dragHandleProps}
+                                                                        {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                            <Draggable
+                                                                                key={`${affectation.id}-morning`}
+                                                                                draggableId={`${affectation.id}-morning`}
+                                                                                index={index}
+                                                                                isDragDisabled={readOnly}
                                                                             >
-                                                                                {renderAssignment(affectation, 'MORNING')}
-                                                                            </div>
+                                                                                {(provided) => (
+                                                                                    <div
+                                                                                        ref={provided.innerRef}
+                                                                                        {...provided.draggableProps}
+                                                                                        {...provided.dragHandleProps}
+                                                                                    >
+                                                                                        {renderAssignment(affectation, 'MORNING')}
+                                                                                    </div>
+                                                                                )}
+                                                                            </Draggable>
+                                                                        ))}
+                                                                        {provided.placeholder}
+                                                                        {!readOnly && (
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="sm"
+                                                                                className="w-full mt-1 text-xs h-5 border border-dashed border-gray-300 text-gray-500"
+                                                                                onClick={() => handleAddAffectation(room.id.toString(), day.code, 'MORNING')}
+                                                                            >
+                                                                                +
+                                                                            </Button>
                                                                         )}
-                                                                    </Draggable>
-                                                                ))}
-                                                                {provided.placeholder}
-                                                                {!readOnly && (
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="sm"
-                                                                        className="w-full mt-1 text-xs h-5 border border-dashed border-gray-300 text-gray-500"
-                                                                        onClick={() => handleAddAffectation(room.id.toString(), day.code, 'MORNING')}
-                                                                    >
-                                                                        +
-                                                                    </Button>
+                                                                    </div>
                                                                 )}
-                                                            </div>
-                                                        )}
-                                                    </Droppable>
-                                                </div>
+                                                            </Droppable>
+                                                        </div>
 
-                                                {/* Après-midi */}
-                                                <div className="bg-amber-50 p-1">
-                                                    <Droppable
-                                                        droppableId={`${room.id}-${day.code}-afternoon`}
-                                                        isDropDisabled={false}
-                                                        isCombineEnabled={false}
-                                                        ignoreContainerClipping={false}
-                                                    >
-                                                        {(provided) => (
-                                                            <div
-                                                                ref={provided.innerRef}
-                                                                {...provided.droppableProps}
-                                                                className="min-h-[60px]"
+                                                        {/* Après-midi */}
+                                                        <div className="bg-amber-50 p-1">
+                                                            <Droppable
+                                                                droppableId={`${room.id}-${day.code}-afternoon`}
+                                                                isDropDisabled={false}
+                                                                isCombineEnabled={false}
+                                                                ignoreContainerClipping={false}
                                                             >
-                                                                {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
-                                                                    <Draggable
-                                                                        key={`${affectation.id}-afternoon`}
-                                                                        draggableId={`${affectation.id}-afternoon`}
-                                                                        index={index}
-                                                                        isDragDisabled={readOnly}
+                                                                {(provided) => (
+                                                                    <div
+                                                                        ref={provided.innerRef}
+                                                                        {...provided.droppableProps}
+                                                                        className="min-h-[60px]"
                                                                     >
-                                                                        {(provided) => (
-                                                                            <div
-                                                                                ref={provided.innerRef}
-                                                                                {...provided.draggableProps}
-                                                                                {...provided.dragHandleProps}
+                                                                        {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                            <Draggable
+                                                                                key={`${affectation.id}-afternoon`}
+                                                                                draggableId={`${affectation.id}-afternoon`}
+                                                                                index={index}
+                                                                                isDragDisabled={readOnly}
                                                                             >
-                                                                                {renderAssignment(affectation, 'AFTERNOON')}
-                                                                            </div>
+                                                                                {(provided) => (
+                                                                                    <div
+                                                                                        ref={provided.innerRef}
+                                                                                        {...provided.draggableProps}
+                                                                                        {...provided.dragHandleProps}
+                                                                                    >
+                                                                                        {renderAssignment(affectation, 'AFTERNOON')}
+                                                                                    </div>
+                                                                                )}
+                                                                            </Draggable>
+                                                                        ))}
+                                                                        {provided.placeholder}
+                                                                        {!readOnly && (
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="sm"
+                                                                                className="w-full mt-1 text-xs h-5 border border-dashed border-gray-300 text-gray-500"
+                                                                                onClick={() => handleAddAffectation(room.id.toString(), day.code, 'AFTERNOON')}
+                                                                            >
+                                                                                +
+                                                                            </Button>
                                                                         )}
-                                                                    </Draggable>
-                                                                ))}
-                                                                {provided.placeholder}
-                                                                {!readOnly && (
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="sm"
-                                                                        className="w-full mt-1 text-xs h-5 border border-dashed border-gray-300 text-gray-500"
-                                                                        onClick={() => handleAddAffectation(room.id.toString(), day.code, 'AFTERNOON')}
-                                                                    >
-                                                                        +
-                                                                    </Button>
+                                                                    </div>
                                                                 )}
-                                                            </div>
-                                                        )}
-                                                    </Droppable>
-                                                </div>
+                                                            </Droppable>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             ))}
                         </div>
@@ -1392,6 +1539,24 @@ const TrameGridView: React.FC<{
 
             {/* Grille de trameModele */}
             {renderTrameGrid()}
+
+            {/* Modal de configuration des affectations */}
+            {modalConfig && (
+                <AffectationConfigModal
+                    isOpen={isAffectationModalOpen}
+                    onClose={() => {
+                        setIsAffectationModalOpen(false);
+                        setModalConfig(null);
+                    }}
+                    onSave={handleSaveAffectation}
+                    roomId={modalConfig.roomId}
+                    dayCode={modalConfig.dayCode}
+                    period={modalConfig.period}
+                    roomName={modalConfig.roomName}
+                    dayName={modalConfig.dayName}
+                    availableActivityTypes={mockActivityTypes}
+                />
+            )}
         </div>
     );
 };
