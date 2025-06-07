@@ -58,7 +58,10 @@
     "test:security": "npm audit && npm run test:critical",
     "audit:debt": "./scripts/audit-technical-debt.sh",
     "quality:full": "npm run test:critical && npm run perf:audit",
-    "storybook": "storybook dev -p 6006"
+    "storybook": "storybook dev -p 6006",
+    "test:manual": "node scripts/automated-manual-tester-complete.js",
+    "test:manual:headless": "HEADLESS=true node scripts/automated-manual-tester-complete.js",
+    "test:manual:dev": "HEADLESS=false BASE_URL=http://localhost:3000 node scripts/automated-manual-tester-complete.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
