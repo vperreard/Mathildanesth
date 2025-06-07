@@ -42,7 +42,7 @@ interface ExtendedSecteur {
   description?: string;
   isActive: boolean;
   displayOrder?: number;
-  operatingRooms: OperatingRoom[];
+  operatingRooms?: OperatingRoom[];
 }
 
 interface DraggedItem {
@@ -116,7 +116,7 @@ const SortableSector = React.memo(({ secteur }: { secteur: ExtendedSecteur }) =>
   };
 
   const roomIds = useMemo(() => 
-    secteur.operatingRooms.map(room => `room-${room.id}`), 
+    secteur.operatingRooms?.map(room => `room-${room.id}`) || [], 
     [secteur.operatingRooms]
   );
 
@@ -148,7 +148,7 @@ const SortableSector = React.memo(({ secteur }: { secteur: ExtendedSecteur }) =>
       </CardHeader>
 
       <CardContent>
-        {secteur.operatingRooms.length > 0 ? (
+        {secteur.operatingRooms && secteur.operatingRooms.length > 0 ? (
           <SortableContext items={roomIds} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
               {secteur.operatingRooms.map((room) => (

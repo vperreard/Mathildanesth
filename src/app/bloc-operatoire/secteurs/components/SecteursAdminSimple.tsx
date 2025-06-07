@@ -22,7 +22,7 @@ interface ExtendedSecteur {
   description?: string;
   isActive: boolean;
   displayOrder?: number;
-  operatingRooms: OperatingRoom[];
+  operatingRooms?: OperatingRoom[];
 }
 
 // Composant salle simple
@@ -67,7 +67,7 @@ const SimpleSector = ({ secteur }: { secteur: ExtendedSecteur }) => (
     </CardHeader>
 
     <CardContent>
-      {secteur.operatingRooms.length > 0 ? (
+      {secteur.operatingRooms && secteur.operatingRooms.length > 0 ? (
         <div className="space-y-2">
           {secteur.operatingRooms.map((room) => (
             <SimpleRoom key={room.id} room={room} />
