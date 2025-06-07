@@ -1,35 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@/lib/auth/migration-shim';
-import { authOptions } from '@/lib/auth/migration-shim';
-import { headers } from 'next/headers';
+import { checkUserRole } from '@/lib/auth-server-utils';
+import type { UserRole as AuthUserRole } from '@/lib/auth-client-utils';
 
 interface SectorOrder {
   id: number;
   displayOrder: number;
 }
 
+// Définir les rôles autorisés
+const ALLOWED_ROLES: AuthUserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'];
+
 export async function POST(request: NextRequest) {
   try {
     // Vérifier l'authentification
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    const authCheck = await checkUserRole(ALLOWED_ROLES);
+
+    if (!authCheck.hasRequiredRole) {
+      logger.info("Vérification d'autorisation échouée:", authCheck.error);
+      return NextResponse.json(
+        { error: authCheck.error || 'Authentification requise' },
+        { status: 401 }
+      );
     }
 
     // Récupérer les données
     const body = await request.json();
-    const { sectors } = body;
+    const { sectorOrders } = body;
 
-    if (!sectors || !Array.isArray(sectors)) {
-      return NextResponse.json({ error: 'Les données sont invalides' }, { status: 400 });
+    if (!sectorOrders || !Array.isArray(sectorOrders)) {
+      return NextResponse.json(
+        { error: 'Les données sectorOrders sont invalides' },
+        { status: 400 }
+      );
     }
 
-    logger.info("Mise à jour de l'ordre des secteurs opératoires:", sectors);
+    logger.info("Mise à jour de l'ordre des secteurs opératoires:", sectorOrders);
 
     // Traiter chaque secteur
-    const updatePromises = sectors.map((sector: SectorOrder) => {
+    const updatePromises = sectorOrders.map((sector: SectorOrder) => {
       return prisma.operatingSector.update({
         where: { id: sector.id },
         data: { displayOrder: sector.displayOrder },
