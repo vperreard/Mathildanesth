@@ -1472,4 +1472,185 @@ export interface DutyUnavailability {
 
 ---
 
+## 🚨 REFONTE URGENTE MODULE TRAMES/AFFECTATIONS (11/06/2025)
+
+### ⚠️ **AUDIT COMPLET RÉVÈLE PROBLÈMES CRITIQUES**
+
+**Problèmes identifiés** : Performance catastrophique, ergonomie limitée, rechargements intempestifs bloquant le workflow
+
+**Impact** : Module central inutilisable en production - PRIORITÉ ABSOLUE
+
+### 📋 **PLAN D'ACTION DÉTAILLÉ EN 5 PHASES**
+
+#### **PHASE 1 : STABILISATION URGENTE** (1-2 jours) 🔴 PRIORITÉ MAXIMALE
+
+**Objectif** : Arrêter l'hémorragie de performance
+
+**1.1 Éliminer les rechargements intempestifs** ✅ **TERMINÉ (06/01/2025)**
+- [x] Supprimer le refresh automatique toutes les 30s (ligne 354-378 de TrameGridEditor)
+- [x] Retirer l'interval de 30 secondes
+- [x] Conserver uniquement le refresh manuel
+- [x] **Temps réel** : 30 min
+
+**1.2 Corriger les URLs hardcodées** ✅ **TERMINÉ (06/01/2025)**
+- [x] Remplacer `http://localhost:3000` par URLs relatives
+- [x] Créer un fichier `config/api-endpoints.ts` centralisé
+- [x] Utiliser `process.env.NEXT_PUBLIC_API_URL`
+- [x] **Temps réel** : 45 min
+
+**1.3 Fix des toasts multiples** ✅ **TERMINÉ (06/01/2025)**
+- [x] Implémenter un ToastManager singleton (`/src/lib/toast-manager.ts`)
+- [x] Limite de 3 toasts simultanés max
+- [x] Auto-dismiss après 3 secondes
+- [x] Améliorer le bouton "🚫 Fermer toasts" existant
+- [x] **Temps réel** : 1h15
+
+**1.4 Correction bug semaines paires/impaires** ✅ **TERMINÉ (06/01/2025)**
+- [x] Hériter weekType de la trame lors de création d'affectation
+- [x] Modifier handleSaveAffectation pour utiliser trameModele.weekType  
+- [x] Adapter AffectationConfigModal pour recevoir et utiliser trameWeekType
+- [x] Préserver weekTypeOverride lors de l'édition d'affectations existantes
+- [x] Ajouter affichage visuel du type de semaine dans le modal
+- [x] **Temps réel** : 2h
+- [x] **Rapport** : `/docs/05_reports/FIX_SEMAINES_PAIRES_IMPAIRES_REPORT.md`
+
+#### **PHASE 2 : OPTIMISATION PERFORMANCE** (3-4 jours)
+
+**Objectif** : Diviser par 10 le nombre d'appels API
+
+**2.1 Implémenter React Query avec cache intelligent** ✅
+```typescript
+// Configuration dans hooks/useTrameQueries.ts
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes  
+      refetchOnWindowFocus: false,
+      refetchInterval: false,
+      retry: 1
+    }
+  }
+});
+```
+- [ ] Créer hooks personnalisés : useTrameModeles(), useTrameModele(id), useAffectations(trameId)
+- [ ] **Temps estimé** : 1 jour
+
+**2.2 Unifier les routes API** ✅
+- [ ] Structure simplifiée avec endpoints cohérents
+- [ ] Batch operations pour créer/modifier/supprimer plusieurs affectations
+- [ ] Pagination et lazy loading
+- [ ] **Temps estimé** : 1 jour
+
+**2.3 Optimistic Updates** ✅
+- [ ] Mises à jour locales immédiates avec rollback automatique
+- [ ] Queue de synchronisation pour mode offline
+- [ ] **Temps estimé** : 1 jour
+
+**2.4 WebSockets pour synchronisation temps réel** ✅
+- [ ] Canal par trame : `trame:${trameId}`
+- [ ] Events : affectation:created, affectation:updated, affectation:deleted
+- [ ] Indicateur "X utilisateurs consultent cette trame"
+- [ ] **Temps estimé** : 1 jour
+
+#### **PHASE 3 : RÉVOLUTION ERGONOMIQUE** (4-5 jours)
+
+**Objectif** : Interface ultra-rapide avec clic-droit
+
+**3.1 Menu contextuel au clic-droit** ✅
+```typescript
+// Structure hiérarchique du menu
+const contextMenuStructure = {
+  "Ajouter affectation": {
+    "Matin": () => createAffectation('MORNING'),
+    "Après-midi": () => createAffectation('AFTERNOON'),
+    "Journée complète": () => createAffectation('FULL_DAY'),
+    "24h (garde/astreinte)": () => createAffectation('GUARD')
+  },
+  "Affecter chirurgien": {
+    // Sous-menu dynamique par spécialité
+    specialties: surgeonsBySpecialty
+  },
+  "Appliquer à toute la ligne": () => applyToRow()
+}
+```
+- [ ] **Temps estimé** : 1.5 jours
+
+**3.2 Actions rapides et drag & drop amélioré** ✅
+- [ ] Double-clic pour édition instantanée
+- [ ] Drag & drop entre salles/jours avec preview
+- [ ] Multi-sélection et actions groupées
+- [ ] **Temps estimé** : 1.5 jours
+
+**3.3 Vue unifiée ultra-rapide** ✅
+- [ ] Pré-charger les deux vues en mémoire
+- [ ] Bascule instantanée entre vue grille et vue chirurgien
+- [ ] Virtual scrolling pour grandes listes
+- [ ] **Temps estimé** : 1.5 jours
+
+**3.4 Détection de conflits visuels** (REMPLACE raccourcis)
+- [ ] Affectation normale : fond blanc/bordure grise
+- [ ] Conflit détecté : fond orange/bordure rouge
+- [ ] Panneau latéral listant tous les conflits
+- [ ] **Temps estimé** : 0.5 jour
+
+#### **PHASE 4 : FEATURES ESSENTIELLES** (2-3 jours)
+
+**4.1 Drag & drop avancé** (FOCUS principal)
+- [ ] Déplacer entre salles ET jours
+- [ ] Multi-drag : déplacer plusieurs affectations
+- [ ] Shift = copier, Alt = swap
+- [ ] **Temps estimé** : 1.5 jours
+
+**4.2 Export PDF/Excel one-click**
+- [ ] Excel avec feuilles multiples (grille, chirurgiens, stats)
+- [ ] PDF mise en page A4/A3 paysage
+- [ ] **Temps estimé** : 1 jour
+
+**4.3 Gestion avancée semaines paires/impaires**
+- [ ] Architecture simplifiée : une trame, variations au niveau affectation
+- [ ] Interface claire avec badges visuels
+- [ ] **Temps estimé** : 0.5 jour
+
+#### **PHASE 5 : ARCHITECTURE MODERNE** (Optionnel - 4-5 jours)
+
+**5.1 Zustand vs système actuel**
+- Store global centralisé vs états locaux dispersés
+- Performance : 50% moins de re-renders
+- Persistance automatique et mode offline
+
+**5.2 Microservices vs monolithe**
+- Services spécialisés scalables indépendamment
+- Résilience et performance optimisées
+
+**5.3 Tests automatisés**
+- Tests E2E Cypress pour workflows complets
+- Tests performance k6 pour charge
+
+### 📅 **PLANNING PRÉVISIONNEL**
+
+```
+Semaine 1 : Phase 1 (2j) + Début Phase 2 (2j)
+Semaine 2 : Fin Phase 2 (2j) + Phase 3 (3j)  
+Semaine 3 : Fin Phase 3 (2j) + Phase 4 (3j)
+Semaine 4 : Tests, ajustements, déploiement
+```
+
+### 🎯 **LIVRABLES PRIORITAIRES**
+
+1. **Immédiat** : Stabilisation + fix semaines paires/impaires
+2. **Semaine 1** : Performance x10 avec React Query
+3. **Semaine 2** : Clic-droit + drag & drop pro
+4. **Semaine 3** : Export PDF/Excel + conflits visuels
+
+### 📈 **RÉSULTATS ATTENDUS**
+
+- **Performance** : 90% de réduction des appels API
+- **Productivité** : 75% de clics en moins
+- **Stabilité** : 0 rechargement intempestif
+- **UX** : Temps de création d'affectation divisé par 4
+- **Scalabilité** : Support de 100+ utilisateurs simultanés
+
+---
+
 _Ce document remplace tous les anciens fichiers NEXT_STEPS et roadmap. Mise à jour mensuelle obligatoire._

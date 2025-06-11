@@ -29,6 +29,8 @@ import {
   MessageSquareX,
   PlusIcon,
   MapPinIcon,
+  Move,
+  Copy,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -36,6 +38,19 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { getClientAuthToken } from '@/lib/auth-client-utils';
 import { useSurgeons } from '@/hooks/useSurgeons';
+import { ContextMenu, createAffectationContextMenu } from './ContextMenu';
+import { useTrameAffectationsBatch } from '@/hooks/useTrameAffectationsBatch';
+import { 
+  DragPreview, 
+  useMultiSelection, 
+  getItemStyle, 
+  DropIndicator, 
+  useKeyboardShortcuts, 
+  FloatingToolbar 
+} from './EnhancedDragDrop';
+import { useTrameAffectationsHistory } from '@/hooks/useUndoRedo';
+import { AdvancedDragDrop, MoveOperation, useDraggableAffectation, useDroppableZone, DragGuides } from './AdvancedDragDrop';
+import { ExportButtons } from '../ExportButtons';
 
 // Exports pour l'utilisation dans d'autres composants
 export type WeekType = 'ALL' | 'EVEN' | 'ODD';
@@ -184,6 +199,34 @@ const TrameGridView: React.FC<{
   const [showWeekType, setShowWeekType] = useState<WeekType | 'ALL'>('ALL');
   const [showPersonnel, setShowPersonnel] = useState(true);
   const [compactView, setCompactView] = useState(false);
+  
+  // États pour le menu contextuel
+  const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
+  const [contextMenuCell, setContextMenuCell] = useState<{
+    roomId: string;
+    dayOfWeek: number;
+    period: DayPeriod;
+    hasAffectation: boolean;
+    affectationId?: string;
+  } | null>(null);
+  const [clipboard, setClipboard] = useState<AffectationModele | null>(null);
+  
+  // Hook pour les opérations batch
+  const batchOpsResult = useTrameAffectationsBatch(trameModele.id);
+  const batchOps = trameModele.id === 'new-trameModele' ? null : batchOpsResult;
+  
+  // Multi-sélection
+  const { selectedIds, isSelecting, toggleSelection, clearSelection, isSelected } = useMultiSelection();
+  
+  // Historique (undo/redo)
+  const {
+    affectations: historyAffectations,
+    setAffectations: setHistoryAffectations,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useTrameAffectationsHistory(trameModele.affectations);
 
   // Récupérer les chirurgiens depuis le hook
   const { surgeons } = useSurgeons();
@@ -817,6 +860,210 @@ const TrameGridView: React.FC<{
     logger.info(`Filtres réinitialisés pour la trameModele ${trameModele.id}`);
   }, [trameModele.id, filterStorageKey]);
 
+  // Handlers pour le menu contextuel
+  const handleContextMenu = useCallback((e: React.MouseEvent, cellInfo: {
+    roomId: string;
+    dayOfWeek: number;
+    period: DayPeriod;
+    hasAffectation: boolean;
+    affectationId?: string;
+  }) => {
+    e.preventDefault();
+    if (readOnly) return;
+    
+    setContextMenuPosition({ x: e.clientX, y: e.clientY });
+    setContextMenuCell(cellInfo);
+  }, [readOnly]);
+  
+  const handleCloseContextMenu = useCallback(() => {
+    setContextMenuPosition(null);
+    setContextMenuCell(null);
+  }, []);
+  
+  const handleCopyAffectation = useCallback(() => {
+    if (contextMenuCell?.affectationId) {
+      const affectation = trameModele.affectations.find(
+        a => a.id === contextMenuCell.affectationId
+      );
+      if (affectation) {
+        setClipboard(affectation);
+        toast.success('Affectation copiée');
+      }
+    }
+    handleCloseContextMenu();
+  }, [contextMenuCell, trameModele.affectations, handleCloseContextMenu]);
+  
+  const handlePasteAffectation = useCallback(() => {
+    if (clipboard && contextMenuCell && batchOps) {
+      batchOps.createAffectation({
+        userId: clipboard.userId,
+        operatingRoomId: contextMenuCell.roomId,
+        dayOfWeek: contextMenuCell.dayOfWeek,
+        shiftType: contextMenuCell.period === 'FULL_DAY' ? 'FULL_DAY' : 
+                  contextMenuCell.period === 'MORNING' ? 'MORNING' : 'AFTERNOON',
+        weekType: clipboard.weekType || 'ALL',
+        activityTypeId: clipboard.activityTypeId,
+      });
+    }
+    handleCloseContextMenu();
+  }, [clipboard, contextMenuCell, batchOps, handleCloseContextMenu]);
+  
+  const handleApplyToRow = useCallback(() => {
+    if (contextMenuCell?.affectationId && batchOps) {
+      const affectation = trameModele.affectations.find(
+        a => a.id === contextMenuCell.affectationId
+      );
+      if (affectation) {
+        batchOps.applyToRow(
+          contextMenuCell.roomId,
+          affectation.userId,
+          affectation.period === 'FULL_DAY' ? 'FULL_DAY' : 
+          affectation.period === 'MORNING' ? 'MORNING' : 'AFTERNOON',
+          affectation.weekType || 'ALL',
+          affectation.activityTypeId
+        );
+      }
+    }
+    handleCloseContextMenu();
+  }, [contextMenuCell, trameModele.affectations, batchOps, handleCloseContextMenu]);
+  
+  const handleApplyToColumn = useCallback(() => {
+    if (contextMenuCell?.affectationId && batchOps) {
+      const affectation = trameModele.affectations.find(
+        a => a.id === contextMenuCell.affectationId
+      );
+      if (affectation) {
+        const allRoomIds = filteredRooms.map(r => r.id.toString());
+        batchOps.applyToColumn(
+          contextMenuCell.dayOfWeek,
+          affectation.userId,
+          affectation.period === 'FULL_DAY' ? 'FULL_DAY' : 
+          affectation.period === 'MORNING' ? 'MORNING' : 'AFTERNOON',
+          allRoomIds,
+          affectation.weekType || 'ALL',
+          affectation.activityTypeId
+        );
+      }
+    }
+    handleCloseContextMenu();
+  }, [contextMenuCell, trameModele.affectations, batchOps, filteredRooms, handleCloseContextMenu]);
+  
+  // Handlers pour le drag & drop avancé
+  const [isAdvancedDragMode, setIsAdvancedDragMode] = useState(false);
+  const [showDragGuides, setShowDragGuides] = useState(false);
+  
+  const handleAdvancedMove = useCallback((moves: MoveOperation[]) => {
+    if (!batchOps) return;
+    
+    // Grouper les opérations par type
+    const updates: any[] = [];
+    const creates: any[] = [];
+    
+    moves.forEach(move => {
+      const affectation = trameModele.affectations.find(a => a.id === move.affectationId);
+      if (!affectation) return;
+      
+      // Si c'est juste un changement de salle/jour sur la même affectation
+      if (affectation.operatingRoomId === move.targetRoomId && 
+          affectation.dayOverride === move.targetDayOfWeek) {
+        // Pas de changement nécessaire
+        return;
+      }
+      
+      // Mettre à jour l'affectation existante
+      updates.push({
+        id: affectation.id,
+        data: {
+          operatingRoomId: move.targetRoomId,
+          dayOfWeek: move.targetDayOfWeek,
+          shiftType: move.targetShiftType || affectation.period,
+        }
+      });
+    });
+    
+    // Exécuter les opérations batch
+    if (updates.length > 0 || creates.length > 0) {
+      batchOps.executeBatch({ update: updates, create: creates });
+      toast.success(`${moves.length} affectation${moves.length > 1 ? 's' : ''} déplacée${moves.length > 1 ? 's' : ''}`);
+    }
+  }, [batchOps, trameModele.affectations]);
+  
+  // Toggle le mode drag & drop avancé
+  const toggleAdvancedDragMode = useCallback(() => {
+    setIsAdvancedDragMode(prev => !prev);
+    if (!isAdvancedDragMode) {
+      toast.info('Mode drag & drop avancé activé - Déplacez entre salles et jours');
+    }
+  }, [isAdvancedDragMode]);
+  
+  // Raccourcis clavier pour le drag & drop avancé
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Alt + D pour toggle le mode drag avancé
+      if (e.altKey && e.key === 'd') {
+        e.preventDefault();
+        toggleAdvancedDragMode();
+      }
+      
+      // Shift pour afficher les guides
+      if (e.shiftKey && isAdvancedDragMode) {
+        setShowDragGuides(true);
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!e.shiftKey) {
+        setShowDragGuides(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [toggleAdvancedDragMode, isAdvancedDragMode]);
+  
+  // Handlers pour multi-sélection
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedIds.size > 0 && batchOps) {
+      batchOps.batchMutation.mutate({
+        delete: Array.from(selectedIds)
+      });
+      clearSelection();
+    }
+  }, [selectedIds, batchOps, clearSelection]);
+  
+  const handleCopySelected = useCallback(() => {
+    if (selectedIds.size === 1) {
+      const affectationId = Array.from(selectedIds)[0];
+      const affectation = trameModele.affectations.find(a => a.id === affectationId);
+      if (affectation) {
+        setClipboard(affectation);
+        toast.success(`${selectedIds.size} affectation(s) copiée(s)`);
+      }
+    }
+  }, [selectedIds, trameModele.affectations]);
+  
+  const handleDuplicateSelected = useCallback(() => {
+    if (selectedIds.size > 0 && batchOps) {
+      batchOps.duplicateAffectations(Array.from(selectedIds));
+      clearSelection();
+    }
+  }, [selectedIds, batchOps, clearSelection]);
+  
+  // Raccourcis clavier
+  useKeyboardShortcuts(
+    canUndo ? undo : undefined,
+    canRedo ? redo : undefined,
+    selectedIds.size > 0 ? handleDeleteSelected : undefined,
+    selectedIds.size > 0 ? handleCopySelected : undefined,
+    clipboard ? handlePasteAffectation : undefined,
+    undefined // pas de sélectionner tout pour l'instant
+  );
+  
   // Fonction pour supprimer une affectation
   const handleDeleteAffectation = async (affectationId: string) => {
     if (!affectationId) {
@@ -1025,14 +1272,25 @@ const TrameGridView: React.FC<{
         return 'bg-indigo-50 border-indigo-200';
       };
 
+      const selected = isSelected(affectation.id);
+      
       return (
         <Card
           key={`${affectation.id}-${period}`}
-          className={`mb-1 shadow-sm ${getCardStyle()} ${compactView ? 'p-1 text-xs' : 'p-1'}`}
+          className={`mb-1 shadow-sm ${getCardStyle()} ${compactView ? 'p-1 text-xs' : 'p-1'} ${
+            selected ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+          } cursor-pointer`}
           style={{
             overflow: 'visible',
             position: 'relative',
             zIndex: openMenuId === affectation.id ? 99998 : 'auto',
+            transform: selected ? 'scale(1.02)' : 'scale(1)',
+            transition: 'all 0.15s ease-in-out',
+          }}
+          onClick={(e) => {
+            if (!readOnly) {
+              toggleSelection(affectation.id, e);
+            }
           }}
         >
           <CardContent
@@ -1253,7 +1511,14 @@ const TrameGridView: React.FC<{
               ? 'PAIRES'
               : affectationData.weekTypeOverride === 'ODD'
                 ? 'IMPAIRES'
-                : 'TOUTES',
+                : affectationData.weekTypeOverride === 'ALL'
+                  ? 'TOUTES'
+                  : // Si pas de weekTypeOverride fourni, hériter du type de la trame parente
+                    trameModele.weekType === 'EVEN'
+                    ? 'PAIRES'
+                    : trameModele.weekType === 'ODD'
+                      ? 'IMPAIRES'
+                      : 'TOUTES',
           operatingRoomId:
             affectationData.roomId || modalConfig?.roomId
               ? parseInt(affectationData.roomId || modalConfig?.roomId || '0')
@@ -1839,7 +2104,16 @@ const TrameGridView: React.FC<{
                       >
                         {isFullDay ? (
                           // Affichage 24h (colonne unique)
-                          <div className="bg-indigo-50 p-1 h-full">
+                          <div 
+                            className="bg-indigo-50 p-1 h-full"
+                            onContextMenu={(e) => handleContextMenu(e, {
+                              roomId: room.id.toString(),
+                              dayOfWeek: day.code,
+                              period: 'FULL_DAY',
+                              hasAffectation: getRoomDayAffectations(room.id, day.code).length > 0,
+                              affectationId: getRoomDayAffectations(room.id, day.code)[0]?.id
+                            })}
+                          >
                             <Droppable
                               droppableId={`${room.id}-${day.code}-fullday`}
                               isDropDisabled={false}
@@ -1897,7 +2171,20 @@ const TrameGridView: React.FC<{
                           // Affichage AM/PM (colonnes séparées)
                           <div className="grid grid-cols-2 h-full">
                             {/* Matin */}
-                            <div className="bg-blue-50 border-r border-gray-200 p-1">
+                            <div 
+                              className="bg-blue-50 border-r border-gray-200 p-1"
+                              onContextMenu={(e) => handleContextMenu(e, {
+                                roomId: room.id.toString(),
+                                dayOfWeek: day.code,
+                                period: 'MORNING',
+                                hasAffectation: getRoomDayAffectations(room.id, day.code).some(a => 
+                                  a.period === 'MORNING' || a.period === 'FULL_DAY'
+                                ),
+                                affectationId: getRoomDayAffectations(room.id, day.code).find(a => 
+                                  a.period === 'MORNING' || a.period === 'FULL_DAY'
+                                )?.id
+                              })}
+                            >
                               <Droppable
                                 droppableId={`${room.id}-${day.code}-morning`}
                                 isDropDisabled={false}
@@ -1953,7 +2240,20 @@ const TrameGridView: React.FC<{
                             </div>
 
                             {/* Après-midi */}
-                            <div className="bg-amber-50 p-1">
+                            <div 
+                              className="bg-amber-50 p-1"
+                              onContextMenu={(e) => handleContextMenu(e, {
+                                roomId: room.id.toString(),
+                                dayOfWeek: day.code,
+                                period: 'AFTERNOON',
+                                hasAffectation: getRoomDayAffectations(room.id, day.code).some(a => 
+                                  a.period === 'AFTERNOON' || a.period === 'FULL_DAY'
+                                ),
+                                affectationId: getRoomDayAffectations(room.id, day.code).find(a => 
+                                  a.period === 'AFTERNOON' || a.period === 'FULL_DAY'
+                                )?.id
+                              })}
+                            >
                               <Droppable
                                 droppableId={`${room.id}-${day.code}-afternoon`}
                                 isDropDisabled={false}
@@ -2048,6 +2348,40 @@ const TrameGridView: React.FC<{
                 <span className="text-xs font-medium">{getSiteName()}</span>
               </div>
             </div>
+            
+            {/* Boutons d'export */}
+            <div className="flex items-center gap-2">
+              <ExportButtons
+                trameName={trameModele.name}
+                site={getSiteName()}
+                weekType={trameModele.weekType}
+                rooms={filteredRooms.map(r => ({
+                  id: r.id.toString(),
+                  name: r.name,
+                  sector: sectors.find(s => s.id === r.operatingSectorId)?.name || 'Non assigné',
+                }))}
+                affectations={filteredAffectations.map(aff => ({
+                  roomId: aff.roomId?.toString() || '',
+                  dayOfWeek: aff.dayOverride || 0,
+                  period: aff.period,
+                  activityType: mockActivityTypes.find(at => at.id === aff.activityTypeId)?.name || 'Activité',
+                  personnel: aff.requiredStaff.map(staff => {
+                    const user = staff.userId ? 
+                      (staff.userId.startsWith('surgeon-') 
+                        ? surgeons.find(s => s.id === parseInt(staff.userId!.replace('surgeon-', '')))
+                        : actualUsers.find(u => u.id === parseInt(staff.userId!))
+                      ) : null;
+                    return {
+                      name: user?.name || 'Non assigné',
+                      role: staff.role,
+                    };
+                  }),
+                  isActive: aff.isActive,
+                  weekType: aff.weekTypeOverride || 'ALL',
+                }))}
+                disabled={readOnly}
+              />
+            </div>
 
             {/* Informations supplémentaires sur la trameModele */}
             <div className="flex flex-col lg:flex-row lg:items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
@@ -2126,6 +2460,20 @@ const TrameGridView: React.FC<{
                   checked={compactView}
                   onCheckedChange={() => setCompactView(!compactView)}
                 />
+              </div>
+              
+              {/* Bouton pour le mode drag & drop avancé */}
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant={isAdvancedDragMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={toggleAdvancedDragMode}
+                  className="text-xs"
+                  title="Alt + D pour activer/désactiver"
+                >
+                  <Move className="h-3 w-3 mr-1" />
+                  Drag avancé
+                </Button>
               </div>
             </div>
 
@@ -2274,7 +2622,25 @@ const TrameGridView: React.FC<{
         </div>
 
         {/* Grille de trameModele */}
-        {renderTrameGrid()}
+        {isAdvancedDragMode ? (
+          <AdvancedDragDrop
+            affectations={filteredAffectations}
+            rooms={filteredRooms}
+            onMove={handleAdvancedMove}
+            selectedIds={selectedIds}
+            onSelectionChange={(newSelection) => {
+              clearSelection();
+              newSelection.forEach(id => toggleSelection(id));
+            }}
+          >
+            {renderTrameGrid()}
+          </AdvancedDragDrop>
+        ) : (
+          renderTrameGrid()
+        )}
+        
+        {/* Guides visuels pour le drag & drop avancé */}
+        <DragGuides show={showDragGuides && isAdvancedDragMode} />
 
         {/* Modal de configuration des affectations */}
         {modalConfig && (
@@ -2300,6 +2666,7 @@ const TrameGridView: React.FC<{
             }
             existingAffectation={modalConfig.existingAffectation}
             isEditing={!!modalConfig.affectationId}
+            trameWeekType={trameModele.weekType} // Passer le type de semaine de la trame parente
           />
         )}
       </div>
@@ -2389,6 +2756,106 @@ const TrameGridView: React.FC<{
           </div>,
           document.body
         )}
+        
+      {/* Toolbar flottante pour multi-sélection */}
+      {selectedIds.size > 0 && !readOnly && (
+        <FloatingToolbar
+          selectedCount={selectedIds.size}
+          onDelete={handleDeleteSelected}
+          onCopy={() => {
+            if (selectedIds.size === 1) {
+              const affectation = trameModele.affectations.find(
+                a => a.id === Array.from(selectedIds)[0]
+              );
+              if (affectation) {
+                setClipboard(affectation);
+                toast.success('Affectation copiée');
+              }
+            } else {
+              toast.info('Copie multiple non supportée');
+            }
+          }}
+          onDuplicate={() => {
+            if (batchOps) {
+              batchOps.duplicateAffectations(Array.from(selectedIds));
+            }
+          }}
+          onClearSelection={clearSelection}
+        />
+      )}
+      
+      {/* Menu contextuel */}
+      {contextMenuPosition && contextMenuCell && (
+        <ContextMenu
+          position={contextMenuPosition}
+          onClose={handleCloseContextMenu}
+          items={createAffectationContextMenu(
+            contextMenuCell,
+            {
+              onAddAffectation: (period) => {
+                handleAddAffectation(
+                  contextMenuCell.roomId,
+                  contextMenuCell.dayOfWeek,
+                  period
+                );
+                handleCloseContextMenu();
+              },
+              onAssignUser: (userId) => {
+                if (batchOps) {
+                  batchOps.createAffectation({
+                    userId,
+                    operatingRoomId: contextMenuCell.roomId,
+                    dayOfWeek: contextMenuCell.dayOfWeek,
+                    shiftType: contextMenuCell.period === 'FULL_DAY' ? 'FULL_DAY' : 
+                              contextMenuCell.period === 'MORNING' ? 'MORNING' : 'AFTERNOON',
+                    weekType: 'ALL',
+                  });
+                }
+                handleCloseContextMenu();
+              },
+              onCopy: handleCopyAffectation,
+              onPaste: handlePasteAffectation,
+              onDelete: () => {
+                if (contextMenuCell.affectationId) {
+                  handleDeleteAffectation(contextMenuCell.affectationId);
+                }
+                handleCloseContextMenu();
+              },
+              onApplyToRow: handleApplyToRow,
+              onApplyToColumn: handleApplyToColumn,
+              onDuplicate: () => {
+                if (contextMenuCell.affectationId && batchOps) {
+                  batchOps.duplicateAffectations(
+                    [contextMenuCell.affectationId],
+                    contextMenuCell.dayOfWeek + 1 // Jour suivant
+                  );
+                }
+                handleCloseContextMenu();
+              },
+            },
+            // Transformer les utilisateurs pour le menu
+            [...users.map(u => ({
+              id: u.id.toString(),
+              name: `${u.prenom} ${u.nom}`,
+              specialty: u.role,
+            })), ...surgeons.map(s => ({
+              id: `surgeon-${s.id}`,
+              name: s.name,
+              specialty: s.specialty || 'Chirurgien',
+            }))],
+            !!clipboard
+          )}
+        />
+      )}
+      
+      {/* Toolbar flottante pour la multi-sélection */}
+      <FloatingToolbar
+        selectedCount={selectedIds.size}
+        onDelete={handleDeleteSelected}
+        onCopy={handleCopySelected}
+        onDuplicate={handleDuplicateSelected}
+        onClear={clearSelection}
+      />
     </>
   );
 };

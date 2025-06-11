@@ -18,8 +18,12 @@ import { PlusIcon, RefreshCcw, AlertCircle, Settings } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'react-toastify';
+import { toast as managedToast, toastManager } from '@/lib/toast-manager';
 import { Badge } from '@/components/ui/badge';
 import { useUsers } from '@/hooks/useUsers';
+import { useTrameModeles, useTrameModele, useUpdateTrameModele, usePrefetchTrames } from '@/hooks/useTrameQueries';
+import { TRAME_ENDPOINTS, buildApiUrl } from '@/config/api-endpoints';
+import { useQuery } from '@tanstack/react-query';
 
 // Import du modal de création
 const NewTrameModal = dynamic(() => import('@/components/trames/grid-view/NewTrameModal'), {
@@ -189,10 +193,7 @@ const mapTrameToApi = (trameModele: TrameModele): any => {
 const TrameGridEditor: React.FC = () => {
   const { user } = useAuth();
   const { users } = useUsers(); // Récupération des utilisateurs réels
-  const [trameModeles, setTrames] = useState<TrameModele[]>([]);
   const [selectedTrameId, setSelectedTrameId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sites, setSites] = useState<Array<{ id: string; name: string }>>([]);
   const [rooms, setRooms] = useState<OperatingRoom[]>([]);
@@ -201,132 +202,98 @@ const TrameGridEditor: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [trameToEdit, setTrameToEdit] = useState<TrameModele | null>(null);
+  
+  // Utiliser React Query pour charger les trames
+  const { data: tramesData = [], isLoading, error: loadingError, refetch: refetchTrames } = useTrameModeles({ includeAffectations: true });
+  const trameModeles = tramesData.map(mapTrameFromApi);
+  
+  // Hook pour la mise à jour des trames
+  const updateTrameMutation = useUpdateTrameModele();
+  
+  // Hook pour précharger les données
+  const { prefetchTrameModeles, prefetchTrameDetail } = usePrefetchTrames();
 
-  const fetchTrames = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await axios.get('/api/trame-modeles?includeAffectations=true');
-
-      if (response.status === 200) {
-        // Mapper les données de l'API au format attendu par TrameGridView
-        const mappedTrames = response.data.map(mapTrameFromApi);
-        setTrames(mappedTrames);
-
-        // Sélectionner la première trameModele par défaut s'il y en a
-        if (mappedTrames.length > 0 && !selectedTrameId) {
-          setSelectedTrameId(mappedTrames[0].id);
-
-          // Si la trameModele a un siteId, on le sélectionne pour charger les salles/secteurs
-          if (mappedTrames[0].siteId) {
-            setSelectedSiteId(mappedTrames[0].siteId);
-          }
-        }
+  // Effet pour sélectionner la première trame par défaut
+  useEffect(() => {
+    if (trameModeles.length > 0 && !selectedTrameId) {
+      setSelectedTrameId(trameModeles[0].id);
+      
+      // Si la trameModele a un siteId, on le sélectionne pour charger les salles/secteurs
+      if (trameModeles[0].siteId) {
+        setSelectedSiteId(trameModeles[0].siteId);
       }
-    } catch (err: unknown) {
-      logger.error('Erreur lors du chargement des trames:', { error: err });
-
-      if (err.response && err.response.status === 401) {
-        setError("Erreur d'authentification. Votre session a peut-être expiré.");
-      } else {
-        setError(
-          'Une erreur est survenue lors du chargement des trameModeles. Veuillez réessayer.'
-        );
-      }
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  // Fonction pour recharger une seule trame depuis le serveur
-  const fetchSingleTrame = async (trameId: string) => {
+  }, [trameModeles, selectedTrameId]);
+  
+  // Fonction pour recharger les données
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
     try {
-      logger.info('[TrameGridEditor] Rechargement de la trame:', trameId);
-      const response = await axios.get(`/api/trame-modeles/${trameId}`);
-
-      if (response.status === 200) {
-        const mappedTrame = mapTrameFromApi(response.data);
-        setTrames(prevTrames =>
-          prevTrames.map(trameModele => (trameModele.id === trameId ? mappedTrame : trameModele))
-        );
-        logger.info('[TrameGridEditor] Trame rechargée avec succès:', {
-          id: mappedTrame.id,
-          affectationsCount: mappedTrame.affectations.length,
-        });
-      }
-    } catch (err: unknown) {
-      logger.error('Erreur lors du rechargement de la trame:', { error: err });
-    }
-  };
-
-  const fetchSites = async () => {
-    try {
-      const response = await axios.get('/api/sites');
-      if (response.status === 200) {
-        setSites(response.data);
-      }
-    } catch (err: unknown) {
-      logger.error('Erreur lors du chargement des sites:', { error: err });
-    }
-  };
-
-  const fetchRoomsAndSectors = async (siteId: string | null) => {
-    try {
-      setIsRefreshing(true);
-
-      if (siteId) {
-        // Charger les secteurs pour ce site spécifique
-        const sectorsResponse = await axios.get(`/api/operating-sectors?siteId=${siteId}`);
-        if (sectorsResponse.status === 200) {
-          setSectors(sectorsResponse.data);
-        }
-
-        // Charger les salles associées à ce site
-        const roomsResponse = await axios.get(`/api/operating-rooms?siteId=${siteId}`);
-        if (roomsResponse.status === 200) {
-          setRooms(roomsResponse.data);
-        }
-      } else {
-        // TrameModele globale (siteId null) : charger tous les secteurs et salles
-        logger.info('📍 TrameModele globale détectée - chargement de tous les secteurs et salles');
-
-        const sectorsResponse = await axios.get('/api/operating-sectors');
-        if (sectorsResponse.status === 200) {
-          setSectors(sectorsResponse.data);
-          logger.info(`📍 Secteurs chargés: ${sectorsResponse.data.length} secteurs`);
-        }
-
-        const roomsResponse = await axios.get('/api/operating-rooms');
-        if (roomsResponse.status === 200) {
-          setRooms(roomsResponse.data);
-          logger.info(`📍 Salles chargées: ${roomsResponse.data.length} salles`);
-        }
-      }
-    } catch (err: unknown) {
-      logger.error('Erreur lors du chargement des secteurs et salles:', { error: err });
+      await refetchTrames();
+      toastManager.success('Données actualisées');
+    } catch (error) {
+      toastManager.error('Erreur lors de l\'actualisation');
     } finally {
       setIsRefreshing(false);
     }
   };
 
+  // Charger les sites avec React Query
+  const { data: sitesData = [] } = useQuery({
+    queryKey: ['sites'],
+    queryFn: async () => {
+      const response = await axios.get(buildApiUrl('/api/sites'));
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  
   useEffect(() => {
-    if (user) {
-      fetchTrames();
-      fetchSites();
-      // Charger tous les secteurs et salles au démarrage pour le modal de création
-      fetchRoomsAndSectors(null);
-    } else {
-      setError('Vous devez être connecté pour accéder à cette fonctionnalité.');
-      setIsLoading(false);
-    }
-  }, [user]);
+    setSites(sitesData);
+  }, [sitesData]);
 
-  // Quand selectedSiteId change, charger les secteurs et salles
+  // Charger les secteurs avec React Query
+  const { data: sectorsData = [] } = useQuery({
+    queryKey: ['operating-sectors', selectedSiteId],
+    queryFn: async () => {
+      const url = selectedSiteId 
+        ? `/api/operating-sectors?siteId=${selectedSiteId}`
+        : '/api/operating-sectors';
+      const response = await axios.get(buildApiUrl(url));
+      return response.data;
+    },
+    enabled: selectedTrameId !== null,
+    staleTime: 5 * 60 * 1000,
+  });
+  
+  // Charger les salles avec React Query
+  const { data: roomsData = [] } = useQuery({
+    queryKey: ['operating-rooms', selectedSiteId],
+    queryFn: async () => {
+      const url = selectedSiteId 
+        ? `/api/operating-rooms?siteId=${selectedSiteId}`
+        : '/api/operating-rooms';
+      const response = await axios.get(buildApiUrl(url));
+      return response.data;
+    },
+    enabled: selectedTrameId !== null,
+    staleTime: 5 * 60 * 1000,
+  });
+  
   useEffect(() => {
-    if (selectedSiteId !== undefined) {
-      fetchRoomsAndSectors(selectedSiteId);
+    setSectors(sectorsData);
+    setRooms(roomsData);
+    if (sectorsData.length > 0 || roomsData.length > 0) {
+      logger.info(`📍 Données chargées: ${sectorsData.length} secteurs, ${roomsData.length} salles`);
     }
-  }, [selectedSiteId]);
+  }, [sectorsData, roomsData]);
+
+  // Vérifier l'authentification
+  useEffect(() => {
+    if (!user && !isLoading) {
+      toastManager.error('Vous devez être connecté pour accéder à cette fonctionnalité.');
+    }
+  }, [user, isLoading]);
 
   // Quand selectedTrameId change, mettre à jour selectedSiteId
   useEffect(() => {
@@ -351,41 +318,10 @@ const TrameGridEditor: React.FC = () => {
     }
   }, [selectedTrameId, trameModeles]);
 
-  // Actualiser les données quand l'onglet redevient actif
-  useEffect(() => {
-    const handleFocus = () => {
-      logger.info('[TrameGridEditor] Fenêtre/onglet actif, vérification des données');
-      // Actualiser uniquement si plus de 30 secondes se sont écoulées depuis le dernier chargement
-      const lastRefresh = localStorage.getItem('lastTrameRefresh');
-      const now = Date.now();
-      if (!lastRefresh || now - parseInt(lastRefresh) > 30000) {
-        handleRefresh();
-        localStorage.setItem('lastTrameRefresh', now.toString());
-      }
-    };
+  // SUPPRIMÉ : Actualisation automatique au focus de l'onglet
+  // Désormais, utilisez uniquement le bouton "Actualiser" pour rafraîchir les données
+  // Cela évite les rechargements intempestifs qui bloquaient le workflow
 
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        handleFocus();
-      }
-    });
-
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleFocus);
-    };
-  }, []);
-
-  // Actualisation automatique des données quand on change de trameModele OU de site
-  useEffect(() => {
-    if (selectedTrameId && selectedSiteId !== undefined) {
-      logger.info(
-        `🔄 Actualisation automatique pour la trameModele ${selectedTrameId} (site: ${selectedSiteId || 'global'})`
-      );
-      fetchRoomsAndSectors(selectedSiteId);
-    }
-  }, [selectedTrameId, selectedSiteId, trameModeles, sites]);
 
   const handleTrameChange = async (updatedTrame: TrameModele) => {
     try {
@@ -403,116 +339,45 @@ const TrameGridEditor: React.FC = () => {
           })),
         });
 
-        // Mettre à jour le state local immédiatement
-        // Important: conserver les affectations existantes lors d'ajouts multiples
-        setTrames(prevTrames =>
-          prevTrames.map(trameModele => {
-            if (trameModele.id === updatedTrame.id) {
-              // Pour gérer les ajouts séquentiels (comme matin + après-midi),
-              // on doit fusionner les nouvelles affectations avec les existantes
-              const currentAffectations = trameModele.affectations || [];
-              const newAffectations = updatedTrame.affectations || [];
-
-              // Créer une map des affectations existantes par leur clé unique
-              const affectationMap = new Map();
-
-              // Ajouter toutes les affectations actuelles
-              currentAffectations.forEach(aff => {
-                const key = `${aff.roomId}-${aff.dayOverride}-${aff.period}`;
-                affectationMap.set(key, aff);
-              });
-
-              // Ajouter/remplacer avec les nouvelles affectations
-              newAffectations.forEach(aff => {
-                const key = `${aff.roomId}-${aff.dayOverride}-${aff.period}`;
-                affectationMap.set(key, aff);
-              });
-
-              // Convertir la map en array
-              const mergedAffectations = Array.from(affectationMap.values());
-
-              logger.info('[TrameGridEditor] Fusion des affectations:', {
-                currentCount: currentAffectations.length,
-                newCount: newAffectations.length,
-                mergedCount: mergedAffectations.length,
-              });
-
-              return {
-                ...updatedTrame,
-                affectations: mergedAffectations,
-              };
-            }
-            return trameModele;
-          })
-        );
-
-        // Optionnel : recharger depuis le serveur pour s'assurer de la synchronisation
-        // Désactivé pour éviter de perdre les modifications locales en cours
-        // setTimeout(() => fetchSingleTrame(updatedTrame.id), 1000);
+        // Les affectations sont gérées par TrameGridView directement
+        // React Query se chargera de mettre à jour automatiquement le cache
       } else {
         // Si pas d'affectations, c'est une mise à jour des propriétés de base
         // Convertir au format API
         const apiTrame = mapTrameToApi(updatedTrame);
 
-        // Envoi au serveur
-        const response = await axios.put(`/api/trame-modeles/${updatedTrame.id}`, apiTrame);
-
-        // Mapper la réponse de l'API et mettre à jour l'état
-        if (response.status === 200) {
-          const mappedUpdatedTrame = mapTrameFromApi(response.data);
-          setTrames(prevTrames =>
-            prevTrames.map(trameModele =>
-              trameModele.id === updatedTrame.id ? mappedUpdatedTrame : trameModele
-            )
-          );
-        }
+        // Utiliser la mutation React Query
+        await updateTrameMutation.mutateAsync({
+          id: updatedTrame.id,
+          data: apiTrame
+        });
       }
     } catch (err: unknown) {
       logger.error('Erreur lors de la mise à jour de la trameModele:', { error: err });
-      setError('Erreur lors de la sauvegarde des modifications. Veuillez réessayer.');
-
-      // En cas d'erreur, on recharge les données
-      fetchTrames();
+      // Les erreurs sont gérées par React Query et toastManager
     }
   };
 
-  const handleCreateTrameSuccess = (newTrameId: string) => {
-    // Recharger les trameModeles pour avoir les données complètes avec mapping
-    fetchTrames().then(() => {
-      // Sélectionner la nouvelle trameModele
-      setSelectedTrameId(newTrameId);
-    });
+  const handleCreateTrameSuccess = async (newTrameId: string) => {
+    // React Query rechargera automatiquement les données
+    await refetchTrames();
+    // Sélectionner la nouvelle trameModele
+    setSelectedTrameId(newTrameId);
     setIsModalOpen(false);
   };
 
-  const handleRefresh = async () => {
-    logger.info("[TrameGridEditor] Actualisation demandée par l'utilisateur");
-    setIsRefreshing(true);
-    try {
-      await fetchTrames();
-      if (selectedSiteId !== undefined) {
-        await fetchRoomsAndSectors(selectedSiteId);
-      }
-      toast.success('Données actualisées avec succès');
-    } catch (error) {
-      logger.error("[TrameGridEditor] Erreur lors de l'actualisation:", error);
-      toast.error("Erreur lors de l'actualisation des données");
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
+  // handleRefresh est déjà défini plus haut avec React Query
 
   const handleEditTrame = (trameModele: TrameModele) => {
     setTrameToEdit(trameModele);
     setIsEditModalOpen(true);
   };
 
-  const handleEditTrameSuccess = (updatedTrameId: string) => {
-    // Recharger les trameModeles pour avoir les données mises à jour avec mapping
-    fetchTrames().then(() => {
-      // Garder la trameModele sélectionnée actuelle
-      setSelectedTrameId(updatedTrameId);
-    });
+  const handleEditTrameSuccess = async (updatedTrameId: string) => {
+    // React Query rechargera automatiquement les données
+    await refetchTrames();
+    // Garder la trameModele sélectionnée actuelle
+    setSelectedTrameId(updatedTrameId);
     setIsEditModalOpen(false);
     setTrameToEdit(null);
   };
@@ -523,11 +388,13 @@ const TrameGridEditor: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Gestion des erreurs */}
-      {error && (
+      {loadingError && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Erreur</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {loadingError?.message || 'Une erreur est survenue lors du chargement des données.'}
+          </AlertDescription>
           <div className="mt-2">
             <Button variant="outline" size="sm" onClick={handleRefresh}>
               <RefreshCcw className="h-4 w-4 mr-2" /> Réessayer
@@ -641,20 +508,22 @@ const TrameGridEditor: React.FC = () => {
             size="sm"
             onClick={() => {
               try {
-                // Fermer tous les toasts react-toastify
+                // Utiliser le ToastManager pour fermer tous les toasts
+                toastManager.dismissAll();
+                // Fermer aussi les toasts react-toastify directs (legacy)
                 toast.dismiss();
-                // Également nettoyer le DOM des toasts orphelins
+                // Nettoyer le DOM des toasts orphelins
                 const toastElements = document.querySelectorAll('[class*="Toastify"]');
                 toastElements.forEach(el => el.remove());
-                logger.info('Tous les toasts ont été fermés');
+                logger.info('Tous les toasts ont été fermés via ToastManager');
               } catch (error: unknown) {
                 logger.error('Erreur lors de la fermeture des toasts:', { error: error });
               }
             }}
             className="text-red-600 hover:text-red-800 hover:bg-red-50 border-red-300"
-            title="Fermer tous les toasts problématiques"
+            title={`Fermer tous les toasts (${toastManager.getActiveCount()} actifs, ${toastManager.getQueuedCount()} en attente)`}
           >
-            🚫 Fermer toasts
+            🚫 Fermer toasts ({toastManager.getActiveCount()})
           </Button>
 
           {/* Bouton de modification de la trameModele sélectionnée */}

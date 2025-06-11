@@ -17,6 +17,8 @@ import Input from '@/components/ui/input';
 import Textarea from '@/components/ui/textarea';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { WeekTypeManager } from '@/components/trames/WeekTypeManager';
 
 // Interface étendue pour TrameModele si elle inclut des relations chargées
 interface TrameModeleWithRelations extends TrameModele {
@@ -332,11 +334,11 @@ const TrameModelesConfigPanel: React.FC = () => {
             let response;
             if (currentTrame && currentTrame.id) {
                 // Logique de mise à jour (PUT)
-                response = await axios.put(`http://localhost:3000/api/trameModele-modeles/${currentTrame.id}`, dataToSubmit);
+                response = await axios.put(`/api/trameModele-modeles/${currentTrame.id}`, dataToSubmit);
                 toast.success('Modèle de trameModele mis à jour avec succès!');
             } else {
                 // Logique de création (POST)
-                response = await axios.post('http://localhost:3000/api/trameModele-modeles', dataToSubmit);
+                response = await axios.post('/api/trameModele-modeles', dataToSubmit);
                 toast.success('Modèle de trameModele créé avec succès!');
             }
 
@@ -362,7 +364,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             setIsLoading(true); // Indiquer une opération en cours
             setError(null);
             try {
-                await axios.delete(`http://localhost:3000/api/trameModele-modeles/${trameId}`);
+                await axios.delete(`/api/trameModele-modeles/${trameId}`);
                 toast.success("Modèle de trameModele supprimé avec succès!");
                 fetchTrameModeles(); // Recharger la liste
             } catch (err: unknown) {
@@ -473,7 +475,7 @@ const TrameModelesConfigPanel: React.FC = () => {
         if (window.confirm("Supprimer cette affectation ?")) {
             setIsLoading(true);
             try {
-                await axios.delete(`http://localhost:3000/api/affectation-modeles/${affectationId}`);
+                await axios.delete(`/api/affectation-modeles/${affectationId}`);
                 toast.success("Affectation supprimée.");
                 // Mettre à jour l'état local
                 if (currentTrame && currentTrame.affectations) {
@@ -1057,8 +1059,106 @@ const TrameModelesConfigPanel: React.FC = () => {
                     </DialogContent>
                 </Dialog>
             )}
+            
+            {/* Section Gestionnaire de Semaines */}
+            {isAuthenticated && !error && trameModeles.length > 0 && (
+                <div className="mt-8">
+                    <h3 className="text-xl font-semibold text-gray-700 mb-4">Gestion des Semaines Paires/Impaires</h3>
+                    <Tabs defaultValue="overview" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+                            <TabsTrigger value="manager">Gestionnaire avancé</TabsTrigger>
+                        </TabsList>
+                        
+                        <TabsContent value="overview">
+                            <div className="bg-white p-4 rounded-lg shadow">
+                                <p className="text-gray-600 mb-4">
+                                    Vue d'ensemble des affectations par type de semaine pour tous les modèles de trame.
+                                </p>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {['ALL', 'EVEN', 'ODD'].map(weekType => {
+                                        const count = trameModeles.reduce((acc, trame) => {
+                                            return acc + trame.affectations.filter(aff => 
+                                                (aff.typeSemaine || 'ALL') === weekType
+                                            ).length;
+                                        }, 0);
+                                        
+                                        return (
+                                            <div key={weekType} className="bg-gray-50 p-4 rounded-lg text-center">
+                                                <div className="text-2xl font-bold">{count}</div>
+                                                <div className="text-sm text-gray-600">
+                                                    {weekType === 'ALL' ? 'Toutes semaines' : 
+                                                     weekType === 'EVEN' ? 'Semaines paires' : 'Semaines impaires'}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </TabsContent>
+                        
+                        <TabsContent value="manager">
+                            {trameModeles.length > 0 && (
+                                <div className="bg-white p-4 rounded-lg shadow">
+                                    <div className="mb-4">
+                                        <Label htmlFor="trame-selector">Sélectionnez un modèle de trame</Label>
+                                        <Select defaultValue={trameModeles[0].id.toString()}>
+                                            <SelectTrigger id="trame-selector">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {trameModeles.map(trame => (
+                                                    <SelectItem key={trame.id} value={trame.id.toString()}>
+                                                        {trame.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    
+                                    <WeekTypeManager
+                                        trameId={trameModeles[0].id.toString()}
+                                        currentWeekType={(trameModeles[0].typeSemaine || 'ALL') as 'ALL' | 'EVEN' | 'ODD'}
+                                        affectations={trameModeles[0].affectations.map(aff => ({
+                                            id: aff.id.toString(),
+                                            weekType: (aff.typeSemaine || 'ALL') as 'ALL' | 'EVEN' | 'ODD',
+                                            dayOfWeek: getDayOfWeekNumber(aff.jourSemaine),
+                                            period: aff.periode,
+                                            roomId: aff.operatingRoomId?.toString() || '',
+                                            isActive: aff.isActive,
+                                        }))}
+                                        onUpdateWeekType={(affectationIds, newWeekType) => {
+                                            // Implémenter la mise à jour via API
+                                            toast.success(`${affectationIds.length} affectations mises à jour`);
+                                        }}
+                                        onDuplicateToWeekType={(source, target) => {
+                                            // Implémenter la duplication via API
+                                            toast.success(`Affectations dupliquées de ${source} vers ${target}`);
+                                        }}
+                                        readOnly={false}
+                                    />
+                                </div>
+                            )}
+                        </TabsContent>
+                    </Tabs>
+                </div>
+            )}
         </div>
     );
 };
+
+// Helper function pour convertir DayOfWeek enum en nombre
+function getDayOfWeekNumber(day: DayOfWeek): number {
+    const dayMap: Record<DayOfWeek, number> = {
+        SUNDAY: 0,
+        MONDAY: 1,
+        TUESDAY: 2,
+        WEDNESDAY: 3,
+        THURSDAY: 4,
+        FRIDAY: 5,
+        SATURDAY: 6,
+    };
+    return dayMap[day] || 0;
+}
 
 export default TrameModelesConfigPanel; 

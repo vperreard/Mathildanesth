@@ -86,6 +86,7 @@ interface AffectationConfigModalProps {
     firstName?: string;
     lastName?: string;
   }>;
+  trameWeekType?: 'ALL' | 'EVEN' | 'ODD'; // Type de semaine de la trame parente
 }
 
 const staffRoles = [
@@ -116,6 +117,7 @@ const AffectationConfigModal: React.FC<AffectationConfigModalProps> = ({
   existingAffectation,
   isEditing = false,
   availableUsers = [],
+  trameWeekType = 'ALL', // Par défaut à 'ALL' si non fourni
 }) => {
   // Récupérer les utilisateurs réels
   const { users: realUsers, isLoading: usersLoading, error: usersError } = useUsers();
@@ -186,6 +188,7 @@ const AffectationConfigModal: React.FC<AffectationConfigModalProps> = ({
           activityTypeId: data.activityTypeId,
           period: 'MORNING' as DayPeriod,
           dayOverride: dayCode,
+          weekTypeOverride: trameWeekType, // Hériter du type de semaine de la trame parente
           isActive: data.isActive,
           requiredStaff: data.requiredStaff.map((staff, index) => ({
             id: `staff-morning-${morningTimestamp}-${index}`,
@@ -203,6 +206,7 @@ const AffectationConfigModal: React.FC<AffectationConfigModalProps> = ({
           activityTypeId: data.activityTypeId,
           period: 'AFTERNOON' as DayPeriod,
           dayOverride: dayCode,
+          weekTypeOverride: trameWeekType, // Hériter du type de semaine de la trame parente
           isActive: data.isActive,
           requiredStaff: data.requiredStaff.map((staff, index) => ({
             id: `staff-afternoon-${afternoonTimestamp}-${index}`,
@@ -228,15 +232,24 @@ const AffectationConfigModal: React.FC<AffectationConfigModalProps> = ({
       } else {
         // Comportement normal pour une seule période
         const newAffectation: Partial<AffectationModele> = {
-          id: `new-${Date.now()}`,
+          id: isEditing && existingAffectation ? existingAffectation.id : `new-${Date.now()}`,
           roomId: roomId,
           activityTypeId: data.activityTypeId,
           period: data.period as DayPeriod,
           dayOverride: dayCode,
+          // Pour les affectations existantes, préserver leur weekTypeOverride
+          // Pour les nouvelles, hériter du type de la trame parente
+          weekTypeOverride: isEditing && existingAffectation && existingAffectation.weekTypeOverride
+            ? existingAffectation.weekTypeOverride
+            : trameWeekType,
           isActive: data.isActive,
           requiredStaff: data.requiredStaff.map((staff, index) => ({
-            id: `staff-${Date.now()}-${index}`,
-            affectationId: `new-${Date.now()}`,
+            id: isEditing && existingAffectation?.requiredStaff?.[index]
+              ? existingAffectation.requiredStaff[index].id
+              : `staff-${Date.now()}-${index}`,
+            affectationId: isEditing && existingAffectation
+              ? existingAffectation.id
+              : `new-${Date.now()}`,
             role: staff.role as StaffRole,
             count: staff.count,
             userId: staff.userId && staff.userId !== 'none' ? staff.userId : undefined,
@@ -307,6 +320,13 @@ const AffectationConfigModal: React.FC<AffectationConfigModalProps> = ({
               <Badge variant="outline">{roomName}</Badge>
               <Badge variant="outline">{dayName}</Badge>
               <Badge variant="secondary">{getPeriodLabel(form.watch('period'))}</Badge>
+              {/* Afficher le type de semaine */}
+              <Badge 
+                variant={trameWeekType === 'EVEN' ? 'default' : trameWeekType === 'ODD' ? 'outline' : 'secondary'}
+                className={trameWeekType === 'EVEN' ? 'bg-blue-100 text-blue-800' : trameWeekType === 'ODD' ? 'bg-amber-100 text-amber-800' : ''}
+              >
+                {trameWeekType === 'EVEN' ? 'Semaines paires' : trameWeekType === 'ODD' ? 'Semaines impaires' : 'Toutes les semaines'}
+              </Badge>
             </div>
           </DialogHeader>
 

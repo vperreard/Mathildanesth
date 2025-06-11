@@ -204,7 +204,10 @@
       "Bash(git cherry-pick:*)",
       "Bash(jq:*)",
       "Bash(npx next build:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(mcp list:*)",
+      "Bash(./scripts/import-trames-refonte-tasks.js:*)",
+      "Bash(npx taskmaster:*)"
     ],
     "deny": []
   },
