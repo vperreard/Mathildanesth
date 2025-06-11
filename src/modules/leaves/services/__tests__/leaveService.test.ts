@@ -4,6 +4,13 @@ import {
   getLeaveTypeLabel,
   getLeaveStatusLabel,
   formatLeavePeriod,
+  fetchLeaves,
+  fetchLeaveById,
+  fetchLeaveBalance,
+  checkLeaveConflicts,
+  submitLeaveRequest,
+  approveLeave,
+  cancelLeave,
 } from '../leaveService';
 import { LeaveStatus, LeaveType } from '../../types/leave';
 
@@ -19,26 +26,26 @@ describe('LeaveService', () => {
     it('should calculate days correctly for regular leave', () => {
       const startDate = new Date('2025-06-15');
       const endDate = new Date('2025-06-20');
-      
+
       const result = calculateLeaveDays(startDate, endDate, false);
-      
+
       expect(result).toBe(6); // 15, 16, 17, 18, 19, 20
     });
 
     it('should calculate 0.5 days for half-day leave', () => {
       const startDate = new Date('2025-06-15');
       const endDate = new Date('2025-06-15');
-      
+
       const result = calculateLeaveDays(startDate, endDate, true);
-      
+
       expect(result).toBe(0.5);
     });
 
     it('should handle same day leave', () => {
       const date = new Date('2025-06-15');
-      
+
       const result = calculateLeaveDays(date, date, false);
-      
+
       expect(result).toBe(1);
     });
   });
@@ -47,17 +54,17 @@ describe('LeaveService', () => {
     it('should format leave period correctly', () => {
       const startDate = new Date('2025-06-15');
       const endDate = new Date('2025-06-20');
-      
+
       const result = formatLeavePeriod(startDate, endDate);
-      
+
       expect(result).toBe('15/06/2025 au 20/06/2025');
     });
 
     it('should format single day leave', () => {
       const date = new Date('2025-06-15');
-      
+
       const result = formatLeavePeriod(date, date);
-      
+
       expect(result).toBe('15/06/2025');
     });
   });
@@ -112,144 +119,118 @@ describe('LeaveService', () => {
   });
 
   describe('API Functions', () => {
-    const mockPrisma = {
-      leave: {
-        count: jest.fn(),
-        findMany: jest.fn(),
-        findUnique: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-      },
-      leaveBalance: {
-        findFirst: jest.fn(),
-        upsert: jest.fn(),
-      },
-      user: {
-        findUnique: jest.fn(),
-      },
-      department: {
-        findMany: jest.fn(),
-      },
-    };
-
-    // Mock prisma
-    jest.mock('@/lib/prisma', () => ({
-      prisma: mockPrisma,
-    }));
-
     describe('fetchLeaves', () => {
       it('should fetch leaves with basic filters', async () => {
-        const mockLeaves = [
-          {
-            id: '1',
-            userId: 1,
-            startDate: new Date('2025-06-15'),
-            endDate: new Date('2025-06-20'),
-            countedDays: 6,
-            type: 'ANNUAL',
-            reason: 'Test leave',
-            status: 'PENDING',
-            requestDate: new Date('2025-06-01'),
-            approvedById: null,
-            approvalDate: null,
-            isRecurring: false,
-            recurrencePattern: null,
-            parentId: null,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            user: {
-              id: 1,
-              prenom: 'John',
-              nom: 'Doe',
-              email: 'john.doe@example.com',
-              department: {
-                id: 1,
-                name: 'IT Department',
-              },
+        const mockResponse = {
+          items: [
+            {
+              id: '1',
+              userId: '1',
+              startDate: '2025-06-15',
+              endDate: '2025-06-20',
+              countedDays: 6,
+              type: 'ANNUAL',
+              reason: 'Test leave',
+              status: 'PENDING',
+              userName: 'John Doe',
             },
-          },
-        ];
+          ],
+          total: 1,
+          page: 1,
+          limit: 10,
+          totalPages: 1,
+        };
 
-        mockPrisma.leave.count.mockResolvedValue(1);
-        mockPrisma.leave.findMany.mockResolvedValue(mockLeaves);
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        } as Response);
 
-        const { fetchLeaves } = await import('../leaveService');
         const result = await fetchLeaves({ userId: '1' });
 
         expect(result.items).toHaveLength(1);
         expect(result.total).toBe(1);
         expect(result.page).toBe(1);
-        expect(mockPrisma.leave.count).toHaveBeenCalled();
-        expect(mockPrisma.leave.findMany).toHaveBeenCalled();
+        expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/leaves?userId=1'));
       });
 
       it('should handle pagination in fetchLeaves', async () => {
-        mockPrisma.leave.count.mockResolvedValue(100);
-        mockPrisma.leave.findMany.mockResolvedValue([]);
+        const mockResponse = {
+          items: [],
+          total: 100,
+          page: 2,
+          limit: 10,
+          totalPages: 10,
+        };
 
-        const { fetchLeaves } = await import('../leaveService');
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        } as Response);
+
         const result = await fetchLeaves({ page: 2, limit: 10 } as any);
 
         expect(result.page).toBe(2);
         expect(result.limit).toBe(10);
         expect(result.totalPages).toBe(10);
-        expect(mockPrisma.leave.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            skip: 10,
-            take: 10,
-          })
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('/api/leaves?page=2&limit=10')
         );
       });
 
       it('should handle date filters in fetchLeaves', async () => {
-        mockPrisma.leave.count.mockResolvedValue(0);
-        mockPrisma.leave.findMany.mockResolvedValue([]);
+        const mockResponse = {
+          items: [],
+          total: 0,
+          page: 1,
+          limit: 10,
+          totalPages: 0,
+        };
 
-        const { fetchLeaves } = await import('../leaveService');
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        } as Response);
+
         await fetchLeaves({
           startDate: '2025-06-01',
           endDate: '2025-06-30',
         });
 
-        expect(mockPrisma.leave.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            where: expect.objectContaining({
-              AND: expect.arrayContaining([
-                { startDate: { gte: new Date('2025-06-01') } },
-                { endDate: { lte: new Date('2025-06-30') } },
-              ]),
-            }),
-          })
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('/api/leaves?startDate=2025-06-01&endDate=2025-06-30')
         );
       });
 
       it('should handle search term in fetchLeaves', async () => {
-        mockPrisma.leave.count.mockResolvedValue(0);
-        mockPrisma.leave.findMany.mockResolvedValue([]);
+        const mockResponse = {
+          items: [],
+          total: 0,
+          page: 1,
+          limit: 10,
+          totalPages: 0,
+        };
 
-        const { fetchLeaves } = await import('../leaveService');
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        } as Response);
+
         await fetchLeaves({ searchTerm: 'john' });
 
-        expect(mockPrisma.leave.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            where: expect.objectContaining({
-              OR: expect.arrayContaining([
-                { user: { prenom: { contains: 'john', mode: 'insensitive' } } },
-                { user: { nom: { contains: 'john', mode: 'insensitive' } } },
-                { reason: { contains: 'john', mode: 'insensitive' } },
-              ]),
-            }),
-          })
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('/api/leaves?searchTerm=john')
         );
       });
 
       it('should handle error in fetchLeaves', async () => {
-        mockPrisma.leave.count.mockRejectedValue(new Error('Database error'));
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+          statusText: 'Internal Server Error',
+        } as Response);
 
-        const { fetchLeaves } = await import('../leaveService');
-        
-        await expect(fetchLeaves()).rejects.toThrow('Database error');
+        await expect(fetchLeaves()).rejects.toThrow();
       });
     });
 
@@ -257,51 +238,35 @@ describe('LeaveService', () => {
       it('should fetch a specific leave by ID', async () => {
         const mockLeave = {
           id: '1',
-          userId: 1,
-          startDate: new Date('2025-06-15'),
-          endDate: new Date('2025-06-20'),
+          userId: '1',
+          startDate: '2025-06-15',
+          endDate: '2025-06-20',
           countedDays: 6,
           type: 'ANNUAL',
           reason: 'Test leave',
           status: 'PENDING',
-          requestDate: new Date('2025-06-01'),
-          approvedById: null,
-          approvalDate: null,
-          isRecurring: false,
-          recurrencePattern: null,
-          parentId: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          user: {
-            id: 1,
-            prenom: 'John',
-            nom: 'Doe',
-            email: 'john.doe@example.com',
-            department: {
-              id: 1,
-              name: 'IT Department',
-            },
-          },
+          userName: 'John Doe',
         };
 
-        mockPrisma.leave.findUnique.mockResolvedValue(mockLeave);
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockLeave,
+        } as Response);
 
-        const { fetchLeaveById } = await import('../leaveService');
         const result = await fetchLeaveById('1');
 
         expect(result.id).toBe('1');
         expect(result.userName).toBe('John Doe');
-        expect(mockPrisma.leave.findUnique).toHaveBeenCalledWith({
-          where: { id: '1' },
-          include: expect.any(Object),
-        });
+        expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/leaves/1'));
       });
 
       it('should handle not found in fetchLeaveById', async () => {
-        mockPrisma.leave.findUnique.mockResolvedValue(null);
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+          statusText: 'Not Found',
+        } as Response);
 
-        const { fetchLeaveById } = await import('../leaveService');
-        
         await expect(fetchLeaveById('999')).rejects.toThrow();
       });
     });
@@ -327,7 +292,7 @@ describe('LeaveService', () => {
 
         expect(result).toEqual(mockBalance);
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('/conges/balance?userId=1')
+          expect.stringContaining('/api/leaves/balance?userId=1')
         );
       });
 
@@ -338,7 +303,7 @@ describe('LeaveService', () => {
         } as Response);
 
         const { fetchLeaveBalance } = await import('../leaveService');
-        
+
         await expect(fetchLeaveBalance('1')).rejects.toThrow();
       });
     });
@@ -364,7 +329,7 @@ describe('LeaveService', () => {
 
         expect(result).toEqual(mockConflicts);
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('/conges/check-conflicts?')
+          expect.stringContaining('/api/leaves/check-conflicts?')
         );
       });
     });
@@ -396,7 +361,7 @@ describe('LeaveService', () => {
 
         expect(result).toEqual(mockLeave);
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('/conges'),
+          expect.stringContaining('/api/leaves'),
           expect.objectContaining({
             method: 'POST',
           })
@@ -421,7 +386,7 @@ describe('LeaveService', () => {
 
         expect(result).toEqual(mockApprovedLeave);
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('/conges/1/approve'),
+          expect.stringContaining('/api/leaves/1/approve'),
           expect.objectContaining({
             method: 'POST',
           })
@@ -446,7 +411,7 @@ describe('LeaveService', () => {
 
         expect(result).toEqual(mockCancelledLeave);
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('/conges/1/cancel'),
+          expect.stringContaining('/api/leaves/1/cancel'),
           expect.objectContaining({
             method: 'POST',
           })

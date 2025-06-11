@@ -6,7 +6,7 @@ import { Attribution } from '@/types/attribution';
 import React from 'react';
 
 // Mock dependencies
-jest.mock('../lib/logger', () => ({
+jest.mock('../../lib/logger', () => ({
   logger: {
     error: jest.fn(),
     warn: jest.fn(),
@@ -16,7 +16,7 @@ jest.mock('../lib/logger', () => ({
 }));
 
 jest.mock('lodash', () => ({
-  debounce: jest.fn((fn) => {
+  debounce: jest.fn(fn => {
     // Simple mock that immediately calls the function
     const debouncedFn = (...args: any[]) => fn(...args);
     debouncedFn.cancel = jest.fn();
@@ -41,7 +41,7 @@ describe('useOptimizedPlanning', () => {
         mutations: { retry: false },
       },
     });
-    
+
     wrapper = ({ children }) =>
       React.createElement(QueryClientProvider, { client: queryClient }, children);
 
@@ -50,21 +50,22 @@ describe('useOptimizedPlanning', () => {
       if (url.includes('/planning')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: {
-              assignments: [],
-              metadata: {
-                totalCount: 0,
-                lastUpdated: new Date().toISOString()
-              }
-            }
-          })
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: {
+                assignments: [],
+                metadata: {
+                  totalCount: 0,
+                  lastUpdated: new Date().toISOString(),
+                },
+              },
+            }),
         });
       }
       return Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ success: true, data: {} })
+        json: () => Promise.resolve({ success: true, data: {} }),
       });
     });
   });
@@ -87,12 +88,13 @@ describe('useOptimizedPlanning', () => {
     it('should initialize with custom props', () => {
       const mockDate = new Date('2025-06-15');
       const { result } = renderHook(
-        () => useOptimizedPlanning({
-          week: mockDate,
-          viewType: 'week',
-          autoSave: false,
-          saveDelay: 5000
-        }),
+        () =>
+          useOptimizedPlanning({
+            week: mockDate,
+            viewType: 'week',
+            autoSave: false,
+            saveDelay: 5000,
+          }),
         { wrapper }
       );
 
@@ -103,10 +105,11 @@ describe('useOptimizedPlanning', () => {
     it('should calculate correct date range for week view', () => {
       const mockWeek = new Date('2025-06-15'); // Dimanche
       const { result } = renderHook(
-        () => useOptimizedPlanning({
-          week: mockWeek,
-          viewType: 'week'
-        }),
+        () =>
+          useOptimizedPlanning({
+            week: mockWeek,
+            viewType: 'week',
+          }),
         { wrapper }
       );
 
@@ -118,10 +121,11 @@ describe('useOptimizedPlanning', () => {
     it('should calculate correct date range for month view', () => {
       const mockMonth = new Date('2025-06-15');
       const { result } = renderHook(
-        () => useOptimizedPlanning({
-          month: mockMonth,
-          viewType: 'month'
-        }),
+        () =>
+          useOptimizedPlanning({
+            month: mockMonth,
+            viewType: 'month',
+          }),
         { wrapper }
       );
 
@@ -138,7 +142,7 @@ describe('useOptimizedPlanning', () => {
       startDate: new Date('2025-06-15T08:00:00'),
       endDate: new Date('2025-06-15T18:00:00'),
       shiftType: 'GARDE',
-      isActive: true
+      isActive: true,
     };
 
     it('should update assignment locally', async () => {
@@ -146,7 +150,7 @@ describe('useOptimizedPlanning', () => {
 
       await act(async () => {
         result.current.updateAssignment('assignment-1', {
-          startDate: new Date('2025-06-15T09:00:00')
+          startDate: new Date('2025-06-15T09:00:00'),
         });
       });
 
@@ -163,7 +167,7 @@ describe('useOptimizedPlanning', () => {
           startDate: new Date('2025-06-15T08:00:00'),
           endDate: new Date('2025-06-15T18:00:00'),
           shiftType: 'GARDE',
-          isActive: true
+          isActive: true,
         });
       });
 
@@ -173,9 +177,9 @@ describe('useOptimizedPlanning', () => {
           expect.objectContaining({
             method: 'POST',
             headers: expect.objectContaining({
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
             }),
-            body: expect.any(String)
+            body: expect.any(String),
           })
         );
       });
@@ -192,7 +196,7 @@ describe('useOptimizedPlanning', () => {
         expect(mockFetch).toHaveBeenCalledWith(
           expect.stringContaining('/planning/assignments/assignment-1'),
           expect.objectContaining({
-            method: 'DELETE'
+            method: 'DELETE',
           })
         );
       });
@@ -204,12 +208,12 @@ describe('useOptimizedPlanning', () => {
       const updates = [
         {
           id: 'assignment-1',
-          changes: { startDate: new Date('2025-06-15T09:00:00') }
+          changes: { startDate: new Date('2025-06-15T09:00:00') },
         },
         {
           id: 'assignment-2',
-          changes: { endDate: new Date('2025-06-15T19:00:00') }
-        }
+          changes: { endDate: new Date('2025-06-15T19:00:00') },
+        },
       ];
 
       await act(async () => {
@@ -221,7 +225,7 @@ describe('useOptimizedPlanning', () => {
           expect.stringContaining('/planning/assignments/bulk'),
           expect.objectContaining({
             method: 'PUT',
-            body: expect.stringContaining('assignment-1')
+            body: expect.stringContaining('assignment-1'),
           })
         );
       });
@@ -237,7 +241,7 @@ describe('useOptimizedPlanning', () => {
 
       await act(async () => {
         result.current.updateAssignment('assignment-1', {
-          startDate: new Date('2025-06-15T09:00:00')
+          startDate: new Date('2025-06-15T09:00:00'),
         });
       });
 
@@ -246,27 +250,24 @@ describe('useOptimizedPlanning', () => {
         expect(mockFetch).toHaveBeenCalledWith(
           expect.stringContaining('/planning/assignments/assignment-1'),
           expect.objectContaining({
-            method: 'PUT'
+            method: 'PUT',
           })
         );
       });
     });
 
     it('should not auto-save when disabled', async () => {
-      const { result } = renderHook(
-        () => useOptimizedPlanning({ autoSave: false }),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useOptimizedPlanning({ autoSave: false }), { wrapper });
 
       await act(async () => {
         result.current.updateAssignment('assignment-1', {
-          startDate: new Date('2025-06-15T09:00:00')
+          startDate: new Date('2025-06-15T09:00:00'),
         });
       });
 
       // Wait a bit and ensure no save call was made
       await new Promise(resolve => setTimeout(resolve, 200));
-      
+
       expect(mockFetch).not.toHaveBeenCalledWith(
         expect.stringContaining('/planning/assignments/assignment-1'),
         expect.objectContaining({ method: 'PUT' })
@@ -274,14 +275,11 @@ describe('useOptimizedPlanning', () => {
     });
 
     it('should allow manual save', async () => {
-      const { result } = renderHook(
-        () => useOptimizedPlanning({ autoSave: false }),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useOptimizedPlanning({ autoSave: false }), { wrapper });
 
       await act(async () => {
         result.current.updateAssignment('assignment-1', {
-          startDate: new Date('2025-06-15T09:00:00')
+          startDate: new Date('2025-06-15T09:00:00'),
         });
       });
 
@@ -292,7 +290,7 @@ describe('useOptimizedPlanning', () => {
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/planning/assignments/assignment-1'),
         expect.objectContaining({
-          method: 'PUT'
+          method: 'PUT',
         })
       );
     });
@@ -311,9 +309,7 @@ describe('useOptimizedPlanning', () => {
       });
 
       // Should navigate to next week
-      expect(result.current.dateRange.start.getTime()).toBeGreaterThan(
-        initialWeek.getTime()
-      );
+      expect(result.current.dateRange.start.getTime()).toBeGreaterThan(initialWeek.getTime());
     });
 
     it('should navigate to previous week', () => {
@@ -328,27 +324,26 @@ describe('useOptimizedPlanning', () => {
       });
 
       // Should navigate to previous week
-      expect(result.current.dateRange.start.getTime()).toBeLessThan(
-        initialWeek.getTime()
-      );
+      expect(result.current.dateRange.start.getTime()).toBeLessThan(initialWeek.getTime());
     });
 
     it('should prefetch adjacent periods when enabled', async () => {
       const { result } = renderHook(
-        () => useOptimizedPlanning({ 
-          week: new Date('2025-06-15'),
-          viewType: 'week',
-          enablePrefetch: true 
-        }),
+        () =>
+          useOptimizedPlanning({
+            week: new Date('2025-06-15'),
+            viewType: 'week',
+            enablePrefetch: true,
+          }),
         { wrapper }
       );
 
       await waitFor(() => {
         // Should prefetch next and previous weeks
         const fetchCalls = mockFetch.mock.calls.map(call => call[0]);
-        expect(fetchCalls.some(url => 
-          typeof url === 'string' && url.includes('/planning')
-        )).toBe(true);
+        expect(fetchCalls.some(url => typeof url === 'string' && url.includes('/planning'))).toBe(
+          true
+        );
       });
     });
   });
@@ -359,7 +354,7 @@ describe('useOptimizedPlanning', () => {
         Promise.resolve({
           ok: false,
           status: 500,
-          json: () => Promise.resolve({ error: 'Server error' })
+          json: () => Promise.resolve({ error: 'Server error' }),
         })
       );
 
@@ -373,7 +368,7 @@ describe('useOptimizedPlanning', () => {
             startDate: new Date('2025-06-15T08:00:00'),
             endDate: new Date('2025-06-15T18:00:00'),
             shiftType: 'GARDE',
-            isActive: true
+            isActive: true,
           });
         } catch (error) {
           // Expected to fail
@@ -384,9 +379,7 @@ describe('useOptimizedPlanning', () => {
     });
 
     it('should handle network errors', async () => {
-      mockFetch.mockImplementationOnce(() =>
-        Promise.reject(new Error('Network error'))
-      );
+      mockFetch.mockImplementationOnce(() => Promise.reject(new Error('Network error')));
 
       const { result } = renderHook(() => useOptimizedPlanning({}), { wrapper });
 
@@ -398,7 +391,7 @@ describe('useOptimizedPlanning', () => {
             startDate: new Date('2025-06-15T08:00:00'),
             endDate: new Date('2025-06-15T18:00:00'),
             shiftType: 'GARDE',
-            isActive: true
+            isActive: true,
           });
         } catch (error) {
           // Expected to fail

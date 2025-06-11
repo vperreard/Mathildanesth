@@ -107,7 +107,7 @@ function extractToken(req: NextRequest): string | null {
     {} as Record<string, string>
   );
 
-  return cookies['jwt_token'] || cookies['next-auth.session-token'] || null;
+  return cookies['auth_token'] || cookies['next-auth.session-token'] || null;
 }
 
 async function fetchUserOptimized(userId: number) {

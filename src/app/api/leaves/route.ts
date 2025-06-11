@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 import { LeaveStatus, LeaveType as PrismaLeaveType } from '@prisma/client';
-import { withAuth, SecurityChecks } from '@/middleware/authorization';
+// Removing unused imports
 import { getServerSession } from '@/lib/auth/migration-shim';
 import { authOptions } from '@/lib/auth/migration-shim';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
@@ -36,6 +36,16 @@ interface LeaveWithUserFrontend {
 // Mapping du code (string) vers l'enum Prisma LeaveType pour la compatibilité
 const mapCodeToLeaveType = (code: string): PrismaLeaveType => {
   const mappings: Record<string, PrismaLeaveType> = {
+    // Codes français
+    CP: PrismaLeaveType.ANNUAL, // Congés Payés
+    RECUP: PrismaLeaveType.RECOVERY, // Récupération
+    FORM: PrismaLeaveType.TRAINING, // Formation
+    MAL: PrismaLeaveType.SICK, // Maladie
+    MAT: PrismaLeaveType.MATERNITY, // Maternité
+    EXCEP: PrismaLeaveType.SPECIAL, // Exceptionnel
+    SANS_SOLDE: PrismaLeaveType.UNPAID, // Sans solde
+    AUTRE: PrismaLeaveType.OTHER, // Autre
+    // Codes anglais (compatibilité)
     ANNUAL: PrismaLeaveType.ANNUAL,
     RECOVERY: PrismaLeaveType.RECOVERY,
     TRAINING: PrismaLeaveType.TRAINING,
@@ -82,8 +92,15 @@ async function getHandler(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'startDate';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
 
-    logger.info(`[API /api/conges] Requête GET reçue`, { 
-      userId, departmentId, statuses, types, startDate, endDate, page, limit 
+    logger.info(`[API /api/conges] Requête GET reçue`, {
+      userId,
+      departmentId,
+      statuses,
+      types,
+      startDate,
+      endDate,
+      page,
+      limit,
     });
 
     // Construction des conditions de filtrage
@@ -105,7 +122,10 @@ async function getHandler(request: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
       where.userId = targetUserId;
-    } else if (authenticatedUser.role !== 'ADMIN_TOTAL' && authenticatedUser.role !== 'ADMIN_PARTIEL') {
+    } else if (
+      authenticatedUser.role !== 'ADMIN_TOTAL' &&
+      authenticatedUser.role !== 'ADMIN_PARTIEL'
+    ) {
       // Si pas d'userId et pas admin, retourner seulement ses propres congés
       where.userId = authenticatedUser.id;
     }
@@ -171,8 +191,8 @@ async function getHandler(request: NextRequest) {
               select: {
                 id: true,
                 name: true,
-              }
-            }
+              },
+            },
           },
         },
       },
@@ -278,6 +298,19 @@ async function postHandler(request: NextRequest) {
 
     const { userId, startDate, endDate, typeCode, reason } = body;
 
+    // Debug logging for extracted values
+    logger.info('[API /conges POST] Extracted values:', {
+      userId: userId,
+      startDate: startDate,
+      endDate: endDate,
+      typeCode: typeCode,
+      reason: reason,
+      userIdType: typeof userId,
+      startDateType: typeof startDate,
+      endDateType: typeof endDate,
+      typeCodeType: typeof typeCode,
+    });
+
     // Récupérer l'utilisateur authentifié
     const authenticatedUser = await prisma.user.findUnique({
       where: { id: authResult.userId },
@@ -328,12 +361,18 @@ async function postHandler(request: NextRequest) {
     });
 
     // --- Validation des données ---
+    logger.info('[API /conges POST] Starting data validation...');
+
     if (!userId || !startDate || !endDate || !typeCode) {
-      logger.info('[API /conges POST] Validation échouée:', {
+      logger.error('[API /conges POST] Missing required fields:', {
         hasUserId: !!userId,
         hasStartDate: !!startDate,
         hasEndDate: !!endDate,
         hasTypeCode: !!typeCode,
+        userIdValue: userId,
+        startDateValue: startDate,
+        endDateValue: endDate,
+        typeCodeValue: typeCode,
       });
       return NextResponse.json(
         { error: 'Données manquantes (userId, startDate, endDate, typeCode sont requis)' },
@@ -341,19 +380,42 @@ async function postHandler(request: NextRequest) {
       );
     }
 
+    logger.info('[API /conges POST] Required fields validation passed');
+
     const start = new Date(startDate);
     const end = new Date(endDate);
 
+    logger.info('[API /conges POST] Date parsing:', {
+      startDate: startDate,
+      endDate: endDate,
+      startParsed: start.toISOString(),
+      endParsed: end.toISOString(),
+      startValid: !isNaN(start.getTime()),
+      endValid: !isNaN(end.getTime()),
+    });
+
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      logger.error('[API /conges POST] Invalid date format:', {
+        startDate: startDate,
+        endDate: endDate,
+        startValid: !isNaN(start.getTime()),
+        endValid: !isNaN(end.getTime()),
+      });
       return NextResponse.json({ error: 'Format de date invalide.' }, { status: 400 });
     }
 
     if (end < start) {
+      logger.error('[API /conges POST] End date before start date:', {
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+      });
       return NextResponse.json(
         { error: 'La date de fin ne peut être antérieure à la date de début.' },
         { status: 400 }
       );
     }
+
+    logger.info('[API /conges POST] Date validation passed');
 
     // Convertir le typeCode en type Prisma
     const leaveType = mapCodeToLeaveType(typeCode);
@@ -367,30 +429,71 @@ async function postHandler(request: NextRequest) {
     const countedDays = 1;
 
     // 🔐 VALIDATION DES RÈGLES MÉTIER AVANT CRÉATION
-    const validationResult = await BusinessRulesValidator.validateLeaveRequest({
+    logger.info('[API /conges POST] Starting business rules validation...', {
       userId: String(userIdInt),
-      startDate: start,
-      endDate: end,
-      type: typeCode,
-      quotaId: body.quotaId, // Si applicable
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+      typeCode: typeCode,
+      quotaId: body.quotaId,
     });
 
-    if (!validationResult.valid) {
-      logger.warn('Validation des règles métier échouée', {
-        userId: userIdInt,
+    try {
+      const validationResult = await BusinessRulesValidator.validateLeaveRequest({
+        userId: String(userIdInt), // Convert to string as expected by validator
+        startDate: start,
+        endDate: end,
+        type: typeCode,
+        quotaId: body.quotaId, // Si applicable
+      });
+
+      logger.info('[API /conges POST] Business rules validation result:', {
+        valid: validationResult.valid,
         errors: validationResult.errors,
-        leaveDetails: { typeCode, startDate, endDate },
+      });
+
+      if (!validationResult.valid) {
+        logger.error('[API /conges POST] Business rules validation failed:', {
+          userId: userIdInt,
+          errors: validationResult.errors,
+          leaveDetails: { typeCode, startDate, endDate },
+        });
+        return NextResponse.json(
+          {
+            error: 'La demande de congé ne respecte pas les règles métier',
+            details: validationResult.errors,
+          },
+          { status: 400 }
+        );
+      }
+
+      logger.info('[API /conges POST] Business rules validation passed');
+    } catch (businessValidationError) {
+      logger.error('[API /conges POST] Business rules validation threw error:', {
+        error: businessValidationError,
+        message:
+          businessValidationError instanceof Error
+            ? businessValidationError.message
+            : 'Unknown error',
+        stack: businessValidationError instanceof Error ? businessValidationError.stack : undefined,
       });
       return NextResponse.json(
-        {
-          error: 'La demande de congé ne respecte pas les règles métier',
-          details: validationResult.errors,
-        },
-        { status: 400 }
+        { error: 'Erreur lors de la validation des règles métier' },
+        { status: 500 }
       );
     }
 
     // --- Création en base de données ---
+    logger.info('[API /conges POST] Starting database creation...', {
+      userId: userIdInt,
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+      leaveType: leaveType,
+      typeCode: typeCode,
+      status: LeaveStatus.PENDING,
+      reason: reason,
+      countedDays: countedDays,
+    });
+
     try {
       const newLeave = await prisma.leave.create({
         data: {

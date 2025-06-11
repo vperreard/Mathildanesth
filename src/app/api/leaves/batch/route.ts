@@ -30,24 +30,53 @@ interface BatchResult {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Vérifier l'authentification
+    // Vérifier l'authentification (try both methods for compatibility)
+    let authenticatedUser = null;
+
+    // Try session first
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (session?.user?.id) {
+      authenticatedUser = {
+        id: session.user.id,
+        role: session.user.role,
+      };
+    } else {
+      // Fallback to JWT token in headers
+      const authHeader = request.headers.get('authorization');
+      const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+
+      if (token) {
+        const { verifyAuthToken } = await import('@/lib/auth-server-utils');
+        const authResult = await verifyAuthToken(token);
+        if (authResult.authenticated && authResult.userId) {
+          const user = await prisma.user.findUnique({
+            where: { id: authResult.userId },
+            select: { id: true, role: true },
+          });
+          if (user) {
+            authenticatedUser = user;
+          }
+        }
+      }
+    }
+
+    if (!authenticatedUser) {
       logger.warn("Tentative d'accès sans authentification", { path: '/api/leaves/batch' });
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const authenticatedUser = {
-      id: session.user.id,
-      role: session.user.role,
-    };
-
     const body = await request.json();
-    logger.info('[API /leaves/batch POST] Corps de la requête reçu:', JSON.stringify(body, null, 2));
+    logger.info(
+      '[API /leaves/batch POST] Corps de la requête reçu:',
+      JSON.stringify(body, null, 2)
+    );
 
     // Validation du payload
     if (!Array.isArray(body) || body.length === 0) {
-      return NextResponse.json({ error: 'Le payload doit être un tableau non vide' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Le payload doit être un tableau non vide' },
+        { status: 400 }
+      );
     }
 
     const results: BatchResult[] = [];
@@ -55,14 +84,27 @@ export async function POST(request: NextRequest) {
     // Traiter chaque demande de congé
     for (const leaveRequest of body) {
       try {
-        const { userId, startDate, endDate, typeCode, reason, isHalfDay, halfDayPeriod, countedDays } = leaveRequest as BatchLeaveRequest;
+        const {
+          userId,
+          startDate,
+          endDate,
+          typeCode,
+          reason,
+          isHalfDay,
+          halfDayPeriod,
+          countedDays,
+        } = leaveRequest as BatchLeaveRequest;
 
         // Vérifier que l'utilisateur peut créer un congé pour cet userId
-        if (authenticatedUser.id !== userId && authenticatedUser.role !== 'ADMIN_TOTAL' && authenticatedUser.role !== 'ADMIN_PARTIEL') {
+        if (
+          authenticatedUser.id !== userId &&
+          authenticatedUser.role !== 'ADMIN_TOTAL' &&
+          authenticatedUser.role !== 'ADMIN_PARTIEL'
+        ) {
           results.push({
             success: false,
             message: `Non autorisé à créer un congé pour l'utilisateur ${userId}`,
-            error: 'FORBIDDEN'
+            error: 'FORBIDDEN',
           });
           continue;
         }
@@ -72,7 +114,7 @@ export async function POST(request: NextRequest) {
           results.push({
             success: false,
             message: 'Les champs startDate, endDate et typeCode sont requis',
-            error: 'VALIDATION_ERROR'
+            error: 'VALIDATION_ERROR',
           });
           continue;
         }
@@ -85,7 +127,7 @@ export async function POST(request: NextRequest) {
           results.push({
             success: false,
             message: 'Dates invalides',
-            error: 'INVALID_DATES'
+            error: 'INVALID_DATES',
           });
           continue;
         }
@@ -95,19 +137,32 @@ export async function POST(request: NextRequest) {
           results.push({
             success: false,
             message: 'La date de fin doit être postérieure ou égale à la date de début',
-            error: 'INVALID_DATE_RANGE'
+            error: 'INVALID_DATE_RANGE',
           });
           continue;
         }
 
-        // Pour une demi-journée, vérifier que les dates sont identiques
-        if (isHalfDay && parsedStartDate.getTime() !== parsedEndDate.getTime()) {
-          results.push({
-            success: false,
-            message: 'Pour une demi-journée, la date de début et de fin doivent être identiques',
-            error: 'HALF_DAY_DATE_MISMATCH'
-          });
-          continue;
+        // Pour une demi-journée, vérifier que les dates sont identiques (ignorer l'heure)
+        if (isHalfDay) {
+          const startDateOnly = new Date(
+            parsedStartDate.getFullYear(),
+            parsedStartDate.getMonth(),
+            parsedStartDate.getDate()
+          );
+          const endDateOnly = new Date(
+            parsedEndDate.getFullYear(),
+            parsedEndDate.getMonth(),
+            parsedEndDate.getDate()
+          );
+
+          if (startDateOnly.getTime() !== endDateOnly.getTime()) {
+            results.push({
+              success: false,
+              message: 'Pour une demi-journée, la date de début et de fin doivent être identiques',
+              error: 'HALF_DAY_DATE_MISMATCH',
+            });
+            continue;
+          }
         }
 
         // Mapper le typeCode vers l'enum Prisma
@@ -124,7 +179,8 @@ export async function POST(request: NextRequest) {
             reason,
             status: LeaveStatus.PENDING,
             requestDate: new Date(),
-            countedDays: countedDays || calculateWorkingDays(parsedStartDate, parsedEndDate, isHalfDay),
+            countedDays:
+              countedDays || calculateWorkingDays(parsedStartDate, parsedEndDate, isHalfDay),
             isRecurring: false,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -136,9 +192,9 @@ export async function POST(request: NextRequest) {
                 nom: true,
                 prenom: true,
                 email: true,
-              }
-            }
-          }
+              },
+            },
+          },
         });
 
         // Formater la réponse
@@ -164,7 +220,7 @@ export async function POST(request: NextRequest) {
         results.push({
           success: true,
           message: 'Demande de congé créée avec succès',
-          createdLeave: formattedLeave
+          createdLeave: formattedLeave,
         });
 
         logger.info('Congé créé avec succès', {
@@ -172,21 +228,19 @@ export async function POST(request: NextRequest) {
           userId: createdLeave.userId,
           type: createdLeave.type,
           startDate: createdLeave.startDate,
-          endDate: createdLeave.endDate
+          endDate: createdLeave.endDate,
         });
-
       } catch (error: unknown) {
         logger.error('Erreur lors de la création du congé:', { error, leaveRequest });
         results.push({
           success: false,
           message: error instanceof Error ? error.message : 'Erreur lors de la création du congé',
-          error: 'INTERNAL_ERROR'
+          error: 'INTERNAL_ERROR',
         });
       }
     }
 
     return NextResponse.json({ results });
-
   } catch (error: unknown) {
     logger.error('[API /leaves/batch] Erreur lors du traitement batch:', { error });
     return NextResponse.json(
@@ -199,6 +253,16 @@ export async function POST(request: NextRequest) {
 // Fonction pour mapper le code vers l'enum Prisma
 function mapCodeToLeaveType(code: string): PrismaLeaveType {
   const mappings: Record<string, PrismaLeaveType> = {
+    // Codes français
+    CP: PrismaLeaveType.ANNUAL, // Congés Payés
+    RECUP: PrismaLeaveType.RECOVERY, // Récupération
+    FORM: PrismaLeaveType.TRAINING, // Formation
+    MAL: PrismaLeaveType.SICK, // Maladie
+    MAT: PrismaLeaveType.MATERNITY, // Maternité
+    EXCEP: PrismaLeaveType.SPECIAL, // Exceptionnel
+    SANS_SOLDE: PrismaLeaveType.UNPAID, // Sans solde
+    AUTRE: PrismaLeaveType.OTHER, // Autre
+    // Codes anglais (compatibilité)
     ANNUAL: PrismaLeaveType.ANNUAL,
     RECOVERY: PrismaLeaveType.RECOVERY,
     TRAINING: PrismaLeaveType.TRAINING,

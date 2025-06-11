@@ -9,7 +9,7 @@ interface ValidationResult {
 }
 
 interface LeaveValidationInput {
-  userId: string;
+  userId: string | number;
   startDate: Date;
   endDate: Date;
   type: string;
@@ -52,25 +52,34 @@ export class BusinessRulesValidator {
     const errors: string[] = [];
     const { userId, startDate, endDate, type, quotaId } = input;
 
+    // Convert userId to Int for Prisma queries
+    const userIdInt = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    if (isNaN(userIdInt)) {
+      errors.push('ID utilisateur invalide');
+      return { valid: false, errors };
+    }
+
     try {
       // 1. Vérifier la durée maximale du congé
       const leaveDays = differenceInDays(endDate, startDate) + 1;
       if (leaveDays > this.MAX_CONSECUTIVE_DAYS_LEAVE) {
-        errors.push(`La durée du congé ne peut pas dépasser ${this.MAX_CONSECUTIVE_DAYS_LEAVE} jours consécutifs`);
+        errors.push(
+          `La durée du congé ne peut pas dépasser ${this.MAX_CONSECUTIVE_DAYS_LEAVE} jours consécutifs`
+        );
       }
 
       // 2. Vérifier les chevauchements avec d'autres congés
       const overlappingLeaves = await prisma.leave.findMany({
         where: {
-          userId,
+          userId: userIdInt,
           status: { in: ['PENDING', 'APPROVED'] },
           OR: [
             {
               startDate: { lte: endDate },
-              endDate: { gte: startDate }
-            }
-          ]
-        }
+              endDate: { gte: startDate },
+            },
+          ],
+        },
       });
 
       if (overlappingLeaves.length > 0) {
@@ -84,15 +93,15 @@ export class BusinessRulesValidator {
           include: {
             leaves: {
               where: {
-                userId,
+                userId: userIdInt,
                 status: 'APPROVED',
                 startDate: {
                   gte: new Date(new Date().getFullYear(), 0, 1),
-                  lte: new Date(new Date().getFullYear(), 11, 31)
-                }
-              }
-            }
-          }
+                  lte: new Date(new Date().getFullYear(), 11, 31),
+                },
+              },
+            },
+          },
         });
 
         if (quota) {
@@ -109,48 +118,53 @@ export class BusinessRulesValidator {
       // 4. Vérifier le nombre total de jours de congé dans l'année
       const yearStart = new Date(new Date().getFullYear(), 0, 1);
       const yearEnd = new Date(new Date().getFullYear(), 11, 31);
-      
+
       const yearLeaves = await prisma.leave.findMany({
         where: {
-          userId,
+          userId: userIdInt,
           status: 'APPROVED',
-          startDate: { gte: yearStart, lte: yearEnd }
-        }
+          startDate: { gte: yearStart, lte: yearEnd },
+        },
       });
 
-      const totalDaysThisYear = yearLeaves.reduce((total, leave) => {
-        return total + differenceInDays(leave.endDate, leave.startDate) + 1;
-      }, 0) + leaveDays;
+      const totalDaysThisYear =
+        yearLeaves.reduce((total, leave) => {
+          return total + differenceInDays(leave.endDate, leave.startDate) + 1;
+        }, 0) + leaveDays;
 
       if (totalDaysThisYear > this.MAX_LEAVE_DAYS_PER_YEAR) {
-        errors.push(`Le nombre total de jours de congé ne peut pas dépasser ${this.MAX_LEAVE_DAYS_PER_YEAR} jours par an`);
+        errors.push(
+          `Le nombre total de jours de congé ne peut pas dépasser ${this.MAX_LEAVE_DAYS_PER_YEAR} jours par an`
+        );
       }
 
       // 5. Vérifier l'espacement entre congés longs (> 14 jours)
       if (leaveDays > 14) {
         const recentLongLeaves = await prisma.leave.findMany({
           where: {
-            userId,
+            userId: userIdInt,
             status: 'APPROVED',
             startDate: {
               gte: subDays(startDate, this.MIN_DAYS_BETWEEN_LONG_LEAVES),
-              lte: addDays(endDate, this.MIN_DAYS_BETWEEN_LONG_LEAVES)
-            }
-          }
+              lte: addDays(endDate, this.MIN_DAYS_BETWEEN_LONG_LEAVES),
+            },
+          },
         });
 
-        const longLeaves = recentLongLeaves.filter(leave => 
-          differenceInDays(leave.endDate, leave.startDate) + 1 > 14
+        const longLeaves = recentLongLeaves.filter(
+          leave => differenceInDays(leave.endDate, leave.startDate) + 1 > 14
         );
 
         if (longLeaves.length > 0) {
-          errors.push(`Un délai de ${this.MIN_DAYS_BETWEEN_LONG_LEAVES} jours est requis entre les congés longs`);
+          errors.push(
+            `Un délai de ${this.MIN_DAYS_BETWEEN_LONG_LEAVES} jours est requis entre les congés longs`
+          );
         }
       }
 
       return {
         valid: errors.length === 0,
-        errors
+        errors,
       };
     } catch (error: unknown) {
       errors.push('Erreur lors de la validation du congé');
@@ -169,12 +183,12 @@ export class BusinessRulesValidator {
       // 1. Vérifier les conflits horaires
       const dayStart = startOfDay(date);
       const dayEnd = endOfDay(date);
-      
+
       const existingAssignments = await prisma.attribution.findMany({
         where: {
           userId,
-          date: { gte: dayStart, lte: dayEnd }
-        }
+          date: { gte: dayStart, lte: dayEnd },
+        },
       });
 
       if (existingAssignments.length > 0) {
@@ -184,32 +198,39 @@ export class BusinessRulesValidator {
       // 2. Vérifier les compétences requises pour la salle
       const operatingRoom = await prisma.operatingRoom.findUnique({
         where: { id: operatingRoomId },
-        include: { sector: true }
+        include: { sector: true },
       });
 
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        include: { 
+        include: {
           skills: true,
-          qualifications: true
-        }
+          qualifications: true,
+        },
       });
 
       if (operatingRoom && user) {
         // Vérifier si la salle nécessite des compétences spéciales
         if (operatingRoom.roomType === 'ENDOSCOPIE' || operatingRoom.roomType === 'RADIOLOGIE') {
-          const hasRequiredSkills = user.skills.some(skill => 
-            skill.name === operatingRoom.roomType || skill.name === 'POLYVALENT'
+          const hasRequiredSkills = user.skills.some(
+            skill => skill.name === operatingRoom.roomType || skill.name === 'POLYVALENT'
           );
-          
+
           if (!hasRequiredSkills) {
-            errors.push(`Compétences requises pour la salle ${operatingRoom.name} (${operatingRoom.roomType})`);
+            errors.push(
+              `Compétences requises pour la salle ${operatingRoom.name} (${operatingRoom.roomType})`
+            );
           }
         }
 
         // Vérifier le statut pour les salles spécialisées
-        if (operatingRoom.sector?.category === 'SPECIALIZED' && user.professionalRole === 'IADE_JUNIOR') {
-          errors.push('Les IADEs juniors ne peuvent pas être affectés aux salles spécialisées sans supervision');
+        if (
+          operatingRoom.sector?.category === 'SPECIALIZED' &&
+          user.professionalRole === 'IADE_JUNIOR'
+        ) {
+          errors.push(
+            'Les IADEs juniors ne peuvent pas être affectés aux salles spécialisées sans supervision'
+          );
         }
       }
 
@@ -222,29 +243,33 @@ export class BusinessRulesValidator {
             shiftType: 'GARDE',
             date: {
               gte: subDays(date, this.MIN_DAYS_BETWEEN_GUARDS),
-              lt: date
-            }
-          }
+              lt: date,
+            },
+          },
         });
 
         if (recentGuards.length > 0) {
-          errors.push(`Un délai minimum de ${this.MIN_DAYS_BETWEEN_GUARDS} jours est requis entre les gardes`);
+          errors.push(
+            `Un délai minimum de ${this.MIN_DAYS_BETWEEN_GUARDS} jours est requis entre les gardes`
+          );
         }
 
         // Vérifier le nombre de gardes dans le mois
         const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
         const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-        
+
         const monthGuards = await prisma.attribution.findMany({
           where: {
             userId,
             shiftType: 'GARDE',
-            date: { gte: monthStart, lte: monthEnd }
-          }
+            date: { gte: monthStart, lte: monthEnd },
+          },
         });
 
         if (monthGuards.length >= this.MAX_GUARDS_PER_MONTH) {
-          errors.push(`Le nombre maximum de gardes par mois (${this.MAX_GUARDS_PER_MONTH}) est atteint`);
+          errors.push(
+            `Le nombre maximum de gardes par mois (${this.MAX_GUARDS_PER_MONTH}) est atteint`
+          );
         }
       }
 
@@ -257,30 +282,34 @@ export class BusinessRulesValidator {
       const weekAssignments = await prisma.attribution.findMany({
         where: {
           userId,
-          date: { gte: weekStart, lte: weekEnd }
-        }
+          date: { gte: weekStart, lte: weekEnd },
+        },
       });
 
-      const totalHours = weekAssignments.reduce((sum, attribution) => 
-        sum + (attribution.duration || 8), 0
-      ) + duration;
+      const totalHours =
+        weekAssignments.reduce((sum, attribution) => sum + (attribution.duration || 8), 0) +
+        duration;
 
       if (totalHours > this.MAX_HOURS_PER_WEEK) {
-        errors.push(`Le temps de travail hebdomadaire ne peut pas dépasser ${this.MAX_HOURS_PER_WEEK} heures`);
+        errors.push(
+          `Le temps de travail hebdomadaire ne peut pas dépasser ${this.MAX_HOURS_PER_WEEK} heures`
+        );
       }
 
       // 5. Vérifier les jours consécutifs de travail
       const consecutiveDays = await this.checkConsecutiveWorkingDays(userId, date);
       if (consecutiveDays >= this.MAX_CONSECUTIVE_WORKING_DAYS) {
-        errors.push(`Le nombre maximum de jours consécutifs de travail (${this.MAX_CONSECUTIVE_WORKING_DAYS}) est atteint`);
+        errors.push(
+          `Le nombre maximum de jours consécutifs de travail (${this.MAX_CONSECUTIVE_WORKING_DAYS}) est atteint`
+        );
       }
 
       return {
         valid: errors.length === 0,
-        errors
+        errors,
       };
     } catch (error: unknown) {
-      errors.push('Erreur lors de la validation de l\'garde/vacation');
+      errors.push("Erreur lors de la validation de l'garde/vacation");
       return { valid: false, errors };
     }
   }
@@ -288,7 +317,9 @@ export class BusinessRulesValidator {
   /**
    * Valide la génération d'un planning
    */
-  static async validatePlanningGeneration(input: PlanningGenerationInput): Promise<ValidationResult> {
+  static async validatePlanningGeneration(
+    input: PlanningGenerationInput
+  ): Promise<ValidationResult> {
     const errors: string[] = [];
     const { startDate, endDate, siteId, includeWeekends = false } = input;
 
@@ -305,9 +336,9 @@ export class BusinessRulesValidator {
         include: {
           operatingRooms: true,
           users: {
-            where: { isActive: true }
-          }
-        }
+            where: { isActive: true },
+          },
+        },
       });
 
       if (!site) {
@@ -316,7 +347,7 @@ export class BusinessRulesValidator {
       }
 
       if (site.operatingRooms.length === 0) {
-        errors.push('Aucune salle d\'opération disponible sur ce site');
+        errors.push("Aucune salle d'opération disponible sur ce site");
       }
 
       // 3. Vérifier le ratio MARs/salles
@@ -325,11 +356,15 @@ export class BusinessRulesValidator {
       const operatingRoomsCount = site.operatingRooms.length;
 
       if (mars.length < Math.ceil(operatingRoomsCount / this.MAX_ROOMS_PER_MAR)) {
-        errors.push(`Nombre insuffisant de MARs. Minimum requis: ${Math.ceil(operatingRoomsCount / this.MAX_ROOMS_PER_MAR)}`);
+        errors.push(
+          `Nombre insuffisant de MARs. Minimum requis: ${Math.ceil(operatingRoomsCount / this.MAX_ROOMS_PER_MAR)}`
+        );
       }
 
       if (iadesConfirmed.length < operatingRoomsCount * this.MIN_MAR_PER_ROOM) {
-        errors.push(`Nombre insuffisant d'IADEs. Minimum requis: ${operatingRoomsCount * this.MIN_MAR_PER_ROOM}`);
+        errors.push(
+          `Nombre insuffisant d'IADEs. Minimum requis: ${operatingRoomsCount * this.MIN_MAR_PER_ROOM}`
+        );
       }
 
       // 4. Vérifier les congés prévus
@@ -340,40 +375,44 @@ export class BusinessRulesValidator {
           OR: [
             {
               startDate: { lte: endDate },
-              endDate: { gte: startDate }
-            }
-          ]
+              endDate: { gte: startDate },
+            },
+          ],
         },
-        include: { user: true }
+        include: { user: true },
       });
 
       // Calculer la disponibilité par jour
       for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         const currentDate = new Date(d);
-        
+
         // Ignorer les weekends si non inclus
         if (!includeWeekends && (currentDate.getDay() === 0 || currentDate.getDay() === 6)) {
           continue;
         }
 
-        const usersOnLeave = leaves.filter(leave => 
-          currentDate >= leave.startDate && currentDate <= leave.endDate
+        const usersOnLeave = leaves.filter(
+          leave => currentDate >= leave.startDate && currentDate <= leave.endDate
         );
 
-        const availableMars = mars.filter(mar => 
-          !usersOnLeave.some(leave => leave.userId === mar.id)
+        const availableMars = mars.filter(
+          mar => !usersOnLeave.some(leave => leave.userId === mar.id)
         ).length;
 
-        const availableIades = iadesConfirmed.filter(iade => 
-          !usersOnLeave.some(leave => leave.userId === iade.id)
+        const availableIades = iadesConfirmed.filter(
+          iade => !usersOnLeave.some(leave => leave.userId === iade.id)
         ).length;
 
         if (availableMars < Math.ceil(operatingRoomsCount / this.MAX_ROOMS_PER_MAR)) {
-          errors.push(`Nombre insuffisant de MARs disponibles le ${currentDate.toLocaleDateString('fr-FR')}`);
+          errors.push(
+            `Nombre insuffisant de MARs disponibles le ${currentDate.toLocaleDateString('fr-FR')}`
+          );
         }
 
         if (availableIades < operatingRoomsCount) {
-          errors.push(`Nombre insuffisant d'IADEs disponibles le ${currentDate.toLocaleDateString('fr-FR')}`);
+          errors.push(
+            `Nombre insuffisant d'IADEs disponibles le ${currentDate.toLocaleDateString('fr-FR')}`
+          );
         }
       }
 
@@ -388,7 +427,7 @@ export class BusinessRulesValidator {
 
       return {
         valid: errors.length === 0,
-        errors: errors.slice(0, 10) // Limiter à 10 erreurs pour la lisibilité
+        errors: errors.slice(0, 10), // Limiter à 10 erreurs pour la lisibilité
       };
     } catch (error: unknown) {
       errors.push('Erreur lors de la validation de la génération du planning');
@@ -411,9 +450,9 @@ export class BusinessRulesValidator {
           userId,
           date: {
             gte: startOfDay(checkDate),
-            lte: endOfDay(checkDate)
-          }
-        }
+            lte: endOfDay(checkDate),
+          },
+        },
       });
 
       if (attribution) {
@@ -432,9 +471,9 @@ export class BusinessRulesValidator {
           userId,
           date: {
             gte: startOfDay(checkDate),
-            lte: endOfDay(checkDate)
-          }
-        }
+            lte: endOfDay(checkDate),
+          },
+        },
       });
 
       if (attribution) {

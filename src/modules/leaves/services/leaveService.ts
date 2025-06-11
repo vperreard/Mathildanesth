@@ -70,7 +70,7 @@ export const fetchLeaves = async (filters: LeaveFilters = {}): Promise<Paginated
   try {
     // Construire les paramètres de requête
     const params = new URLSearchParams();
-    
+
     if (filters.userId) params.append('userId', filters.userId);
     if (filters.departmentId) params.append('departmentId', filters.departmentId);
     if (filters.statuses) {
@@ -149,10 +149,11 @@ export const fetchLeaveById = async (leaveId: string): Promise<Leave> => {
 /**
  * Récupérer le solde de congés d'un utilisateur
  */
-export const fetchLeaveBalance = async (userId: string): Promise<LeaveBalance> => {
+export const fetchLeaveBalance = async (userId: string, year?: number): Promise<LeaveBalance> => {
   const operationKey = 'LeaveService.fetchLeaveBalance';
+  const currentYear = year || new Date().getFullYear();
   try {
-    const response = await fetch(`/api/leaves/balance?userId=${userId}`);
+    const response = await fetch(`/api/leaves/balance?userId=${userId}&year=${currentYear}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -463,7 +464,7 @@ export const checkLeaveAllowance = async (
       userId,
       leaveType,
       countedDays,
-      includeRecurringOccurrences
+      includeRecurringOccurrences,
     });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -733,7 +734,8 @@ export const deleteRecurringLeaveRequest = async (
 ): Promise<{ success: boolean; deletedOccurrences?: number }> => {
   const operationKey = 'LeaveService.deleteRecurringLeaveRequest';
   try {
-    const response = await fetch(`/api/leaves/recurring/${id}?deleteOccurrences=${deleteOccurrences}`,
+    const response = await fetch(
+      `/api/leaves/recurring/${id}?deleteOccurrences=${deleteOccurrences}`,
       {
         method: 'DELETE',
       }

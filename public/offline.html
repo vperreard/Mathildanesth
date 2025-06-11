@@ -181,7 +181,7 @@
         setInterval(() => {
             if (!navigator.onLine) {
                 // Ping simple pour vérifier la connectivité
-                fetch('/', { method: 'HEAD', cache: 'no-cache' })
+                fetch(window.location.origin + '/', { method: 'HEAD', cache: 'no-cache' })
                     .then(() => {
                         if (!navigator.onLine) {
                             // Forcer la mise à jour du statut

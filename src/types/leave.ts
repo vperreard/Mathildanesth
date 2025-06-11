@@ -5,19 +5,19 @@
  */
 
 // Re-export des types principaux depuis le module leaves
-export { 
-  LeaveType, 
-  LeaveStatus, 
-  RecurrenceFrequency, 
+export type {
+  LeaveType,
+  LeaveStatus,
+  RecurrenceFrequency,
   RecurrenceEndType,
   LeaveDuration,
-  LeaveDocumentType
+  LeaveDocumentType,
 } from '../modules/leaves/types/leave';
 
 // Re-export des interfaces principales depuis le module leaves
-export { 
+export type {
   Leave,
-  LeaveRequest, 
+  LeaveRequest,
   LeaveBalance,
   LeaveFilters,
   PaginatedLeaveResults,
@@ -39,7 +39,7 @@ export {
   DayDetail,
   WeeklyLeaveBreakdown,
   PublicHolidayDetail,
-  LeaveDayType
+  LeaveDayType,
 } from '../modules/leaves/types/leave';
 
 /**

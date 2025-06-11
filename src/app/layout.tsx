@@ -30,11 +30,11 @@ import { ProductionLayout } from '@/components/layout/ProductionLayout';
 // Suppression du préchargeur chargé dynamiquement (déplacé dans le composant client)
 
 // Suppression des configurations de polices Next.js
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
-  preload: true,
-  fallback: ['system-ui', 'arial']
+  preload: false,
+  fallback: ['system-ui', 'arial'],
 });
 
 // const montserrat = Montserrat({
@@ -45,110 +45,102 @@ const inter = Inter({
 // });
 
 export const metadata: Metadata = {
-    title: {
-        default: 'Mathildanesth - Planning Médical',
-        template: '%s | Mathildanesth'
-    },
+  title: {
+    default: 'Mathildanesth - Planning Médical',
+    template: '%s | Mathildanesth',
+  },
+  description: 'Système de gestion des plannings et congés pour établissements de santé',
+  keywords: ['planning', 'santé', 'hôpital', 'congés', 'médecin', 'anesthésie', 'bloc opératoire'],
+  authors: [{ name: 'Mathildanesth Team' }],
+  creator: 'Mathildanesth',
+  publisher: 'Mathildanesth',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    url: '/',
+    title: 'Mathildanesth - Planning Médical',
     description: 'Système de gestion des plannings et congés pour établissements de santé',
-    keywords: ['planning', 'santé', 'hôpital', 'congés', 'médecin', 'anesthésie', 'bloc opératoire'],
-    authors: [{ name: 'Mathildanesth Team' }],
-    creator: 'Mathildanesth',
-    publisher: 'Mathildanesth',
-    formatDetection: {
-        email: false,
-        address: false,
-        telephone: false,
+    siteName: 'Mathildanesth',
+  },
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
     },
-    metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
-    openGraph: {
-        type: 'website',
-        locale: 'fr_FR',
-        url: '/',
-        title: 'Mathildanesth - Planning Médical',
-        description: 'Système de gestion des plannings et congés pour établissements de santé',
-        siteName: 'Mathildanesth',
-    },
-    robots: {
-        index: false,
-        follow: false,
-        googleBot: {
-            index: false,
-            follow: false,
-        },
-    },
-    icons: {
-        icon: '/favicon.ico',
-        shortcut: '/favicon-16x16.png',
-        apple: '/apple-touch-icon.png',
-    },
-    manifest: '/manifest.json',
+  },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    themeColor: [
-        { media: '(prefers-color-scheme: light)', color: '#3b82f6' },
-        { media: '(prefers-color-scheme: dark)', color: '#1e40af' }
-    ]
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#3b82f6' },
+    { media: '(prefers-color-scheme: dark)', color: '#1e40af' },
+  ],
 };
 
-export default function RootLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
-    return (
-        <html lang="fr" className={inter.className}>
-            <head>
-                {/* Preconnect aux domaines externes pour améliorer les performances */}
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="fr" className={inter.className}>
+      <head>
+        {/* Preconnect aux domaines externes pour améliorer les performances */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
 
-                {/* Préchargement des ressources critiques - Désactivé temporairement car fichiers corrompus */}
-                {/* <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="" /> */}
+        {/* Préchargement des ressources critiques - Désactivé temporairement car fichiers corrompus */}
+        {/* <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="" /> */}
 
-                {/* DNS prefetch pour les domaines potentiels */}
-                <link rel="dns-prefetch" href="//api.mathilda.com" />
+        {/* DNS prefetch pour les domaines potentiels */}
+        <link rel="dns-prefetch" href="//api.mathilda.com" />
 
-                {/* Resource hints pour les performances */}
-                <link rel="prefetch" href="/api/auth/me" />
-                <link rel="prefetch" href="/auth/connexion" />
-                
-                {/* SW Killer - Temporaire pour résoudre les problèmes de cache */}
-                <script src="/sw-killer.js" defer></script>
-            </head>
-            <body className="transition-colors duration-300">
-                <AuthProvider>
-                    <Providers>
-                        <ThemeProvider>
-                            <ProductionLayout>
-                                <ErrorBoundary
-                                    fallbackComponent={LayoutErrorFallback}
-                                >
-                                    {children}
-                                </ErrorBoundary>
+        {/* Resource hints pour les performances */}
+        <link rel="prefetch" href="/api/auth/me" />
+        <link rel="prefetch" href="/auth/connexion" />
 
-                                {/* Notifications et composants globaux */}
-                                <NotificationToast />
-                                {/* Temporairement désactivé pour éviter les erreurs de session */}
-                                {/* <ClientNotificationCenter />
+        {/* SW Killer - Temporaire pour résoudre les problèmes de cache */}
+        <script src="/sw-killer.js" defer></script>
+      </head>
+      <body className="transition-colors duration-300">
+        <AuthProvider>
+          <Providers>
+            <ThemeProvider>
+              <ProductionLayout>
+                <ErrorBoundary fallbackComponent={LayoutErrorFallback}>{children}</ErrorBoundary>
+
+                {/* Notifications et composants globaux */}
+                <NotificationToast />
+                {/* Temporairement désactivé pour éviter les erreurs de session */}
+                {/* <ClientNotificationCenter />
                                 <ClientSimulationNotifications /> */}
 
-                                {/* Préchargeur de routes et données via un wrapper client */}
-                                <ClientPrefetcherWrapper />
+                {/* Préchargeur de routes et données via un wrapper client */}
+                <ClientPrefetcherWrapper />
 
-                                {/* Tracker de performance */}
-                                <ClientPerformanceTracker />
+                {/* Tracker de performance */}
+                <ClientPerformanceTracker />
 
-                                <ServiceWorkerRegistration />
-                            </ProductionLayout>
-                        </ThemeProvider>
-                    </Providers>
-                </AuthProvider>
-            </body>
-        </html>
-    );
+                <ServiceWorkerRegistration />
+              </ProductionLayout>
+            </ThemeProvider>
+          </Providers>
+        </AuthProvider>
+      </body>
+    </html>
+  );
 }

@@ -3,36 +3,33 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { 
-  BarChart, 
-  Bar, 
-  LineChart, 
-  Line, 
-  PieChart, 
-  Pie, 
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
   Cell,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer 
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from 'recharts';
-import { 
-  Activity, 
-  Clock, 
-  AlertTriangle, 
-  CheckCircle,
-  TrendingUp,
-  Users,
-  Calendar,
-  Zap
-} from 'lucide-react';
+import { Activity, Clock, AlertTriangle, CheckCircle, Users, Zap } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { format, subDays, startOfDay } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { format, subDays } from 'date-fns';
 
 export const RuleMonitoringDashboard: React.FC = () => {
   const [timeRange, setTimeRange] = useState('7d');
@@ -41,11 +38,13 @@ export const RuleMonitoringDashboard: React.FC = () => {
   const { data: monitoringData, isLoading } = useQuery({
     queryKey: ['rule-monitoring', timeRange],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3000/api/admin/rules/v2/monitoring?range=${timeRange}`);
+      const response = await fetch(
+        `http://localhost:3000/api/admin/rules/v2/monitoring?range=${timeRange}`
+      );
       if (!response.ok) throw new Error('Failed to fetch monitoring data');
       return response.json();
     },
-    refetchInterval: 60000 // Refresh every minute
+    refetchInterval: 60000, // Refresh every minute
   });
 
   // Simulated data for demonstration
@@ -56,32 +55,32 @@ export const RuleMonitoringDashboard: React.FC = () => {
       successRate: 0.89,
       activeRules: 24,
       totalViolations: 1342,
-      affectedUsers: 67
+      affectedUsers: 67,
     },
     evaluationTrend: Array.from({ length: 7 }, (_, i) => ({
       date: format(subDays(new Date(), 6 - i), 'dd/MM'),
       evaluations: Math.floor(Math.random() * 8000) + 4000,
-      violations: Math.floor(Math.random() * 300) + 100
+      violations: Math.floor(Math.random() * 300) + 100,
     })),
     rulePerformance: [
       { name: 'Limite gardes hebdo', execTime: 15, evaluations: 12000, successRate: 0.92 },
       { name: 'Repos après garde', execTime: 8, evaluations: 8500, successRate: 0.95 },
       { name: 'Supervision minimum', execTime: 32, evaluations: 6000, successRate: 0.78 },
       { name: 'Équilibrage charge', execTime: 45, evaluations: 4500, successRate: 0.85 },
-      { name: 'Conflits congés', execTime: 12, evaluations: 3200, successRate: 0.91 }
+      { name: 'Conflits congés', execTime: 12, evaluations: 3200, successRate: 0.91 },
     ],
     violationsByType: [
       { type: 'PLANNING', count: 542, percentage: 40 },
       { type: 'LEAVE', count: 380, percentage: 28 },
       { type: 'CONSTRAINT', count: 271, percentage: 20 },
       { type: 'SUPERVISION', count: 108, percentage: 8 },
-      { type: 'ALLOCATION', count: 41, percentage: 4 }
+      { type: 'ALLOCATION', count: 41, percentage: 4 },
     ],
     impactedUsers: {
       high: 12,
       medium: 28,
-      low: 27
-    }
+      low: 27,
+    },
   };
 
   const data = monitoringData || defaultData;
@@ -140,9 +139,7 @@ export const RuleMonitoringDashboard: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {formatNumber(data.overview.totalEvaluations)}
-            </div>
+            <div className="text-2xl font-bold">{formatNumber(data.overview.totalEvaluations)}</div>
             <p className="text-xs text-muted-foreground">Total sur la période</p>
           </CardContent>
         </Card>
@@ -361,8 +358,8 @@ export const RuleMonitoringDashboard: React.FC = () => {
                   {data.violationsByType.map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
+                        <div
+                          className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: COLORS[idx % COLORS.length] }}
                         />
                         <span className="text-sm">{item.type}</span>
@@ -406,11 +403,15 @@ export const RuleMonitoringDashboard: React.FC = () => {
                     <p className="text-sm text-muted-foreground">Impact élevé</p>
                   </div>
                   <div className="text-center p-4 border rounded-lg">
-                    <div className="text-3xl font-bold text-orange-600">{data.impactedUsers.medium}</div>
+                    <div className="text-3xl font-bold text-orange-600">
+                      {data.impactedUsers.medium}
+                    </div>
                     <p className="text-sm text-muted-foreground">Impact moyen</p>
                   </div>
                   <div className="text-center p-4 border rounded-lg">
-                    <div className="text-3xl font-bold text-green-600">{data.impactedUsers.low}</div>
+                    <div className="text-3xl font-bold text-green-600">
+                      {data.impactedUsers.low}
+                    </div>
                     <p className="text-sm text-muted-foreground">Impact faible</p>
                   </div>
                 </div>
@@ -422,8 +423,8 @@ export const RuleMonitoringDashboard: React.FC = () => {
                       <Alert>
                         <AlertTriangle className="h-4 w-4" />
                         <AlertDescription>
-                          {data.impactedUsers.high} utilisateurs fortement impactés. 
-                          Considérez la révision des règles les plus strictes.
+                          {data.impactedUsers.high} utilisateurs fortement impactés. Considérez la
+                          révision des règles les plus strictes.
                         </AlertDescription>
                       </Alert>
                     )}
@@ -431,8 +432,8 @@ export const RuleMonitoringDashboard: React.FC = () => {
                       <Alert>
                         <AlertTriangle className="h-4 w-4" />
                         <AlertDescription>
-                          Taux de conformité faible ({(data.overview.successRate * 100).toFixed(0)}%). 
-                          Les règles peuvent être trop restrictives.
+                          Taux de conformité faible ({(data.overview.successRate * 100).toFixed(0)}
+                          %). Les règles peuvent être trop restrictives.
                         </AlertDescription>
                       </Alert>
                     )}
@@ -440,8 +441,8 @@ export const RuleMonitoringDashboard: React.FC = () => {
                       <Alert>
                         <Clock className="h-4 w-4" />
                         <AlertDescription>
-                          Temps d'exécution élevé ({data.overview.avgExecutionTime}ms). 
-                          Optimisation des règles recommandée.
+                          Temps d'exécution élevé ({data.overview.avgExecutionTime}ms). Optimisation
+                          des règles recommandée.
                         </AlertDescription>
                       </Alert>
                     )}
