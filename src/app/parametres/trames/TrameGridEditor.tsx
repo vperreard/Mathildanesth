@@ -1,18 +1,19 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { logger } from '../../../lib/logger';
 import dynamic from 'next/dynamic';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '@/components/ui/select';
+import { SelectNative } from '@/components/ui/select-native';
 import Button from '@/components/ui/button';
 import { PlusIcon, RefreshCcw, AlertCircle, Settings } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,7 +22,12 @@ import { toast } from 'react-toastify';
 import { toast as managedToast, toastManager } from '@/lib/toast-manager';
 import { Badge } from '@/components/ui/badge';
 import { useUsers } from '@/hooks/useUsers';
-import { useTrameModeles, useTrameModele, useUpdateTrameModele, usePrefetchTrames } from '@/hooks/useTrameQueries';
+import {
+  useTrameModeles,
+  useTrameModele,
+  useUpdateTrameModele,
+  usePrefetchTrames,
+} from '@/hooks/useTrameQueries';
 import { TRAME_ENDPOINTS, buildApiUrl } from '@/config/api-endpoints';
 import { useQuery } from '@tanstack/react-query';
 
@@ -132,7 +138,7 @@ const mapTrameFromApi = (apiTrame: any): TrameModele => {
     detailsJson: apiTrame.detailsJson || null,
   };
 
-  logger.info('[MAPPING] Final mapped TrameModele:', mappedTrame);
+  logger.info('[MAPPING] Final mapped TrameModele:', { ...mappedTrame });
   return mappedTrame;
 };
 
@@ -202,29 +208,34 @@ const TrameGridEditor: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [trameToEdit, setTrameToEdit] = useState<TrameModele | null>(null);
-  
+
   // Utiliser React Query pour charger les trames
-  const { data: tramesData = [], isLoading, error: loadingError, refetch: refetchTrames } = useTrameModeles({ includeAffectations: true });
-  const trameModeles = tramesData.map(mapTrameFromApi);
-  
+  const {
+    data: tramesData = [],
+    isLoading,
+    error: loadingError,
+    refetch: refetchTrames,
+  } = useTrameModeles({ includeAffectations: true });
+  const trameModeles = useMemo(() => tramesData.map(mapTrameFromApi), [tramesData]);
+
   // Hook pour la mise à jour des trames
   const updateTrameMutation = useUpdateTrameModele();
-  
+
   // Hook pour précharger les données
-  const { prefetchTrameModeles, prefetchTrameDetail } = usePrefetchTrames();
+  // const { prefetchTrameModeles, prefetchTrameDetail } = usePrefetchTrames();
 
   // Effet pour sélectionner la première trame par défaut
   useEffect(() => {
     if (trameModeles.length > 0 && !selectedTrameId) {
       setSelectedTrameId(trameModeles[0].id);
-      
+
       // Si la trameModele a un siteId, on le sélectionne pour charger les salles/secteurs
       if (trameModeles[0].siteId) {
         setSelectedSiteId(trameModeles[0].siteId);
       }
     }
   }, [trameModeles, selectedTrameId]);
-  
+
   // Fonction pour recharger les données
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -232,7 +243,7 @@ const TrameGridEditor: React.FC = () => {
       await refetchTrames();
       toastManager.success('Données actualisées');
     } catch (error) {
-      toastManager.error('Erreur lors de l\'actualisation');
+      toastManager.error("Erreur lors de l'actualisation");
     } finally {
       setIsRefreshing(false);
     }
@@ -246,17 +257,33 @@ const TrameGridEditor: React.FC = () => {
       return response.data;
     },
     staleTime: 5 * 60 * 1000,
+    structuralSharing: false, // Évite la création de nouveaux objets
   });
-  
+
+  // Éviter de recréer l'état si les données n'ont pas changé
   useEffect(() => {
-    setSites(sitesData);
+    setSites(prevSites => {
+      // Comparer uniquement les IDs pour éviter les re-renders inutiles
+      const prevIds = prevSites
+        .map(s => s.id)
+        .sort()
+        .join(',');
+      const newIds = sitesData
+        .map(s => s.id)
+        .sort()
+        .join(',');
+      if (prevIds === newIds) {
+        return prevSites;
+      }
+      return sitesData;
+    });
   }, [sitesData]);
 
   // Charger les secteurs avec React Query
   const { data: sectorsData = [] } = useQuery({
     queryKey: ['operating-sectors', selectedSiteId],
     queryFn: async () => {
-      const url = selectedSiteId 
+      const url = selectedSiteId
         ? `/api/operating-sectors?siteId=${selectedSiteId}`
         : '/api/operating-sectors';
       const response = await axios.get(buildApiUrl(url));
@@ -264,13 +291,14 @@ const TrameGridEditor: React.FC = () => {
     },
     enabled: selectedTrameId !== null,
     staleTime: 5 * 60 * 1000,
+    structuralSharing: false,
   });
-  
+
   // Charger les salles avec React Query
   const { data: roomsData = [] } = useQuery({
     queryKey: ['operating-rooms', selectedSiteId],
     queryFn: async () => {
-      const url = selectedSiteId 
+      const url = selectedSiteId
         ? `/api/operating-rooms?siteId=${selectedSiteId}`
         : '/api/operating-rooms';
       const response = await axios.get(buildApiUrl(url));
@@ -278,13 +306,44 @@ const TrameGridEditor: React.FC = () => {
     },
     enabled: selectedTrameId !== null,
     staleTime: 5 * 60 * 1000,
+    structuralSharing: false,
   });
-  
+
   useEffect(() => {
-    setSectors(sectorsData);
-    setRooms(roomsData);
+    setSectors(prevSectors => {
+      const prevIds = prevSectors
+        .map(s => s.id)
+        .sort()
+        .join(',');
+      const newIds = sectorsData
+        .map(s => s.id)
+        .sort()
+        .join(',');
+      if (prevIds === newIds) {
+        return prevSectors;
+      }
+      return sectorsData;
+    });
+
+    setRooms(prevRooms => {
+      const prevIds = prevRooms
+        .map(r => r.id)
+        .sort()
+        .join(',');
+      const newIds = roomsData
+        .map(r => r.id)
+        .sort()
+        .join(',');
+      if (prevIds === newIds) {
+        return prevRooms;
+      }
+      return roomsData;
+    });
+
     if (sectorsData.length > 0 || roomsData.length > 0) {
-      logger.info(`📍 Données chargées: ${sectorsData.length} secteurs, ${roomsData.length} salles`);
+      logger.info(
+        `📍 Données chargées: ${sectorsData.length} secteurs, ${roomsData.length} salles`
+      );
     }
   }, [sectorsData, roomsData]);
 
@@ -296,6 +355,7 @@ const TrameGridEditor: React.FC = () => {
   }, [user, isLoading]);
 
   // Quand selectedTrameId change, mettre à jour selectedSiteId
+  // Synchroniser le site avec la trame sélectionnée
   useEffect(() => {
     if (selectedTrameId) {
       const trameModele = trameModeles.find(t => t.id === selectedTrameId);
@@ -308,20 +368,16 @@ const TrameGridEditor: React.FC = () => {
           // TrameModele liée à un site spécifique : forcer ce site
           setSelectedSiteId(trameModele.siteId);
         } else {
-          // TrameModele globale : garder le site actuellement sélectionné ou mettre null (tous les sites)
-          if (selectedSiteId === undefined) {
-            setSelectedSiteId(null); // Par défaut : tous les sites
-          }
-          // Sinon on garde selectedSiteId tel qu'il est
+          // TrameModele globale : réinitialiser à null
+          setSelectedSiteId(null);
         }
       }
     }
-  }, [selectedTrameId, trameModeles]);
+  }, [selectedTrameId, trameModeles]); // Retirer selectedSiteId des dépendances pour éviter la boucle
 
   // SUPPRIMÉ : Actualisation automatique au focus de l'onglet
   // Désormais, utilisez uniquement le bouton "Actualiser" pour rafraîchir les données
   // Cela évite les rechargements intempestifs qui bloquaient le workflow
-
 
   const handleTrameChange = async (updatedTrame: TrameModele) => {
     try {
@@ -349,7 +405,7 @@ const TrameGridEditor: React.FC = () => {
         // Utiliser la mutation React Query
         await updateTrameMutation.mutateAsync({
           id: updatedTrame.id,
-          data: apiTrame
+          data: apiTrame,
         });
       }
     } catch (err: unknown) {
@@ -409,36 +465,29 @@ const TrameGridEditor: React.FC = () => {
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium">Sélectionner une trameModele:</span>
             <div className="flex items-center space-x-2">
-              <Select
+              <SelectNative
                 value={selectedTrameId || ''}
-                onValueChange={value => setSelectedTrameId(value)}
+                onValueChange={value => {
+                  if (value) setSelectedTrameId(value);
+                }}
                 disabled={isLoading || trameModeles.length === 0}
+                className="w-[280px]"
               >
-                <SelectTrigger className="w-[280px]">
-                  <SelectValue placeholder="Sélectionner une trameModele" />
-                </SelectTrigger>
-                <SelectContent>
-                  {trameModeles.map(trameModele => {
-                    const site = sites.find(s => s.id === trameModele.siteId);
-                    return (
-                      <SelectItem key={trameModele.id} value={trameModele.id}>
-                        <div className="flex items-center gap-2">
-                          <span>{trameModele.name}</span>
-                          {trameModele.siteId ? (
-                            <Badge variant="secondary" className="text-xs">
-                              {site ? site.name : `Site ${trameModele.siteId}`}
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">
-                              Global
-                            </Badge>
-                          )}
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+                <option value="" disabled>
+                  Sélectionner une trameModele
+                </option>
+                {trameModeles.map(trameModele => {
+                  const site = sites.find(s => s.id === trameModele.siteId);
+                  return (
+                    <option key={trameModele.id} value={trameModele.id}>
+                      {trameModele.name}{' '}
+                      {trameModele.siteId
+                        ? `(${site ? site.name : `Site ${trameModele.siteId}`})`
+                        : '(Global)'}
+                    </option>
+                  );
+                })}
+              </SelectNative>
               {isRefreshing && (
                 <div className="flex items-center space-x-1 text-xs text-blue-600">
                   <RefreshCcw className="h-3 w-3 animate-spin" />
@@ -471,30 +520,19 @@ const TrameGridEditor: React.FC = () => {
           {selectedTrame && !selectedTrame.siteId && (
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium">Vue site:</span>
-              <Select
+              <SelectNative
                 value={selectedSiteId || 'all'}
                 onValueChange={value => setSelectedSiteId(value === 'all' ? null : value)}
                 disabled={isLoading || sites.length === 0}
+                className="w-[200px]"
               >
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Choisir un site" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    <div className="flex items-center gap-2">
-                      <span>Tous les sites</span>
-                      <Badge variant="secondary" className="text-xs">
-                        Global
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                  {sites.map(site => (
-                    <SelectItem key={site.id} value={site.id}>
-                      {site.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <option value="all">Tous les sites (Global)</option>
+                {sites.map(site => (
+                  <option key={site.id} value={site.id}>
+                    {site.name}
+                  </option>
+                ))}
+              </SelectNative>
             </div>
           )}
 

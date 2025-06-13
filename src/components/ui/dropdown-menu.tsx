@@ -13,7 +13,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children, className 
   const [isOpen, setIsOpen] = useState(false);
   const toggleMenu = useCallback(() => {
     setIsOpen(prev => !prev);
-  }, [isOpen]);
+  }, []);
   const closeMenuCallback = useCallback(() => {
     setIsOpen(false);
   }, []);
@@ -324,6 +324,83 @@ export const DropdownMenuSubContent: React.FC<DropdownMenuSubContentProps> = ({
     >
       <div className="py-1">{children}</div>
     </div>
+  );
+};
+
+// Radio Group components
+export interface DropdownMenuRadioGroupProps {
+  children: React.ReactNode;
+  value?: string;
+  onValueChange?: (value: string) => void;
+}
+
+export const DropdownMenuRadioGroup: React.FC<DropdownMenuRadioGroupProps> = ({
+  children,
+  value,
+  onValueChange,
+}) => {
+  return (
+    <div role="radiogroup">
+      {React.Children.map(children, child => {
+        if (React.isValidElement(child) && child.type === DropdownMenuRadioItem) {
+          return React.cloneElement(child as React.ReactElement<DropdownMenuRadioItemProps>, {
+            checked: value === child.props.value,
+            onSelect: () => onValueChange?.(child.props.value),
+          });
+        }
+        return child;
+      })}
+    </div>
+  );
+};
+
+export interface DropdownMenuRadioItemProps {
+  children: React.ReactNode;
+  value: string;
+  className?: string;
+  checked?: boolean;
+  onSelect?: () => void;
+  disabled?: boolean;
+}
+
+export const DropdownMenuRadioItem: React.FC<DropdownMenuRadioItemProps> = ({
+  children,
+  value,
+  className,
+  checked = false,
+  onSelect,
+  disabled = false,
+}) => {
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (!disabled) {
+      onSelect?.();
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={checked}
+      className={cn(
+        'relative flex w-full items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors',
+        disabled
+          ? 'text-gray-400 cursor-not-allowed'
+          : 'text-gray-900 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100',
+        className
+      )}
+      onClick={handleClick}
+      disabled={disabled}
+    >
+      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+        {checked && (
+          <svg className="h-2 w-2 fill-current" viewBox="0 0 8 8">
+            <circle cx="4" cy="4" r="4" />
+          </svg>
+        )}
+      </span>
+      {children}
+    </button>
   );
 };
 
